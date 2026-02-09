@@ -1,0 +1,38 @@
+[project]
+name = "salga-trust-engine"
+version = "0.1.0"
+description = "AI-powered municipal service management platform for South Africa"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "fastapi[standard]==0.128.0",
+    "uvicorn[standard]==0.34.0",
+    "pyjwt==2.10.1",
+    "argon2-cffi==23.1.0",
+    "python-multipart==0.0.18",
+    "sqlalchemy==2.0.36",
+    "psycopg[binary]==3.2.3",
+    "alembic==1.14.0",
+    "slowapi==0.1.9",
+    "redis==5.2.0",
+    "python-magic==0.4.27",
+    "nh3==0.2.21",
+    "email-validator==2.1.0",
+    "python-dotenv==1.0.1",
+    "aiofiles==24.1.0",
+    "pydantic-settings==2.7.0",
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest==8.3.0",
+    "pytest-asyncio==0.24.0",
+    "httpx==0.28.0",
+]
+
+[project.scripts]
+salga = "src.main:app"
+
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
