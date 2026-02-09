@@ -370,23 +370,44 @@ def test_handle_municipal(mock_redis_url):
     assert flow.state.is_complete is True
 
 
-def test_handle_gbv(mock_redis_url):
-    """Test GBV intake handler (placeholder)."""
+@pytest.mark.asyncio
+async def test_handle_gbv(mock_redis_url):
+    """Test GBV intake handler with GBVCrew."""
+    from unittest.mock import AsyncMock, patch
+
     state = IntakeState(
         message_id="msg_1",
         user_id="user_1",
         tenant_id="tenant_1",
         session_id="session_1",
-        message="GBV report",
+        message="GBV report - domestic violence",
         category="gbv"
     )
 
     flow = IntakeFlow(redis_url=mock_redis_url)
     flow._state = state
 
-    result = flow.handle_gbv()
+    # Mock GBVCrew.kickoff to return success
+    with patch('src.agents.crews.gbv_crew.GBVCrew.kickoff', new_callable=AsyncMock) as mock_kickoff:
+        mock_kickoff.return_value = {
+            "tracking_number": "TKT-20260209-ABC123",
+            "category": "gbv",
+            "severity": "high"
+        }
 
-    assert isinstance(result, dict)
-    assert "error" in result
-    assert flow.state.error is not None
-    assert "not yet implemented" in flow.state.error.lower()
+        # Mock conversation manager clear_session
+        flow._conversation_manager.clear_session = AsyncMock()
+
+        result = await flow.handle_gbv()
+
+        assert isinstance(result, dict)
+        assert "tracking_number" in result
+        assert result["category"] == "gbv"
+        assert flow.state.is_complete is True
+
+        # Verify session was cleared
+        flow._conversation_manager.clear_session.assert_called_once_with(
+            user_id="user_1",
+            session_id="session_1",
+            is_gbv=True
+        )

@@ -167,13 +167,46 @@ class IntakeFlow(Flow[IntakeState]):
         return ticket_data
 
     @listen("gbv_intake")
-    def handle_gbv(self) -> dict[str, Any]:
-        """Handle GBV intake.
+    async def handle_gbv(self) -> dict[str, Any]:
+        """Handle GBV intake with enhanced privacy controls.
 
-        Placeholder for GBV crew (to be implemented in Plan 02-03).
+        Instantiates and runs the GBVCrew to conduct trauma-informed intake.
+        After successful ticket creation, clears the GBV session from Redis
+        for data minimization.
 
         Returns:
-            Error dictionary indicating GBV crew not implemented
+            Ticket data dictionary with SAPS notification status
         """
-        self.state.error = "GBV crew not yet implemented (planned for 02-03)"
-        return {"error": self.state.error}
+        # Import here to avoid circular dependency
+        from src.agents.crews.gbv_crew import GBVCrew
+
+        # Create and run GBV crew with detected language
+        crew = GBVCrew(language=self.state.language, llm_model=self._llm_model)
+
+        # Execute crew kickoff
+        result = await crew.kickoff(
+            message=self.state.message,
+            user_id=self.state.user_id,
+            tenant_id=self.state.tenant_id
+        )
+
+        # Store result in state
+        self.state.ticket_data = result
+
+        # If ticket creation successful, clear GBV session from Redis
+        # This implements data minimization per research Pitfall 3
+        if "error" not in result and self.state.session_id:
+            try:
+                await self._conversation_manager.clear_session(
+                    user_id=self.state.user_id,
+                    session_id=self.state.session_id,
+                    is_gbv=True  # Use GBV namespace
+                )
+            except Exception as e:
+                # Log but don't fail - ticket already created
+                # In production, this would use structured logging
+                pass
+
+        self.state.is_complete = True
+
+        return result
