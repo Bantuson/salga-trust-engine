@@ -12,7 +12,7 @@ This roadmap delivers an AI-powered municipal service management platform in 6 p
 
 Decimal phases appear between their surrounding integers in numeric order.
 
-- [ ] **Phase 1: Foundation & Security** - Multi-tenant architecture, POPIA compliance, API-first design
+- [x] **Phase 1: Foundation & Security** - Multi-tenant architecture, POPIA compliance, API-first design
 - [ ] **Phase 2: Agentic AI System** - CrewAI manager and specialist agents with multilingual support
 - [ ] **Phase 3: Citizen Reporting Channels** - WhatsApp bot and web portal intake with photo uploads
 - [ ] **Phase 4: Ticket Management & Routing** - Geospatial routing, SLA tracking, automated escalation
@@ -40,8 +40,8 @@ Plans:
 - [x] 01-03-PLAN.md -- Security middleware, rate limiting, input sanitization, and CORS
 - [x] 01-04-PLAN.md -- POPIA data rights endpoints and comprehensive audit logging
 - [x] 01-05-PLAN.md -- Municipality management API and multi-tenant RLS isolation
-- [ ] 01-06-PLAN.md -- Database encryption config (SEC-01) and test infrastructure overhaul (gap closure)
-- [ ] 01-07-PLAN.md -- Test suite separation, unit tests, and coverage verification (gap closure)
+- [x] 01-06-PLAN.md -- Database encryption config (SEC-01) and test infrastructure overhaul (gap closure)
+- [x] 01-07-PLAN.md -- Test suite separation, unit tests, and coverage verification (gap closure)
 
 ### Phase 2: Agentic AI System
 **Goal**: AI agents handle message routing and structured conversational intake
@@ -159,7 +159,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Security | 5/7 | Gap closure in progress | - |
+| 1. Foundation & Security | 7/7 | ✓ Complete | 2026-02-09 |
 | 2. Agentic AI System | 0/3 | Not started | - |
 | 3. Citizen Reporting Channels | 0/3 | Not started | - |
 | 4. Ticket Management & Routing | 0/3 | Not started | - |
