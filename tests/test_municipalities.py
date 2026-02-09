@@ -8,7 +8,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 
-pytestmark = pytest.mark.asyncio
+# All tests in this module are integration tests (hit API endpoints, require database)
+pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
 
 async def test_create_municipality(

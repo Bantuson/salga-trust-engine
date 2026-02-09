@@ -8,10 +8,13 @@ from src.main import app
 from src.models.municipality import Municipality
 from src.models.user import User
 
+# All tests in this module are integration tests (require database)
+pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
+
 
 @pytest.fixture
-async def test_municipality(db_session: AsyncSession) -> Municipality:
-    """Create a test municipality."""
+async def test_municipality_auth(db_session: AsyncSession) -> Municipality:
+    """Create a test municipality with additional fields for auth tests."""
     municipality = Municipality(
         name="Test Municipality",
         code="TEST001",
@@ -27,7 +30,7 @@ async def test_municipality(db_session: AsyncSession) -> Municipality:
 
 
 @pytest.fixture
-def valid_registration_data(test_municipality: Municipality) -> dict:
+def valid_registration_data(test_municipality_auth: Municipality) -> dict:
     """Valid registration data."""
     return {
         "email": "testuser@example.com",
@@ -45,11 +48,10 @@ def valid_registration_data(test_municipality: Municipality) -> dict:
     }
 
 
-@pytest.mark.asyncio
 async def test_register_success(
     async_client: AsyncClient,
     db_session: AsyncSession,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test successful user registration."""
@@ -72,10 +74,9 @@ async def test_register_success(
     assert user.email == valid_registration_data["email"]
 
 
-@pytest.mark.asyncio
 async def test_register_requires_consent(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test that registration requires consent."""
@@ -89,10 +90,9 @@ async def test_register_requires_consent(
     assert "consent" in response.text.lower()
 
 
-@pytest.mark.asyncio
 async def test_register_duplicate_email(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test that duplicate email registration returns 409."""
@@ -106,10 +106,9 @@ async def test_register_duplicate_email(
     assert "already registered" in response.json()["detail"].lower()
 
 
-@pytest.mark.asyncio
 async def test_login_success(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test successful login with valid credentials."""
@@ -130,10 +129,9 @@ async def test_login_success(
     assert data["token_type"] == "bearer"
 
 
-@pytest.mark.asyncio
 async def test_login_invalid_password(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test login with wrong password returns generic error."""
@@ -151,7 +149,6 @@ async def test_login_invalid_password(
     assert response.json()["detail"] == "Invalid credentials"
 
 
-@pytest.mark.asyncio
 async def test_login_nonexistent_user(async_client: AsyncClient):
     """Test login with non-existent email returns generic error."""
     login_data = {
@@ -164,7 +161,6 @@ async def test_login_nonexistent_user(async_client: AsyncClient):
     assert response.json()["detail"] == "Invalid credentials"
 
 
-@pytest.mark.asyncio
 async def test_protected_endpoint_no_token(async_client: AsyncClient):
     """Test accessing protected endpoint without token."""
     response = await async_client.get("/api/v1/users/me")
@@ -172,10 +168,9 @@ async def test_protected_endpoint_no_token(async_client: AsyncClient):
     assert response.status_code == 403  # HTTPBearer returns 403 when no token
 
 
-@pytest.mark.asyncio
 async def test_protected_endpoint_with_token(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test accessing protected endpoint with valid token."""
@@ -198,10 +193,9 @@ async def test_protected_endpoint_with_token(
     assert data["email"] == valid_registration_data["email"]
 
 
-@pytest.mark.asyncio
 async def test_refresh_token(
     async_client: AsyncClient,
-    test_municipality: Municipality,
+    test_municipality_auth: Municipality,
     valid_registration_data: dict
 ):
     """Test token refresh endpoint."""

@@ -10,8 +10,10 @@ from src.models.audit_log import AuditLog
 from src.models.consent import ConsentRecord
 from src.models.user import User
 
+# All tests in this module are integration tests (hit API endpoints, require database)
+pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
-@pytest.mark.integration
+
 async def test_data_access_returns_all_user_data(
     async_client: AsyncClient,
     test_user: User,
@@ -66,14 +68,12 @@ async def test_data_access_returns_all_user_data(
     assert "export_timestamp" in data
 
 
-@pytest.mark.integration
 async def test_data_access_requires_auth(async_client: AsyncClient):
     """Test that /my-data requires authentication."""
     response = await async_client.get("/api/v1/data-rights/my-data")
     assert response.status_code == 401
 
 
-@pytest.mark.integration
 async def test_delete_account_anonymizes_pii(
     async_client: AsyncClient,
     test_user: User,
@@ -116,7 +116,6 @@ async def test_delete_account_anonymizes_pii(
     assert deleted_user.hashed_password == ""  # Invalidated
 
 
-@pytest.mark.integration
 async def test_deleted_user_cannot_login(
     async_client: AsyncClient,
     test_user: User,
@@ -151,7 +150,6 @@ async def test_deleted_user_cannot_login(
     assert login_response.status_code in [401, 404]
 
 
-@pytest.mark.integration
 async def test_consent_list(
     async_client: AsyncClient,
     test_user: User,
@@ -201,7 +199,6 @@ async def test_consent_list(
     assert "analytics" in purposes
 
 
-@pytest.mark.integration
 async def test_consent_withdraw(
     async_client: AsyncClient,
     test_user: User,
@@ -250,7 +247,6 @@ async def test_consent_withdraw(
     assert updated_consent.withdrawn_at is not None
 
 
-@pytest.mark.integration
 async def test_consent_belongs_to_user(
     async_client: AsyncClient,
     test_user: User,
@@ -302,7 +298,6 @@ async def test_consent_belongs_to_user(
     assert response.status_code == 404
 
 
-@pytest.mark.integration
 async def test_audit_logs_preserved_after_deletion(
     async_client: AsyncClient,
     test_user: User,
@@ -345,7 +340,6 @@ async def test_audit_logs_preserved_after_deletion(
     assert len(remaining_logs) > 0
 
 
-@pytest.mark.integration
 async def test_consent_create(
     async_client: AsyncClient,
     test_user: User,

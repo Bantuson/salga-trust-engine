@@ -8,7 +8,8 @@ from src.core.tenant import clear_tenant_context, get_tenant_context, set_tenant
 from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 
-pytestmark = pytest.mark.asyncio
+# All tests in this module are integration tests (require database for multi-tenancy)
+pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
 
 
 async def test_cross_tenant_isolation(db_session: AsyncSession):

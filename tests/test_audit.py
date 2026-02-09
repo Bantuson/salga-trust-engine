@@ -15,7 +15,10 @@ from src.models.audit_log import AuditLog, OperationType
 from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 
+# No module-level markers - individual tests are marked as needed
 
+
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_on_user_create(db_session, test_municipality):
     """Test that creating a user generates an audit log entry."""
@@ -58,6 +61,7 @@ async def test_audit_log_on_user_create(db_session, test_municipality):
     clear_audit_context()
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_on_user_update(db_session, test_user):
     """Test that updating a user generates an audit log with changes."""
@@ -105,6 +109,7 @@ async def test_audit_log_on_user_update(db_session, test_user):
     clear_audit_context()
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_on_user_delete(db_session, test_municipality):
     """Test that deleting a user generates an audit log entry."""
@@ -151,6 +156,7 @@ async def test_audit_log_on_user_delete(db_session, test_municipality):
     clear_audit_context()
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_captures_tenant(db_session, test_user):
     """Test that audit log captures correct tenant_id."""
@@ -178,6 +184,7 @@ async def test_audit_log_captures_tenant(db_session, test_user):
     clear_audit_context()
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_no_recursion(db_session, test_municipality):
     """Test that creating an audit log doesn't trigger another audit log (no infinite loop)."""
@@ -212,7 +219,7 @@ async def test_audit_log_no_recursion(db_session, test_municipality):
 
 
 def test_audit_context_vars():
-    """Test that audit context variables work correctly."""
+    """Test that audit context variables work correctly (pure unit test, sync)."""
     # Set audit context
     set_audit_context(
         user_id="test-user-123",
@@ -232,6 +239,7 @@ def test_audit_context_vars():
     assert current_ip_address.get() is None
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_without_context(db_session, test_municipality):
     """Test that audit logging works even without audit context set."""
@@ -267,6 +275,7 @@ async def test_audit_log_without_context(db_session, test_municipality):
     assert audit_log.tenant_id == str(test_municipality.id)
 
 
+@pytest.mark.asyncio
 @pytest.mark.integration
 async def test_audit_log_non_tenant_model(db_session):
     """Test that non-tenant models are also audited."""
