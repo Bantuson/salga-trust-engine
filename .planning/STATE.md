@@ -5,33 +5,34 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 1 - Foundation & Security
+**Current focus:** Phase 2 - Agentic AI System
 
 ## Current Position
 
-Phase: 1 of 6 (Foundation & Security)
-Plan: 7 of 7 in current phase
-Status: Complete
-Last activity: 2026-02-09 — Completed 01-07: Test Infrastructure Gap Closure - Unit/Integration Separation
+Phase: 2 of 6 (Agentic AI System)
+Plan: 1 of 4 in current phase
+Status: In Progress
+Last activity: 2026-02-09 — Completed 02-01: Agentic AI Infrastructure - Language Detection & Conversation State
 
-Progress: [██████████] 100% (7/7 plans)
+Progress: [██▒▒▒▒▒▒▒▒] 25% (1/4 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 7
-- Average duration: 17.5 minutes
-- Total execution time: 2.04 hours
+- Total plans completed: 8
+- Average duration: 16.9 minutes
+- Total execution time: 2.28 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 01 | 7 | 121.4m | 17.3m |
+| 02 | 1 | 14.2m | 14.2m |
 
 **Recent Trend:**
-- Last 5 plans: 18.0m, 15.6m, 18.7m, 10.5m, 29.6m
-- Trend: Phase 01 complete - final plan focused on comprehensive test separation
+- Last 5 plans: 15.6m, 18.7m, 10.5m, 29.6m, 14.2m
+- Trend: Phase 02 started - infrastructure plan faster than average
 
 *Updated after each plan completion*
 
@@ -44,6 +45,7 @@ Progress: [██████████] 100% (7/7 plans)
 | 01-05 | 18.7m (1121s) | 2 | 12 |
 | 01-06 | 10.5m (632s) | 2 | 5 |
 | 01-07 | 29.6m (1774s) | 2 | 8 |
+| 02-01 | 14.2m (853s) | 2 | 10 |
 
 ## Accumulated Context
 
@@ -98,10 +100,18 @@ Recent decisions affecting current work:
 - 01-07: Module-level pytestmark for homogeneous test files (all unit or all integration)
 - 01-07: Per-test markers for mixed unit/integration files
 - 01-07: 63% coverage with unit tests only is acceptable (80% requires integration tests)
+- 02-01: lingua-py for trilingual language detection (EN/ZU/AF)
+- 02-01: Short text fallback (<20 chars) to user's preferred language
+- 02-01: Language detection confidence threshold (0.7) to avoid false positives
+- 02-01: Redis-backed conversation state with GBV/municipal namespace separation
+- 02-01: Max 20 turns per conversation (safety limit)
+- 02-01: Ticket model uses separate lat/lng columns (PostGIS deferred to Phase 4)
+- 02-01: Tracking number format: TKT-YYYYMMDD-{6_random_hex}
+- 02-01: CrewAI installation deferred due to Windows C++ build tools requirement
 
 ### Pending Todos
 
-None yet.
+- Install CrewAI for Plan 02-02 (need C++ build tools or prebuilt wheels)
 
 ### Blockers/Concerns
 
@@ -109,10 +119,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 01-07 execution)
-Stopped at: Completed 01-07-PLAN.md - Test Infrastructure Gap Closure. Phase 01 (Foundation & Security) complete. Ready for Phase 02.
+Last session: 2026-02-09 (plan 02-01 execution)
+Stopped at: Completed 02-01-PLAN.md - Agentic AI Infrastructure. Language detection, conversation state, and ticket model ready for agent intake.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-09T13:55:20Z*
+*Last updated: 2026-02-09T15:43:00Z*
