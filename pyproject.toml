@@ -21,6 +21,8 @@ dependencies = [
     "python-dotenv==1.0.1",
     "aiofiles==24.1.0",
     "pydantic-settings==2.7.0",
+    "lingua-language-detector>=2.0.0",
+    "tiktoken>=0.8.0",
 ]
 
 [project.optional-dependencies]
@@ -30,6 +32,7 @@ dev = [
     "pytest-cov==6.0.0",
     "httpx==0.28.0",
     "aiosqlite==0.20.0",
+    "fakeredis>=2.21.0",
 ]
 
 [project.scripts]
