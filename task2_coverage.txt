@@ -1,0 +1,77 @@
+C:\Users\Bantu\AppData\Local\Programs\Python\Python312\Lib\site-packages\pytest_asyncio\plugin.py:208: PytestDeprecationWarning: The configuration option "asyncio_default_fixture_loop_scope" is unset.
+The event loop scope for asynchronous fixtures will default to the fixture caching scope. Future versions of pytest-asyncio will default the loop scope for asynchronous fixtures to function scope. Set the default fixture loop scope explicitly in order to avoid unexpected behavior in the future. Valid fixture loop scopes are: "function", "class", "module", "package", "session"
+
+  warnings.warn(PytestDeprecationWarning(_DEFAULT_FIXTURE_LOOP_SCOPE_UNSET))
+============================= test session starts =============================
+platform win32 -- Python 3.12.7, pytest-8.3.0, pluggy-1.6.0 -- C:\Users\Bantu\AppData\Local\Programs\Python\Python312\python.exe
+cachedir: .pytest_cache
+rootdir: C:\Users\Bantu\mzansi-agentive\salga-trust-engine
+configfile: pyproject.toml
+testpaths: tests
+plugins: anyio-4.8.0, deepeval-3.8.1, langsmith-0.6.4, locust-2.43.1, asyncio-0.24.0, cov-7.0.0, env-1.2.0, mock-3.15.1, repeat-0.9.4, rerunfailures-16.1, timeout-2.4.0, vcr-1.0.2, xdist-3.8.0, respx-0.22.0
+asyncio: mode=Mode.AUTO, default_loop_scope=None
+collecting ... collected 69 items / 47 deselected / 22 selected
+
+tests/test_audit.py::test_audit_context_vars PASSED                      [  4%]
+tests/test_middleware.py::TestSanitization::test_sanitize_html_strips_script_tags PASSED [  9%]
+tests/test_middleware.py::TestSanitization::test_sanitize_html_strips_all_tags PASSED [ 13%]
+tests/test_middleware.py::TestSanitization::test_sanitize_preserves_text PASSED [ 18%]
+tests/test_middleware.py::TestSanitization::test_sanitize_text_field_truncates PASSED [ 22%]
+tests/test_middleware.py::TestSanitization::test_sanitize_text_field_strips_whitespace PASSED [ 27%]
+tests/test_middleware.py::TestSanitization::test_sanitize_handles_empty_string PASSED [ 31%]
+tests/test_middleware.py::TestRateLimiting::test_rate_limit_format_valid PASSED [ 36%]
+tests/test_security_unit.py::TestPasswordHashing::test_password_hash_produces_argon2_string PASSED [ 40%]
+tests/test_security_unit.py::TestPasswordHashing::test_password_hash_different_each_time PASSED [ 45%]
+tests/test_security_unit.py::TestPasswordHashing::test_verify_password_correct PASSED [ 50%]
+tests/test_security_unit.py::TestPasswordHashing::test_verify_password_incorrect PASSED [ 54%]
+tests/test_security_unit.py::TestAccessToken::test_create_access_token_contains_claims PASSED [ 59%]
+tests/test_security_unit.py::TestAccessToken::test_create_access_token_custom_expiry PASSED [ 63%]
+tests/test_security_unit.py::TestAccessToken::test_decode_access_token_valid PASSED [ 68%]
+tests/test_security_unit.py::TestAccessToken::test_decode_access_token_rejects_refresh PASSED [ 72%]
+tests/test_security_unit.py::TestAccessToken::test_decode_access_token_expired PASSED [ 77%]
+tests/test_security_unit.py::TestRefreshToken::test_create_refresh_token_type_is_refresh PASSED [ 81%]
+tests/test_security_unit.py::TestRefreshToken::test_decode_refresh_token_rejects_access PASSED [ 86%]
+tests/test_tenant_unit.py::TestTenantContext::test_set_and_get_tenant_context PASSED [ 90%]
+tests/test_tenant_unit.py::TestTenantContext::test_clear_tenant_context PASSED [ 95%]
+tests/test_tenant_unit.py::TestTenantContext::test_default_tenant_context_is_none PASSED [100%]
+ERROR: Coverage failure: total of 63 is less than fail-under=80
+Running teardown with pytest sessionfinish...
+
+
+=============================== tests coverage ================================
+_______________ coverage: platform win32, python 3.12.7-final-0 _______________
+
+Name                                  Stmts   Miss  Cover   Missing
+-------------------------------------------------------------------
+src\api\deps.py                          42     25    40%   39-85, 102-108, 140-147
+src\api\v1\__init__.py                    2      0   100%
+src\api\v1\auth.py                       64     43    33%   60-135, 160-200, 225-267
+src\api\v1\consent.py                    54     18    67%   63-70, 111-129, 169-190
+src\api\v1\data_rights.py                42     26    38%   43-108, 139-173
+src\api\v1\municipalities.py             58     40    31%   44-77, 102-112, 136-147, 173-199
+src\api\v1\users.py                       8      1    88%   25
+src\core\audit.py                        83     52    37%   58-62, 74-96, 109-113, 143-146, 172-239
+src\core\config.py                       27      2    93%   45, 52
+src\core\database.py                     17      7    59%   55-67
+src\core\exceptions.py                    1      0   100%
+src\core\sanitization.py                 17      1    94%   69
+src\core\security.py                     41      7    83%   127-128, 147-151
+src\core\tenant.py                        8      0   100%
+src\main.py                              33      4    88%   28-31, 70
+src\middleware\error_handler.py          22     11    50%   28-44, 55, 69-88
+src\middleware\rate_limit.py             12      0   100%
+src\middleware\security_headers.py       18     12    33%   25-48
+src\middleware\tenant_middleware.py      27     17    37%   43-77
+src\models\audit_log.py                  21      0   100%
+src\models\base.py                       33     11    67%   76-102
+src\models\consent.py                    16      0   100%
+src\models\municipality.py               11      0   100%
+src\models\user.py                       24      0   100%
+src\schemas\auth.py                      24      3    88%   17-19
+src\schemas\consent.py                   15      0   100%
+src\schemas\municipality.py              35      4    89%   35, 41-45
+src\schemas\user.py                      20      0   100%
+-------------------------------------------------------------------
+TOTAL                                   775    284    63%
+FAIL Required test coverage of 80.0% not reached. Total coverage: 63.35%
+===================== 22 passed, 47 deselected in 26.91s ======================
