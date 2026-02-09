@@ -2,9 +2,20 @@
 from contextlib import asynccontextmanager
 
 from fastapi import FastAPI
+from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.exceptions import HTTPException as StarletteHTTPException
 
+from src.api.v1 import auth, users
 from src.core.config import settings
+from src.middleware.error_handler import (
+    global_exception_handler,
+    http_exception_handler,
+    validation_exception_handler,
+)
+from src.middleware.rate_limit import setup_rate_limiting
+from src.middleware.security_headers import SecurityHeadersMiddleware
+from src.middleware.tenant_middleware import TenantContextMiddleware
 
 
 @asynccontextmanager
@@ -25,14 +36,29 @@ app = FastAPI(
     lifespan=lifespan
 )
 
-# Configure CORS
+# Configure middleware (order matters - executes in REVERSE order of addition)
+# 1. CORS (innermost - processes first)
 app.add_middleware(
     CORSMiddleware,
     allow_origins=settings.ALLOWED_ORIGINS,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH"],
+    allow_headers=["Authorization", "Content-Type", "X-Tenant-ID"],
 )
+
+# 2. Security headers
+app.add_middleware(SecurityHeadersMiddleware)
+
+# 3. Tenant context extraction
+app.add_middleware(TenantContextMiddleware)
+
+# 4. Rate limiting
+setup_rate_limiting(app)
+
+# 5. Global error handlers
+app.add_exception_handler(Exception, global_exception_handler)
+app.add_exception_handler(StarletteHTTPException, http_exception_handler)
+app.add_exception_handler(RequestValidationError, validation_exception_handler)
 
 
 @app.get("/health")
@@ -45,4 +71,6 @@ async def health_check():
     }
 
 
-# API routers will be added in subsequent plans
+# Include API routers
+app.include_router(auth.router)
+app.include_router(users.router)
