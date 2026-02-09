@@ -75,12 +75,14 @@ Plans:
   6. User must verify proof of residence (OCR document analysis) to bind account to specific municipality
   7. GBV report data is stored with enhanced encryption and need-to-know access controls
   8. All unit, integration, and security tests pass with >=80% coverage on phase code; all Phase 1-2 tests still pass
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 03-01: TBD during phase planning
-- [ ] 03-02: TBD during phase planning
-- [ ] 03-03: TBD during phase planning
+- [ ] 03-01-PLAN.md -- Storage infrastructure, media model, and GBV field-level encryption
+- [ ] 03-02-PLAN.md -- Twilio WhatsApp webhook integration with media handling
+- [ ] 03-03-PLAN.md -- OCR service and proof of residence verification
+- [ ] 03-04-PLAN.md -- Web portal upload and report submission API with React frontend
+- [ ] 03-05-PLAN.md -- Phase 3 test suite and coverage verification
 
 ### Phase 4: Ticket Management & Routing
 **Goal**: Tickets are automatically routed and tracked with SLA enforcement
@@ -162,11 +164,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 |-------|----------------|--------|-----------|
 | 1. Foundation & Security | 7/7 | ✓ Complete | 2026-02-09 |
 | 2. Agentic AI System | 4/4 | ✓ Complete | 2026-02-09 |
-| 3. Citizen Reporting Channels | 0/3 | Not started | - |
+| 3. Citizen Reporting Channels | 0/5 | Planned | - |
 | 4. Ticket Management & Routing | 0/3 | Not started | - |
 | 5. Municipal Operations Dashboard | 0/3 | Not started | - |
 | 6. Public Transparency & Rollout | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-09 (Phase 2 complete)*
+*Last updated: 2026-02-09 (Phase 3 planned)*
