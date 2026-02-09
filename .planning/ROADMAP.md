@@ -31,6 +31,7 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. System captures POPIA consent at registration with clear purpose explanation in user's language
   4. User can request access to their personal data and request deletion (POPIA rights functional)
   5. All data is encrypted at rest and in transit with comprehensive audit logging on all operations
+  6. All unit, integration, and security tests pass with ≥80% coverage on phase code
 **Plans:** 5 plans
 
 Plans:
@@ -50,6 +51,7 @@ Plans:
   3. GBV specialist agent captures sensitive reports with enhanced privacy and routes to nearest SAPS station
   4. All agent interactions have guardrails preventing inappropriate responses or data leakage
   5. System detects language and responds in kind across all three supported languages
+  6. All unit, integration, and security tests pass with ≥80% coverage on phase code; all Phase 1 tests still pass
 **Plans**: TBD
 
 Plans:
@@ -69,6 +71,7 @@ Plans:
   5. Citizen can report GBV/abuse and system routes to nearest SAPS station (not municipal team)
   6. User must verify proof of residence (OCR document analysis) to bind account to specific municipality
   7. GBV report data is stored with enhanced encryption and need-to-know access controls
+  8. All unit, integration, and security tests pass with ≥80% coverage on phase code; all Phase 1-2 tests still pass
 **Plans**: TBD
 
 Plans:
@@ -87,6 +90,7 @@ Plans:
   4. System automatically escalates tickets that breach SLA thresholds to higher authority
   5. Each ticket has complete audit trail showing creation, assignment, status changes, and resolution
   6. GBV data is accessible only to authorized SAPS liaison and system admin (firewall-isolated)
+  7. All unit, integration, and security tests pass with ≥80% coverage on phase code; all Phase 1-3 tests still pass
 **Plans**: TBD
 
 Plans:
@@ -104,6 +108,7 @@ Plans:
   3. Dashboard shows real-time ticket volumes, SLA compliance metrics, and team workload
   4. Manager can export issue data to Excel/CSV for offline analysis
   5. Dashboard updates in real-time when ticket status changes (no page refresh required)
+  6. All unit, integration, and security tests pass with ≥80% coverage on phase code; all Phase 1-4 tests still pass
 **Plans**: TBD
 
 Plans:
@@ -121,12 +126,29 @@ Plans:
   3. Public dashboard displays geographic heatmap of reported issues
   4. GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
   5. Three to five pilot municipalities are onboarded with active citizen reporting and visible municipal responses
+  6. Full test suite passes across all 6 phases with ≥80% coverage; no regressions
 **Plans**: TBD
 
 Plans:
 - [ ] 06-01: TBD during phase planning
 - [ ] 06-02: TBD during phase planning
 - [ ] 06-03: TBD during phase planning
+
+## Phase Verification Policy
+
+**Mandatory unit testing after every phase.** No phase is considered complete until:
+
+1. **All new code has unit tests** — every module, endpoint, and utility introduced in the phase must have corresponding tests
+2. **All tests pass** — `pytest` runs green with zero failures before phase sign-off
+3. **Coverage gate** — phase code must achieve minimum 80% line coverage (measured via `pytest --cov`)
+4. **Regression check** — all tests from prior phases must still pass (full suite, not just new tests)
+5. **Test categories required per phase:**
+   - **Unit tests**: Individual functions, models, utilities, validators
+   - **Integration tests**: API endpoints, database operations, middleware chains
+   - **Security tests**: Auth enforcement, RBAC restrictions, tenant isolation, input sanitization
+6. **Phase cannot advance** — execution of the next phase is blocked until the current phase's test suite passes completely
+
+This policy applies to all 6 phases. Test files live in `tests/` mirroring the `src/` structure.
 
 ## Progress
 
