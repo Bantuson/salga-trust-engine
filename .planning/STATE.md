@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 3 of 6 (Citizen Reporting Channels)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-09 — Completed 03-03: OCR Proof of Residence Verification
+Last activity: 2026-02-09 — Completed 03-04: Web Portal Report Submission API
 
-Progress: [██████▒▒▒▒] 60% (3/5 plans)
+Progress: [████████▒▒] 80% (4/5 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 14
-- Average duration: 17.1 minutes
-- Total execution time: 3.99 hours
+- Total plans completed: 15
+- Average duration: 17.3 minutes
+- Total execution time: 4.26 hours
 
 **By Phase:**
 
@@ -29,10 +29,10 @@ Progress: [██████▒▒▒▒] 60% (3/5 plans)
 |-------|-------|-------|----------|
 | 01 | 7 | 121.4m | 17.3m |
 | 02 | 4 | 94.3m | 23.6m |
-| 03 | 3 | 19.6m | 6.5m |
+| 03 | 4 | 35.8m | 9.0m |
 
 **Recent Trend:**
-- Last 5 plans: 15.0m, 38.3m, 2.6m, 7.9m, 9.1m
+- Last 5 plans: 38.3m, 2.6m, 7.9m, 9.1m, 16.2m
 - Trend: Phase 03 moving quickly with clear architecture and reusable components
 
 *Updated after each plan completion*
@@ -53,6 +53,7 @@ Progress: [██████▒▒▒▒] 60% (3/5 plans)
 | 03-01 | 2.6m (158s) | 2 | 10 |
 | 03-02 | 7.9m (473s) | 2 | 5 |
 | 03-03 | 9.1m (543s) | 2 | 4 |
+| 03-04 | 16.2m (971s) | 2 | 26 |
 
 ## Accumulated Context
 
@@ -141,6 +142,12 @@ Recent decisions affecting current work:
 - [Phase 03-03]: Confidence thresholds: >= 0.7 auto-verify, >= 0.5 manual review, < 0.5 reject
 - [Phase 03-03]: Full EXIF stripping for privacy (GPS coordinates, device metadata removed)
 - [Phase 03-03]: South African address patterns (street, PO Box, 4-digit postal codes)
+- [Phase 03-04]: Presigned POST URLs for direct browser uploads (not multipart to backend)
+- [Phase 03-04]: Upload-first workflow (MediaAttachment created without ticket_id, linked on submission)
+- [Phase 03-04]: GPS coordinates captured with 10s timeout and high accuracy enabled
+- [Phase 03-04]: Manual address fallback when GPS unavailable (Pydantic validator requires one of location or manual_address)
+- [Phase 03-04]: AI classification optional (user can pre-select category or let IntakeFlow classify)
+- [Phase 03-04]: GBV consent dialog shows emergency numbers (10111, 0800 150 150) before submission
 
 ### Pending Todos
 
@@ -152,10 +159,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 03-03 execution)
-Stopped at: Completed 03-03-PLAN.md - OCR Proof of Residence Verification. Tesseract OCR with image preprocessing, EXIF stripping, confidence-based verification, verification API endpoints.
+Last session: 2026-02-09 (plan 03-04 execution)
+Stopped at: Completed 03-04-PLAN.md - Web Portal Report Submission API. Presigned upload endpoints, report submission API with GPS/manual address, React frontend with FileUpload, GeolocationCapture, and ReportForm components.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-09T21:09:04Z*
+*Last updated: 2026-02-09T21:16:08Z*
