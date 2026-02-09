@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 1 of 6 (Foundation & Security)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In progress
-Last activity: 2026-02-09 — Completed 01-03: Security Middleware and API Hardening
+Last activity: 2026-02-09 — Completed 01-04: Audit Logging and POPIA Compliance
 
-Progress: [██████░░░░] 60%
+Progress: [████████░░] 80%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3
-- Average duration: 15.1 minutes
-- Total execution time: 0.75 hours
+- Total plans completed: 4
+- Average duration: 15.6 minutes
+- Total execution time: 1.04 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 3 | 45.3m | 15.1m |
+| 01 | 4 | 62.6m | 15.6m |
 
 **Recent Trend:**
-- Last 5 plans: 15.4m, 12.5m, 18.0m
+- Last 5 plans: 15.4m, 12.5m, 18.0m, 15.6m
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -40,6 +40,7 @@ Progress: [██████░░░░] 60%
 | 01-01 | 15.4m (923s) | 3 | 26 |
 | 01-02 | 12.5m (752s) | 2 | 8 |
 | 01-03 | 18.0m (1078s) | 2 | 10 |
+| 01-04 | 15.6m (937s) | 2 | 9 |
 
 ## Accumulated Context
 
@@ -72,6 +73,12 @@ Recent decisions affecting current work:
 - 01-03: Error handler returns generic messages in production to prevent information leakage
 - 01-03: Security headers relax CSP in development for Swagger UI assets
 - 01-03: Integration tests marked @pytest.mark.integration (require database setup)
+- 01-04: SQLAlchemy after_flush event for audit logging (not after_insert/update individually)
+- 01-04: Direct connection.execute for audit log insertion prevents recursive triggers
+- 01-04: Rate limit data export to 5/hour, account deletion to 1/day
+- 01-04: Audit logs preserved after account deletion (legal requirement)
+- 01-04: Use "system" tenant_id for non-tenant model audit logs
+- 01-04: Soft delete with PII anonymization (email, name, phone) keeps user record
 
 ### Pending Todos
 
@@ -83,10 +90,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 01-03 execution)
-Stopped at: Completed 01-03-PLAN.md - Security middleware complete, ready for Plan 01-04 or 01-05
+Last session: 2026-02-09 (plan 01-04 execution)
+Stopped at: Completed 01-04-PLAN.md - Audit logging and POPIA compliance complete, ready for Plan 01-05
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-09T12:00:00Z*
+*Last updated: 2026-02-09T12:19:51Z*
