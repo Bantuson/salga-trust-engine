@@ -1,5 +1,22 @@
 """Authentication Pydantic schemas."""
-from pydantic import BaseModel, EmailStr
+from pydantic import BaseModel, EmailStr, Field, field_validator
+
+from src.schemas.consent import ConsentCreate
+from src.schemas.user import UserCreate
+
+
+class RegisterRequest(UserCreate):
+    """Schema for user registration with mandatory POPIA consent."""
+
+    consent: ConsentCreate = Field(..., description="POPIA consent (required)")
+
+    @field_validator("consent")
+    @classmethod
+    def validate_consent(cls, v: ConsentCreate) -> ConsentCreate:
+        """Validate that consent has been given."""
+        if not v.consented:
+            raise ValueError("User must consent to data processing")
+        return v
 
 
 class LoginRequest(BaseModel):
@@ -7,6 +24,12 @@ class LoginRequest(BaseModel):
 
     email: EmailStr
     password: str
+
+
+class RefreshRequest(BaseModel):
+    """Schema for refresh token request."""
+
+    refresh_token: str
 
 
 class TokenResponse(BaseModel):

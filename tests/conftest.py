@@ -62,14 +62,30 @@ def event_loop():
 
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
-    """Provide a test database session."""
+    """Provide a test database session with cleanup after each test."""
     async with TestAsyncSessionLocal() as session:
         yield session
+        # Cleanup: rollback any uncommitted changes
+        await session.rollback()
+        # Clean up tables after each test for isolation
+        for table in reversed(Base.metadata.sorted_tables):
+            await session.execute(table.delete())
+        await session.commit()
 
 
 @pytest_asyncio.fixture(scope="function")
 async def client() -> AsyncGenerator[AsyncClient, None]:
     """Provide an async test client."""
+    async with AsyncClient(
+        transport=ASGITransport(app=app),
+        base_url="http://test"
+    ) as ac:
+        yield ac
+
+
+@pytest_asyncio.fixture(scope="function")
+async def async_client() -> AsyncGenerator[AsyncClient, None]:
+    """Provide an async test client (alias for client)."""
     async with AsyncClient(
         transport=ASGITransport(app=app),
         base_url="http://test"
