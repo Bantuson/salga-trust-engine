@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.api.v1 import auth, consent, data_rights, messages, municipalities, users
+from src.api.v1 import auth, consent, data_rights, messages, municipalities, reports, uploads, users, verification, whatsapp
 from src.core.config import settings
 from src.middleware.error_handler import (
     global_exception_handler,
@@ -81,3 +81,7 @@ app.include_router(users.router)
 app.include_router(data_rights.router)
 app.include_router(consent.router)
 app.include_router(messages.router, prefix="/api/v1")
+app.include_router(whatsapp.router, prefix="/api/v1")
+app.include_router(uploads.router, prefix="/api/v1")
+app.include_router(reports.router, prefix="/api/v1")
+app.include_router(verification.router, prefix="/api/v1")
