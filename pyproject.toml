@@ -27,11 +27,37 @@ dependencies = [
 dev = [
     "pytest==8.3.0",
     "pytest-asyncio==0.24.0",
+    "pytest-cov==6.0.0",
     "httpx==0.28.0",
+    "aiosqlite==0.20.0",
 ]
 
 [project.scripts]
 salga = "src.main:app"
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+markers = [
+    "integration: requires PostgreSQL database connection",
+]
+testpaths = ["tests"]
+filterwarnings = [
+    "ignore::DeprecationWarning",
+]
+addopts = "-v --tb=short"
+
+[tool.coverage.run]
+source = ["src"]
+omit = ["src/__init__.py", "src/*/__init__.py"]
+
+[tool.coverage.report]
+fail_under = 80
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if __name__ == .__main__.",
+    "pass",
+]
 
 [build-system]
 requires = ["setuptools>=61.0"]

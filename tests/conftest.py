@@ -1,5 +1,11 @@
 """Pytest configuration and fixtures for testing."""
+import sys
 import asyncio
+
+# CRITICAL: Set Windows event loop policy BEFORE any async imports
+if sys.platform == "win32":
+    asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
 from collections.abc import AsyncGenerator
 
 import pytest
@@ -15,15 +21,40 @@ from src.models.base import Base
 from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 
+
+def _check_postgres() -> bool:
+    """Check if PostgreSQL is reachable."""
+    try:
+        import psycopg
+        # Try synchronous connection with short timeout
+        db_url = settings.DATABASE_URL.replace("+psycopg", "")
+        conn = psycopg.connect(
+            db_url,
+            connect_timeout=3,
+        )
+        conn.close()
+        return True
+    except Exception:
+        return False
+
+
+# Detect PostgreSQL availability
+POSTGRES_AVAILABLE = _check_postgres()
+
 # Override settings for testing
 settings.ENVIRONMENT = "test"
 
-# Create test database URL by appending "_test" to the database name
-test_db_url = settings.DATABASE_URL.rsplit("/", 1)
-if len(test_db_url) == 2:
-    test_db_url = f"{test_db_url[0]}/{test_db_url[1]}_test"
+# Create test database URL
+if POSTGRES_AVAILABLE:
+    # PostgreSQL: append "_test" to database name
+    test_db_url = settings.DATABASE_URL.rsplit("/", 1)
+    if len(test_db_url) == 2:
+        test_db_url = f"{test_db_url[0]}/{test_db_url[1]}_test"
+    else:
+        test_db_url = f"{settings.DATABASE_URL}_test"
 else:
-    test_db_url = f"{settings.DATABASE_URL}_test"
+    # SQLite fallback for unit tests
+    test_db_url = "sqlite+aiosqlite:///./test.db"
 
 # Create test engine
 test_engine = create_async_engine(
@@ -57,10 +88,20 @@ app.dependency_overrides[get_db] = override_get_db
 
 @pytest.fixture(scope="session")
 def event_loop():
-    """Create an event loop for the test session."""
+    """Create an event loop for the test session with Windows compatibility."""
+    if sys.platform == "win32":
+        asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
     loop = asyncio.get_event_loop_policy().new_event_loop()
     yield loop
     loop.close()
+
+
+@pytest.fixture(autouse=True)
+def _skip_integration_tests_without_postgres(request):
+    """Auto-skip integration tests when PostgreSQL is not available."""
+    if request.node.get_closest_marker('integration'):
+        if not POSTGRES_AVAILABLE:
+            pytest.skip("PostgreSQL not available - skipping integration test")
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -143,7 +184,6 @@ async def test_user(db_session: AsyncSession, test_municipality: Municipality) -
 @pytest_asyncio.fixture(scope="function")
 async def admin_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
     """Create an admin user for tests."""
-    from src.core.security import get_password_hash
     user = User(
         email="admin@example.com",
         hashed_password=get_password_hash("adminpassword123"),
@@ -174,7 +214,6 @@ def admin_token(admin_user: User) -> str:
 @pytest_asyncio.fixture(scope="function")
 async def citizen_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
     """Create a citizen user for tests."""
-    from src.core.security import get_password_hash
     user = User(
         email="citizen@example.com",
         hashed_password=get_password_hash("citizenpassword123"),
