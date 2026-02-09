@@ -54,12 +54,13 @@ Plans:
   4. All agent interactions have guardrails preventing inappropriate responses or data leakage
   5. System detects language and responds in kind across all three supported languages
   6. All unit, integration, and security tests pass with >=80% coverage on phase code; all Phase 1 tests still pass
-**Plans**: TBD
+**Plans:** 4 plans
 
 Plans:
-- [ ] 02-01: TBD during phase planning
-- [ ] 02-02: TBD during phase planning
-- [ ] 02-03: TBD during phase planning
+- [ ] 02-01-PLAN.md -- Language detection, conversation state manager, and Ticket data model
+- [ ] 02-02-PLAN.md -- CrewAI Flow architecture, message routing, and municipal services crew
+- [ ] 02-03-PLAN.md -- GBV specialist crew with enhanced privacy and SAPS notification
+- [ ] 02-04-PLAN.md -- Guardrails engine, message API endpoint, and Phase 2 test coverage
 
 ### Phase 3: Citizen Reporting Channels
 **Goal**: Citizens can report issues via WhatsApp and web with visual evidence
@@ -160,7 +161,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
 | 1. Foundation & Security | 7/7 | ✓ Complete | 2026-02-09 |
-| 2. Agentic AI System | 0/3 | Not started | - |
+| 2. Agentic AI System | 0/4 | Not started | - |
 | 3. Citizen Reporting Channels | 0/3 | Not started | - |
 | 4. Ticket Management & Routing | 0/3 | Not started | - |
 | 5. Municipal Operations Dashboard | 0/3 | Not started | - |
