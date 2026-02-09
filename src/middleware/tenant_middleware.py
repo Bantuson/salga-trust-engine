@@ -22,6 +22,7 @@ EXCLUDED_PATHS = {
 # Path prefixes that do NOT require tenant context
 EXCLUDED_PATH_PREFIXES = [
     "/api/v1/municipalities",
+    "/api/v1/whatsapp",  # WhatsApp webhook resolves tenant from user lookup, not header
 ]
 
 
