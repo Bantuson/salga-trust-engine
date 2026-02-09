@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.api.v1 import auth, municipalities, users
+from src.api.v1 import auth, consent, data_rights, municipalities, users
 from src.core.config import settings
 from src.middleware.error_handler import (
     global_exception_handler,
@@ -78,3 +78,5 @@ async def health_check():
 app.include_router(auth.router)
 app.include_router(municipalities.router)
 app.include_router(users.router)
+app.include_router(data_rights.router)
+app.include_router(consent.router)

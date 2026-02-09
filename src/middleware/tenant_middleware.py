@@ -19,6 +19,11 @@ EXCLUDED_PATHS = {
     "/openapi.json",
 }
 
+# Path prefixes that do NOT require tenant context
+EXCLUDED_PATH_PREFIXES = [
+    "/api/v1/municipalities",
+]
+
 
 class TenantContextMiddleware(BaseHTTPMiddleware):
     """Middleware to extract and validate X-Tenant-ID header.
@@ -37,6 +42,11 @@ class TenantContextMiddleware(BaseHTTPMiddleware):
         # Skip tenant check for exempt paths
         if request.url.path in EXCLUDED_PATHS:
             return await call_next(request)
+
+        # Skip tenant check for exempt path prefixes
+        for prefix in EXCLUDED_PATH_PREFIXES:
+            if request.url.path.startswith(prefix):
+                return await call_next(request)
 
         # Extract X-Tenant-ID header
         tenant_id = request.headers.get("X-Tenant-ID")
