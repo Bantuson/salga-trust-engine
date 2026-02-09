@@ -1,5 +1,6 @@
 """Application configuration using Pydantic Settings."""
-from pydantic import Field, field_validator
+import warnings
+from pydantic import Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -8,6 +9,7 @@ class Settings(BaseSettings):
 
     # Database
     DATABASE_URL: str = Field(..., description="PostgreSQL database URL")
+    DB_SSL_MODE: str = Field(default="require", description="PostgreSQL SSL mode")
 
     # Security
     SECRET_KEY: str = Field(..., description="Secret key for JWT tokens (min 32 chars)")
@@ -42,6 +44,18 @@ class Settings(BaseSettings):
         if len(v) < 32:
             raise ValueError("SECRET_KEY must be at least 32 characters long")
         return v
+
+    @model_validator(mode='after')
+    def validate_database_ssl(self):
+        """Warn if sslmode is missing in non-development environments."""
+        if self.ENVIRONMENT != "development" and "sslmode" not in self.DATABASE_URL:
+            warnings.warn(
+                "DATABASE_URL missing sslmode parameter in non-development environment. "
+                "Add ?sslmode=require to enforce TLS encryption (SEC-01 compliance).",
+                UserWarning,
+                stacklevel=2
+            )
+        return self
 
 
 # Singleton settings instance
