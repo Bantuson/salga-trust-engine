@@ -4,6 +4,7 @@ from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 from src.models.consent import ConsentRecord
 from src.models.audit_log import AuditLog, OperationType
+from src.models.ticket import Ticket, TicketCategory, TicketStatus, TicketSeverity
 
 __all__ = [
     "Base",
@@ -15,4 +16,8 @@ __all__ = [
     "ConsentRecord",
     "AuditLog",
     "OperationType",
+    "Ticket",
+    "TicketCategory",
+    "TicketStatus",
+    "TicketSeverity",
 ]
