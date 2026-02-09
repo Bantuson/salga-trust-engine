@@ -10,27 +10,27 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 1 of 6 (Foundation & Security)
-Plan: 4 of 5 in current phase
-Status: In progress
-Last activity: 2026-02-09 — Completed 01-04: Audit Logging and POPIA Compliance
+Plan: 5 of 5 in current phase
+Status: Phase complete
+Last activity: 2026-02-09 — Completed 01-05: Multi-Tenant Isolation with Defense-in-Depth
 
-Progress: [████████░░] 80%
+Progress: [██████████] 100%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4
-- Average duration: 15.6 minutes
-- Total execution time: 1.04 hours
+- Total plans completed: 5
+- Average duration: 16.1 minutes
+- Total execution time: 1.34 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 4 | 62.6m | 15.6m |
+| 01 | 5 | 81.3m | 16.3m |
 
 **Recent Trend:**
-- Last 5 plans: 15.4m, 12.5m, 18.0m, 15.6m
+- Last 5 plans: 15.4m, 12.5m, 18.0m, 15.6m, 18.7m
 - Trend: Stable
 
 *Updated after each plan completion*
@@ -41,6 +41,7 @@ Progress: [████████░░] 80%
 | 01-02 | 12.5m (752s) | 2 | 8 |
 | 01-03 | 18.0m (1078s) | 2 | 10 |
 | 01-04 | 15.6m (937s) | 2 | 9 |
+| 01-05 | 18.7m (1121s) | 2 | 12 |
 
 ## Accumulated Context
 
@@ -79,6 +80,12 @@ Recent decisions affecting current work:
 - 01-04: Audit logs preserved after account deletion (legal requirement)
 - 01-04: Use "system" tenant_id for non-tenant model audit logs
 - 01-04: Soft delete with PII anonymization (email, name, phone) keeps user record
+- 01-05: Municipality endpoints excluded from tenant context requirement (they manage tenants)
+- 01-05: PostgreSQL RLS uses FORCE ROW LEVEL SECURITY to apply even to table owner
+- 01-05: SET LOCAL app.current_tenant ensures transaction-scoped RLS context (no connection pool leakage)
+- 01-05: Application-level filtering raises SecurityError on missing tenant (fail-closed, not fail-open)
+- 01-05: Province validation against official SA provinces list
+- 01-05: Municipality codes auto-converted to uppercase
 
 ### Pending Todos
 
@@ -90,10 +97,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 01-04 execution)
-Stopped at: Completed 01-04-PLAN.md - Audit logging and POPIA compliance complete, ready for Plan 01-05
+Last session: 2026-02-09 (plan 01-05 execution)
+Stopped at: Completed 01-05-PLAN.md - Phase 01 Foundation & Security complete. Ready for Phase 02.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-09T12:19:51Z*
+*Last updated: 2026-02-09T12:24:27Z*
