@@ -1,0 +1,18 @@
+municipal_intake_task:
+  description: >
+    Conduct intake for a municipal service report from a citizen.
+    The citizen's message: {message}
+    Language: {language}
+    Municipality: {tenant_id}
+
+    Gather the following information through conversation:
+    1. Service category (water, roads, electricity, waste, sanitation)
+    2. Exact location (address or landmarks)
+    3. Detailed description of the issue
+    4. Severity assessment (low, medium, high, critical)
+
+    If the citizen has provided enough information, create the ticket.
+    If information is missing, ask clarifying questions.
+  expected_output: >
+    A complete municipal service ticket with all required fields filled in.
+    Return the ticket tracking number to the citizen.
