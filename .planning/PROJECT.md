@@ -2,7 +2,7 @@
 
 ## What This Is
 
-An AI-powered municipal service management platform that lets South African citizens report service issues via WhatsApp, automatically categorizes and routes them using NLP and geospatial analytics, and provides public transparency dashboards — rebuilding trust between citizens and municipalities through radical accountability. Built for SALGA's network of 257 municipalities, starting with a 3-5 municipality pilot cohort.
+An AI-powered municipal service management platform that lets South African citizens report service issues and GBV/abuse incidents via WhatsApp, automatically categorizes and routes them using CrewAI agentic architecture and geospatial analytics, and provides public transparency dashboards — rebuilding trust between citizens and municipalities through radical accountability. Security-first with POPIA compliance from day one. Built for SALGA's network of 257 municipalities, starting with a 3-5 municipality pilot cohort.
 
 ## Core Value
 
@@ -16,19 +16,19 @@ Citizens report a problem and the municipality visibly responds — the core fee
 
 ### Active
 
-- [ ] Citizens report service issues via WhatsApp in English, Zulu, or Afrikaans
-- [ ] Hybrid bot guides intake (structured questions) then AI enriches the report
-- [ ] NLP categorizes issues (water, roads, electricity, sanitation, etc.)
-- [ ] Geospatial analytics determine which team/depot handles the issue based on location
-- [ ] Citizens receive status updates as their report progresses through resolution
-- [ ] Municipal managers access a web dashboard to view, assign, and track tickets
-- [ ] Field workers receive mobile notifications and can update ticket status from the field
-- [ ] Public dashboard displays response times per municipality
-- [ ] Public dashboard displays resolution rates per municipality
-- [ ] Public dashboard displays geographic heatmaps of reported issues
-- [ ] Public dashboard displays spending transparency per ward/area
-- [ ] Platform supports 3-5 pilot municipalities with independent data isolation
-- [ ] Tiered subscription model (small/medium/large municipality pricing)
+- [ ] CrewAI agentic system: manager agent routes to specialist agents by category
+- [ ] Citizens report service issues via WhatsApp in English, isiZulu, or Afrikaans
+- [ ] Citizens report GBV/abuse via dedicated category, routed to nearest SAPS station
+- [ ] Mandatory user accounts with proof of residence (OCR verification)
+- [ ] Geospatial routing to correct municipal team or SAPS station
+- [ ] Citizens receive WhatsApp status updates as tickets progress
+- [ ] Municipal managers access web dashboard to view, assign, and track tickets
+- [ ] Ward councillor dashboard filtered to their ward
+- [ ] Public dashboard displays response times, resolution rates, and heatmaps
+- [ ] SLA tracking with automated escalation on breach
+- [ ] POPIA compliance from day one (consent, data rights, encryption)
+- [ ] Security firewalls between endpoints, RBAC, audit logging
+- [ ] Platform supports 3-5 pilot municipalities with data isolation
 
 ### Out of Scope
 
@@ -37,6 +37,10 @@ Citizens report a problem and the municipality visibly responds — the core fee
 - Mobile native app — WhatsApp is the citizen interface, web dashboard for officials
 - All 257 municipalities at launch — pilot cohort first, scale with proven results
 - Video/media-heavy reporting — photos supported, video deferred
+- Offline-first field worker app — deferred to v2
+- SMS fallback reporting — WhatsApp + web sufficient for v1
+- Spending transparency on public dashboard — requires municipality budget data sharing
+- AI-generated responses to citizens — AI for routing only, human-written templates for responses
 
 ## Context
 
@@ -63,12 +67,14 @@ Proven tech exists: IoT, AI, and mobile solutions already piloted in metros like
 |----------|-----------|---------|
 | WhatsApp via Twilio as citizen channel | Highest mobile penetration in SA, no app download required | — Pending |
 | Standalone ticket system (no ERP integration v1) | Control data model, avoid vendor lock-in, faster to ship | — Pending |
-| Python stack | Strong AI/NLP ecosystem, team preference | — Pending |
+| Python stack (FastAPI + PostgreSQL/PostGIS) | Strong AI ecosystem, async-native, geospatial support | — Pending |
+| CrewAI agentic architecture (not traditional NLP) | Manager agent + specialist agents; flexible, extensible, handles multiple categories | — Pending |
+| GBV/abuse reporting with SAPS routing | Platform handles safety-critical reports, not just infrastructure | — Pending |
+| Mandatory accounts with proof of residence (OCR) | Ensures municipal residency, prevents abuse, enables personalization | — Pending |
+| POPIA compliance from day one | GBV data and personal info require security-first architecture | — Pending |
 | Trilingual from v1 (EN/ZU/AF) | Adoption requires accessibility in dominant languages | — Pending |
 | 3-5 municipality pilot cohort | Prove model across different sizes/contexts before scaling | — Pending |
-| Hybrid bot flow | Guided enough for good data quality, smart enough to not frustrate citizens | — Pending |
-| Geospatial + NLP routing | Location-aware routing ensures right team handles the issue | — Pending |
 | SALGA-led platform | Institutional authority overcomes municipal resistance to tech accountability | — Pending |
 
 ---
-*Last updated: 2026-02-09 after initialization*
+*Last updated: 2026-02-09 after requirements and roadmap*
