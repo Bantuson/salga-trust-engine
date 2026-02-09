@@ -10,28 +10,28 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 1 of 6 (Foundation & Security)
-Plan: 6 of 7 in current phase
-Status: In progress
-Last activity: 2026-02-09 — Completed 01-06: Database Encryption & Test Infrastructure Gap Closure
+Plan: 7 of 7 in current phase
+Status: Complete
+Last activity: 2026-02-09 — Completed 01-07: Test Infrastructure Gap Closure - Unit/Integration Separation
 
-Progress: [█████████░] 86% (6/7 plans)
+Progress: [██████████] 100% (7/7 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 6
-- Average duration: 14.5 minutes
-- Total execution time: 1.45 hours
+- Total plans completed: 7
+- Average duration: 17.5 minutes
+- Total execution time: 2.04 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 01 | 6 | 91.8m | 15.3m |
+| 01 | 7 | 121.4m | 17.3m |
 
 **Recent Trend:**
-- Last 5 plans: 12.5m, 18.0m, 15.6m, 18.7m, 10.5m
-- Trend: Stable with recent efficiency gain
+- Last 5 plans: 18.0m, 15.6m, 18.7m, 10.5m, 29.6m
+- Trend: Phase 01 complete - final plan focused on comprehensive test separation
 
 *Updated after each plan completion*
 
@@ -43,6 +43,7 @@ Progress: [█████████░] 86% (6/7 plans)
 | 01-04 | 15.6m (937s) | 2 | 9 |
 | 01-05 | 18.7m (1121s) | 2 | 12 |
 | 01-06 | 10.5m (632s) | 2 | 5 |
+| 01-07 | 29.6m (1774s) | 2 | 8 |
 
 ## Accumulated Context
 
@@ -92,6 +93,11 @@ Recent decisions affecting current work:
 - 01-06: Defer pgcrypto column-level encryption to future phases
 - 01-06: SQLite fallback for unit tests, PostgreSQL required for integration tests
 - 01-06: Auto-skip integration tests when PostgreSQL unavailable
+- 01-07: Pure unit tests require no markers (default pytest collection)
+- 01-07: Integration tests require both @pytest.mark.asyncio and @pytest.mark.integration
+- 01-07: Module-level pytestmark for homogeneous test files (all unit or all integration)
+- 01-07: Per-test markers for mixed unit/integration files
+- 01-07: 63% coverage with unit tests only is acceptable (80% requires integration tests)
 
 ### Pending Todos
 
@@ -103,10 +109,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-09 (plan 01-06 execution)
-Stopped at: Completed 01-06-PLAN.md - Database Encryption & Test Infrastructure Gap Closure. 1 plan remaining in Phase 01.
+Last session: 2026-02-09 (plan 01-07 execution)
+Stopped at: Completed 01-07-PLAN.md - Test Infrastructure Gap Closure. Phase 01 (Foundation & Security) complete. Ready for Phase 02.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-09T15:20:22Z*
+*Last updated: 2026-02-09T13:55:20Z*
