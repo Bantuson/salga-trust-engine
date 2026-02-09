@@ -66,8 +66,7 @@ venv.bak/
 Thumbs.db
 
 # Alembic
-alembic/versions/*.py
-!alembic/versions/.gitkeep
+# Keep migration files - they should be tracked
 
 # Logs
 *.log
