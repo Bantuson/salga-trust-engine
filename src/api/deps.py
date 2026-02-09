@@ -1,11 +1,12 @@
 """API dependencies for FastAPI routes."""
 from typing import Callable
 
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, HTTPException, Request, status
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from src.core.audit import set_audit_context
 from src.core.database import get_db
 from src.core.security import decode_access_token
 from src.core.tenant import set_tenant_context
@@ -18,6 +19,7 @@ security = HTTPBearer()
 
 
 async def get_current_user(
+    request: Request,
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
@@ -70,6 +72,15 @@ async def get_current_user(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Set audit context for request tracking
+    ip_address = request.client.host if request.client else None
+    user_agent = request.headers.get("user-agent")
+    set_audit_context(
+        user_id=str(user.id),
+        ip_address=ip_address,
+        user_agent=user_agent
+    )
 
     return user
 

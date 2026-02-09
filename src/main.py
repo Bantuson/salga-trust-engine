@@ -6,7 +6,7 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.api.v1 import auth, users
+from src.api.v1 import auth, municipalities, users
 from src.core.config import settings
 from src.middleware.error_handler import (
     global_exception_handler,
@@ -16,6 +16,9 @@ from src.middleware.error_handler import (
 from src.middleware.rate_limit import setup_rate_limiting
 from src.middleware.security_headers import SecurityHeadersMiddleware
 from src.middleware.tenant_middleware import TenantContextMiddleware
+
+# Import audit module to register SQLAlchemy event listeners
+import src.core.audit  # noqa: F401
 
 
 @asynccontextmanager
@@ -73,4 +76,5 @@ async def health_check():
 
 # Include API routers
 app.include_router(auth.router)
+app.include_router(municipalities.router)
 app.include_router(users.router)

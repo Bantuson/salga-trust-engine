@@ -9,8 +9,11 @@ from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_asyn
 
 from src.api.deps import get_db
 from src.core.config import settings
+from src.core.security import get_password_hash
 from src.main import app
 from src.models.base import Base
+from src.models.municipality import Municipality
+from src.models.user import User, UserRole
 
 # Override settings for testing
 settings.ENVIRONMENT = "test"
@@ -101,3 +104,99 @@ async def setup_test_database():
     yield
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.drop_all)
+
+
+@pytest_asyncio.fixture(scope="function")
+async def test_municipality(db_session: AsyncSession) -> Municipality:
+    """Create a test municipality for tests."""
+    municipality = Municipality(
+        name="Test Municipality",
+        code="TEST001",
+        province="Gauteng",
+        is_active=True
+    )
+    db_session.add(municipality)
+    await db_session.commit()
+    await db_session.refresh(municipality)
+    return municipality
+
+
+@pytest_asyncio.fixture(scope="function")
+async def test_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create a test user for tests."""
+    user = User(
+        email="testuser@example.com",
+        hashed_password=get_password_hash("testpassword123"),
+        full_name="Test User",
+        phone="+27123456789",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.CITIZEN,
+        is_active=True
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def admin_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create an admin user for tests."""
+    from src.core.security import get_password_hash
+    user = User(
+        email="admin@example.com",
+        hashed_password=get_password_hash("adminpassword123"),
+        full_name="Admin User",
+        phone="+27987654321",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.ADMIN,
+        is_active=True
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture(scope="function")
+def admin_token(admin_user: User) -> str:
+    """Create an access token for admin user."""
+    from src.core.security import create_access_token
+    return create_access_token({
+        "sub": str(admin_user.id),
+        "tenant_id": admin_user.tenant_id,
+        "role": admin_user.role.value,
+    })
+
+
+@pytest_asyncio.fixture(scope="function")
+async def citizen_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create a citizen user for tests."""
+    from src.core.security import get_password_hash
+    user = User(
+        email="citizen@example.com",
+        hashed_password=get_password_hash("citizenpassword123"),
+        full_name="Citizen User",
+        phone="+27111222333",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.CITIZEN,
+        is_active=True
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest.fixture(scope="function")
+def citizen_token(citizen_user: User) -> str:
+    """Create an access token for citizen user."""
+    from src.core.security import create_access_token
+    return create_access_token({
+        "sub": str(citizen_user.id),
+        "tenant_id": citizen_user.tenant_id,
+        "role": citizen_user.role.value,
+    })

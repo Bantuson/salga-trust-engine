@@ -24,6 +24,10 @@ def get_password_hash(password: str) -> str:
     return ph.hash(password)
 
 
+# Alias for backward compatibility
+hash_password = get_password_hash
+
+
 def verify_password(plain_password: str, hashed_password: str) -> bool:
     """Verify a password against its hash using Argon2.
 
