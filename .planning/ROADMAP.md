@@ -31,12 +31,14 @@ Decimal phases appear between their surrounding integers in numeric order.
   3. System captures POPIA consent at registration with clear purpose explanation in user's language
   4. User can request access to their personal data and request deletion (POPIA rights functional)
   5. All data is encrypted at rest and in transit with comprehensive audit logging on all operations
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 01-01: TBD during phase planning
-- [ ] 01-02: TBD during phase planning
-- [ ] 01-03: TBD during phase planning
+- [ ] 01-01-PLAN.md -- Project foundation, database layer, and all data models
+- [ ] 01-02-PLAN.md -- Authentication system with JWT, RBAC, and POPIA consent at registration
+- [ ] 01-03-PLAN.md -- Security middleware, rate limiting, input sanitization, and CORS
+- [ ] 01-04-PLAN.md -- POPIA data rights endpoints and comprehensive audit logging
+- [ ] 01-05-PLAN.md -- Municipality management API and multi-tenant RLS isolation
 
 ### Phase 2: Agentic AI System
 **Goal**: AI agents handle message routing and structured conversational intake
@@ -129,11 +131,11 @@ Plans:
 ## Progress
 
 **Execution Order:**
-Phases execute in numeric order: 1 → 2 → 3 → 4 → 5 → 6
+Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
-| 1. Foundation & Security | 0/3 | Not started | - |
+| 1. Foundation & Security | 0/5 | Planning complete | - |
 | 2. Agentic AI System | 0/3 | Not started | - |
 | 3. Citizen Reporting Channels | 0/3 | Not started | - |
 | 4. Ticket Management & Routing | 0/3 | Not started | - |
