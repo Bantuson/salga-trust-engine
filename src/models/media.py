@@ -19,8 +19,8 @@ class MediaAttachment(TenantAwareModel):
 
     __tablename__ = "media_attachments"
 
-    ticket_id: Mapped[UUID] = mapped_column(ForeignKey("tickets.id"), nullable=False, index=True)
-    file_id: Mapped[str] = mapped_column(String(36), nullable=False, unique=True)
+    ticket_id: Mapped[UUID | None] = mapped_column(ForeignKey("tickets.id"), nullable=True, index=True)
+    file_id: Mapped[str] = mapped_column(String(36), nullable=False, unique=True, index=True)
     s3_bucket: Mapped[str] = mapped_column(String(100), nullable=False)
     s3_key: Mapped[str] = mapped_column(String(500), nullable=False)
     filename: Mapped[str] = mapped_column(String(255), nullable=False)
