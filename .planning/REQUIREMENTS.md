@@ -129,58 +129,58 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | TBD | Pending |
-| PLAT-02 | TBD | Pending |
-| PLAT-03 | TBD | Pending |
-| PLAT-04 | TBD | Pending |
-| PLAT-05 | TBD | Pending |
-| PLAT-06 | TBD | Pending |
-| PLAT-07 | TBD | Pending |
-| PLAT-08 | TBD | Pending |
-| AI-01 | TBD | Pending |
-| AI-02 | TBD | Pending |
-| AI-03 | TBD | Pending |
-| AI-04 | TBD | Pending |
-| AI-05 | TBD | Pending |
-| AI-06 | TBD | Pending |
-| AI-07 | TBD | Pending |
-| RPT-01 | TBD | Pending |
-| RPT-02 | TBD | Pending |
-| RPT-03 | TBD | Pending |
-| RPT-04 | TBD | Pending |
-| RPT-05 | TBD | Pending |
-| RPT-06 | TBD | Pending |
-| RPT-07 | TBD | Pending |
-| RPT-08 | TBD | Pending |
-| RPT-09 | TBD | Pending |
-| TKT-01 | TBD | Pending |
-| TKT-02 | TBD | Pending |
-| TKT-03 | TBD | Pending |
-| TKT-04 | TBD | Pending |
-| TKT-05 | TBD | Pending |
-| OPS-01 | TBD | Pending |
-| OPS-02 | TBD | Pending |
-| OPS-03 | TBD | Pending |
-| OPS-04 | TBD | Pending |
-| TRNS-01 | TBD | Pending |
-| TRNS-02 | TBD | Pending |
-| TRNS-03 | TBD | Pending |
-| TRNS-04 | TBD | Pending |
-| TRNS-05 | TBD | Pending |
-| SEC-01 | TBD | Pending |
-| SEC-02 | TBD | Pending |
-| SEC-03 | TBD | Pending |
-| SEC-04 | TBD | Pending |
-| SEC-05 | TBD | Pending |
-| SEC-06 | TBD | Pending |
-| SEC-07 | TBD | Pending |
-| SEC-08 | TBD | Pending |
+| PLAT-01 | Phase 1 | Pending |
+| PLAT-02 | Phase 3 | Pending |
+| PLAT-03 | Phase 3 | Pending |
+| PLAT-04 | Phase 2 | Pending |
+| PLAT-05 | Phase 1 | Pending |
+| PLAT-06 | Phase 1 | Pending |
+| PLAT-07 | Phase 1 | Pending |
+| PLAT-08 | Phase 1 | Pending |
+| AI-01 | Phase 2 | Pending |
+| AI-02 | Phase 2 | Pending |
+| AI-03 | Phase 2 | Pending |
+| AI-04 | Phase 2 | Pending |
+| AI-05 | Phase 2 | Pending |
+| AI-06 | Phase 2 | Pending |
+| AI-07 | Phase 2 | Pending |
+| RPT-01 | Phase 3 | Pending |
+| RPT-02 | Phase 3 | Pending |
+| RPT-03 | Phase 3 | Pending |
+| RPT-04 | Phase 3 | Pending |
+| RPT-05 | Phase 3 | Pending |
+| RPT-06 | Phase 3 | Pending |
+| RPT-07 | Phase 3 | Pending |
+| RPT-08 | Phase 3 | Pending |
+| RPT-09 | Phase 3 | Pending |
+| TKT-01 | Phase 4 | Pending |
+| TKT-02 | Phase 4 | Pending |
+| TKT-03 | Phase 4 | Pending |
+| TKT-04 | Phase 4 | Pending |
+| TKT-05 | Phase 4 | Pending |
+| OPS-01 | Phase 5 | Pending |
+| OPS-02 | Phase 5 | Pending |
+| OPS-03 | Phase 5 | Pending |
+| OPS-04 | Phase 5 | Pending |
+| TRNS-01 | Phase 6 | Pending |
+| TRNS-02 | Phase 6 | Pending |
+| TRNS-03 | Phase 6 | Pending |
+| TRNS-04 | Phase 6 | Pending |
+| TRNS-05 | Phase 6 | Pending |
+| SEC-01 | Phase 1 | Pending |
+| SEC-02 | Phase 1 | Pending |
+| SEC-03 | Phase 1 | Pending |
+| SEC-04 | Phase 1 | Pending |
+| SEC-05 | Phase 4 | Pending |
+| SEC-06 | Phase 1 | Pending |
+| SEC-07 | Phase 1 | Pending |
+| SEC-08 | Phase 1 | Pending |
 
 **Coverage:**
-- v1 requirements: 39 total
-- Mapped to phases: 0
-- Unmapped: 39
+- v1 requirements: 46 total
+- Mapped to phases: 46
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after initial definition*
+*Last updated: 2026-02-09 after roadmap creation*
