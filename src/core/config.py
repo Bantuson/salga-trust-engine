@@ -26,6 +26,22 @@ class Settings(BaseSettings):
         description="Allowed CORS origins"
     )
 
+    # AWS S3
+    AWS_ACCESS_KEY_ID: str = Field(default="", description="AWS access key")
+    AWS_SECRET_ACCESS_KEY: str = Field(default="", description="AWS secret key")
+    AWS_REGION: str = Field(default="af-south-1", description="AWS region")
+    S3_BUCKET_EVIDENCE: str = Field(default="salga-evidence-dev", description="S3 bucket for evidence photos")
+    S3_BUCKET_DOCUMENTS: str = Field(default="salga-documents-dev", description="S3 bucket for proof of residence")
+
+    # Encryption
+    ENCRYPTION_KEY_CURRENT: str = Field(default="", description="Current Fernet encryption key")
+    ENCRYPTION_KEY_PREVIOUS: str = Field(default="", description="Previous Fernet key for rotation")
+
+    # Twilio
+    TWILIO_ACCOUNT_SID: str = Field(default="", description="Twilio account SID")
+    TWILIO_AUTH_TOKEN: str = Field(default="", description="Twilio auth token")
+    TWILIO_WHATSAPP_NUMBER: str = Field(default="", description="Twilio WhatsApp sender number (whatsapp:+14155238886)")
+
     # Environment
     DEBUG: bool = Field(default=False, description="Debug mode")
     ENVIRONMENT: str = Field(default="development", description="Environment name")
