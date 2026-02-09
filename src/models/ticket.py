@@ -18,6 +18,7 @@ from uuid import UUID
 from sqlalchemy import Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
+from src.core.encryption import EncryptedString
 from src.models.base import TenantAwareModel
 
 
@@ -72,6 +73,10 @@ class Ticket(TenantAwareModel):
     )
     category: Mapped[str] = mapped_column(String(20), nullable=False)
     description: Mapped[str] = mapped_column(Text, nullable=False)
+    encrypted_description: Mapped[str | None] = mapped_column(
+        EncryptedString(5000),
+        nullable=True
+    )
 
     # Location fields (PostGIS deferred to Phase 4)
     latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
@@ -100,6 +105,9 @@ class Ticket(TenantAwareModel):
 
     # Security flag for GBV tickets
     is_sensitive: Mapped[bool] = mapped_column(nullable=False, default=False)
+
+    # Media attachments (denormalized field, MediaAttachment is source of truth)
+    media_urls: Mapped[str | None] = mapped_column(Text, nullable=True)
 
     def __repr__(self) -> str:
         return f"<Ticket {self.tracking_number} - {self.category} - {self.status}>"

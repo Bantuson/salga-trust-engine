@@ -35,3 +35,19 @@ class UserInDB(UserResponse):
     """Schema for user in database (includes hashed password)."""
 
     hashed_password: str
+
+
+class UserVerificationRequest(BaseModel):
+    """Schema for requesting user verification via proof of residence."""
+
+    document_file_id: str
+
+
+class UserVerificationResponse(BaseModel):
+    """Schema for user verification status response."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    verification_status: str
+    verified_address: str | None = None
+    verified_at: datetime | None = None

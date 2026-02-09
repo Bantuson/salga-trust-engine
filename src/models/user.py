@@ -48,3 +48,16 @@ class User(TenantAwareModel):
         nullable=False,
         index=True
     )
+
+    # Proof of residence verification
+    verification_status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="unverified"
+    )
+    verified_address: Mapped[str | None] = mapped_column(String(500), nullable=True)
+    verification_document_id: Mapped[str | None] = mapped_column(String(36), nullable=True)
+    verified_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
