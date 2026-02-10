@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 4 - Ticket Management & Routing
+**Current focus:** Phase 5 - Municipal Operations Dashboard
 
 ## Current Position
 
-Phase: 4 of 6 (Ticket Management & Routing)
-Plan: 5 of 5 in current phase
-Status: Complete
-Last activity: 2026-02-10 — Completed 04-05: Phase 4 Testing & Verification (84 tests, SEC-05 GBV firewall verified)
+Phase: 5 of 6 (Municipal Operations Dashboard)
+Plan: 2 of 5 in current phase
+Status: In Progress
+Last activity: 2026-02-10 — Completed 05-02: Real-time Events & Data Export (SSE streaming, CSV/Excel export)
 
-Progress: [██████████] 100% (5/5 plans)
+Progress: [████░░░░░░] 40% (2/5 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 23
+- Total plans completed: 25
 - Average duration: 20.0 minutes
-- Total execution time: 7.7 hours
+- Total execution time: 8.2 hours
 
 **By Phase:**
 
@@ -31,10 +31,11 @@ Progress: [██████████] 100% (5/5 plans)
 | 02 | 4 | 94.3m | 23.6m |
 | 03 | 7 | 103.3m | 14.8m |
 | 04 | 5 | 124.4m | 24.9m |
+| 05 | 2 | 40.2m | 20.1m |
 
 **Recent Trend:**
-- Last 5 plans: 31.1m, 9.6m, 32.6m, 13.0m, 38.1m
-- Trend: Phase 04 COMPLETE - 04-05 comprehensive testing (38.1 min, 84 tests)
+- Last 5 plans: 9.6m, 32.6m, 13.0m, 38.1m, 20.1m
+- Trend: Phase 05 in progress - 05-02 real-time events & export (20.1 min)
 
 *Updated after each plan completion*
 
@@ -63,7 +64,11 @@ Progress: [██████████] 100% (5/5 plans)
 | 04-03 | 32.6m (1954s) | 2 | 6 |
 | 04-04 | 13.0m (779s) | 2 | 5 |
 | 04-05 | 38.1m (2286s) | 2 | 7 |
-| Phase 04 P05 | 2286 | 2 tasks | 7 files |
+| 05-01 | 20.1m (1205s) | 2 | 5 |
+| 05-02 | 20.1m (1205s) | 2 | 5 |
+| Phase 05 P02 | 1205 | 2 tasks | 5 files |
+| Phase 05 P02 | 1205 | 2 tasks | 5 files |
+| Phase 05 P01 | 1081 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -189,6 +194,14 @@ Recent decisions affecting current work:
 - [Phase 04-05]: SEC-05 GBV firewall verified at all layers (routing, assignment, SLA, API) with dedicated test suite
 - [Phase 04-05]: Timezone-naive datetime mocking pattern for SLA service tests
 - [Phase 04-05]: AsyncMock side_effect list pattern for sequential database query mocking
+- [Phase 05-01]: Added WARD_COUNCILLOR role for municipal councillor access with interim ward filtering
+- [Phase 05-01]: Server-side pagination with page/page_size pattern instead of limit/offset
+- [Phase 05-01]: Dashboard metrics exclude GBV/sensitive tickets and SAPS teams (SEC-05 compliance)
+- [Phase 05-02]: Redis Pub/Sub for event broadcasting across multiple server instances
+- [Phase 05-02]: SSE over WebSocket for dashboard real-time updates (one-way streaming, auto-reconnect)
+- [Phase 05-02]: Ward councillor SSE filtering at server layer for RBAC enforcement
+- [Phase 05-02]: Separate CSV and Excel export endpoints (Excel requires openpyxl, CSV always available)
+- [Phase 05-02]: Export endpoints enforce SEC-05 (GBV tickets excluded via is_sensitive == False filter)
 
 ### Pending Todos
 
