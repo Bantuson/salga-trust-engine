@@ -178,3 +178,29 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 ---
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-10 (Phase 6 complete — ALL PHASES DONE)*
+
+### Phase 06.1: Postgres refactor to Supabase and dashboard separation (INSERTED)
+
+**Goal:** Migrate to Supabase Cloud (database, auth, storage, realtime) and split frontend into two independently deployable React apps (municipal dashboard on Vercel, public dashboard serverless via Supabase)
+**Depends on:** Phase 6
+**Success Criteria** (what must be TRUE):
+  1. FastAPI connects to Supabase Cloud PostgreSQL (not local PostgreSQL)
+  2. All authentication uses Supabase Auth (email+password and phone OTP), custom JWT+Argon2 removed
+  3. RBAC roles injected into JWT via custom access token hook (role + tenant_id in app_metadata)
+  4. Media uploads use Supabase Storage with GBV evidence in SAPS-only private bucket
+  5. Real-time dashboard updates use Supabase Realtime (Redis Pub/Sub + SSE removed)
+  6. RLS policies use auth.jwt() pattern (SET LOCAL removed), all policy columns indexed
+  7. Public dashboard queries Supabase directly via anon key + RLS views (zero FastAPI dependency)
+  8. Municipal dashboard is independent Vite app (frontend-dashboard/) with Supabase Auth
+  9. GBV firewall intact at all layers: storage RLS, database RLS, public views, application filter
+  10. All 338+ tests pass, both frontend apps build, no regressions
+**Plans:** 7 plans
+
+Plans:
+- [ ] 06.1-01-PLAN.md -- Supabase project setup, SDK install, config, database connection, RBAC custom claims hook
+- [ ] 06.1-02-PLAN.md -- Auth migration to Supabase Auth (register, login, phone OTP, JWT verification) + WhatsApp sessions
+- [ ] 06.1-03-PLAN.md -- Storage migration (S3 to Supabase Storage) + Realtime migration (Redis to Supabase Realtime)
+- [ ] 06.1-04-PLAN.md -- RLS policy migration (SET LOCAL to auth.jwt()), public views for anon role, tenant filter update
+- [ ] 06.1-05-PLAN.md -- Frontend split: municipal dashboard (frontend-dashboard/) with Supabase Auth + Realtime
+- [ ] 06.1-06-PLAN.md -- Frontend split: public dashboard (frontend-public/) with Supabase anon + RLS views
+- [ ] 06.1-07-PLAN.md -- Test suite update, regression verification, GBV firewall check, final verification
