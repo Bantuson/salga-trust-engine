@@ -7,9 +7,11 @@
  * - Upload confirmation
  * - Report submission
  * - Report tracking
+ * - Dashboard metrics and ticket management
  */
 
 import axios, { AxiosError } from 'axios';
+import type { TicketFilters, PaginatedTicketResponse, DashboardMetrics, CategoryVolume, SLACompliance, TeamWorkload } from '../types/dashboard';
 
 // API base URL from environment or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1';
@@ -210,4 +212,80 @@ export async function getReportByTracking(
     }
     throw error;
   }
+}
+
+/**
+ * Fetch paginated tickets with filters (for dashboard).
+ */
+export async function fetchTickets(filters: TicketFilters): Promise<PaginatedTicketResponse> {
+  const params = new URLSearchParams();
+  if (filters.status) params.set('status', filters.status);
+  if (filters.category) params.set('category', filters.category);
+  if (filters.search) params.set('search', filters.search);
+  if (filters.ward_id) params.set('ward_id', filters.ward_id);
+  if (filters.sort_by) params.set('sort_by', filters.sort_by);
+  if (filters.sort_order) params.set('sort_order', filters.sort_order);
+  params.set('page', String(filters.page ?? 0));
+  params.set('page_size', String(filters.page_size ?? 50));
+
+  const response = await axios.get(`${API_BASE_URL}/tickets?${params}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+}
+
+/**
+ * Fetch dashboard metrics.
+ */
+export async function fetchDashboardMetrics(wardId?: string): Promise<DashboardMetrics> {
+  const params = wardId ? `?ward_id=${wardId}` : '';
+  const response = await axios.get(`${API_BASE_URL}/dashboard/metrics${params}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+}
+
+/**
+ * Fetch ticket volume by category.
+ */
+export async function fetchVolumeByCategory(wardId?: string): Promise<CategoryVolume[]> {
+  const params = wardId ? `?ward_id=${wardId}` : '';
+  const response = await axios.get(`${API_BASE_URL}/dashboard/volume${params}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+}
+
+/**
+ * Fetch SLA compliance data.
+ */
+export async function fetchSLACompliance(wardId?: string): Promise<SLACompliance> {
+  const params = wardId ? `?ward_id=${wardId}` : '';
+  const response = await axios.get(`${API_BASE_URL}/dashboard/sla${params}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+}
+
+/**
+ * Fetch team workload data.
+ */
+export async function fetchTeamWorkload(wardId?: string): Promise<TeamWorkload[]> {
+  const params = wardId ? `?ward_id=${wardId}` : '';
+  const response = await axios.get(`${API_BASE_URL}/dashboard/workload${params}`, {
+    headers: getAuthHeaders(),
+  });
+  return response.data;
+}
+
+/**
+ * Get export download URL for tickets.
+ */
+export function getExportUrl(format: 'csv' | 'excel', filters: TicketFilters): string {
+  const params = new URLSearchParams();
+  if (filters.status) params.set('status', filters.status);
+  if (filters.category) params.set('category', filters.category);
+  if (filters.search) params.set('search', filters.search);
+  if (filters.ward_id) params.set('ward_id', filters.ward_id);
+  return `${API_BASE_URL}/export/tickets/${format}?${params}`;
 }
