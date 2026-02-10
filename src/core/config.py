@@ -20,6 +20,20 @@ class Settings(BaseSettings):
     # Redis
     REDIS_URL: str = Field(default="redis://localhost:6379/0", description="Redis connection URL")
 
+    # Celery
+    CELERY_BROKER_URL: str = Field(
+        default="redis://localhost:6379/1",
+        description="Celery broker URL"
+    )
+    CELERY_RESULT_BACKEND: str = Field(
+        default="redis://localhost:6379/1",
+        description="Celery result backend URL"
+    )
+    SLA_CHECK_INTERVAL_SECONDS: int = Field(
+        default=300,
+        description="SLA check interval in seconds (default 5 minutes)"
+    )
+
     # CORS
     ALLOWED_ORIGINS: list[str] = Field(
         default=["http://localhost:3000"],

@@ -30,6 +30,9 @@ dependencies = [
     "exifread>=3.0.0",
     "twilio>=9.0.0",
     "httpx>=0.28.0",
+    "geoalchemy2>=0.18.0",
+    "shapely>=2.0.0",
+    "celery[redis]>=5.6.0",
 ]
 
 [project.optional-dependencies]

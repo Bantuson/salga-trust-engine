@@ -5,7 +5,8 @@ and GBV incidents routed to SAPS. Uses tenant-aware base model for multi-municip
 isolation.
 
 Key decisions:
-- Separate lat/lng columns (PostGIS geospatial queries deferred to Phase 4)
+- PostGIS GEOMETRY(Point, 4326) for location (migrated from lat/lng in Phase 4)
+- Backward-compatible lat/lng properties for Phase 2-3 code
 - Tracking number format: TKT-YYYYMMDD-{6_random_hex}
 - is_sensitive flag for GBV tickets (triggers SAPS routing)
 - severity defaults to MEDIUM if not specified by agent
@@ -15,7 +16,8 @@ from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from sqlalchemy import Float, ForeignKey, String, Text
+from geoalchemy2 import Geometry
+from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.encryption import EncryptedString
@@ -78,9 +80,11 @@ class Ticket(TenantAwareModel):
         nullable=True
     )
 
-    # Location fields (PostGIS deferred to Phase 4)
-    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
-    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    # Location field (PostGIS POINT geometry)
+    location: Mapped[str | None] = mapped_column(
+        Geometry("POINT", srid=4326),
+        nullable=True
+    )
     address: Mapped[str | None] = mapped_column(String(500), nullable=True)
 
     # Metadata
@@ -99,15 +103,76 @@ class Ticket(TenantAwareModel):
     # Relationships
     user_id: Mapped[UUID] = mapped_column(ForeignKey("users.id"), nullable=False)
     assigned_to: Mapped[UUID | None] = mapped_column(ForeignKey("users.id"), nullable=True)
+    assigned_team_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("teams.id"),
+        nullable=True
+    )
 
     # Resolution tracking
     resolved_at: Mapped[datetime | None] = mapped_column(nullable=True)
+
+    # Escalation tracking
+    escalated_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    escalation_reason: Mapped[str | None] = mapped_column(String(200), nullable=True)
+
+    # SLA tracking
+    first_responded_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    sla_response_deadline: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
+    sla_resolution_deadline: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True
+    )
 
     # Security flag for GBV tickets
     is_sensitive: Mapped[bool] = mapped_column(nullable=False, default=False)
 
     # Media attachments (denormalized field, MediaAttachment is source of truth)
     media_urls: Mapped[str | None] = mapped_column(Text, nullable=True)
+
+    @property
+    def latitude(self) -> float | None:
+        """Backward-compatible property to extract latitude from PostGIS location.
+
+        Returns None if location is not set or geoalchemy2 is unavailable (unit tests).
+        """
+        if self.location is None:
+            return None
+        try:
+            from geoalchemy2.shape import to_shape
+            # Handle test scenarios where location might be a raw string
+            if isinstance(self.location, str):
+                return None
+            point = to_shape(self.location)
+            return point.y
+        except (ImportError, Exception):
+            return None
+
+    @property
+    def longitude(self) -> float | None:
+        """Backward-compatible property to extract longitude from PostGIS location.
+
+        Returns None if location is not set or geoalchemy2 is unavailable (unit tests).
+        """
+        if self.location is None:
+            return None
+        try:
+            from geoalchemy2.shape import to_shape
+            # Handle test scenarios where location might be a raw string
+            if isinstance(self.location, str):
+                return None
+            point = to_shape(self.location)
+            return point.x
+        except (ImportError, Exception):
+            return None
 
     def __repr__(self) -> str:
         return f"<Ticket {self.tracking_number} - {self.category} - {self.status}>"
