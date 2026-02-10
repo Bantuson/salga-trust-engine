@@ -230,22 +230,205 @@ class TestWhatsAppService:
         assert call_kwargs["media_content_type"] == "image/jpeg"
         assert call_kwargs["auth_credentials"] == ("AC123", "auth_token")
 
+    async def test_process_empty_message_and_no_media(self, whatsapp_service, test_user):
+        """Test early return for empty input."""
+        # Arrange
+        mock_db = AsyncMock()
 
-class TestPhoneLookupHelpers:
-    """Test phone number normalization and user lookup."""
+        # Act
+        result = await whatsapp_service.process_incoming_message(
+            user=test_user,
+            message_body=None,
+            media_items=[],
+            session_id="test-session-empty",
+            db=mock_db
+        )
 
-    def test_normalize_south_african_number_with_zero_prefix(self):
-        """Test 0XXXXXXXXX converted to +27XXXXXXXXX."""
-        # This test would go in the whatsapp.py endpoint test file
-        # since lookup_user_by_phone is in the endpoint module
-        pass
+        # Assert
+        assert result["response"] == "Please send a message with text or photos."
+        assert result["is_complete"] is False
+        assert result["tracking_number"] is None
 
-    def test_normalize_whatsapp_prefix(self):
-        """Test whatsapp: prefix is stripped."""
-        # This test would go in the whatsapp.py endpoint test file
-        pass
+    async def test_process_message_blocked_by_guardrails(self, whatsapp_service, test_user):
+        """Test input blocked by guardrails."""
+        # Arrange
+        mock_db = AsyncMock()
 
-    def test_add_plus_if_missing(self):
-        """Test + is added if missing from international number."""
-        # This test would go in the whatsapp.py endpoint test file
-        pass
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails:
+            # Mock guardrails to block input
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=False,
+                blocked_reason="Inappropriate content detected"
+            ))
+
+            # Act
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="Some inappropriate message",
+                media_items=[],
+                session_id="test-session-blocked",
+                db=mock_db
+            )
+
+        # Assert
+        assert "Inappropriate content detected" in result["response"]
+        assert result["tracking_number"] is None
+
+    async def test_process_message_flow_exception(self, whatsapp_service, test_user):
+        """Test flow.kickoff() raising an exception."""
+        # Arrange
+        mock_db = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
+             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow:
+
+            # Mock guardrails
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="Test message"
+            ))
+            mock_guardrails.process_output = AsyncMock(return_value=MagicMock(
+                sanitized_response="I apologize, but I encountered an error."
+            ))
+
+            # Mock conversation manager
+            mock_conv_instance = AsyncMock()
+            mock_conv_instance.get_state = AsyncMock(return_value=MagicMock(
+                language="en",
+                turns=[]
+            ))
+            mock_conv_instance.append_turn = AsyncMock()
+            mock_conv_instance.close = AsyncMock()
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            # Mock IntakeFlow to raise exception
+            mock_flow_instance = MagicMock()
+            mock_flow_instance.state = MagicMock(language="en")
+            mock_flow_instance.kickoff.side_effect = RuntimeError("LLM API unavailable")
+            mock_flow.return_value = mock_flow_instance
+
+            # Act
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="Test message",
+                media_items=[],
+                session_id="test-session-error",
+                db=mock_db
+            )
+
+        # Assert
+        assert "error" in result["response"] or "apologize" in result["response"]
+        assert result["is_complete"] is False
+
+    async def test_send_whatsapp_with_existing_prefix(self, whatsapp_service):
+        """Test send when number already has whatsapp: prefix."""
+        # Arrange
+        mock_message = MagicMock()
+        mock_message.sid = "SM999999"
+        mock_message.status = "queued"
+        whatsapp_service._twilio_client.messages.create.return_value = mock_message
+
+        with patch('src.services.whatsapp_service.settings') as mock_settings:
+            mock_settings.TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155551234"
+
+            # Act
+            result = await whatsapp_service.send_whatsapp_message(
+                to_number="whatsapp:+27123456789",  # Already has prefix
+                message="Test message"
+            )
+
+        # Assert
+        assert result == "SM999999"
+        call_kwargs = whatsapp_service._twilio_client.messages.create.call_args[1]
+        # Should NOT double-prefix
+        assert call_kwargs["to"] == "whatsapp:+27123456789"
+        assert not call_kwargs["to"].startswith("whatsapp:whatsapp:")
+
+    async def test_send_whatsapp_twilio_exception(self, whatsapp_service):
+        """Test Twilio REST exception handling."""
+        from twilio.base.exceptions import TwilioRestException
+
+        # Arrange
+        whatsapp_service._twilio_client.messages.create.side_effect = TwilioRestException(
+            status=400,
+            uri="/test",
+            msg="Bad request",
+            code=21211
+        )
+
+        with patch('src.services.whatsapp_service.settings') as mock_settings:
+            mock_settings.TWILIO_WHATSAPP_NUMBER = "whatsapp:+14155551234"
+
+            # Act
+            result = await whatsapp_service.send_whatsapp_message(
+                to_number="+27123456789",
+                message="Test message"
+            )
+
+        # Assert - should return None gracefully
+        assert result is None
+
+    async def test_process_message_with_ticket_and_tracking_number(self, whatsapp_service, test_user):
+        """Test tracking number extraction from ticket_data (03-06 fix)."""
+        # Arrange
+        mock_db = AsyncMock()
+        test_ticket_id = str(uuid4())
+        test_tracking_number = "TKT-20260210-ABC123"
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
+             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow_class:
+
+            # Mock guardrails
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="There is a pothole on Main Street"
+            ))
+
+            # Mock conversation manager
+            mock_conv_instance = AsyncMock()
+            mock_conv_instance.get_state = AsyncMock(return_value=MagicMock(
+                language="en",
+                turns=[]
+            ))
+            mock_conv_instance.append_turn = AsyncMock()
+            mock_conv_instance.close = AsyncMock()
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            # Create a mock flow instance that will update its state after kickoff
+            mock_flow_instance = MagicMock()
+
+            # Define a side_effect for kickoff that updates the state
+            def kickoff_side_effect():
+                # After kickoff, update state with ticket_data
+                mock_flow_instance.state.ticket_data = {
+                    "tracking_number": test_tracking_number,
+                    "category": "roads"
+                }
+                mock_flow_instance.state.ticket_id = test_ticket_id
+                mock_flow_instance.state.is_complete = True
+                mock_flow_instance.state.category = "municipal"
+                return None
+
+            mock_flow_instance.kickoff.side_effect = kickoff_side_effect
+            mock_flow_class.return_value = mock_flow_instance
+
+            # Mock process_output to return response with tracking number
+            expected_response = f"Your report has been received and logged. Your tracking number is {test_tracking_number}. We will investigate this issue and keep you updated."
+            mock_guardrails.process_output = AsyncMock(return_value=MagicMock(
+                sanitized_response=expected_response
+            ))
+
+            # Act
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="There is a pothole on Main Street",
+                media_items=[],
+                session_id="test-session-tracking",
+                db=mock_db
+            )
+
+        # Assert
+        assert result["tracking_number"] == test_tracking_number
+        assert test_tracking_number in result["response"]
