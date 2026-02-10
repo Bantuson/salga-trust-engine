@@ -96,6 +96,20 @@ def _create_ticket_impl(
     random_part = secrets.token_hex(3).upper()  # 3 bytes = 6 hex chars
     tracking_number = f"TKT-{date_part}-{random_part}"
 
+    # Create PostGIS location from lat/lng if provided
+    location = None
+    if latitude is not None and longitude is not None:
+        try:
+            # Try to create PostGIS geometry (production)
+            from geoalchemy2.shape import from_shape
+            from shapely.geometry import Point
+            point = Point(longitude, latitude)  # PostGIS uses (x, y) = (lng, lat)
+            location = from_shape(point, srid=4326)
+        except ImportError:
+            # Graceful degradation for unit tests without geoalchemy2
+            # Store as TEXT in SQLite tests
+            location = f"POINT({longitude} {latitude})"
+
     # Create ticket
     engine = _get_sync_engine()
     session = Session(engine)
@@ -113,8 +127,7 @@ def _create_ticket_impl(
             language=language,
             severity=severity_lower,
             status=TicketStatus.OPEN,
-            latitude=latitude,
-            longitude=longitude,
+            location=location,
             address=address,
             is_sensitive=is_sensitive,
             created_by=user_id,
