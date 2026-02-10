@@ -181,7 +181,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ### Phase 06.1: Postgres refactor to Supabase and dashboard separation (INSERTED)
 
-**Goal:** Migrate to Supabase Cloud (database, auth, storage, realtime) and split frontend into two independently deployable React apps (municipal dashboard on Vercel, public dashboard serverless via Supabase)
+**Goal:** Migrate to Supabase Cloud (database, auth, storage, realtime), split frontend into two independently deployable React apps, and add premium UI design layer with animations, 3D elements, and dark mode
 **Depends on:** Phase 6
 **Success Criteria** (what must be TRUE):
   1. FastAPI connects to Supabase Cloud PostgreSQL (not local PostgreSQL)
@@ -194,7 +194,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
   8. Municipal dashboard is independent Vite app (frontend-dashboard/) with Supabase Auth
   9. GBV firewall intact at all layers: storage RLS, database RLS, public views, application filter
   10. All 338+ tests pass, both frontend apps build, no regressions
-**Plans:** 7 plans
+  11. Both dashboards use dark mode (navy #0A0E1A) with shared design token system
+  12. Municipal dashboard has branded login with 3D globe, glassmorphism, GSAP animations
+  13. Public dashboard has scroll storytelling landing page with interactive 3D SA globe
+  14. All animations use GSAP + Lenis + anime.js (NOT Barba.js)
+**Plans:** 9 plans
 
 Plans:
 - [ ] 06.1-01-PLAN.md -- Supabase project setup, SDK install, config, database connection, RBAC custom claims hook
@@ -204,3 +208,5 @@ Plans:
 - [ ] 06.1-05-PLAN.md -- Frontend split: municipal dashboard (frontend-dashboard/) with Supabase Auth + Realtime
 - [ ] 06.1-06-PLAN.md -- Frontend split: public dashboard (frontend-public/) with Supabase anon + RLS views
 - [ ] 06.1-07-PLAN.md -- Test suite update, regression verification, GBV firewall check, final verification
+- [ ] 06.1-08-PLAN.md -- Shared design system + municipal dashboard premium UI (dark mode, GSAP transitions, branded login with 3D globe)
+- [ ] 06.1-09-PLAN.md -- Public dashboard premium UI + scroll storytelling landing page with interactive 3D SA globe
