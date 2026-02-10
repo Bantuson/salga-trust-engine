@@ -13,11 +13,12 @@ Key security features:
 - All ticket mutations trigger audit log via SQLAlchemy event listener
 """
 import logging
+import math
 from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
-from sqlalchemy import desc, select
+from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db
@@ -27,6 +28,7 @@ from src.models.ticket import Ticket
 from src.models.user import User, UserRole
 from src.schemas.ticket import (
     AssignmentBrief,
+    PaginatedTicketResponse,
     TicketAssignRequest,
     TicketDetailResponse,
     TicketResponse,
@@ -78,48 +80,69 @@ def _compute_sla_status(ticket: Ticket) -> str | None:
     return "on_track"
 
 
-@router.get("/", response_model=list[TicketResponse])
+@router.get("/", response_model=PaginatedTicketResponse)
 async def list_tickets(
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
-    limit: int = 50,
-    offset: int = 0,
+    page: int = 0,
+    page_size: int = 50,
     status_filter: str | None = None,
     category: str | None = None,
     assigned_team_id: UUID | None = None,
-) -> list[TicketResponse]:
-    """List tickets with RBAC filtering.
+    search: str | None = None,
+    ward_id: str | None = None,
+    sort_by: str = "created_at",
+    sort_order: str = "desc",
+) -> PaginatedTicketResponse:
+    """List tickets with server-side filtering, search, and pagination.
 
     Args:
-        current_user: Authenticated user (must be MANAGER, ADMIN, or SAPS_LIAISON)
+        current_user: Authenticated user (must be MANAGER, ADMIN, SAPS_LIAISON, or WARD_COUNCILLOR)
         db: Database session
-        limit: Maximum number of results (default 50)
-        offset: Offset for pagination (default 0)
+        page: Page number (default 0)
+        page_size: Items per page (default 50)
         status_filter: Filter by status (optional)
         category: Filter by category (optional)
         assigned_team_id: Filter by assigned team (optional)
+        search: Free-text search on tracking_number and description (optional)
+        ward_id: Filter by ward (optional)
+        sort_by: Sort field (created_at/status/severity/category, default created_at)
+        sort_order: Sort order (asc/desc, default desc)
 
     Returns:
-        List of TicketResponse objects
+        PaginatedTicketResponse with tickets and pagination metadata
 
     Raises:
         HTTPException: 403 if user not authorized
     """
-    # RBAC check
-    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON]:
+    # RBAC check - allow WARD_COUNCILLOR
+    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.WARD_COUNCILLOR]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view tickets"
         )
 
-    # Build query
-    query = select(Ticket).order_by(desc(Ticket.created_at))
+    # Ward councillor ward enforcement (interim: log warning)
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        if ward_id:
+            logger.warning(
+                f"WARD_COUNCILLOR {current_user.id} accessing ward {ward_id}. "
+                "Ward enforcement will be added when User.ward_id field is implemented."
+            )
+        else:
+            logger.warning(
+                f"WARD_COUNCILLOR {current_user.id} accessing tickets without ward filter. "
+                "Ward enforcement will be added when User.ward_id field is implemented."
+            )
+
+    # Build base query
+    query = select(Ticket)
 
     # SEC-05: SAPS_LIAISON only sees GBV tickets
     if current_user.role == UserRole.SAPS_LIAISON:
         query = query.where(Ticket.is_sensitive == True)
     else:
-        # MANAGER/ADMIN see only non-sensitive tickets
+        # MANAGER/ADMIN/WARD_COUNCILLOR see only non-sensitive tickets
         query = query.where(Ticket.is_sensitive == False)
 
     # Apply filters
@@ -132,14 +155,53 @@ async def list_tickets(
     if assigned_team_id:
         query = query.where(Ticket.assigned_team_id == assigned_team_id)
 
+    # Free-text search (tracking_number OR description)
+    if search:
+        search_pattern = f"%{search}%"
+        query = query.where(
+            or_(
+                Ticket.tracking_number.ilike(search_pattern),
+                Ticket.description.ilike(search_pattern)
+            )
+        )
+
+    # Ward filtering (interim: address ILIKE match)
+    if ward_id:
+        query = query.where(Ticket.address.ilike(f"%{ward_id}%"))
+
+    # Count total (before pagination)
+    count_query = select(func.count()).select_from(query.subquery())
+    count_result = await db.execute(count_query)
+    total = count_result.scalar() or 0
+
+    # Sorting
+    valid_sort_fields = ["created_at", "status", "severity", "category"]
+    if sort_by not in valid_sort_fields:
+        sort_by = "created_at"
+
+    sort_column = getattr(Ticket, sort_by)
+    if sort_order.lower() == "asc":
+        query = query.order_by(sort_column.asc())
+    else:
+        query = query.order_by(sort_column.desc())
+
     # Apply pagination
-    query = query.limit(limit).offset(offset)
+    query = query.limit(page_size).offset(page * page_size)
 
     # Execute query
     result = await db.execute(query)
     tickets = result.scalars().all()
 
-    return [TicketResponse.model_validate(ticket) for ticket in tickets]
+    # Calculate page count
+    page_count = math.ceil(total / page_size) if page_size > 0 else 0
+
+    return PaginatedTicketResponse(
+        tickets=[TicketResponse.model_validate(ticket) for ticket in tickets],
+        total=total,
+        page=page,
+        page_size=page_size,
+        page_count=page_count
+    )
 
 
 @router.get("/{ticket_id}", response_model=TicketDetailResponse)

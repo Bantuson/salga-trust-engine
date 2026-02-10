@@ -74,6 +74,16 @@ class TicketResponse(BaseModel):
     model_config = ConfigDict(from_attributes=True)
 
 
+class PaginatedTicketResponse(BaseModel):
+    """Paginated ticket list response with total count."""
+
+    tickets: list[TicketResponse]
+    total: int
+    page: int
+    page_size: int
+    page_count: int
+
+
 class TicketUpdate(BaseModel):
     """Schema for updating an existing ticket."""
 

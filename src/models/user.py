@@ -15,6 +15,7 @@ class UserRole(str, Enum):
     CITIZEN = "citizen"
     FIELD_WORKER = "field_worker"
     MANAGER = "manager"
+    WARD_COUNCILLOR = "ward_councillor"
     ADMIN = "admin"
     SAPS_LIAISON = "saps_liaison"
 
