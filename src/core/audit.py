@@ -1,5 +1,6 @@
 """Comprehensive audit logging using SQLAlchemy event listeners."""
 import json
+import logging
 from contextvars import ContextVar
 from datetime import datetime
 from typing import Any
@@ -12,6 +13,9 @@ from sqlalchemy.orm.attributes import get_history
 from src.core.tenant import get_tenant_context
 from src.models.audit_log import AuditLog, OperationType
 from src.models.base import NonTenantModel, TenantAwareModel
+from src.models.ticket import Ticket
+
+logger = logging.getLogger(__name__)
 
 # Request-scoped context variables for audit tracking
 current_user_id: ContextVar[str | None] = ContextVar("current_user_id", default=None)
@@ -111,6 +115,74 @@ def _should_audit(obj: Any) -> bool:
 
     # Only audit models that inherit from TenantAwareModel or NonTenantModel
     return isinstance(obj, (TenantAwareModel, NonTenantModel))
+
+
+def _log_ticket_changes(ticket: Ticket, changes: dict[str, dict[str, Any]]) -> None:
+    """Log ticket-specific changes with structured logging.
+
+    Provides enhanced logging for ticket lifecycle events beyond the generic
+    audit log. Logs status changes, assignments, and escalations at appropriate
+    severity levels for operational visibility.
+
+    Args:
+        ticket: Ticket model instance
+        changes: Dictionary of changed fields with old/new values
+    """
+    # Log status changes
+    if "status" in changes:
+        old_status = changes["status"]["old"]
+        new_status = changes["status"]["new"]
+
+        logger.info(
+            f"Ticket status change: {old_status} -> {new_status}",
+            extra={
+                "ticket_id": str(ticket.id),
+                "tracking_number": ticket.tracking_number,
+                "old_status": old_status,
+                "new_status": new_status,
+            }
+        )
+
+        # Special handling for escalations
+        if new_status == "escalated":
+            logger.warning(
+                f"Ticket escalated: {ticket.tracking_number}",
+                extra={
+                    "ticket_id": str(ticket.id),
+                    "tracking_number": ticket.tracking_number,
+                    "reason": ticket.escalation_reason,
+                }
+            )
+
+    # Log assignment changes
+    if "assigned_team_id" in changes:
+        old_team = changes["assigned_team_id"]["old"]
+        new_team = changes["assigned_team_id"]["new"]
+
+        logger.info(
+            f"Ticket assignment change: {old_team} -> {new_team}",
+            extra={
+                "ticket_id": str(ticket.id),
+                "tracking_number": ticket.tracking_number,
+                "old_team_id": old_team,
+                "new_team_id": new_team,
+            }
+        )
+
+    # Log user assignment changes
+    if "assigned_to" in changes:
+        old_user = changes["assigned_to"]["old"]
+        new_user = changes["assigned_to"]["new"]
+
+        logger.info(
+            f"Ticket user assignment change: {old_user} -> {new_user}",
+            extra={
+                "ticket_id": str(ticket.id),
+                "tracking_number": ticket.tracking_number,
+                "old_assigned_to": old_user,
+                "new_assigned_to": new_user,
+            }
+        )
 
 
 def _create_audit_log(
@@ -225,6 +297,10 @@ def after_flush_audit_handler(session: Session, flush_context: Any) -> None:
             ip_address=ip_address,
             user_agent=user_agent
         )
+
+        # Enhanced ticket-specific logging
+        if isinstance(obj, Ticket) and changes:
+            _log_ticket_changes(obj, changes)
 
     # Process deleted objects (DELETE)
     for obj in session.deleted:
