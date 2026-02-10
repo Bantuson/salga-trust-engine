@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6 of 6 (Public Transparency & Rollout)
-Plan: 1 of 3 in current phase
+Plan: 2 of 3 in current phase
 Status: In Progress — executing Phase 6 plans
-Last activity: 2026-02-10 — Completed 06-01: Public Metrics Backend with cross-tenant API and GBV firewall
+Last activity: 2026-02-10 — Completed 06-02: Public Transparency Dashboard with Leaflet heatmap and Recharts visualizations
 
-Progress: [███░░░░░░░] 33% (1/3 plans)
+Progress: [██████░░░░] 66% (2/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 29
-- Average duration: 19.3 minutes
-- Total execution time: 9.3 hours
+- Total plans completed: 30
+- Average duration: 19.1 minutes
+- Total execution time: 9.5 hours
 
 **By Phase:**
 
@@ -32,11 +32,11 @@ Progress: [███░░░░░░░] 33% (1/3 plans)
 | 03 | 7 | 103.3m | 14.8m |
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
-| 06 | 1 | 24.5m | 24.5m |
+| 06 | 2 | 39.4m | 19.7m |
 
 **Recent Trend:**
-- Last 5 plans: 20.1m, 20.1m, 16.4m, 17.6m, 24.5m
-- Trend: Phase 06 started - public transparency backend complete
+- Last 5 plans: 20.1m, 16.4m, 17.6m, 24.5m, 14.9m
+- Trend: Phase 06 frontend complete - public dashboard with Leaflet heatmap
 
 *Updated after each plan completion*
 
@@ -71,6 +71,7 @@ Progress: [███░░░░░░░] 33% (1/3 plans)
 | 05-04 | 16.4m (984s) | 2 | 8 |
 | 05-05 | 17.6m (1055s) | 2 | 3 |
 | 06-01 | 24.5m (1470s) | 2 | 6 |
+| Phase 06 P02 | 892 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -220,6 +221,9 @@ Recent decisions affecting current work:
 - [Phase 06-01]: Sensitive ticket count at system level only (never per-municipality per TRNS-05)
 - [Phase 06-01]: Heatmap k-anonymity threshold of 3 tickets per grid cell (privacy protection)
 - [Phase 06-01]: PostGIS ST_SnapToGrid for ~1km grid cells with graceful SQLite degradation
+- [Phase 06-02]: Plain fetch() for public API client (no axios auth interceptors per TRNS-04)
+- [Phase 06-02]: OpenStreetMap tiles for public heatmap (free, no API key)
+- [Phase 06-02]: Legacy peer deps for react-leaflet-heatmap-layer-v3 React 19 compatibility
 
 ### Pending Todos
 
@@ -232,7 +236,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-10 (Phase 6 execution)
-Stopped at: Completed 06-01-PLAN.md — Public metrics backend with PublicMetricsService (5 cross-tenant methods with SQL-level GBV firewall) and unauthenticated API endpoints at /api/v1/public/*. Tenant middleware exempted public prefix. 5 TDD commits (RED/GREEN/fix). Ready for 06-02: Public dashboard frontend with Leaflet heatmap.
+Stopped at: Completed 06-02-PLAN.md — Public transparency dashboard frontend with Leaflet heatmap (OpenStreetMap tiles, South Africa center), Recharts visualizations (response time/resolution rate charts with color-coded thresholds), municipality selector, and unauthenticated public API client (plain fetch, no auth headers per TRNS-04). Privacy notice footer about GBV exclusion. Ready for 06-03: Pilot onboarding documentation.
 Resume file: None
 
 ---
