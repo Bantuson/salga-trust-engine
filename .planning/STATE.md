@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 3 of 6 (Citizen Reporting Channels)
-Plan: 7 of 7 in current phase
-Status: Phase Complete
-Last activity: 2026-02-10 — Completed 03-07: Phase 3 Service Coverage Gap Closure
+Phase: 4 of 6 (Ticket Management & Routing)
+Plan: 1 of 3 in current phase
+Status: In Progress
+Last activity: 2026-02-10 — Completed 04-01: Core Data Models & Infrastructure
 
-Progress: [██████████] 100% (7/7 plans)
+Progress: [███░░░░░░░] 33% (1/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 18
-- Average duration: 19.2 minutes
-- Total execution time: 5.8 hours
+- Total plans completed: 19
+- Average duration: 19.8 minutes
+- Total execution time: 6.3 hours
 
 **By Phase:**
 
@@ -30,10 +30,11 @@ Progress: [██████████] 100% (7/7 plans)
 | 01 | 7 | 121.4m | 17.3m |
 | 02 | 4 | 94.3m | 23.6m |
 | 03 | 7 | 103.3m | 14.8m |
+| 04 | 1 | 31.1m | 31.1m |
 
 **Recent Trend:**
-- Last 5 plans: 9.1m, 16.2m, 35.4m, 3.3m, 28.8m
-- Trend: Phase 03 gap closure plans completed - 03-07 focused on test coverage (28.8 min)
+- Last 5 plans: 16.2m, 35.4m, 3.3m, 28.8m, 31.1m
+- Trend: Phase 04 started - 04-01 completed PostGIS migration and Celery setup (31.1 min)
 
 *Updated after each plan completion*
 
@@ -57,6 +58,7 @@ Progress: [██████████] 100% (7/7 plans)
 | 03-05 | 35.4m (2126s) | 2 | 9 |
 | 03-06 | 3.3m (197s) | 1 | 1 |
 | 03-07 | 28.8m (1727s) | 2 | 2 |
+| 04-01 | 31.1m (1863s) | 2 | 18 |
 
 ## Accumulated Context
 
@@ -151,6 +153,12 @@ Recent decisions affecting current work:
 - [Phase 03-04]: Manual address fallback when GPS unavailable (Pydantic validator requires one of location or manual_address)
 - [Phase 03-04]: AI classification optional (user can pre-select category or let IntakeFlow classify)
 - [Phase 03-04]: GBV consent dialog shows emergency numbers (10111, 0800 150 150) before submission
+- [Phase 04-01]: PostGIS GEOMETRY(Point, 4326) for ticket location instead of separate lat/lng columns
+- [Phase 04-01]: Backward-compatible lat/lng properties on Ticket for Phase 2-3 code
+- [Phase 04-01]: SLAConfig uses NonTenantModel (admins configure cross-tenant policies)
+- [Phase 04-01]: TicketAssignment tracks full assignment history with is_current flag
+- [Phase 04-01]: Celery uses Redis DB 1 (DB 0 reserved for rate limiting/sessions)
+- [Phase 04-01]: USE_SQLITE_TESTS env var disables GeoAlchemy2 for unit test compatibility
 
 ### Pending Todos
 
@@ -162,10 +170,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (Phase 3 gap closure execution)
-Stopped at: Phase 3 COMPLETE — all 7 plans executed, verification PASSED (8/8 criteria, 87% coverage). Gap closure plans 03-06 (tracking number + MediaAttachment) and 03-07 (test coverage) both successful. 202 tests passing, zero regressions.
+Last session: 2026-02-10 (Phase 4 execution started)
+Stopped at: Phase 4 Plan 01 COMPLETE — Core data models & infrastructure created. Team/Assignment/SLAConfig models, PostGIS migration, Celery app configured. Fixed SQLite test compatibility. 148 tests passing, zero regressions.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-10T06:23:09Z*
+*Last updated: 2026-02-10T07:55:16Z*
