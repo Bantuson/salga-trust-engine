@@ -17,7 +17,7 @@ Decimal phases appear between their surrounding integers in numeric order.
 - [x] **Phase 3: Citizen Reporting Channels** - WhatsApp bot and web portal intake with photo uploads
 - [x] **Phase 4: Ticket Management & Routing** - Geospatial routing, SLA tracking, automated escalation
 - [x] **Phase 5: Municipal Operations Dashboard** - Manager dashboard with real-time updates and analytics
-- [ ] **Phase 6: Public Transparency & Rollout** - Public dashboard, pilot municipality deployment
+- [x] **Phase 6: Public Transparency & Rollout** - Public dashboard, pilot municipality deployment
 
 ## Phase Details
 
@@ -121,11 +121,11 @@ Plans:
 **Plans:** 5 plans
 
 Plans:
-- [ ] 05-01-PLAN.md -- Backend dashboard API, enhanced tickets endpoint, WARD_COUNCILLOR role
-- [ ] 05-02-PLAN.md -- SSE real-time events, Redis Pub/Sub broadcaster, CSV/Excel export
-- [ ] 05-03-PLAN.md -- Frontend ticket list page with TanStack Table, filters, and export
-- [ ] 05-04-PLAN.md -- Frontend dashboard metrics page with Recharts, SSE integration, routing
-- [ ] 05-05-PLAN.md -- Phase 5 test suite, SEC-05 verification, and regression check
+- [x] 05-01-PLAN.md -- Backend dashboard API, enhanced tickets endpoint, WARD_COUNCILLOR role
+- [x] 05-02-PLAN.md -- SSE real-time events, Redis Pub/Sub broadcaster, CSV/Excel export
+- [x] 05-03-PLAN.md -- Frontend ticket list page with TanStack Table, filters, and export
+- [x] 05-04-PLAN.md -- Frontend dashboard metrics page with Recharts, SSE integration, routing
+- [x] 05-05-PLAN.md -- Phase 5 test suite, SEC-05 verification, and regression check
 
 ### Phase 6: Public Transparency & Rollout
 **Goal**: Public can view municipal performance, and pilot municipalities are onboarded
@@ -141,9 +141,9 @@ Plans:
 **Plans:** 3 plans
 
 Plans:
-- [ ] 06-01-PLAN.md -- Public metrics backend: cross-tenant aggregation service and unauthenticated API endpoints
-- [ ] 06-02-PLAN.md -- Public dashboard frontend: Recharts visualizations, Leaflet heatmap, municipality selector
-- [ ] 06-03-PLAN.md -- Pilot onboarding seed script, GBV firewall public tests, and full regression suite
+- [x] 06-01-PLAN.md -- Public metrics backend: cross-tenant aggregation service and unauthenticated API endpoints
+- [x] 06-02-PLAN.md -- Public dashboard frontend: Recharts visualizations, Leaflet heatmap, municipality selector
+- [x] 06-03-PLAN.md -- Pilot onboarding seed script, GBV firewall public tests, and full regression suite
 
 ## Phase Verification Policy
 
@@ -173,8 +173,8 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Citizen Reporting Channels | 7/7 | ✓ Complete | 2026-02-10 |
 | 4. Ticket Management & Routing | 5/5 | ✓ Complete | 2026-02-10 |
 | 5. Municipal Operations Dashboard | 5/5 | ✓ Complete | 2026-02-10 |
-| 6. Public Transparency & Rollout | 0/3 | Not started | - |
+| 6. Public Transparency & Rollout | 3/3 | ✓ Complete | 2026-02-10 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-10 (Phase 5 complete)*
+*Last updated: 2026-02-10 (Phase 6 complete — ALL PHASES DONE)*
