@@ -145,10 +145,33 @@ async def async_client() -> AsyncGenerator[AsyncClient, None]:
 @pytest_asyncio.fixture(scope="session", autouse=True)
 async def setup_test_database():
     """Create test database tables before tests and drop after."""
+    if not POSTGRES_AVAILABLE:
+        # Disable GeoAlchemy2 DDL event listeners for SQLite.
+        # GeoAlchemy2 registers after_create/before_drop events that call SpatiaLite
+        # functions (RecoverGeometryColumn, DiscardGeometryColumn) which don't exist
+        # in plain SQLite. We must remove these before create_all.
+        try:
+            from sqlalchemy import event, Table
+            from geoalchemy2.admin import (
+                after_create as ga2_after_create,
+                before_drop as ga2_before_drop,
+            )
+            event.remove(Table, "after_create", ga2_after_create)
+            event.remove(Table, "before_drop", ga2_before_drop)
+        except Exception:
+            pass
     async with test_engine.begin() as conn:
         await conn.run_sync(Base.metadata.create_all)
     yield
     async with test_engine.begin() as conn:
+        if not POSTGRES_AVAILABLE:
+            # Re-disable in case geoalchemy2 re-registered during test session
+            try:
+                from sqlalchemy import event, Table
+                from geoalchemy2.admin import before_drop as ga2_before_drop
+                event.remove(Table, "before_drop", ga2_before_drop)
+            except Exception:
+                pass
         await conn.run_sync(Base.metadata.drop_all)
 
 
