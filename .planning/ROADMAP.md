@@ -75,14 +75,16 @@ Plans:
   6. User must verify proof of residence (OCR document analysis) to bind account to specific municipality
   7. GBV report data is stored with enhanced encryption and need-to-know access controls
   8. All unit, integration, and security tests pass with >=80% coverage on phase code; all Phase 1-2 tests still pass
-**Plans:** 5 plans
+**Plans:** 7 plans
 
 Plans:
-- [ ] 03-01-PLAN.md -- Storage infrastructure, media model, and GBV field-level encryption
-- [ ] 03-02-PLAN.md -- Twilio WhatsApp webhook integration with media handling
-- [ ] 03-03-PLAN.md -- OCR service and proof of residence verification
-- [ ] 03-04-PLAN.md -- Web portal upload and report submission API with React frontend
-- [ ] 03-05-PLAN.md -- Phase 3 test suite and coverage verification
+- [x] 03-01-PLAN.md -- Storage infrastructure, media model, and GBV field-level encryption
+- [x] 03-02-PLAN.md -- Twilio WhatsApp webhook integration with media handling
+- [x] 03-03-PLAN.md -- OCR service and proof of residence verification
+- [x] 03-04-PLAN.md -- Web portal upload and report submission API with React frontend
+- [x] 03-05-PLAN.md -- Phase 3 test suite and coverage verification
+- [ ] 03-06-PLAN.md -- Fix WhatsApp tracking number and MediaAttachment creation (gap closure)
+- [ ] 03-07-PLAN.md -- Add unit tests for coverage >= 80% (gap closure)
 
 ### Phase 4: Ticket Management & Routing
 **Goal**: Tickets are automatically routed and tracked with SLA enforcement
