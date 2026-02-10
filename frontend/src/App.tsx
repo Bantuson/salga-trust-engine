@@ -3,6 +3,7 @@ import './App.css';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { ReportForm } from './components/ReportForm';
+import { PublicDashboardPage } from './pages/PublicDashboardPage';
 
 function App() {
   const [currentPage, setCurrentPage] = useState(window.location.hash || '#dashboard');
@@ -16,6 +17,15 @@ function App() {
   return (
     <div className="App">
       <nav style={styles.nav}>
+        <a
+          href="#public"
+          style={{
+            ...styles.navLink,
+            fontWeight: currentPage === '#public' ? 'bold' : 'normal',
+          }}
+        >
+          Public Dashboard
+        </a>
         <a
           href="#dashboard"
           style={{
@@ -46,10 +56,11 @@ function App() {
       </nav>
 
       <main style={styles.main}>
+        {currentPage === '#public' && <PublicDashboardPage />}
         {currentPage === '#dashboard' && <DashboardPage />}
         {currentPage === '#tickets' && <TicketListPage />}
         {currentPage === '#report' && <ReportForm />}
-        {!['#dashboard', '#tickets', '#report'].includes(currentPage) && <DashboardPage />}
+        {!['#public', '#dashboard', '#tickets', '#report'].includes(currentPage) && <PublicDashboardPage />}
       </main>
     </div>
   );
