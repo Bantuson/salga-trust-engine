@@ -176,11 +176,17 @@ class TestPublicMetricsService:
         # Mock trend query result
         mock_trend_result = MagicMock()
         mock_trend_1 = MagicMock()
-        mock_trend_1.month = "2026-01"
-        mock_trend_1.rate = 85.0
+        mock_trend_1.tenant_id = municipality_id
+        mock_trend_1.month = datetime(2026, 1, 1, tzinfo=timezone.utc)
+        mock_trend_1.total = 100
+        mock_trend_1.resolved = 85
+
         mock_trend_2 = MagicMock()
-        mock_trend_2.month = "2026-02"
-        mock_trend_2.rate = 90.0
+        mock_trend_2.tenant_id = municipality_id
+        mock_trend_2.month = datetime(2026, 2, 1, tzinfo=timezone.utc)
+        mock_trend_2.total = 100
+        mock_trend_2.resolved = 90
+
         mock_trend_result.all.return_value = [mock_trend_1, mock_trend_2]
 
         mock_db.execute.side_effect = [mock_main_result, mock_trend_result]
