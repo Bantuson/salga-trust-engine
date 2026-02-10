@@ -118,12 +118,14 @@ Plans:
   4. Manager can export issue data to Excel/CSV for offline analysis
   5. Dashboard updates in real-time when ticket status changes (no page refresh required)
   6. All unit, integration, and security tests pass with >=80% coverage on phase code; all Phase 1-4 tests still pass
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 05-01: TBD during phase planning
-- [ ] 05-02: TBD during phase planning
-- [ ] 05-03: TBD during phase planning
+- [ ] 05-01-PLAN.md -- Backend dashboard API, enhanced tickets endpoint, WARD_COUNCILLOR role
+- [ ] 05-02-PLAN.md -- SSE real-time events, Redis Pub/Sub broadcaster, CSV/Excel export
+- [ ] 05-03-PLAN.md -- Frontend ticket list page with TanStack Table, filters, and export
+- [ ] 05-04-PLAN.md -- Frontend dashboard metrics page with Recharts, SSE integration, routing
+- [ ] 05-05-PLAN.md -- Phase 5 test suite, SEC-05 verification, and regression check
 
 ### Phase 6: Public Transparency & Rollout
 **Goal**: Public can view municipal performance, and pilot municipalities are onboarded
@@ -170,7 +172,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 2. Agentic AI System | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Citizen Reporting Channels | 7/7 | ✓ Complete | 2026-02-10 |
 | 4. Ticket Management & Routing | 5/5 | ✓ Complete | 2026-02-10 |
-| 5. Municipal Operations Dashboard | 0/3 | Not started | - |
+| 5. Municipal Operations Dashboard | 0/5 | Planned | - |
 | 6. Public Transparency & Rollout | 0/3 | Not started | - |
 
 ---
