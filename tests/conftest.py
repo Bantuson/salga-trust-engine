@@ -1,10 +1,15 @@
 """Pytest configuration and fixtures for testing."""
+import os
 import sys
 import asyncio
 
 # CRITICAL: Set Windows event loop policy BEFORE any async imports
 if sys.platform == "win32":
     asyncio.set_event_loop_policy(asyncio.WindowsSelectorEventLoopPolicy())
+
+# CRITICAL: Set USE_SQLITE_TESTS env var BEFORE importing models
+# This prevents GeoAlchemy2 from being imported in SQLite test environments
+os.environ["USE_SQLITE_TESTS"] = "1"
 
 from collections.abc import AsyncGenerator
 

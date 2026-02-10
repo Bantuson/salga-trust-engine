@@ -8,14 +8,25 @@ Key decisions:
 - service_area uses PostGIS POLYGON for geospatial routing in Phase 4
 - is_saps flag identifies SAPS liaison teams (handle GBV reports only)
 - category matches TicketCategory values for routing logic
+- Graceful degradation: service_area stored as TEXT in SQLite tests
 """
+import os
 from uuid import UUID
 
-from geoalchemy2 import Geometry
-from sqlalchemy import Boolean, ForeignKey, String
+from sqlalchemy import Boolean, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.models.base import TenantAwareModel
+
+# Detect if we're using SQLite (tests) or PostgreSQL (production)
+# USE_SQLITE_TESTS environment variable is set in conftest.py before imports
+USE_POSTGIS = os.getenv("USE_SQLITE_TESTS") != "1"
+
+if USE_POSTGIS:
+    try:
+        from geoalchemy2 import Geometry
+    except ImportError:
+        USE_POSTGIS = False
 
 
 class Team(TenantAwareModel):
@@ -29,7 +40,7 @@ class Team(TenantAwareModel):
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     category: Mapped[str] = mapped_column(String(20), nullable=False, index=True)
     service_area: Mapped[str | None] = mapped_column(
-        Geometry("POLYGON", srid=4326),
+        Geometry("POLYGON", srid=4326) if USE_POSTGIS else Text,
         nullable=True
     )
     manager_id: Mapped[UUID | None] = mapped_column(

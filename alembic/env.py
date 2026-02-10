@@ -25,7 +25,7 @@ if config.config_file_name is not None:
 # for 'autogenerate' support
 # Import all models to register them with Base.metadata
 from src.models.base import Base
-from src.models import municipality, user, consent, audit_log
+from src.models import municipality, user, consent, audit_log, ticket, team, assignment, sla_config
 from src.core.config import settings
 
 target_metadata = Base.metadata

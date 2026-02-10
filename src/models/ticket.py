@@ -10,18 +10,29 @@ Key decisions:
 - Tracking number format: TKT-YYYYMMDD-{6_random_hex}
 - is_sensitive flag for GBV tickets (triggers SAPS routing)
 - severity defaults to MEDIUM if not specified by agent
+- Graceful degradation: location stored as TEXT in SQLite tests
 """
+import os
 import secrets
 from datetime import datetime
 from enum import StrEnum
 from uuid import UUID
 
-from geoalchemy2 import Geometry
 from sqlalchemy import DateTime, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column
 
 from src.core.encryption import EncryptedString
 from src.models.base import TenantAwareModel
+
+# Detect if we're using SQLite (tests) or PostgreSQL (production)
+# USE_SQLITE_TESTS environment variable is set in conftest.py before imports
+USE_POSTGIS = os.getenv("USE_SQLITE_TESTS") != "1"
+
+if USE_POSTGIS:
+    try:
+        from geoalchemy2 import Geometry
+    except ImportError:
+        USE_POSTGIS = False
 
 
 class TicketCategory(StrEnum):
@@ -80,9 +91,9 @@ class Ticket(TenantAwareModel):
         nullable=True
     )
 
-    # Location field (PostGIS POINT geometry)
+    # Location field (PostGIS POINT geometry, TEXT in SQLite tests)
     location: Mapped[str | None] = mapped_column(
-        Geometry("POINT", srid=4326),
+        Geometry("POINT", srid=4326) if USE_POSTGIS else Text,
         nullable=True
     )
     address: Mapped[str | None] = mapped_column(String(500), nullable=True)
