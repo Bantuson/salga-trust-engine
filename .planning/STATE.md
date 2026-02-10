@@ -68,6 +68,7 @@ Progress: [████████░░] 80% (4/5 plans)
 | 05-02 | 20.1m (1205s) | 2 | 5 |
 | 05-03 | 16.0m (960s) | 2 | 8 |
 | 05-04 | 16.4m (984s) | 2 | 8 |
+| Phase 05 P03 | 1090 | 2 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -206,6 +207,9 @@ Recent decisions affecting current work:
 - [Phase 05-04]: Simple SSE re-fetch strategy (refresh all metrics on any event)
 - [Phase 05-04]: Tab visibility detection to disable SSE when inactive
 - [Phase 05-04]: Color-coded SLA metrics (green >=80%, amber >=60%, red <60%)
+- [Phase 05]: Use TanStack Table with server-side pagination/sorting (manualPagination: true)
+- [Phase 05]: Debounce search input at 300ms using setTimeout (not external library)
+- [Phase 05]: Export uses authenticated fetch with blob download (not direct link due to Bearer token)
 
 ### Pending Todos
 
