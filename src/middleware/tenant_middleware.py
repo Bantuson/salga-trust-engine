@@ -23,6 +23,7 @@ EXCLUDED_PATHS = {
 EXCLUDED_PATH_PREFIXES = [
     "/api/v1/municipalities",
     "/api/v1/whatsapp",  # WhatsApp webhook resolves tenant from user lookup, not header
+    "/api/v1/public",  # Public transparency endpoints are cross-tenant (no auth required)
 ]
 
 
