@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 6 (Ticket Management & Routing)
-Plan: 1 of 3 in current phase
+Plan: 2 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-10 — Completed 04-01: Core Data Models & Infrastructure
+Last activity: 2026-02-10 — Completed 04-02: Geospatial Routing & Assignment Services
 
-Progress: [███░░░░░░░] 33% (1/3 plans)
+Progress: [████░░░░░░] 40% (2/5 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 19
-- Average duration: 19.8 minutes
-- Total execution time: 6.3 hours
+- Total plans completed: 20
+- Average duration: 19.1 minutes
+- Total execution time: 6.4 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [███░░░░░░░] 33% (1/3 plans)
 | 01 | 7 | 121.4m | 17.3m |
 | 02 | 4 | 94.3m | 23.6m |
 | 03 | 7 | 103.3m | 14.8m |
-| 04 | 1 | 31.1m | 31.1m |
+| 04 | 2 | 40.7m | 20.4m |
 
 **Recent Trend:**
-- Last 5 plans: 16.2m, 35.4m, 3.3m, 28.8m, 31.1m
-- Trend: Phase 04 started - 04-01 completed PostGIS migration and Celery setup (31.1 min)
+- Last 5 plans: 35.4m, 3.3m, 28.8m, 31.1m, 9.6m
+- Trend: Phase 04 continues - 04-02 routing services completed efficiently (9.6 min)
 
 *Updated after each plan completion*
 
@@ -59,6 +59,7 @@ Progress: [███░░░░░░░] 33% (1/3 plans)
 | 03-06 | 3.3m (197s) | 1 | 1 |
 | 03-07 | 28.8m (1727s) | 2 | 2 |
 | 04-01 | 31.1m (1863s) | 2 | 18 |
+| 04-02 | 9.6m (576s) | 2 | 2 |
 
 ## Accumulated Context
 
@@ -159,6 +160,14 @@ Recent decisions affecting current work:
 - [Phase 04-01]: TicketAssignment tracks full assignment history with is_current flag
 - [Phase 04-01]: Celery uses Redis DB 1 (DB 0 reserved for rate limiting/sessions)
 - [Phase 04-01]: USE_SQLITE_TESTS env var disables GeoAlchemy2 for unit test compatibility
+- [Phase 04-02]: PostGIS ST_DWithin with 10km radius for geospatial proximity search
+- [Phase 04-02]: PostGIS ST_Distance ordering for nearest-first team matching
+- [Phase 04-02]: GBV routing uses explicit assert + is_saps==True filter (SEC-05 security boundary)
+- [Phase 04-02]: Municipal routing explicitly filters is_saps==False to prevent SAPS teams receiving municipal tickets
+- [Phase 04-02]: Fallback to category-based routing when no spatial match or location is None
+- [Phase 04-02]: first_responded_at set when ticket assigned to user AND status is open
+- [Phase 04-02]: Assignment deactivation uses UPDATE with is_current=False before creating new assignment
+- [Phase 04-02]: reassign_ticket enforces GBV-to-SAPS constraint at assignment layer (defense in depth)
 
 ### Pending Todos
 
@@ -170,10 +179,11 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (Phase 4 execution started)
-Stopped at: Phase 4 Plan 01 COMPLETE — Core data models & infrastructure created. Team/Assignment/SLAConfig models, PostGIS migration, Celery app configured. Fixed SQLite test compatibility. 148 tests passing, zero regressions.
+Last session: 2026-02-10 (Phase 4 execution continues)
+Stopped at: Phase 4 Plan 02 COMPLETE — Geospatial routing & assignment services created. RoutingService with PostGIS proximity queries and GBV security firewall. AssignmentService with history tracking and first_responded_at for SLA compliance. Ready for Celery tasks (Plan 03) and API endpoints (Plan 04).
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
+*Last updated: 2026-02-10T08:24:00Z*
 *Last updated: 2026-02-10T07:55:16Z*
