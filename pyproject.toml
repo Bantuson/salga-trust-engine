@@ -33,6 +33,7 @@ dependencies = [
     "geoalchemy2>=0.18.0",
     "shapely>=2.0.0",
     "celery[redis]>=5.6.0",
+    "sse-starlette>=2.1.0",
 ]
 
 [project.optional-dependencies]
