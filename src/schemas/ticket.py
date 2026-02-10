@@ -64,6 +64,12 @@ class TicketResponse(BaseModel):
     user_id: UUID
     is_sensitive: bool
     created_at: datetime
+    assigned_team_id: UUID | None = None
+    escalated_at: datetime | None = None
+    first_responded_at: datetime | None = None
+    sla_response_deadline: datetime | None = None
+    sla_resolution_deadline: datetime | None = None
+    assigned_to: UUID | None = None
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -102,6 +108,53 @@ class TicketUpdate(BaseModel):
                 f"Invalid status '{v}'. Must be one of: {', '.join(valid_statuses)}"
             )
         return v.lower()
+
+
+class AssignmentBrief(BaseModel):
+    """Brief assignment information for ticket detail responses."""
+
+    team_name: str | None = None
+    assigned_to_name: str | None = None
+    assigned_by: str | None = None
+    reason: str | None = None
+    created_at: datetime
+
+    model_config = ConfigDict(from_attributes=True)
+
+
+class TicketDetailResponse(TicketResponse):
+    """Extended ticket response with SLA status and assignment history."""
+
+    assignment_history: list[AssignmentBrief] = []
+    sla_status: str | None = None
+    escalation_reason: str | None = None
+
+
+class TicketStatusUpdate(BaseModel):
+    """Schema for updating ticket status."""
+
+    status: str
+
+    @field_validator("status")
+    @classmethod
+    def validate_status(cls, v: str) -> str:
+        """Validate status is a valid TicketStatus value."""
+        from src.models.ticket import TicketStatus
+
+        valid_statuses = [s.value for s in TicketStatus]
+        if v.lower() not in valid_statuses:
+            raise ValueError(
+                f"Invalid status '{v}'. Must be one of: {', '.join(valid_statuses)}"
+            )
+        return v.lower()
+
+
+class TicketAssignRequest(BaseModel):
+    """Schema for assigning ticket to team/user."""
+
+    team_id: UUID | None = None
+    assigned_to: UUID | None = None
+    reason: str | None = None
 
 
 class TicketData(BaseModel):
