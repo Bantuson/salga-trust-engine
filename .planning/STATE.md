@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 6 (Ticket Management & Routing)
-Plan: 2 of 5 in current phase
+Plan: 3 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-10 — Completed 04-02: Geospatial Routing & Assignment Services
+Last activity: 2026-02-10 — Completed 04-03: SLA Tracking, Escalation & Notification Services
 
-Progress: [████░░░░░░] 40% (2/5 plans)
+Progress: [██████░░░░] 60% (3/5 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 20
-- Average duration: 19.1 minutes
-- Total execution time: 6.4 hours
+- Total plans completed: 21
+- Average duration: 19.6 minutes
+- Total execution time: 6.9 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [████░░░░░░] 40% (2/5 plans)
 | 01 | 7 | 121.4m | 17.3m |
 | 02 | 4 | 94.3m | 23.6m |
 | 03 | 7 | 103.3m | 14.8m |
-| 04 | 2 | 40.7m | 20.4m |
+| 04 | 3 | 73.3m | 24.4m |
 
 **Recent Trend:**
-- Last 5 plans: 35.4m, 3.3m, 28.8m, 31.1m, 9.6m
-- Trend: Phase 04 continues - 04-02 routing services completed efficiently (9.6 min)
+- Last 5 plans: 3.3m, 28.8m, 31.1m, 9.6m, 32.6m
+- Trend: Phase 04 progressing - 04-03 completed SLA tracking & notifications (32.6 min)
 
 *Updated after each plan completion*
 
@@ -60,6 +60,7 @@ Progress: [████░░░░░░] 40% (2/5 plans)
 | 03-07 | 28.8m (1727s) | 2 | 2 |
 | 04-01 | 31.1m (1863s) | 2 | 18 |
 | 04-02 | 9.6m (576s) | 2 | 2 |
+| 04-03 | 32.6m (1954s) | 2 | 6 |
 
 ## Accumulated Context
 
@@ -168,6 +169,15 @@ Recent decisions affecting current work:
 - [Phase 04-02]: first_responded_at set when ticket assigned to user AND status is open
 - [Phase 04-02]: Assignment deactivation uses UPDATE with is_current=False before creating new assignment
 - [Phase 04-02]: reassign_ticket enforces GBV-to-SAPS constraint at assignment layer (defense in depth)
+- [Phase 04-03]: GBV tickets (is_sensitive=True) excluded from all SLA monitoring per SAPS protocols
+- [Phase 04-03]: System default SLA: 24h response, 168h (7 days) resolution
+- [Phase 04-03]: PostgreSQL advisory locks prevent duplicate escalation in multi-worker Celery environments
+- [Phase 04-03]: Escalation assigns to team manager (not generic team member)
+- [Phase 04-03]: WhatsApp status updates use body text (not Twilio Content API templates) for faster iteration
+- [Phase 04-03]: Celery tasks accept only primitive types (str/int) for JSON serialization
+- [Phase 04-03]: Windows compatibility: WindowsSelectorEventLoopPolicy for asyncio.run() in Celery
+- [Phase 04-03]: SLA config caching per task run for performance (in-memory dict)
+- [Phase 04-03]: Fixed ticket_tool.py to use PostGIS location field instead of lat/lng properties
 
 ### Pending Todos
 
@@ -180,10 +190,11 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-10 (Phase 4 execution continues)
-Stopped at: Phase 4 Plan 02 COMPLETE — Geospatial routing & assignment services created. RoutingService with PostGIS proximity queries and GBV security firewall. AssignmentService with history tracking and first_responded_at for SLA compliance. Ready for Celery tasks (Plan 03) and API endpoints (Plan 04).
+Stopped at: Phase 4 Plan 03 COMPLETE — SLA tracking, escalation & notification services created. SLAService with breach detection, EscalationService with advisory locks, NotificationService with trilingual WhatsApp messages. Celery tasks for periodic monitoring and async notifications. Fixed ticket_tool.py PostGIS bug. 202 tests passing.
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
+*Last updated: 2026-02-10T08:52:08Z*
 *Last updated: 2026-02-10T08:24:00Z*
 *Last updated: 2026-02-10T07:55:16Z*
