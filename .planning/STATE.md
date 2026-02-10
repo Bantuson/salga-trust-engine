@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 4 of 6 (Ticket Management & Routing)
-Plan: 3 of 5 in current phase
+Plan: 4 of 5 in current phase
 Status: In Progress
-Last activity: 2026-02-10 — Completed 04-03: SLA Tracking, Escalation & Notification Services
+Last activity: 2026-02-10 — Completed 04-04: Ticket Management API with SEC-05 Enforcement
 
-Progress: [██████░░░░] 60% (3/5 plans)
+Progress: [████████░░] 80% (4/5 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 21
-- Average duration: 19.6 minutes
-- Total execution time: 6.9 hours
+- Total plans completed: 22
+- Average duration: 19.1 minutes
+- Total execution time: 7.1 hours
 
 **By Phase:**
 
@@ -30,11 +30,11 @@ Progress: [██████░░░░] 60% (3/5 plans)
 | 01 | 7 | 121.4m | 17.3m |
 | 02 | 4 | 94.3m | 23.6m |
 | 03 | 7 | 103.3m | 14.8m |
-| 04 | 3 | 73.3m | 24.4m |
+| 04 | 4 | 86.3m | 21.6m |
 
 **Recent Trend:**
-- Last 5 plans: 3.3m, 28.8m, 31.1m, 9.6m, 32.6m
-- Trend: Phase 04 progressing - 04-03 completed SLA tracking & notifications (32.6 min)
+- Last 5 plans: 28.8m, 31.1m, 9.6m, 32.6m, 13.0m
+- Trend: Phase 04 progressing - 04-04 completed ticket management API (13.0 min)
 
 *Updated after each plan completion*
 
@@ -61,6 +61,8 @@ Progress: [██████░░░░] 60% (3/5 plans)
 | 04-01 | 31.1m (1863s) | 2 | 18 |
 | 04-02 | 9.6m (576s) | 2 | 2 |
 | 04-03 | 32.6m (1954s) | 2 | 6 |
+| 04-04 | 13.0m (779s) | 2 | 5 |
+| Phase 04 P04 | 779 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -178,6 +180,10 @@ Recent decisions affecting current work:
 - [Phase 04-03]: Windows compatibility: WindowsSelectorEventLoopPolicy for asyncio.run() in Celery
 - [Phase 04-03]: SLA config caching per task run for performance (in-memory dict)
 - [Phase 04-03]: Fixed ticket_tool.py to use PostGIS location field instead of lat/lng properties
+- [Phase 04-04]: TicketDetailResponse extends TicketResponse with SLA status and assignment history
+- [Phase 04-04]: GBV API endpoints enforce 403 for non-SAPS/non-ADMIN roles (SEC-05 firewall)
+- [Phase 04-04]: Status updates dispatch WhatsApp notifications via Celery best-effort (non-blocking)
+- [Phase 04-04]: Ticket-specific structured logging added to generic audit system for operational visibility
 
 ### Pending Todos
 
@@ -190,11 +196,9 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-10 (Phase 4 execution continues)
-Stopped at: Phase 4 Plan 03 COMPLETE — SLA tracking, escalation & notification services created. SLAService with breach detection, EscalationService with advisory locks, NotificationService with trilingual WhatsApp messages. Celery tasks for periodic monitoring and async notifications. Fixed ticket_tool.py PostGIS bug. 202 tests passing.
+Stopped at: Phase 4 Plan 04 COMPLETE — Ticket management API created with 5 endpoints (list, detail, status, assign, history). SEC-05 GBV access firewall enforced on all endpoints (403 for non-SAPS/non-ADMIN). Status updates dispatch async WhatsApp notifications via Celery. Assignment supports auto-routing and manual. Ticket-specific structured logging added to audit system. 2 tasks completed, 5 files modified, 2 commits (a095c32, df18beb).
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-10T08:52:08Z*
-*Last updated: 2026-02-10T08:24:00Z*
-*Last updated: 2026-02-10T07:55:16Z*
+*Last updated: 2026-02-10T09:08:20Z*
