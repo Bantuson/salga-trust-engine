@@ -5,7 +5,7 @@
  */
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
-import { TeamWorkload } from '../../types/dashboard';
+import type { TeamWorkload } from '../../types/dashboard';
 
 interface TeamWorkloadChartProps {
   data: TeamWorkload[];

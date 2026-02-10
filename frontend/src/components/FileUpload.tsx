@@ -5,7 +5,7 @@
  * Handles upload progress and error states.
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { useDropzone } from 'react-dropzone';
 import { requestPresignedUrl, uploadToS3, confirmUpload } from '../services/api';
 

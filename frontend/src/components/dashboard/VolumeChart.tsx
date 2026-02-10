@@ -5,7 +5,7 @@
  */
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts';
-import { CategoryVolume } from '../../types/dashboard';
+import type { CategoryVolume } from '../../types/dashboard';
 
 interface VolumeChartProps {
   data: CategoryVolume[];

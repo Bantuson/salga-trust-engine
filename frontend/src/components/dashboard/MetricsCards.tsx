@@ -8,7 +8,7 @@
  * - SLA breaches count
  */
 
-import { DashboardMetrics } from '../../types/dashboard';
+import type { DashboardMetrics } from '../../types/dashboard';
 
 interface MetricsCardsProps {
   metrics: DashboardMetrics | null;

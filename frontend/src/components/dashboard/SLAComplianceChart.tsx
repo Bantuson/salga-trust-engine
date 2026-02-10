@@ -5,7 +5,7 @@
  */
 
 import { PieChart, Pie, Cell, ResponsiveContainer } from 'recharts';
-import { SLACompliance } from '../../types/dashboard';
+import type { SLACompliance } from '../../types/dashboard';
 
 interface SLAComplianceChartProps {
   data: SLACompliance | null;
