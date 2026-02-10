@@ -197,12 +197,18 @@ class WhatsAppService:
             try:
                 result = flow.kickoff()
 
+                # Extract tracking number from ticket_data
+                tracking_number = None
+                if flow.state.ticket_data and isinstance(flow.state.ticket_data, dict):
+                    tracking_number = flow.state.ticket_data.get("tracking_number")
+
                 # Extract response from flow state
                 agent_response = "Thank you for your report. We are processing your request."
                 if flow.state.ticket_data:
                     # Ticket was created
+                    tracking_number_text = f" Your tracking number is {tracking_number}." if tracking_number else ""
                     agent_response = (
-                        f"Your report has been received and logged. "
+                        f"Your report has been received and logged.{tracking_number_text} "
                         f"We will investigate this issue and keep you updated."
                     )
 
@@ -213,17 +219,33 @@ class WhatsAppService:
 
                 # Step 7: If ticket created and media exists, link media to ticket
                 if ticket_id and media_file_ids:
-                    # TODO: Create MediaAttachment records
-                    # This would require importing the Ticket model and querying it
-                    # For now, we log that media should be linked
+                    # Create MediaAttachment records for each uploaded file
+                    for file_id in media_file_ids:
+                        media_attachment = MediaAttachment(
+                            ticket_id=ticket_id,
+                            file_id=file_id,
+                            s3_bucket=settings.S3_BUCKET_EVIDENCE,
+                            s3_key=f"evidence/{tenant_id}/{ticket_id}/{file_id}",
+                            filename=f"{file_id}.jpg",
+                            content_type="image/jpeg",
+                            file_size=0,  # Size was logged during upload but not stored; acceptable for now
+                            purpose="evidence",
+                            source="whatsapp",
+                            is_processed=False,
+                            tenant_id=tenant_id,
+                            created_by=user_id,
+                            updated_by=user_id,
+                        )
+                        db.add(media_attachment)
+                    await db.commit()
+
                     logger.info(
-                        f"Media should be linked to ticket {ticket_id}",
+                        f"Linked {len(media_file_ids)} media attachments to ticket",
                         extra={
                             "ticket_id": ticket_id,
-                            "media_file_ids": media_file_ids,
+                            "media_count": len(media_file_ids),
                         }
                     )
-                    # In production implementation, create MediaAttachment records here
 
             except Exception as e:
                 logger.error(f"Flow execution failed: {e}", exc_info=True)
@@ -235,6 +257,7 @@ class WhatsAppService:
                 category = None
                 is_complete = False
                 ticket_id = None
+                tracking_number = None
 
             # Step 8: Sanitize output through guardrails
             output_result = await guardrails_engine.process_output(agent_response)
@@ -259,7 +282,7 @@ class WhatsAppService:
             # Step 10: Return response
             return {
                 "response": output_result.sanitized_response,
-                "tracking_number": None,  # Would be extracted from ticket_data
+                "tracking_number": tracking_number,
                 "is_complete": is_complete,
             }
 
