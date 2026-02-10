@@ -138,12 +138,12 @@ Plans:
   4. GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
   5. Three to five pilot municipalities are onboarded with active citizen reporting and visible municipal responses
   6. Full test suite passes across all 6 phases with >=80% coverage; no regressions
-**Plans**: TBD
+**Plans:** 3 plans
 
 Plans:
-- [ ] 06-01: TBD during phase planning
-- [ ] 06-02: TBD during phase planning
-- [ ] 06-03: TBD during phase planning
+- [ ] 06-01-PLAN.md -- Public metrics backend: cross-tenant aggregation service and unauthenticated API endpoints
+- [ ] 06-02-PLAN.md -- Public dashboard frontend: Recharts visualizations, Leaflet heatmap, municipality selector
+- [ ] 06-03-PLAN.md -- Pilot onboarding seed script, GBV firewall public tests, and full regression suite
 
 ## Phase Verification Policy
 
