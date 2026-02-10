@@ -189,3 +189,179 @@ class TestTicketsAPI:
 
         # Assert
         assert response.status_code == 404
+
+
+class TestEnhancedListTickets:
+    """Tests for Phase 5 enhanced list_tickets endpoint (pagination, search)."""
+
+    async def test_list_tickets_returns_paginated_response(self, client, admin_token):
+        """Test list_tickets returns PaginatedTicketResponse structure."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?page=1&page_size=10",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+        assert "total" in data
+        assert "page" in data
+        assert "page_size" in data
+        assert "page_count" in data
+        assert isinstance(data["tickets"], list)
+
+    async def test_list_tickets_search_by_tracking_number(self, client, admin_token):
+        """Test search parameter filters by tracking_number."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?search=TKT-",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_list_tickets_search_by_description(self, client, admin_token):
+        """Test search parameter filters by description."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?search=water",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_list_tickets_with_ward_id_filter(self, client, admin_token):
+        """Test ward_id parameter filters tickets by ward."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?ward_id=Ward%201",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_list_tickets_sort_by_created_at(self, client, admin_token):
+        """Test sort_by=created_at parameter."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?sort_by=created_at&sort_order=desc",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_list_tickets_sort_by_status(self, client, admin_token):
+        """Test sort_by=status parameter."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?sort_by=status&sort_order=asc",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_list_tickets_pagination_page_2(self, client, admin_token):
+        """Test pagination page parameter."""
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/?page=2&page_size=5",
+            headers={"Authorization": f"Bearer {admin_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert data["page"] == 2
+        assert data["page_size"] == 5
+
+    async def test_ward_councillor_can_list_tickets(self, client, db_session, test_municipality):
+        """Test WARD_COUNCILLOR role can access list endpoint (read-only)."""
+        # Arrange - create ward councillor user
+        from src.models.user import User, UserRole
+        from src.core.security import get_password_hash, create_access_token
+
+        councillor = User(
+            email="councillor@example.com",
+            hashed_password=get_password_hash("password123"),
+            full_name="Ward Councillor",
+            phone="+27111222444",
+            tenant_id=str(test_municipality.id),
+            municipality_id=test_municipality.id,
+            role=UserRole.WARD_COUNCILLOR,
+            is_active=True
+        )
+        db_session.add(councillor)
+        await db_session.commit()
+        await db_session.refresh(councillor)
+
+        councillor_token = create_access_token({
+            "sub": str(councillor.id),
+            "tenant_id": councillor.tenant_id,
+            "role": councillor.role.value,
+        })
+
+        # Act
+        response = await client.get(
+            "/api/v1/tickets/",
+            headers={"Authorization": f"Bearer {councillor_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 200
+        data = response.json()
+        assert "tickets" in data
+
+    async def test_ward_councillor_cannot_assign_tickets(self, client, db_session, test_municipality):
+        """Test WARD_COUNCILLOR cannot assign tickets (403)."""
+        # Arrange
+        from src.models.user import User, UserRole
+        from src.core.security import get_password_hash, create_access_token
+
+        councillor = User(
+            email="councillor2@example.com",
+            hashed_password=get_password_hash("password123"),
+            full_name="Ward Councillor 2",
+            phone="+27111222555",
+            tenant_id=str(test_municipality.id),
+            municipality_id=test_municipality.id,
+            role=UserRole.WARD_COUNCILLOR,
+            is_active=True
+        )
+        db_session.add(councillor)
+        await db_session.commit()
+        await db_session.refresh(councillor)
+
+        councillor_token = create_access_token({
+            "sub": str(councillor.id),
+            "tenant_id": councillor.tenant_id,
+            "role": councillor.role.value,
+        })
+
+        fake_ticket_id = uuid4()
+
+        # Act
+        response = await client.post(
+            f"/api/v1/tickets/{fake_ticket_id}/assign",
+            json={"team_id": str(uuid4()), "reason": "test"},
+            headers={"Authorization": f"Bearer {councillor_token}"}
+        )
+
+        # Assert
+        assert response.status_code == 403
