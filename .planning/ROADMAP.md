@@ -83,8 +83,8 @@ Plans:
 - [x] 03-03-PLAN.md -- OCR service and proof of residence verification
 - [x] 03-04-PLAN.md -- Web portal upload and report submission API with React frontend
 - [x] 03-05-PLAN.md -- Phase 3 test suite and coverage verification
-- [ ] 03-06-PLAN.md -- Fix WhatsApp tracking number and MediaAttachment creation (gap closure)
-- [ ] 03-07-PLAN.md -- Add unit tests for coverage >= 80% (gap closure)
+- [x] 03-06-PLAN.md -- Fix WhatsApp tracking number and MediaAttachment creation (gap closure)
+- [x] 03-07-PLAN.md -- Add unit tests for coverage >= 80% (gap closure)
 
 ### Phase 4: Ticket Management & Routing
 **Goal**: Tickets are automatically routed and tracked with SLA enforcement
@@ -98,12 +98,14 @@ Plans:
   5. Each ticket has complete audit trail showing creation, assignment, status changes, and resolution
   6. GBV data is accessible only to authorized SAPS liaison and system admin (firewall-isolated)
   7. All unit, integration, and security tests pass with >=80% coverage on phase code; all Phase 1-3 tests still pass
-**Plans**: TBD
+**Plans:** 5 plans
 
 Plans:
-- [ ] 04-01: TBD during phase planning
-- [ ] 04-02: TBD during phase planning
-- [ ] 04-03: TBD during phase planning
+- [ ] 04-01-PLAN.md -- PostGIS migration, Team/Assignment/SLA models, Celery infrastructure
+- [ ] 04-02-PLAN.md -- Geospatial routing service with GBV firewall and assignment tracking
+- [ ] 04-03-PLAN.md -- SLA service, escalation service, notification service, and Celery tasks
+- [ ] 04-04-PLAN.md -- Ticket management API endpoints with audit trail and GBV access controls
+- [ ] 04-05-PLAN.md -- Phase 4 test suite, GBV firewall tests, and coverage verification
 
 ### Phase 5: Municipal Operations Dashboard
 **Goal**: Municipal managers can view, assign, and analyze tickets with real-time updates
@@ -167,10 +169,10 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 1. Foundation & Security | 7/7 | ✓ Complete | 2026-02-09 |
 | 2. Agentic AI System | 4/4 | ✓ Complete | 2026-02-09 |
 | 3. Citizen Reporting Channels | 7/7 | ✓ Complete | 2026-02-10 |
-| 4. Ticket Management & Routing | 0/3 | Not started | - |
+| 4. Ticket Management & Routing | 0/5 | Planned | - |
 | 5. Municipal Operations Dashboard | 0/3 | Not started | - |
 | 6. Public Transparency & Rollout | 0/3 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-10 (Phase 3 complete)*
+*Last updated: 2026-02-10 (Phase 4 planned)*
