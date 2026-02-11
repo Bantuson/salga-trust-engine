@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.2 of 6+ (UX Redesign — User Journeys, Design System & Dashboard Consistency)
-Plan: 5 of 8 in current phase (5 plans completed - 08, 01, 02, 03, 05 out of order)
+Plan: 6 of 8 in current phase (6 plans completed - 08, 01, 02, 03, 04, 05 out of order)
 Status: IN PROGRESS — Phase 6.2 in progress
-Last activity: 2026-02-11 — Completed 06.2-05: Municipality access request form with admin approval workflow + 5-step guided onboarding wizard with backend state persistence and team invitations
+Last activity: 2026-02-11 — Completed 06.2-04: Premium 3D globe (MeshPhysicalMaterial, glowing data points, environment map) + WCAG 2.3.3 accessibility-compliant scroll animations with prefers-reduced-motion support across all 7 landing sections
 
-Progress: [██████░░░░] 62% (5/8 plans)
+Progress: [███████░░░] 75% (6/8 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 40
-- Average duration: 20.8 minutes
-- Total execution time: 13.9 hours
+- Total plans completed: 41
+- Average duration: 20.7 minutes
+- Total execution time: 14.2 hours
 
 **By Phase:**
 
@@ -34,11 +34,11 @@ Progress: [██████░░░░] 62% (5/8 plans)
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
 | 06.1 | 9 | 153.7m | 17.1m |
-| 06.2 | 5 | 165.6m | 33.1m |
+| 06.2 | 6 | 184.1m | 30.7m |
 
 **Recent Trend:**
-- Last 5 plans: 25.8m, 35.3m, 43.7m, 14.9m, (next plan)
-- Trend: Phase 06.2 in progress - Design system, backend infra, sidebar navigation, registration/onboarding complete
+- Last 5 plans: 35.3m, 43.7m, 14.9m, 18.5m, (next plan)
+- Trend: Phase 06.2 in progress - Design system, backend infra, sidebar, onboarding, premium globe/animations complete
 
 *Updated after each plan completion*
 
@@ -89,6 +89,7 @@ Progress: [██████░░░░] 62% (5/8 plans)
 | 06.2-02 | 45.9m (2751s) | 2 | 24 |
 | 06.2-03 | 43.7m (2622s) | 2 | 13 |
 | 06.2-05 | 14.9m (891s) | 2 | 13 |
+| Phase 06.2 P04 | 1109 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -294,6 +295,8 @@ Recent decisions affecting current work:
 - [Phase 06.2-05]: Team invitations submitted to POST /api/v1/invitations/bulk during onboarding
 - [Phase 06.2-05]: Supporting documents for access requests uploaded to Supabase Storage (access-request-docs bucket) before API submission
 - [Phase 06.2-05]: Wizard resumes from first incomplete step using backend state (cross-device resume capability)
+- [Phase 06.2-04]: MeshPhysicalMaterial with GPU-tier adaptive quality (tier 2+ gets metallic/clearcoat/environment map, tier 0-1 falls back to MeshStandardMaterial)
+- [Phase 06.2-04]: Prefers-reduced-motion as first-class accessibility requirement (WCAG 2.3.3) - honor browser/OS setting in all animations
 
 ### Pending Todos
 
@@ -310,10 +313,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.2 Plan 05)
-Stopped at: Completed 06.2-05-PLAN.md — Municipality access request form with admin approval workflow + 5-step guided onboarding wizard with backend state persistence and team invitations. Phase 6.2 plans 1-3, 5, 8 complete (5/8 total).
+Last session: 2026-02-11 (Phase 6.2 Plan 04)
+Stopped at: Completed 06.2-04-PLAN.md — Premium 3D globe (MeshPhysicalMaterial, glowing data points, environment map) + WCAG 2.3.3 accessibility-compliant scroll animations with prefers-reduced-motion support. Phase 6.2 plans 1-5, 8 complete (6/8 total).
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-11 17:16 UTC*
+*Last updated: 2026-02-11*
