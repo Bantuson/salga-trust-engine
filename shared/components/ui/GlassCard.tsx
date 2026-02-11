@@ -15,6 +15,9 @@ export interface GlassCardProps {
   variant?: GlassCardVariant;
   glow?: GlowColor;
   onClick?: () => void;
+  style?: React.CSSProperties;
+  onMouseEnter?: () => void;
+  onMouseLeave?: () => void;
 }
 
 const glowStyles: Record<GlowColor, React.CSSProperties> = {
@@ -64,6 +67,9 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   variant = 'default',
   glow = 'none',
   onClick,
+  style,
+  onMouseEnter,
+  onMouseLeave,
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -77,6 +83,17 @@ export const GlassCard: React.FC<GlassCardProps> = ({
           borderColor: 'rgba(255, 255, 255, 0.2)',
         }
       : {}),
+    ...style, // User-provided styles override defaults
+  };
+
+  const handleMouseEnter = () => {
+    if (variant === 'interactive') setIsHovered(true);
+    onMouseEnter?.();
+  };
+
+  const handleMouseLeave = () => {
+    if (variant === 'interactive') setIsHovered(false);
+    onMouseLeave?.();
   };
 
   return (
@@ -84,8 +101,8 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       className={cn('glass-card', className)}
       style={combinedStyles}
       onClick={onClick}
-      onMouseEnter={() => variant === 'interactive' && setIsHovered(true)}
-      onMouseLeave={() => variant === 'interactive' && setIsHovered(false)}
+      onMouseEnter={handleMouseEnter}
+      onMouseLeave={handleMouseLeave}
     >
       {children}
     </div>

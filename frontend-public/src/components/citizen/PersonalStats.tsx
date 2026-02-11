@@ -8,7 +8,9 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton } from '@shared/components/ui/Skeleton';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import type { CitizenStats } from '../../hooks/useCitizenReports';
-import anime from 'animejs';
+import * as animeImport from 'animejs';
+// @ts-expect-error - accessing default export
+const anime = (animeImport as any).default || animeImport;
 
 export interface PersonalStatsProps {
   stats: CitizenStats | null;
