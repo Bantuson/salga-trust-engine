@@ -11,6 +11,7 @@ import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-route
 import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
+import { RequestAccessPage } from './pages/RequestAccessPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { ReportForm } from './components/ReportForm';
@@ -51,6 +52,7 @@ function AppRoutes() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/request-access" element={<RequestAccessPage />} />
           <Route path="*" element={<Navigate to="/login" replace />} />
         </Routes>
       </PageTransition>

@@ -193,6 +193,14 @@ export function LoginPage() {
             <Link to="/register" style={styles.linkButton}>
               Create Account
             </Link>
+
+            <div style={{ ...styles.divider, marginTop: '0.5rem' }}>
+              <span style={styles.dividerText}>Are you a municipality?</span>
+            </div>
+
+            <Link to="/request-access" style={styles.linkButton}>
+              Request Access →
+            </Link>
           </form>
         )}
 
