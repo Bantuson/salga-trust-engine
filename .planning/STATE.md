@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 8 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plans 01-08 complete
-Last activity: 2026-02-11 — Completed 06.1-08: Implemented premium dark mode UI (navy #0A0E1A), GSAP page transitions, Lenis smooth scroll, branded glassmorphism login with 3D globe, and anime.js counter animations
+Plan: 9 of 9 in current phase
+Status: COMPLETE — Phase 6.1 all 9 plans complete
+Last activity: 2026-02-11 — Completed 06.1-09: Built cinematic scroll storytelling landing page with interactive 3D South Africa globe (extruded GeoJSON provinces), GSAP scroll-triggered animations, anime.js counters, Lenis smooth scroll, mobile-first dark mode, and full 3D performance optimizations
 
-Progress: [████████░░] 89% (8/9 plans)
+Progress: [██████████] 100% (9/9 plans)
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [████████░░] 89% (8/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 8 | 138.4m | 17.3m |
+| 06.1 | 9 | 153.7m | 17.1m |
 
 **Recent Trend:**
-- Last 5 plans: 19.8m, 23.1m, 15.0m, 41.2m, (next plan)
-- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontends, testing, premium UI complete
+- Last 5 plans: 23.1m, 15.0m, 41.2m, 15.3m, (next plan)
+- Trend: Phase 06.1 COMPLETE - Supabase migration with premium UI design layer for both dashboards
 
 *Updated after each plan completion*
 
@@ -82,6 +82,7 @@ Progress: [████████░░] 89% (8/9 plans)
 | 06.1-06 | 19.8m (1190s) | 2 | 22 |
 | 06.1-07 | 15.0m (899s) | 1 | 11 |
 | 06.1-08 | 41.2m (2470s) | 2 | 18 |
+| 06.1-09 | 15.3m (915s) | 2 | 19 |
 
 ## Accumulated Context
 
@@ -260,6 +261,9 @@ Recent decisions affecting current work:
 - [Phase 06.1-06]: Both dashboards deploy to Vercel (Supabase hosting unavailable for static sites)
 - [Phase 06.1-06]: Client-side aggregation for response times and resolution rates (flexible filtering)
 - [Phase 06.1-08]: GSAP page transitions instead of Barba.js (conflicts with React SPAs)
+- [Phase 06.1-09]: Simplified SA provinces GeoJSON (9 provinces) instead of full municipal boundaries (performance: 3KB vs 500KB+)
+- [Phase 06.1-09]: Three.js mobile optimization stack: DPR cap at 2, on-demand rendering, mediump shaders, detect-gpu LOD, React.lazy code-splitting
+- [Phase 06.1-09]: Lenis smooth scroll with mobile touch support (syncTouch: true) for public dashboard
 
 ### Pending Todos
 
@@ -275,8 +279,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 07)
-Stopped at: Completed 06.1-07-PLAN.md — Updated test suite for Supabase migration: created 6 new test files (Supabase auth, storage, RLS, WhatsApp sessions, public dashboard, realtime), rewritten test_security_unit.py for JWT verification, updated test fixtures (create_supabase_access_token helper, mock_supabase_admin, "supabase_managed" passwords), fixed existing tests (test_popia, test_multitenancy, test_tickets_api), verified migration integrity (no boto3/Redis, GBV firewall at all layers).
+Last session: 2026-02-11 (Phase 6.1 Plan 09)
+Stopped at: Completed 06.1-09-PLAN.md — Built cinematic scroll storytelling landing page with interactive 3D SA globe, GSAP scroll-triggered animations, anime.js counters, Lenis smooth scroll, horizontal municipality carousel, mobile-first dark mode design. Phase 6.1 COMPLETE (all 9 plans).
 Resume file: None
 
 ---
