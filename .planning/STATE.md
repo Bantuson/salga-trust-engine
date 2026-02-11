@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** ALL PHASES COMPLETE — Project ready for deployment
+**Current focus:** Phase 6.1 — Postgres refactor to Supabase and dashboard separation (INSERTED)
 
 ## Current Position
 
-Phase: 6 of 6 (Public Transparency & Rollout)
-Plan: 3 of 3 in current phase
-Status: COMPLETE — Phase 6 finished, all 6 phases complete
-Last activity: 2026-02-10 — Completed 06-03: Pilot municipality onboarding script, GBV firewall public tests, full regression verification (338 tests passing)
+Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
+Plan: 1 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plan 01 complete (Supabase infrastructure setup)
+Last activity: 2026-02-11 — Completed 06.1-01: Supabase SDK installed, client module created, database connection migrated, custom access token hook ready
 
-Progress: [██████████] 100% (3/3 plans)
+Progress: [█░░░░░░░░░] 11% (1/9 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 31
-- Average duration: 19.3 minutes
-- Total execution time: 10.0 hours
+- Total plans completed: 32
+- Average duration: 18.5 minutes
+- Total execution time: 10.1 hours
 
 **By Phase:**
 
@@ -33,10 +33,11 @@ Progress: [██████████] 100% (3/3 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
+| 06.1 | 1 | 3.6m | 3.6m |
 
 **Recent Trend:**
-- Last 5 plans: 16.4m, 17.6m, 24.5m, 14.9m, 21.5m
-- Trend: Phase 06 COMPLETE - pilot onboarding, GBV firewall tests, full regression (338 tests)
+- Last 5 plans: 17.6m, 24.5m, 14.9m, 21.5m, 3.6m
+- Trend: Phase 06.1 started - Supabase infrastructure setup complete
 
 *Updated after each plan completion*
 
@@ -73,6 +74,7 @@ Progress: [██████████] 100% (3/3 plans)
 | 06-01 | 24.5m (1470s) | 2 | 6 |
 | 06-02 | 14.9m (892s) | 2 | 10 |
 | 06-03 | 21.5m (1288s) | 2 | 3 |
+| 06.1-01 | 3.6m (215s) | 2 | 7 |
 
 ## Accumulated Context
 
@@ -228,10 +230,17 @@ Recent decisions affecting current work:
 - [Phase 06-03]: Idempotent seed script design (skip existing, not fail or overwrite)
 - [Phase 06-03]: Seed-all pattern for pilot municipalities (one-command onboarding)
 - [Phase 06-03]: Temporary password strategy (ChangeMe123! printed, must change on first login)
+- [Phase 06.1-01]: Connection pool limits reduced to 5+10 for Supabase tier constraints (free=60, Pro=200)
+- [Phase 06.1-01]: SUPABASE_DB_URL optional with DATABASE_URL fallback for local dev compatibility
+- [Phase 06.1-01]: Custom access token hook requires manual Supabase Dashboard configuration
 
 ### Pending Todos
 
 None - CrewAI successfully installed and integrated.
+
+### Roadmap Evolution
+
+- Phase 6.1 inserted after Phase 6: Postgres refactor to Supabase and dashboard separation (URGENT)
 
 ### Blockers/Concerns
 
@@ -239,10 +248,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-10 (Phase 6 completion)
-Stopped at: Completed 06-03-PLAN.md — Pilot municipality onboarding seed script (idempotent, --seed-all for 5 pilots, Argon2 hashed passwords, 7 teams + SLA configs per municipality), comprehensive GBV firewall tests for public dashboard (10 tests verifying is_sensitive exclusion at service/API layers), full regression verification (338 unit tests passing, 111 integration tests skipped, frontend builds successfully). **PHASE 6 COMPLETE. ALL 6 PHASES COMPLETE. PROJECT READY FOR DEPLOYMENT.**
+Last session: 2026-02-11 (Phase 6.1 Plan 01)
+Stopped at: Completed 06.1-01-PLAN.md — Supabase infrastructure setup: installed Python SDK (2.16.0), created admin/anon client module with lazy initialization, added 6 SUPABASE_* config fields, migrated database connection to Supabase Cloud with local fallback, optimized connection pooling (5+10) for tier limits, updated Alembic for Supabase targeting, created custom access token hook migration for JWT RBAC claims. **USER ACTION REQUIRED: Enable custom_access_token_hook in Supabase Dashboard → Auth → Hooks.**
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-10*
+*Last updated: 2026-02-11*
