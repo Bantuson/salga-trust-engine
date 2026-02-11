@@ -1,5 +1,6 @@
 import { useState, Suspense, lazy } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
+import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { NdebelePattern } from '@shared/components/NdebelePattern';
 import { MunicipalitySelector } from '../components/MunicipalitySelector';
 import { ResponseTimeChart } from '../components/ResponseTimeChart';
@@ -71,9 +72,28 @@ export function TransparencyDashboardPage() {
 
         {/* Charts Grid */}
         <div className="dashboard-charts-grid">
-          <ResponseTimeChart data={responseTimes} isLoading={isLoadingResponse} />
-          <ResolutionRateChart data={resolutionRates} isLoading={isLoadingResolution} />
-          <HeatmapViewer municipalityId={selectedMunicipality || undefined} />
+          {isLoadingResponse || isLoadingResolution ? (
+            <SkeletonTheme>
+              <GlassCard variant="default">
+                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+                <Skeleton height={300} />
+              </GlassCard>
+              <GlassCard variant="default">
+                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+                <Skeleton height={300} />
+              </GlassCard>
+              <GlassCard variant="default">
+                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+                <Skeleton height={400} />
+              </GlassCard>
+            </SkeletonTheme>
+          ) : (
+            <>
+              <ResponseTimeChart data={responseTimes} isLoading={false} />
+              <ResolutionRateChart data={resolutionRates} isLoading={false} />
+              <HeatmapViewer municipalityId={selectedMunicipality || undefined} />
+            </>
+          )}
         </div>
 
         <NdebelePattern variant="border" />

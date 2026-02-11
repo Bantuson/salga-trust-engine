@@ -13,6 +13,7 @@ export interface SkeletonProps {
   height?: string | number;
   circle?: boolean;
   className?: string;
+  style?: React.CSSProperties;
 }
 
 const darkModeColors = {

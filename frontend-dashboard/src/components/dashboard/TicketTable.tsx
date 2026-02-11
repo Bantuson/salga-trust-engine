@@ -8,6 +8,7 @@ import {
   type PaginationState,
 } from '@tanstack/react-table';
 import { format } from 'date-fns';
+import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import type { Ticket } from '../../types/dashboard';
 
 interface TicketTableProps {
@@ -171,8 +172,42 @@ export function TicketTable({
 
   if (isLoading) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
-        Loading tickets...
+      <div style={{ overflowX: 'auto', border: '1px solid var(--border-subtle)', borderRadius: '4px' }}>
+        <SkeletonTheme>
+          <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+            <thead style={{ backgroundColor: 'var(--surface-elevated)' }}>
+              <tr>
+                {['Tracking #', 'Category', 'Status', 'Priority', 'Created', 'Updated', 'Deadline'].map((header, i) => (
+                  <th
+                    key={i}
+                    style={{
+                      padding: '0.75rem 1rem',
+                      textAlign: 'left',
+                      fontSize: '0.75rem',
+                      fontWeight: '600',
+                      textTransform: 'uppercase',
+                      color: 'var(--text-secondary)',
+                      borderBottom: '1px solid var(--border-subtle)',
+                    }}
+                  >
+                    {header}
+                  </th>
+                ))}
+              </tr>
+            </thead>
+            <tbody>
+              {Array.from({ length: 8 }).map((_, rowIndex) => (
+                <tr key={rowIndex} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                  {Array.from({ length: 7 }).map((_, cellIndex) => (
+                    <td key={cellIndex} style={{ padding: '0.75rem 1rem' }}>
+                      <Skeleton height={20} width={cellIndex === 0 ? '120px' : cellIndex === 2 ? '80px' : '100%'} />
+                    </td>
+                  ))}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </SkeletonTheme>
       </div>
     );
   }

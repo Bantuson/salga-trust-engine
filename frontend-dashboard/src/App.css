@@ -306,3 +306,82 @@ textarea:focus-visible {
 .animated-card:hover .card-glow-teal {
   animation: glowPulse 2s ease-in-out infinite;
 }
+
+/* ===== MICRO-INTERACTIONS: BUTTONS ===== */
+button,
+.button-primary,
+.button-secondary {
+  transition: all 0.2s ease;
+}
+
+button:hover:not(:disabled),
+.button-primary:hover:not(:disabled),
+.button-secondary:hover:not(:disabled) {
+  transform: scale(1.02);
+}
+
+button:active:not(:disabled),
+.button-primary:active:not(:disabled),
+.button-secondary:active:not(:disabled) {
+  transform: scale(0.98);
+}
+
+button:focus-visible,
+.button-primary:focus-visible,
+.button-secondary:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+button:disabled,
+.button-primary:disabled,
+.button-secondary:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* ===== MICRO-INTERACTIONS: CARDS ===== */
+.card,
+.animated-card {
+  transition: all 0.2s ease;
+}
+
+.card:hover,
+.animated-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--border-hover);
+}
+
+/* ===== MICRO-INTERACTIONS: FORM INPUTS ===== */
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(0, 217, 166, 0.1), 0 0 10px rgba(0, 217, 166, 0.2);
+}
+
+input.error,
+select.error,
+textarea.error {
+  border-color: var(--color-coral);
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.1), 0 0 10px rgba(255, 107, 74, 0.2);
+}
+
+/* ===== ACCESSIBILITY: PREFERS-REDUCED-MOTION ===== */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  button:hover,
+  button:active,
+  .card:hover,
+  .animated-card:hover {
+    transform: none !important;
+  }
+}

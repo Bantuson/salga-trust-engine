@@ -7,9 +7,14 @@ import React from 'react';
 import { cn } from '../../lib/utils';
 
 export type TicketStatus = 'open' | 'in_progress' | 'escalated' | 'resolved' | 'closed';
+export type BadgeVariant = 'default' | 'success' | 'warning' | 'error';
+export type BadgeSize = 'sm' | 'md' | 'lg';
 
 export interface BadgeProps {
-  status: TicketStatus;
+  status?: TicketStatus;
+  variant?: BadgeVariant;
+  size?: BadgeSize;
+  children?: React.ReactNode;
   className?: string;
 }
 
@@ -61,12 +66,49 @@ const baseStyles: React.CSSProperties = {
   border: '1px solid',
 };
 
-export const Badge: React.FC<BadgeProps> = ({ status, className }) => {
-  const colors = statusColors[status];
-  const label = statusLabels[status];
+const variantColors: Record<BadgeVariant, { bg: string; text: string; border: string }> = {
+  default: {
+    bg: 'rgba(156, 163, 175, 0.1)',
+    text: '#9CA3AF',
+    border: 'rgba(156, 163, 175, 0.3)',
+  },
+  success: {
+    bg: 'rgba(0, 217, 166, 0.1)',
+    text: '#00D9A6',
+    border: 'rgba(0, 217, 166, 0.3)',
+  },
+  warning: {
+    bg: 'rgba(251, 191, 36, 0.1)',
+    text: '#FBBF24',
+    border: 'rgba(251, 191, 36, 0.3)',
+  },
+  error: {
+    bg: 'rgba(255, 107, 74, 0.1)',
+    text: '#FF6B4A',
+    border: 'rgba(255, 107, 74, 0.3)',
+  },
+};
+
+const sizeStyles: Record<BadgeSize, React.CSSProperties> = {
+  sm: { padding: '2px 8px', fontSize: '0.75rem' },
+  md: { padding: '4px 12px', fontSize: '0.875rem' },
+  lg: { padding: '6px 16px', fontSize: '1rem' },
+};
+
+export const Badge: React.FC<BadgeProps> = ({
+  status,
+  variant = 'default',
+  size = 'md',
+  children,
+  className
+}) => {
+  // If status is provided, use status-based styling
+  const colors = status ? statusColors[status] : variantColors[variant];
+  const label = status ? statusLabels[status] : children;
 
   const styles: React.CSSProperties = {
     ...baseStyles,
+    ...sizeStyles[size],
     background: colors.bg,
     color: colors.text,
     borderColor: colors.border,

@@ -1393,6 +1393,96 @@ body {
   }
 }
 
+/* ===== MICRO-INTERACTIONS: BUTTONS ===== */
+button,
+.hero-cta,
+.preview-cta-button,
+.button-primary,
+.button-secondary {
+  transition: all 0.2s ease;
+}
+
+button:hover,
+.hero-cta:hover,
+.preview-cta-button:hover {
+  transform: scale(1.02);
+}
+
+button:active,
+.hero-cta:active,
+.preview-cta-button:active {
+  transform: scale(0.98);
+}
+
+button:focus-visible,
+.hero-cta:focus-visible,
+.preview-cta-button:focus-visible {
+  outline: 2px solid var(--color-teal);
+  outline-offset: 2px;
+}
+
+button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  transform: none !important;
+}
+
+/* ===== MICRO-INTERACTIONS: CARDS ===== */
+.feature-card,
+.showcase-card,
+.stat-card {
+  transition: all 0.2s ease;
+}
+
+.feature-card:hover,
+.showcase-card:hover {
+  transform: translateY(-2px);
+  border-color: var(--color-teal);
+}
+
+/* ===== MICRO-INTERACTIONS: LINKS AND NAV ===== */
+.nav-link,
+.footer-link {
+  position: relative;
+  transition: color 0.3s ease;
+}
+
+.nav-link::after {
+  content: '';
+  position: absolute;
+  bottom: -4px;
+  left: 0;
+  width: 0;
+  height: 2px;
+  background: var(--color-coral);
+  transition: width 0.3s ease;
+}
+
+.nav-link:hover::after {
+  width: 100%;
+}
+
+/* ===== MICRO-INTERACTIONS: FORM INPUTS ===== */
+input,
+select,
+textarea {
+  transition: all 0.15s ease;
+}
+
+input:focus,
+select:focus,
+textarea:focus {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 3px rgba(0, 217, 166, 0.1), 0 0 10px rgba(0, 217, 166, 0.2);
+}
+
+input.error,
+select.error,
+textarea.error {
+  border-color: var(--color-coral);
+  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.1), 0 0 10px rgba(255, 107, 74, 0.2);
+}
+
 /* ===== ACCESSIBILITY: PREFERS-REDUCED-MOTION ===== */
 @media (prefers-reduced-motion: reduce) {
   * {
@@ -1403,7 +1493,9 @@ body {
 
   .hero-cta:hover,
   .feature-card:hover,
-  .showcase-card:hover {
+  .showcase-card:hover,
+  button:hover,
+  button:active {
     transform: none !important;
   }
 }

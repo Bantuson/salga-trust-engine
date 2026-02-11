@@ -16,6 +16,8 @@
 import { useEffect, useRef } from 'react';
 import { animate } from 'animejs';
 import { AnimatedCard } from '../AnimatedCard';
+import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
+import { GlassCard } from '@shared/components/ui/GlassCard';
 import type { DashboardMetrics } from '../../types/dashboard';
 
 interface MetricsCardsProps {
@@ -76,18 +78,16 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
   if (isLoading) {
     return (
       <div style={styles.container}>
-        <AnimatedCard glowColor="coral" delay={0}>
-          <MetricCard title="Open Tickets" valueRef={openRef} value="..." color="var(--color-teal)" />
-        </AnimatedCard>
-        <AnimatedCard glowColor="teal" delay={0.1}>
-          <MetricCard title="Resolved" valueRef={resolvedRef} value="..." color="var(--color-teal)" />
-        </AnimatedCard>
-        <AnimatedCard glowColor="coral" delay={0.2}>
-          <MetricCard title="SLA Compliance" valueRef={complianceRef} value="..." color="var(--text-muted)" />
-        </AnimatedCard>
-        <AnimatedCard glowColor="teal" delay={0.3}>
-          <MetricCard title="SLA Breaches" valueRef={breachesRef} value="..." color="var(--color-coral)" />
-        </AnimatedCard>
+        <SkeletonTheme>
+          {[0, 1, 2, 3].map((i) => (
+            <GlassCard key={i} variant="default">
+              <div style={styles.skeletonCard}>
+                <Skeleton height={14} width="60%" style={{ marginBottom: 'var(--space-md)' }} />
+                <Skeleton height={40} width="80%" />
+              </div>
+            </GlassCard>
+          ))}
+        </SkeletonTheme>
       </div>
     );
   }
@@ -176,5 +176,8 @@ const styles = {
   cardValue: {
     fontSize: '2.5rem',
     fontWeight: '700',
+  } as React.CSSProperties,
+  skeletonCard: {
+    padding: 'var(--space-md) 0',
   } as React.CSSProperties,
 };

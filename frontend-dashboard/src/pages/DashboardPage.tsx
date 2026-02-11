@@ -19,6 +19,7 @@ import { VolumeChart } from '../components/dashboard/VolumeChart';
 import { SLAComplianceChart } from '../components/dashboard/SLAComplianceChart';
 import { TeamWorkloadChart } from '../components/dashboard/TeamWorkloadChart';
 import { RealtimeIndicator } from '../components/dashboard/RealtimeIndicator';
+import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import {
   fetchDashboardMetrics,
   fetchVolumeByCategory,
@@ -119,12 +120,32 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
 
       <MetricsCards metrics={metrics} isLoading={isLoading} />
 
-      <div style={styles.chartsGrid}>
-        <VolumeChart data={volumeData} isLoading={isLoading} />
-        <SLAComplianceChart data={slaData} isLoading={isLoading} />
-      </div>
-
-      <TeamWorkloadChart data={workloadData} isLoading={isLoading} />
+      {isLoading ? (
+        <SkeletonTheme>
+          <div style={styles.chartsGrid}>
+            <div style={styles.chartSkeleton}>
+              <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+              <Skeleton height={300} />
+            </div>
+            <div style={styles.chartSkeleton}>
+              <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+              <Skeleton height={300} />
+            </div>
+          </div>
+          <div style={styles.chartSkeleton}>
+            <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
+            <Skeleton height={400} />
+          </div>
+        </SkeletonTheme>
+      ) : (
+        <>
+          <div style={styles.chartsGrid}>
+            <VolumeChart data={volumeData} isLoading={false} />
+            <SLAComplianceChart data={slaData} isLoading={false} />
+          </div>
+          <TeamWorkloadChart data={workloadData} isLoading={false} />
+        </>
+      )}
 
       <nav style={styles.nav}>
         <a href="#tickets" style={styles.navLink}>
@@ -167,5 +188,11 @@ const styles = {
     textDecoration: 'none',
     fontSize: '1rem',
     fontWeight: '500',
+  } as React.CSSProperties,
+  chartSkeleton: {
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-md)',
+    padding: 'var(--space-lg)',
   } as React.CSSProperties,
 };
