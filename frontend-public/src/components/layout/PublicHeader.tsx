@@ -21,6 +21,7 @@ export function PublicHeader() {
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/about', label: 'About' },
+    { to: '/my-reports', label: 'My Reports' },
   ];
 
   return (

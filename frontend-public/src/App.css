@@ -1305,3 +1305,37 @@ body {
     transform: translateY(-10px);
   }
 }
+
+/* ===== CITIZEN PORTAL PAGE ===== */
+
+/* Filter tabs hover effect */
+.filter-tab:hover {
+  background: rgba(0, 217, 166, 0.1) !important;
+  color: var(--color-teal) !important;
+}
+
+/* GBV case card emergency contacts section styling */
+.gbv-emergency-section {
+  margin-top: var(--space-lg);
+  padding: var(--space-md);
+  background: rgba(255, 107, 74, 0.1);
+  border: 1px solid rgba(255, 107, 74, 0.3);
+  border-radius: var(--radius-md);
+}
+
+/* Stats grid responsive layout */
+@media (max-width: 767px) {
+  .filter-tab {
+    white-space: nowrap;
+  }
+}
+
+/* Loading spinner animation for Button component */
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
