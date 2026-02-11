@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 7 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plans 01-07 complete
-Last activity: 2026-02-11 — Completed 06.1-07: Updated test suite for Supabase migration - created 6 new test files (auth, storage, RLS, WhatsApp sessions, public dashboard, realtime), fixed broken tests, updated fixtures for Supabase JWT format
+Plan: 8 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plans 01-08 complete
+Last activity: 2026-02-11 — Completed 06.1-08: Implemented premium dark mode UI (navy #0A0E1A), GSAP page transitions, Lenis smooth scroll, branded glassmorphism login with 3D globe, and anime.js counter animations
 
-Progress: [███████░░░] 78% (7/9 plans)
+Progress: [████████░░] 89% (8/9 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 35
-- Average duration: 18.2 minutes
-- Total execution time: 10.6 hours
+- Total plans completed: 36
+- Average duration: 19.0 minutes
+- Total execution time: 11.3 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [███████░░░] 78% (7/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 7 | 97.2m | 13.9m |
+| 06.1 | 8 | 138.4m | 17.3m |
 
 **Recent Trend:**
-- Last 5 plans: 5.3m, 19.8m, 23.1m, 15.0m, (next plan)
-- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontends, testing complete
+- Last 5 plans: 19.8m, 23.1m, 15.0m, 41.2m, (next plan)
+- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontends, testing, premium UI complete
 
 *Updated after each plan completion*
 
@@ -81,6 +81,7 @@ Progress: [███████░░░] 78% (7/9 plans)
 | 06.1-05 | 23.1m (1386s) | 2 | 42 |
 | 06.1-06 | 19.8m (1190s) | 2 | 22 |
 | 06.1-07 | 15.0m (899s) | 1 | 11 |
+| 06.1-08 | 41.2m (2470s) | 2 | 18 |
 
 ## Accumulated Context
 
@@ -258,6 +259,7 @@ Recent decisions affecting current work:
 - [Phase 06.1-06]: Direct Supabase RLS view queries from frontend (zero FastAPI dependency)
 - [Phase 06.1-06]: Both dashboards deploy to Vercel (Supabase hosting unavailable for static sites)
 - [Phase 06.1-06]: Client-side aggregation for response times and resolution rates (flexible filtering)
+- [Phase 06.1-08]: GSAP page transitions instead of Barba.js (conflicts with React SPAs)
 
 ### Pending Todos
 
