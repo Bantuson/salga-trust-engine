@@ -75,34 +75,7 @@ code {
   transform: translateY(-2px);
 }
 
-/* Navigation */
-nav {
-  background: var(--color-navy-light);
-  border-bottom: 1px solid var(--border-subtle);
-  padding: var(--space-md) var(--space-2xl);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-nav a {
-  color: var(--text-secondary);
-  text-decoration: none;
-  padding: var(--space-sm) var(--space-md);
-  border-radius: var(--radius-sm);
-  transition: var(--transition-fast);
-  font-weight: 500;
-}
-
-nav a:hover {
-  color: var(--color-coral);
-  background: var(--surface-elevated);
-}
-
-nav a.active {
-  color: var(--color-coral);
-  font-weight: 600;
-}
+/* Navigation styles removed - now using Sidebar component */
 
 /* Cards */
 .card {
@@ -274,17 +247,7 @@ input::placeholder {
   margin-bottom: var(--space-2xl);
 }
 
-/* Desktop-primary Layout */
-@media (max-width: 1024px) {
-  main {
-    min-width: 1024px;
-    overflow-x: auto;
-  }
-
-  nav {
-    min-width: 1024px;
-  }
-}
+/* Desktop-primary Layout - removed old nav constraint */
 
 /* Loading Spinner */
 .spinner {

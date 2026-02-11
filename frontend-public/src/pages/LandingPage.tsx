@@ -5,6 +5,7 @@ import { FeaturesSection } from '../components/landing/FeaturesSection';
 import { LiveStatsSection } from '../components/landing/LiveStatsSection';
 import { MunicipalityShowcase } from '../components/landing/MunicipalityShowcase';
 import { DashboardPreview } from '../components/landing/DashboardPreview';
+import { DashboardCTA } from '../components/landing/DashboardCTA';
 
 export function LandingPage() {
   return (
@@ -16,6 +17,7 @@ export function LandingPage() {
       <LiveStatsSection />
       <MunicipalityShowcase />
       <DashboardPreview />
+      <DashboardCTA />
     </main>
   );
 }

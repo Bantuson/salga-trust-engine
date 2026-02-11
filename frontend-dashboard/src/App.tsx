@@ -1,18 +1,20 @@
 /**
- * Main App component with authentication routing.
+ * Main App component with React Router authentication.
  *
  * Enforces authentication for all dashboard pages.
- * Uses hash-based routing for simplicity.
+ * Uses React Router for navigation.
  * Wrapped in LenisProvider for smooth scroll.
  * PageTransition provides coral/navy gradient overlay sweep on route changes.
  */
 
-import { useState, useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
+import { RegisterPage } from './pages/RegisterPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { ReportForm } from './components/ReportForm';
+import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
 import { PageTransition } from './components/PageTransition';
 import '@shared/design-tokens.css';
@@ -20,14 +22,18 @@ import '@shared/animations.css';
 import './App.css';
 
 function App() {
-  const { session, user, loading, signOut, getUserRole } = useAuth();
-  const [currentPage, setCurrentPage] = useState(window.location.hash || '#dashboard');
+  return (
+    <BrowserRouter>
+      <LenisProvider>
+        <AppRoutes />
+      </LenisProvider>
+    </BrowserRouter>
+  );
+}
 
-  useEffect(() => {
-    const handleHashChange = () => setCurrentPage(window.location.hash || '#dashboard');
-    window.addEventListener('hashchange', handleHashChange);
-    return () => window.removeEventListener('hashchange', handleHashChange);
-  }, []);
+function AppRoutes() {
+  const { session, loading } = useAuth();
+  const location = useLocation();
 
   if (loading) {
     return (
@@ -38,63 +44,37 @@ function App() {
     );
   }
 
+  // Unauthenticated routes
   if (!session) {
-    return <LoginPage />;
+    return (
+      <PageTransition routeKey={location.pathname}>
+        <Routes>
+          <Route path="/login" element={<LoginPage />} />
+          <Route path="/register" element={<RegisterPage />} />
+          <Route path="*" element={<Navigate to="/login" replace />} />
+        </Routes>
+      </PageTransition>
+    );
   }
 
-  const role = getUserRole();
-
+  // Authenticated routes - wrapped in DashboardLayout
   return (
-    <LenisProvider>
-      <div className="App">
-        <nav style={styles.nav}>
-          <div style={styles.navLeft}>
-            <span style={styles.logo}>SALGA Trust Engine</span>
-            <a
-              href="#dashboard"
-              className={currentPage === '#dashboard' ? 'active' : ''}
-              style={styles.navLink}
-            >
-              Dashboard
-            </a>
-            <a
-              href="#tickets"
-              className={currentPage === '#tickets' ? 'active' : ''}
-              style={styles.navLink}
-            >
-              Tickets
-            </a>
-            <a
-              href="#report"
-              className={currentPage === '#report' ? 'active' : ''}
-              style={styles.navLink}
-            >
-              Report Issue
-            </a>
-          </div>
-          <div style={styles.navRight}>
-            <span style={styles.userInfo}>
-              {user?.email || user?.phone} ({role})
-            </span>
-            <button
-              onClick={() => signOut()}
-              style={styles.logoutButton}
-            >
-              Logout
-            </button>
-          </div>
-        </nav>
-
-        <PageTransition routeKey={currentPage}>
-          <main style={styles.main}>
-            {currentPage === '#dashboard' && <DashboardPage />}
-            {currentPage === '#tickets' && <TicketListPage />}
-            {currentPage === '#report' && <ReportForm />}
-            {!['#dashboard', '#tickets', '#report'].includes(currentPage) && <DashboardPage />}
-          </main>
-        </PageTransition>
-      </div>
-    </LenisProvider>
+    <DashboardLayout>
+      <PageTransition routeKey={location.pathname}>
+        <Routes>
+          <Route path="/" element={<DashboardPage />} />
+          <Route path="/tickets" element={<TicketListPage />} />
+          <Route path="/report" element={<ReportForm />} />
+          <Route path="/municipalities" element={<div style={styles.placeholder}>Municipalities (Coming Soon)</div>} />
+          <Route path="/teams" element={<div style={styles.placeholder}>Teams (Coming Soon)</div>} />
+          <Route path="/analytics" element={<div style={styles.placeholder}>Analytics (Coming Soon)</div>} />
+          <Route path="/settings" element={<div style={styles.placeholder}>Settings (Coming Soon)</div>} />
+          <Route path="/system" element={<div style={styles.placeholder}>System (Coming Soon)</div>} />
+          <Route path="/reports" element={<div style={styles.placeholder}>Reports (Coming Soon)</div>} />
+          <Route path="*" element={<Navigate to="/" replace />} />
+        </Routes>
+      </PageTransition>
+    </DashboardLayout>
   );
 }
 
@@ -116,45 +96,11 @@ const styles = {
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   } as React.CSSProperties,
-  nav: {
-    // Styles are in App.css
-  } as React.CSSProperties,
-  navLeft: {
-    display: 'flex',
-    gap: '2rem',
-    alignItems: 'center',
-  } as React.CSSProperties,
-  navRight: {
-    display: 'flex',
-    gap: '1rem',
-    alignItems: 'center',
-  } as React.CSSProperties,
-  logo: {
-    fontSize: '1.25rem',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-  } as React.CSSProperties,
-  navLink: {
-    // Styles are in App.css
-  } as React.CSSProperties,
-  userInfo: {
-    fontSize: '0.875rem',
-    color: 'var(--text-secondary)',
-  } as React.CSSProperties,
-  logoutButton: {
-    padding: '0.5rem 1rem',
-    backgroundColor: 'var(--color-coral)',
-    color: 'white',
-    border: 'none',
-    borderRadius: 'var(--radius-sm)',
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    cursor: 'pointer',
-    transition: 'var(--transition-fast)',
-  } as React.CSSProperties,
-  main: {
-    minHeight: 'calc(100vh - 60px)',
+  placeholder: {
     padding: 'var(--space-2xl)',
+    textAlign: 'center' as const,
+    color: 'var(--text-secondary)',
+    fontSize: '1.25rem',
   } as React.CSSProperties,
 };
 

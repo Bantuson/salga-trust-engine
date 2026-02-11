@@ -5,10 +5,12 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  envDir: path.resolve(__dirname, '..'),
   resolve: {
     alias: {
       '@shared': path.resolve(__dirname, '../shared'),
     },
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
   },
   build: {
     rollupOptions: {

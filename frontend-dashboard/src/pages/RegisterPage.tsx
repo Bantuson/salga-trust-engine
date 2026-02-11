@@ -1,17 +1,17 @@
 /**
- * Premium Branded Login Page for Municipal Dashboard
+ * Premium Registration Page for Municipal Dashboard
  *
  * Features:
- * - Full-viewport dark background with GradientMeshBg
+ * - Full-viewport dark background with AnimatedGradientBg
  * - Small decorative 3D globe (React.lazy + Suspense)
- * - Glassmorphism login card with SALGA branding
+ * - Glassmorphism registration card with SALGA branding
  * - Staggered GSAP animation sequence on load
- * - Dual auth modes: Email+password and Phone OTP
+ * - Registration with email + password + full name
  */
 
 import { useState, Suspense, lazy, useRef } from 'react';
 import { Link } from 'react-router-dom';
-import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -19,21 +19,16 @@ import { useGSAP } from '@gsap/react';
 // Code-split 3D globe for performance
 const Globe3DSmall = lazy(() => import('../components/Globe3DSmall'));
 
-type AuthMode = 'email' | 'phone' | 'verify-otp';
-
-export function LoginPage() {
-  const { signInWithEmail, signInWithPhone, verifyOtp } = useAuth();
-  const [mode, setMode] = useState<AuthMode>('email');
+export function RegisterPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
 
-  // Email + password fields
+  // Form fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-
-  // Phone OTP fields
-  const [phone, setPhone] = useState('');
-  const [otpToken, setOtpToken] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [fullName, setFullName] = useState('');
 
   // Animation refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -66,51 +61,84 @@ export function LoginPage() {
     { scope: containerRef }
   );
 
-  const handleEmailLogin = async (e: React.FormEvent) => {
+  const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     setError(null);
 
-    try {
-      await signInWithEmail(email, password);
-      // Auth state change will trigger redirect via App.tsx
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Login failed');
-    } finally {
+    // Client-side validation
+    if (password !== confirmPassword) {
+      setError('Passwords do not match');
       setLoading(false);
+      return;
     }
-  };
 
-  const handlePhoneLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+    if (password.length < 8) {
+      setError('Password must be at least 8 characters long');
+      setLoading(false);
+      return;
+    }
 
     try {
-      await signInWithPhone(phone);
-      setMode('verify-otp');
+      const { error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: {
+            full_name: fullName,
+          },
+        },
+      });
+
+      if (signUpError) throw signUpError;
+
+      setSuccess(true);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to send OTP');
+      setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleVerifyOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
-    setError(null);
+  if (success) {
+    return (
+      <div ref={containerRef} style={styles.container}>
+        <AnimatedGradientBg />
 
-    try {
-      await verifyOtp(phone, otpToken);
-      // Auth state change will trigger redirect via App.tsx
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Invalid OTP code');
-    } finally {
-      setLoading(false);
-    }
-  };
+        <div ref={cardRef} className="glass" style={styles.card}>
+          <div style={styles.logoSection}>
+            <h1 style={styles.title}>SALGA Trust Engine</h1>
+            <p style={styles.tagline}>Municipal Dashboard</p>
+          </div>
+
+          <div style={styles.successBox}>
+            <svg
+              width="48"
+              height="48"
+              fill="none"
+              stroke="var(--color-teal)"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+              style={{ margin: '0 auto 1rem' }}
+            >
+              <path d="M22 11.08V12a10 10 0 0 0 10 10h.92" />
+              <circle cx="12" cy="12" r="10" />
+              <polyline points="8 12 12 16 16 12" />
+            </svg>
+            <h2 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Account Created!</h2>
+            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+              Please check your email to verify your account.
+            </p>
+            <Link to="/login" style={styles.linkButton}>
+              Go to Sign In
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div ref={containerRef} style={styles.container}>
@@ -123,11 +151,11 @@ export function LoginPage() {
         </Suspense>
       </div>
 
-      {/* Glassmorphism Login Card */}
+      {/* Glassmorphism Registration Card */}
       <div ref={cardRef} className="glass" style={styles.card}>
         <div style={styles.logoSection}>
           <h1 style={styles.title}>SALGA Trust Engine</h1>
-          <p style={styles.tagline}>Municipal Dashboard</p>
+          <p style={styles.tagline}>Create Municipal Account</p>
         </div>
 
         {error && (
@@ -137,8 +165,20 @@ export function LoginPage() {
         )}
 
         <div ref={formFieldsRef}>
-          {mode === 'email' && (
-            <form onSubmit={handleEmailLogin} style={styles.form}>
+          <form onSubmit={handleRegister} style={styles.form}>
+            <div style={styles.formGroup}>
+              <label htmlFor="fullName" style={styles.label}>Full Name</label>
+              <input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="John Doe"
+              />
+            </div>
+
             <div style={styles.formGroup}>
               <label htmlFor="email" style={styles.label}>Email</label>
               <input
@@ -160,8 +200,23 @@ export function LoginPage() {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
+                minLength={8}
                 style={styles.input}
-                placeholder="Enter your password"
+                placeholder="Minimum 8 characters"
+              />
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="confirmPassword" style={styles.label}>Confirm Password</label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                minLength={8}
+                style={styles.input}
+                placeholder="Re-enter password"
               />
             </div>
 
@@ -173,110 +228,17 @@ export function LoginPage() {
                 ...(loading ? styles.buttonDisabled : {}),
               }}
             >
-              {loading ? 'Signing in...' : 'Sign In'}
-            </button>
-
-            <div style={styles.divider}>OR</div>
-
-            <button
-              type="button"
-              onClick={() => setMode('phone')}
-              style={styles.linkButton}
-            >
-              Sign in with Phone OTP
+              {loading ? 'Creating Account...' : 'Create Account'}
             </button>
 
             <div style={styles.divider}>
-              <span style={styles.dividerText}>Don't have an account?</span>
+              <span style={styles.dividerText}>Already have an account?</span>
             </div>
 
-            <Link to="/register" style={styles.linkButton}>
-              Create Account
+            <Link to="/login" style={styles.linkButton}>
+              Sign In
             </Link>
           </form>
-        )}
-
-        {mode === 'phone' && (
-          <form onSubmit={handlePhoneLogin} style={styles.form}>
-            <div style={styles.formGroup}>
-              <label htmlFor="phone" style={styles.label}>Phone Number</label>
-              <input
-                id="phone"
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                required
-                style={styles.input}
-                placeholder="+27123456789"
-              />
-              <small style={styles.helperText}>Format: +27XXXXXXXXX</small>
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...styles.button,
-                ...(loading ? styles.buttonDisabled : {}),
-              }}
-            >
-              {loading ? 'Sending OTP...' : 'Send OTP'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => setMode('email')}
-              style={styles.linkButton}
-            >
-              Back to email login
-            </button>
-          </form>
-        )}
-
-        {mode === 'verify-otp' && (
-          <form onSubmit={handleVerifyOtp} style={styles.form}>
-            <div style={styles.infoBox}>
-              OTP code sent to {phone}
-            </div>
-
-            <div style={styles.formGroup}>
-              <label htmlFor="otp" style={styles.label}>6-Digit Code</label>
-              <input
-                id="otp"
-                type="text"
-                value={otpToken}
-                onChange={(e) => setOtpToken(e.target.value)}
-                required
-                maxLength={6}
-                pattern="[0-9]{6}"
-                style={styles.input}
-                placeholder="123456"
-              />
-            </div>
-
-            <button
-              type="submit"
-              disabled={loading}
-              style={{
-                ...styles.button,
-                ...(loading ? styles.buttonDisabled : {}),
-              }}
-            >
-              {loading ? 'Verifying...' : 'Verify OTP'}
-            </button>
-
-            <button
-              type="button"
-              onClick={() => {
-                setMode('phone');
-                setOtpToken('');
-              }}
-              style={styles.linkButton}
-            >
-              Resend OTP
-            </button>
-          </form>
-        )}
         </div>
       </div>
     </div>
@@ -340,14 +302,9 @@ const styles = {
     marginBottom: '1rem',
     fontSize: '0.875rem',
   } as React.CSSProperties,
-  infoBox: {
-    padding: '0.75rem',
-    backgroundColor: 'rgba(0, 217, 166, 0.1)',
-    border: '1px solid var(--color-teal)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--color-teal)',
-    marginBottom: '1rem',
-    fontSize: '0.875rem',
+  successBox: {
+    textAlign: 'center' as const,
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   form: {
     display: 'flex',
@@ -372,10 +329,6 @@ const styles = {
     backgroundColor: 'var(--surface-elevated)',
     color: 'var(--text-primary)',
     transition: 'border-color 0.2s',
-  } as React.CSSProperties,
-  helperText: {
-    fontSize: '0.75rem',
-    color: 'var(--text-muted)',
   } as React.CSSProperties,
   button: {
     padding: '0.875rem',
@@ -402,6 +355,8 @@ const styles = {
     fontWeight: '500',
     cursor: 'pointer',
     textDecoration: 'underline',
+    textAlign: 'center' as const,
+    display: 'block',
   } as React.CSSProperties,
   divider: {
     textAlign: 'center' as const,

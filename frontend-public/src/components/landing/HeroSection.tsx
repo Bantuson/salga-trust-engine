@@ -1,7 +1,9 @@
 import React, { Suspense, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { GlobeLoadingSkeleton } from '../GlobeLoadingSkeleton';
+import { Button } from '@shared/components/ui/Button';
 
 const Globe3D = React.lazy(() => import('../Globe3D'));
 
@@ -37,9 +39,11 @@ export function HeroSection() {
         <p ref={subtitleRef} className="hero-subtitle">
           Track service delivery, hold municipalities accountable, and see real results across South Africa.
         </p>
-        <a href="#dashboard" className="hero-cta">
-          View Dashboard
-        </a>
+        <Link to="/dashboard">
+          <Button variant="primary" size="lg" className="hero-cta">
+            View Municipal Performance
+          </Button>
+        </Link>
       </div>
       <div className="hero-gradient-overlay" />
     </section>

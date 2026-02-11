@@ -1,12 +1,17 @@
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { LenisProvider } from './providers/LenisProvider';
 import { LandingPage } from './pages/LandingPage';
-import { PublicDashboardPage } from './pages/PublicDashboardPage';
+import { TransparencyDashboardPage } from './pages/TransparencyDashboardPage';
+import { ReportRedirectPage } from './pages/ReportRedirectPage';
+import { AboutPage } from './pages/AboutPage';
+import { PublicHeader } from './components/layout/PublicHeader';
+import { PublicFooter } from './components/layout/PublicFooter';
 import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
 
 /**
- * Public transparency dashboard - scroll storytelling landing + live dashboard.
+ * Public transparency dashboard - 4-page application with React Router.
  *
  * CRITICAL:
  * - NO authentication
@@ -16,20 +21,23 @@ import './App.css';
  */
 function App() {
   return (
-    <LenisProvider>
-      <div className="App">
-        <LandingPage />
-        <section id="dashboard" className="dashboard-section">
-          <PublicDashboardPage />
-        </section>
-        <footer className="site-footer">
-          <p>SALGA Trust Engine — Transparent municipal service delivery</p>
-          <p className="privacy-notice">
-            GBV and sensitive reports are excluded from all public statistics.
-          </p>
-        </footer>
-      </div>
-    </LenisProvider>
+    <BrowserRouter>
+      <LenisProvider>
+        <div className="App">
+          <PublicHeader />
+          <main>
+            <Routes>
+              <Route path="/" element={<LandingPage />} />
+              <Route path="/dashboard" element={<TransparencyDashboardPage />} />
+              <Route path="/report" element={<ReportRedirectPage />} />
+              <Route path="/about" element={<AboutPage />} />
+              <Route path="*" element={<Navigate to="/" replace />} />
+            </Routes>
+          </main>
+          <PublicFooter />
+        </div>
+      </LenisProvider>
+    </BrowserRouter>
   );
 }
 

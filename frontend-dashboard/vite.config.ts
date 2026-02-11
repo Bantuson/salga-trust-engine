@@ -5,9 +5,13 @@ import path from 'path'
 // https://vite.dev/config/
 export default defineConfig({
   plugins: [react()],
+  envDir: path.resolve(__dirname, '..'),
   resolve: {
     alias: {
       '@shared': path.resolve(__dirname, '../shared'),
     },
+    // Ensure shared components resolve dependencies from this project's node_modules
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
+    preserveSymlinks: false,
   },
 })
