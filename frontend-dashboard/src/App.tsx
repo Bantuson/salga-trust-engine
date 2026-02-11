@@ -3,6 +3,8 @@
  *
  * Enforces authentication for all dashboard pages.
  * Uses hash-based routing for simplicity.
+ * Wrapped in LenisProvider for smooth scroll.
+ * PageTransition provides coral/navy gradient overlay sweep on route changes.
  */
 
 import { useState, useEffect } from 'react';
@@ -11,6 +13,10 @@ import { LoginPage } from './pages/LoginPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { ReportForm } from './components/ReportForm';
+import { LenisProvider } from './providers/LenisProvider';
+import { PageTransition } from './components/PageTransition';
+import '@shared/design-tokens.css';
+import '@shared/animations.css';
 import './App.css';
 
 function App() {
@@ -39,58 +45,56 @@ function App() {
   const role = getUserRole();
 
   return (
-    <div className="App">
-      <nav style={styles.nav}>
-        <div style={styles.navLeft}>
-          <span style={styles.logo}>SALGA Trust Engine</span>
-          <a
-            href="#dashboard"
-            style={{
-              ...styles.navLink,
-              fontWeight: currentPage === '#dashboard' ? 'bold' : 'normal',
-            }}
-          >
-            Dashboard
-          </a>
-          <a
-            href="#tickets"
-            style={{
-              ...styles.navLink,
-              fontWeight: currentPage === '#tickets' ? 'bold' : 'normal',
-            }}
-          >
-            Tickets
-          </a>
-          <a
-            href="#report"
-            style={{
-              ...styles.navLink,
-              fontWeight: currentPage === '#report' ? 'bold' : 'normal',
-            }}
-          >
-            Report Issue
-          </a>
-        </div>
-        <div style={styles.navRight}>
-          <span style={styles.userInfo}>
-            {user?.email || user?.phone} ({role})
-          </span>
-          <button
-            onClick={() => signOut()}
-            style={styles.logoutButton}
-          >
-            Logout
-          </button>
-        </div>
-      </nav>
+    <LenisProvider>
+      <div className="App">
+        <nav style={styles.nav}>
+          <div style={styles.navLeft}>
+            <span style={styles.logo}>SALGA Trust Engine</span>
+            <a
+              href="#dashboard"
+              className={currentPage === '#dashboard' ? 'active' : ''}
+              style={styles.navLink}
+            >
+              Dashboard
+            </a>
+            <a
+              href="#tickets"
+              className={currentPage === '#tickets' ? 'active' : ''}
+              style={styles.navLink}
+            >
+              Tickets
+            </a>
+            <a
+              href="#report"
+              className={currentPage === '#report' ? 'active' : ''}
+              style={styles.navLink}
+            >
+              Report Issue
+            </a>
+          </div>
+          <div style={styles.navRight}>
+            <span style={styles.userInfo}>
+              {user?.email || user?.phone} ({role})
+            </span>
+            <button
+              onClick={() => signOut()}
+              style={styles.logoutButton}
+            >
+              Logout
+            </button>
+          </div>
+        </nav>
 
-      <main style={styles.main}>
-        {currentPage === '#dashboard' && <DashboardPage />}
-        {currentPage === '#tickets' && <TicketListPage />}
-        {currentPage === '#report' && <ReportForm />}
-        {!['#dashboard', '#tickets', '#report'].includes(currentPage) && <DashboardPage />}
-      </main>
-    </div>
+        <PageTransition routeKey={currentPage}>
+          <main style={styles.main}>
+            {currentPage === '#dashboard' && <DashboardPage />}
+            {currentPage === '#tickets' && <TicketListPage />}
+            {currentPage === '#report' && <ReportForm />}
+            {!['#dashboard', '#tickets', '#report'].includes(currentPage) && <DashboardPage />}
+          </main>
+        </PageTransition>
+      </div>
+    </LenisProvider>
   );
 }
 
@@ -102,22 +106,18 @@ const styles = {
     justifyContent: 'center',
     minHeight: '100vh',
     gap: '1rem',
+    background: 'var(--surface-base)',
   } as React.CSSProperties,
   spinner: {
     width: '40px',
     height: '40px',
-    border: '4px solid #f3f4f6',
-    borderTop: '4px solid #3b82f6',
+    border: '4px solid var(--surface-higher)',
+    borderTop: '4px solid var(--color-teal)',
     borderRadius: '50%',
     animation: 'spin 1s linear infinite',
   } as React.CSSProperties,
   nav: {
-    padding: '1rem 2rem',
-    borderBottom: '1px solid #e5e7eb',
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    backgroundColor: '#ffffff',
+    // Styles are in App.css
   } as React.CSSProperties,
   navLeft: {
     display: 'flex',
@@ -132,31 +132,29 @@ const styles = {
   logo: {
     fontSize: '1.25rem',
     fontWeight: '700',
-    color: '#111827',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   navLink: {
-    color: '#3b82f6',
-    textDecoration: 'none',
-    padding: '0.5rem 1rem',
-    borderRadius: '4px',
-    transition: 'background-color 0.2s',
+    // Styles are in App.css
   } as React.CSSProperties,
   userInfo: {
     fontSize: '0.875rem',
-    color: '#6b7280',
+    color: 'var(--text-secondary)',
   } as React.CSSProperties,
   logoutButton: {
     padding: '0.5rem 1rem',
-    backgroundColor: '#ef4444',
+    backgroundColor: 'var(--color-coral)',
     color: 'white',
     border: 'none',
-    borderRadius: '4px',
+    borderRadius: 'var(--radius-sm)',
     fontSize: '0.875rem',
     fontWeight: '500',
     cursor: 'pointer',
+    transition: 'var(--transition-fast)',
   } as React.CSSProperties,
   main: {
     minHeight: 'calc(100vh - 60px)',
+    padding: 'var(--space-2xl)',
   } as React.CSSProperties,
 };
 

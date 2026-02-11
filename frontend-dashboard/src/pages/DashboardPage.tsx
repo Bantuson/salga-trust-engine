@@ -31,7 +31,7 @@ interface DashboardPageProps {
 }
 
 export function DashboardPage({ wardId }: DashboardPageProps) {
-  const { getTenantId, getUserRole } = useAuth();
+  const { getTenantId } = useAuth();
   const {
     metrics,
     volumeData,

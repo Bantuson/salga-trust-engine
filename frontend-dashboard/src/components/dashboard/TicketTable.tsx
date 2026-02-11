@@ -22,12 +22,12 @@ interface TicketTableProps {
 
 function getStatusBadgeColor(status: string): string {
   switch (status) {
-    case 'open': return '#3b82f6'; // blue
-    case 'in_progress': return '#f59e0b'; // amber
-    case 'escalated': return '#ef4444'; // red
-    case 'resolved': return '#10b981'; // green
-    case 'closed': return '#6b7280'; // gray
-    default: return '#9ca3af'; // gray-400
+    case 'open': return 'var(--color-teal)';
+    case 'in_progress': return '#FBBF24'; // amber
+    case 'escalated': return 'var(--color-coral)';
+    case 'resolved': return 'var(--color-teal)';
+    case 'closed': return 'var(--text-muted)';
+    default: return 'var(--text-muted)';
   }
 }
 
