@@ -48,7 +48,13 @@ def run_migrations_offline() -> None:
     script output.
 
     """
-    url = settings.DATABASE_URL
+    # Use Supabase DB URL if configured, otherwise fall back to DATABASE_URL
+    url = settings.SUPABASE_DB_URL or settings.DATABASE_URL
+
+    # Convert async URL format if needed (postgresql+asyncpg:// to postgresql://)
+    if url.startswith("postgresql+asyncpg://"):
+        url = url.replace("postgresql+asyncpg://", "postgresql://")
+
     context.configure(
         url=url,
         target_metadata=target_metadata,
@@ -72,9 +78,12 @@ async def run_async_migrations() -> None:
     and associate a connection with the context.
 
     """
-    # Override sqlalchemy.url with settings.DATABASE_URL
+    # Use Supabase DB URL if configured, otherwise fall back to DATABASE_URL
+    database_url = settings.SUPABASE_DB_URL or settings.DATABASE_URL
+
+    # Override sqlalchemy.url with the determined database URL
     configuration = config.get_section(config.config_ini_section, {})
-    configuration["sqlalchemy.url"] = settings.DATABASE_URL
+    configuration["sqlalchemy.url"] = database_url
 
     connectable = async_engine_from_config(
         configuration,

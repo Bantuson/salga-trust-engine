@@ -11,6 +11,14 @@ class Settings(BaseSettings):
     DATABASE_URL: str = Field(..., description="PostgreSQL database URL")
     DB_SSL_MODE: str = Field(default="require", description="PostgreSQL SSL mode")
 
+    # Supabase
+    SUPABASE_URL: str = Field(default="", description="Supabase project URL")
+    SUPABASE_ANON_KEY: str = Field(default="", description="Supabase anon/public key")
+    SUPABASE_SERVICE_ROLE_KEY: str = Field(default="", description="Supabase service role key (server-side only)")
+    SUPABASE_JWT_SECRET: str = Field(default="", description="Supabase JWT secret for token verification")
+    SUPABASE_DB_URL: str = Field(default="", description="Supabase direct PostgreSQL connection string")
+    SUPABASE_DB_URL_POOLER: str = Field(default="", description="Supabase transaction pooler connection string (for Celery)")
+
     # Security
     SECRET_KEY: str = Field(..., description="Secret key for JWT tokens (min 32 chars)")
     ALGORITHM: str = Field(default="HS256", description="JWT algorithm")

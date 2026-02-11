@@ -11,12 +11,18 @@ from sqlalchemy.ext.asyncio import (
 from src.core.config import settings
 from src.core.tenant import get_tenant_context
 
-# Create async engine
+# Determine database URL: prefer Supabase, fall back to DATABASE_URL for local dev/tests
+database_url = settings.SUPABASE_DB_URL or settings.DATABASE_URL
+
+# Create async engine with connection pooling optimized for Supabase limits
+# Supabase free tier: 60 connections
+# Supabase Pro tier: 200 connections
+# Conservative pool settings to prevent connection exhaustion
 engine = create_async_engine(
-    settings.DATABASE_URL,
+    database_url,
     pool_pre_ping=True,
-    pool_size=10,
-    max_overflow=20,
+    pool_size=5,  # Reduced from 10 for Supabase connection limits
+    max_overflow=10,  # Reduced from 20
     echo=settings.DEBUG,
 )
 
