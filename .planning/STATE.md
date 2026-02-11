@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 5 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plans 01-04 complete
-Last activity: 2026-02-11 — Completed 06.1-04: Migrated RLS policies to Supabase auth.jwt() pattern with role-specific ticket access and public views for anon role
+Plan: 6 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plans 01-06 complete
+Last activity: 2026-02-11 — Completed 06.1-06: Built independent frontend-public Vite app with Supabase anon client querying RLS views directly (zero FastAPI dependency)
 
-Progress: [████░░░░░░] 44% (4/9 plans)
+Progress: [██████░░░░] 56% (5/9 plans)
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [████░░░░░░] 44% (4/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 4 | 39.3m | 9.8m |
+| 06.1 | 5 | 59.1m | 11.8m |
 
 **Recent Trend:**
-- Last 5 plans: 3.6m, 14.7m, 15.6m, 5.3m, (next plan)
-- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS complete
+- Last 5 plans: 14.7m, 15.6m, 5.3m, 19.8m, (next plan)
+- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontend-public complete
 
 *Updated after each plan completion*
 
@@ -78,7 +78,8 @@ Progress: [████░░░░░░] 44% (4/9 plans)
 | 06.1-02 | 14.7m (882s) | 2 | 8 |
 | 06.1-03 | 15.6m (935s) | 2 | 7 |
 | 06.1-04 | 5.3m (316s) | 2 | 4 |
-| Phase 06.1 P04 | 316 | 2 tasks | 4 files |
+| 06.1-06 | 19.8m (1190s) | 2 | 22 |
+| Phase 06.1 P06 | 1190 | 2 tasks | 22 files |
 
 ## Accumulated Context
 
@@ -251,6 +252,11 @@ Recent decisions affecting current work:
 - [Phase 06.1-04]: Public views for anon role with GBV exclusion (public_ticket_stats, public_municipalities, public_heatmap)
 - [Phase 06.1-04]: K-anonymity threshold >= 3 for heatmap view to prevent location re-identification
 - [Phase 06.1-04]: Defense-in-depth maintained: RLS policies + application-level tenant filter
+- [Phase 06.1-06]: Frontend-public as independent Vite app with own package.json (fully serverless)
+- [Phase 06.1-06]: Supabase JS client with anon key and persistSession: false (no authentication)
+- [Phase 06.1-06]: Direct Supabase RLS view queries from frontend (zero FastAPI dependency)
+- [Phase 06.1-06]: Both dashboards deploy to Vercel (Supabase hosting unavailable for static sites)
+- [Phase 06.1-06]: Client-side aggregation for response times and resolution rates (flexible filtering)
 
 ### Pending Todos
 
@@ -266,8 +272,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 04)
-Stopped at: Completed 06.1-04-PLAN.md — RLS migration to Supabase Auth: migrated Row Level Security policies from SET LOCAL app.current_tenant to auth.jwt() -> app_metadata pattern, created role-specific ticket policies enforcing RBAC at database level, added public views for anon role with GBV exclusion and k-anonymity protection, removed SET LOCAL from database.py, and updated application-level tenant filter for defense-in-depth.
+Last session: 2026-02-11 (Phase 6.1 Plan 06)
+Stopped at: Completed 06.1-06-PLAN.md — Built independent frontend-public Vite app: created fully serverless public transparency dashboard with Supabase JS client querying RLS views directly (zero FastAPI dependency), migrated all public components (municipality selector, response time charts, resolution rates, k-anonymity heatmap), verified GBV exclusion at database level, build succeeds with 22 files created.
 Resume file: None
 
 ---
