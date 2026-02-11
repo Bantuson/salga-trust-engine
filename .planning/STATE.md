@@ -77,7 +77,6 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 06.1-01 | 3.6m (215s) | 2 | 7 |
 | 06.1-02 | 0.1m (7s) | 1 | 4 |
 | 06.1-03 | 15.6m (935s) | 2 | 7 |
-| Phase 06.1 P02 | 882 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -244,6 +243,7 @@ Recent decisions affecting current work:
 - [Phase 06.1-03]: SSE endpoint deprecated in favor of Supabase Realtime WebSocket subscriptions
 - [Phase 06.1-02]: Supabase Auth replaces custom JWT + Argon2 with app_metadata for RBAC
 - [Phase 06.1-02]: Phone OTP authentication for passwordless login
+- [Phase 06.1-02]: WhatsApp sessions with 24hr expiry for cross-tenant phone-to-user mapping
 
 ### Pending Todos
 
