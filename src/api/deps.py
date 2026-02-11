@@ -8,7 +8,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.core.audit import set_audit_context
 from src.core.database import get_db
-from src.core.security import decode_access_token
+from src.core.security import verify_supabase_token
 from src.core.tenant import set_tenant_context
 from src.models.user import User, UserRole
 
@@ -23,10 +23,11 @@ async def get_current_user(
     credentials: HTTPAuthorizationCredentials = Depends(security),
     db: AsyncSession = Depends(get_db)
 ) -> User:
-    """Extract and validate current user from JWT token.
+    """Extract and validate current user from Supabase JWT token.
 
     Args:
-        credentials: HTTP Authorization credentials containing JWT token
+        request: FastAPI request object
+        credentials: HTTP Authorization credentials containing Supabase JWT token
         db: Database session
 
     Returns:
@@ -38,8 +39,8 @@ async def get_current_user(
     # Extract token from credentials
     token = credentials.credentials
 
-    # Decode JWT token
-    payload = decode_access_token(token)
+    # Verify Supabase JWT token
+    payload = verify_supabase_token(token)
     if payload is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
@@ -47,7 +48,7 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Extract user_id from "sub" claim
+    # Extract user_id from "sub" claim (Supabase Auth user ID)
     user_id: str | None = payload.get("sub")
     if user_id is None:
         raise HTTPException(
@@ -56,8 +57,12 @@ async def get_current_user(
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Extract tenant_id and set tenant context
-    tenant_id: str | None = payload.get("tenant_id")
+    # Extract role from app_metadata (injected by custom access token hook)
+    app_metadata = payload.get("app_metadata", {})
+    role = app_metadata.get("role", "citizen")  # Default to citizen if not set
+
+    # Extract tenant_id from app_metadata and set tenant context
+    tenant_id: str | None = app_metadata.get("tenant_id")
     if tenant_id:
         set_tenant_context(tenant_id)
 

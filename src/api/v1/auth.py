@@ -1,4 +1,5 @@
 """Authentication endpoints for user registration, login, and token refresh."""
+import logging
 from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Request, status
@@ -6,21 +7,23 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db
-from src.core.security import (
-    create_access_token,
-    create_refresh_token,
-    decode_refresh_token,
-    get_password_hash,
-    verify_password,
-)
+from src.core.supabase import get_supabase_admin
 from src.middleware.rate_limit import AUTH_RATE_LIMIT, REGISTER_RATE_LIMIT, limiter
 from src.models.consent import ConsentRecord
 from src.models.municipality import Municipality
 from src.models.user import User
-from src.schemas.auth import LoginRequest, RefreshRequest, RegisterRequest, TokenResponse
+from src.schemas.auth import (
+    LoginRequest,
+    PhoneOtpRequest,
+    RefreshRequest,
+    RegisterRequest,
+    TokenResponse,
+    VerifyOtpRequest,
+)
 from src.schemas.user import UserResponse
 
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
+logger = logging.getLogger(__name__)
 
 
 # Trilingual POPIA consent descriptions
@@ -89,13 +92,45 @@ async def register(
             detail="Email already registered for this municipality"
         )
 
-    # Hash password
-    hashed_password = get_password_hash(registration.password)
+    # Get Supabase admin client
+    supabase_admin = get_supabase_admin()
+    if not supabase_admin:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
+        )
 
-    # Create user record
+    # Create user in Supabase Auth
+    try:
+        auth_response = supabase_admin.auth.admin.create_user({
+            "email": registration.email,
+            "password": registration.password,
+            "phone": registration.phone if registration.phone else None,
+            "email_confirm": True,  # Auto-confirm for now (enable email verification later)
+            "app_metadata": {
+                "role": "citizen",
+                "tenant_id": str(municipality.id)
+            },
+            "user_metadata": {
+                "full_name": registration.full_name,
+                "preferred_language": registration.preferred_language
+            }
+        })
+
+        supabase_user_id = auth_response.user.id
+
+    except Exception as e:
+        logger.error(f"Supabase Auth user creation failed: {e}", exc_info=True)
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to create user account"
+        )
+
+    # Create local User record with Supabase Auth user ID
     user = User(
+        id=supabase_user_id,  # Use Supabase Auth user ID as primary key
         email=registration.email,
-        hashed_password=hashed_password,
+        hashed_password="supabase_managed",  # Password managed by Supabase
         full_name=registration.full_name,
         phone=registration.phone,
         preferred_language=registration.preferred_language,
@@ -142,66 +177,54 @@ async def login(
     credentials: LoginRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    """Authenticate user and return JWT tokens.
+    """Authenticate user via Supabase Auth and return JWT tokens.
 
     Uses generic error messages to prevent user enumeration attacks.
 
     Args:
+        request: FastAPI request object
         credentials: Login credentials (email and password)
         db: Database session
 
     Returns:
-        TokenResponse with access and refresh tokens
+        TokenResponse with Supabase access and refresh tokens
 
     Raises:
         401: Invalid credentials (generic message for security)
     """
-    # Look up user by email (across all tenants)
-    result = await db.execute(
-        select(User).where(User.email == credentials.email)
-    )
-    user = result.scalar_one_or_none()
+    # Get Supabase admin client
+    supabase_admin = get_supabase_admin()
+    if not supabase_admin:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
+        )
 
-    # Use generic error message for both wrong email and wrong password (prevent user enumeration)
-    if not user:
+    # Authenticate with Supabase Auth
+    try:
+        auth_response = supabase_admin.auth.sign_in_with_password({
+            "email": credentials.email,
+            "password": credentials.password
+        })
+
+        # Extract tokens from response
+        access_token = auth_response.session.access_token
+        refresh_token = auth_response.session.refresh_token
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer"
+        )
+
+    except Exception as e:
+        # Generic error message for security (don't reveal if email exists)
+        logger.warning(f"Login attempt failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
-
-    # Verify password
-    if not verify_password(credentials.password, user.hashed_password):
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Check user is active
-    if not user.is_active or user.is_deleted:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid credentials",
-            headers={"WWW-Authenticate": "Bearer"},
-        )
-
-    # Create token payload
-    token_data = {
-        "sub": str(user.id),
-        "tenant_id": str(user.tenant_id),
-        "role": user.role.value,
-    }
-
-    # Create access and refresh tokens
-    access_token = create_access_token(token_data)
-    refresh_token = create_refresh_token(token_data)
-
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=refresh_token,
-        token_type="bearer"
-    )
 
 
 @router.post("/refresh", response_model=TokenResponse)
@@ -209,10 +232,10 @@ async def refresh_token(
     refresh_request: RefreshRequest,
     db: AsyncSession = Depends(get_db)
 ):
-    """Refresh access token using refresh token (token rotation).
+    """Refresh access token using Supabase Auth refresh token.
 
     Args:
-        refresh_request: Request containing refresh token
+        refresh_request: Request containing Supabase refresh token
         db: Database session
 
     Returns:
@@ -221,51 +244,134 @@ async def refresh_token(
     Raises:
         401: Invalid or expired refresh token
     """
-    # Decode refresh token
-    payload = decode_refresh_token(refresh_request.refresh_token)
+    # Get Supabase admin client
+    supabase_admin = get_supabase_admin()
+    if not supabase_admin:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
+        )
 
-    if payload is None:
+    # Refresh session with Supabase Auth
+    try:
+        auth_response = supabase_admin.auth.refresh_session(refresh_request.refresh_token)
+
+        # Extract new tokens from response
+        access_token = auth_response.session.access_token
+        new_refresh_token = auth_response.session.refresh_token
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=new_refresh_token,
+            token_type="bearer"
+        )
+
+    except Exception as e:
+        logger.warning(f"Token refresh failed: {e}")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
             headers={"WWW-Authenticate": "Bearer"},
         )
 
-    # Extract user_id from payload
-    user_id = payload.get("sub")
-    if not user_id:
+
+@router.post("/otp/send", status_code=status.HTTP_200_OK)
+@limiter.limit(AUTH_RATE_LIMIT)
+async def send_phone_otp(
+    request: Request,
+    otp_request: PhoneOtpRequest
+):
+    """Send OTP code to phone number via Supabase Auth.
+
+    This enables passwordless authentication via SMS OTP.
+
+    Args:
+        request: FastAPI request object
+        otp_request: Request containing phone number
+
+    Returns:
+        Success message (OTP sent)
+
+    Raises:
+        503: Authentication service unavailable
+        500: Failed to send OTP
+    """
+    # Get Supabase admin client
+    supabase_admin = get_supabase_admin()
+    if not supabase_admin:
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
         )
 
-    # Look up user
-    result = await db.execute(
-        select(User).where(User.id == user_id)
-    )
-    user = result.scalar_one_or_none()
+    # Send OTP via Supabase Auth
+    try:
+        supabase_admin.auth.sign_in_with_otp({
+            "phone": otp_request.phone
+        })
 
-    if not user or not user.is_active or user.is_deleted:
+        return {
+            "message": "OTP sent successfully",
+            "phone": otp_request.phone
+        }
+
+    except Exception as e:
+        logger.error(f"Failed to send OTP: {e}", exc_info=True)
         raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid refresh token",
-            headers={"WWW-Authenticate": "Bearer"},
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail="Failed to send OTP code"
         )
 
-    # Create new token payload
-    token_data = {
-        "sub": str(user.id),
-        "tenant_id": str(user.tenant_id),
-        "role": user.role.value,
-    }
 
-    # Issue new access and refresh tokens (token rotation)
-    access_token = create_access_token(token_data)
-    new_refresh_token = create_refresh_token(token_data)
+@router.post("/otp/verify", response_model=TokenResponse)
+@limiter.limit(AUTH_RATE_LIMIT)
+async def verify_phone_otp(
+    request: Request,
+    verify_request: VerifyOtpRequest
+):
+    """Verify OTP code and authenticate user via Supabase Auth.
 
-    return TokenResponse(
-        access_token=access_token,
-        refresh_token=new_refresh_token,
-        token_type="bearer"
-    )
+    Args:
+        request: FastAPI request object
+        verify_request: Request containing phone number and OTP token
+
+    Returns:
+        TokenResponse with access and refresh tokens
+
+    Raises:
+        401: Invalid OTP code
+        503: Authentication service unavailable
+    """
+    # Get Supabase admin client
+    supabase_admin = get_supabase_admin()
+    if not supabase_admin:
+        raise HTTPException(
+            status_code=status.HTTP_503_SERVICE_UNAVAILABLE,
+            detail="Authentication service temporarily unavailable"
+        )
+
+    # Verify OTP with Supabase Auth
+    try:
+        auth_response = supabase_admin.auth.verify_otp({
+            "phone": verify_request.phone,
+            "token": verify_request.token,
+            "type": "sms"
+        })
+
+        # Extract tokens from response
+        access_token = auth_response.session.access_token
+        refresh_token = auth_response.session.refresh_token
+
+        return TokenResponse(
+            access_token=access_token,
+            refresh_token=refresh_token,
+            token_type="bearer"
+        )
+
+    except Exception as e:
+        logger.warning(f"OTP verification failed: {e}")
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+            detail="Invalid or expired OTP code",
+            headers={"WWW-Authenticate": "Bearer"},
+        )

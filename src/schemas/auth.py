@@ -47,3 +47,16 @@ class TokenPayload(BaseModel):
     tenant_id: str
     role: str
     exp: int
+
+
+class PhoneOtpRequest(BaseModel):
+    """Schema for phone OTP send request."""
+
+    phone: str = Field(..., description="Phone number in E.164 format (e.g., +27123456789)")
+
+
+class VerifyOtpRequest(BaseModel):
+    """Schema for OTP verification request."""
+
+    phone: str = Field(..., description="Phone number in E.164 format")
+    token: str = Field(..., description="6-digit OTP code", min_length=6, max_length=6)
