@@ -43,3 +43,17 @@
   from { transform: rotate(0deg); }
   to { transform: rotate(360deg); }
 }
+
+@keyframes gradientFadeInOut {
+  0%, 33%, 100% { opacity: 0; }
+  16.5% { opacity: 1; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

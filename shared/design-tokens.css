@@ -4,6 +4,8 @@
  * Color palette: Navy #0A0E1A, Coral #FF6B4A, Teal #00D9A6
  */
 
+@import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
+
 :root {
   /* Core Palette */
   --color-navy: #0A0E1A;
@@ -13,6 +15,7 @@
   --color-coral-hover: #FF8566;
   --color-teal: #00D9A6;
   --color-teal-hover: #00F0B8;
+  --color-gold: #FBBF24;
   --color-white: #FFFFFF;
 
   /* Text */
@@ -38,7 +41,20 @@
 
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-  --font-display: 'Clash Display', 'Inter', -apple-system, sans-serif;
+  --font-display: 'Space Grotesk', sans-serif;
+
+  /* Typography Scale */
+  --text-h1: clamp(2.5rem, 5vw, 4rem);
+  --text-h2: clamp(2rem, 4vw, 3rem);
+  --text-h3: clamp(1.5rem, 3vw, 2rem);
+  --text-h4: clamp(1.25rem, 2.5vw, 1.5rem);
+  --text-base: 1rem;
+  --text-lg: 1.125rem;
+  --text-sm: 0.875rem;
+  --text-xs: 0.75rem;
+  --leading-tight: 1.2;
+  --leading-normal: 1.5;
+  --leading-relaxed: 1.75;
 
   /* Spacing */
   --space-xs: 4px;
@@ -72,4 +88,9 @@
   --transition-fast: 150ms ease;
   --transition-base: 250ms ease;
   --transition-slow: 500ms ease;
+
+  /* Animated Gradients */
+  --gradient-1: linear-gradient(135deg, #0A0E1A 0%, #1A1F3A 50%, #0F1523 100%);
+  --gradient-2: linear-gradient(225deg, #0A0E1A 0%, #1C1A2E 50%, #131829 100%);
+  --gradient-3: linear-gradient(315deg, #0A0E1A 0%, #0F2322 50%, #1A1F3A 100%);
 }
