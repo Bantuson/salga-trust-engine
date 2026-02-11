@@ -20,8 +20,8 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 
 **Velocity:**
 - Total plans completed: 34
-- Average duration: 18.1 minutes
-- Total execution time: 10.5 hours
+- Average duration: 18.3 minutes
+- Total execution time: 10.4 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 3 | 13.4m | 4.5m |
+| 06.1 | 3 | 19.3m | 6.4m |
 
 **Recent Trend:**
-- Last 5 plans: 14.9m, 21.5m, 3.6m, 0.1m, 9.8m
-- Trend: Phase 06.1 rapid execution - storage and events migrated to Supabase
+- Last 5 plans: 14.9m, 21.5m, 3.6m, 0.1m, 15.6m
+- Trend: Phase 06.1 infrastructure migration - storage and events complete
 
 *Updated after each plan completion*
 
@@ -76,7 +76,8 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 06-03 | 21.5m (1288s) | 2 | 3 |
 | 06.1-01 | 3.6m (215s) | 2 | 7 |
 | 06.1-02 | 0.1m (7s) | 1 | 4 |
-| 06.1-03 | 9.8m (588s) | 2 | 7 |
+| 06.1-03 | 15.6m (935s) | 2 | 7 |
+| Phase 06.1 P02 | 882 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -241,6 +242,8 @@ Recent decisions affecting current work:
 - [Phase 06.1-03]: PostgreSQL pg_notify triggers replace Redis Pub/Sub for Supabase Realtime integration
 - [Phase 06.1-03]: Database triggers broadcast ticket INSERT/UPDATE events automatically
 - [Phase 06.1-03]: SSE endpoint deprecated in favor of Supabase Realtime WebSocket subscriptions
+- [Phase 06.1-02]: Supabase Auth replaces custom JWT + Argon2 with app_metadata for RBAC
+- [Phase 06.1-02]: Phone OTP authentication for passwordless login
 
 ### Pending Todos
 
