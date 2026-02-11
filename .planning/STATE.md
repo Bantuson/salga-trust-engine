@@ -90,6 +90,7 @@ Progress: [███████░░░] 75% (6/8 plans)
 | 06.2-03 | 43.7m (2622s) | 2 | 13 |
 | 06.2-05 | 14.9m (891s) | 2 | 13 |
 | Phase 06.2 P04 | 1109 | 2 tasks | 13 files |
+| Phase 06.2 P06 | 29 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -297,6 +298,9 @@ Recent decisions affecting current work:
 - [Phase 06.2-05]: Wizard resumes from first incomplete step using backend state (cross-device resume capability)
 - [Phase 06.2-04]: MeshPhysicalMaterial with GPU-tier adaptive quality (tier 2+ gets metallic/clearcoat/environment map, tier 0-1 falls back to MeshStandardMaterial)
 - [Phase 06.2-04]: Prefers-reduced-motion as first-class accessibility requirement (WCAG 2.3.3) - honor browser/OS setting in all animations
+- [Phase 06.2-06]: Demo mode fallback enables UI testing without authentication (shows sample data with visible banner)
+- [Phase 06.2-06]: GBV case cards show ONLY status, SAPS officer, station phone, emergency numbers (locked privacy decision)
+- [Phase 06.2-06]: Heatmap time/category filters are UI demonstrations (server view doesn't expose timestamps/categories yet)
 
 ### Pending Todos
 
