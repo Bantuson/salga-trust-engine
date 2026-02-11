@@ -178,7 +178,33 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-11 (Phase 6.1 complete — Supabase migration + premium UI)*
+*Last updated: 2026-02-11 (Phase 6.2 planned — UX redesign, 7 plans in 4 waves)*
+
+### Phase 06.2: UX redesign user journeys design system and dashboard consistency (INSERTED)
+
+**Goal:** Redesign both dashboards with properly defined user journeys, a consistent design system (Space Grotesk + Inter, glassmorphism, animated gradient, Ndebele/Zulu accents), complete registration/onboarding flows, page structure separation (transparency dashboard as dedicated page), and improved 3D elements
+**Depends on:** Phase 6.1
+**Success Criteria** (what must be TRUE):
+  1. Both dashboards use a shared design system (same fonts, colors, components)
+  2. Public site has 4 pages: Landing, Transparency Dashboard (separate page), Report Issue redirect, About
+  3. Municipal dashboard has icon-only sidebar with role-adaptive navigation
+  4. 3D globe uses premium materials (metallic/glass), glowing municipality data points, and atmospheric effects
+  5. Municipality registration uses hybrid model (request access form, not open signup)
+  6. Onboarding wizard guides municipalities through 5-step setup
+  7. Citizen portal shows personal analytics with GBV privacy (limited info + lock icon + emergency numbers)
+  8. Heatmap has interactive controls (time filter, category toggle, click-to-drill)
+  9. All animations respect prefers-reduced-motion
+  10. Both frontend apps build with zero errors
+**Plans:** 7 plans
+
+Plans:
+- [ ] 06.2-01-PLAN.md -- Shared design system foundation (typography, glassmorphism, gradient bg, Ndebele patterns, skeleton loaders, a11y hooks)
+- [ ] 06.2-02-PLAN.md -- Public site page structure (React Router, 4 pages, transparent header, footer)
+- [ ] 06.2-03-PLAN.md -- Municipal dashboard restructure (React Router, icon sidebar, role nav, RegisterPage)
+- [ ] 06.2-04-PLAN.md -- 3D globe premium upgrade + scroll animation polish with reduced motion support
+- [ ] 06.2-05-PLAN.md -- Municipality registration (request access) + onboarding wizard (5 steps)
+- [ ] 06.2-06-PLAN.md -- Citizen portal (My Reports, GBV privacy UI) + enhanced heatmap (filters, drill-down)
+- [ ] 06.2-07-PLAN.md -- Skeleton loaders, micro-interaction polish, build verification + visual checkpoint
 
 ### Phase 06.1: Postgres refactor to Supabase and dashboard separation (INSERTED)
 
