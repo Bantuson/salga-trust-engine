@@ -174,10 +174,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 4. Ticket Management & Routing | 5/5 | ✓ Complete | 2026-02-10 |
 | 5. Municipal Operations Dashboard | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Public Transparency & Rollout | 3/3 | ✓ Complete | 2026-02-10 |
+| 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-10 (Phase 6 complete — ALL PHASES DONE)*
+*Last updated: 2026-02-11 (Phase 6.1 complete — Supabase migration + premium UI)*
 
 ### Phase 06.1: Postgres refactor to Supabase and dashboard separation (INSERTED)
 
@@ -201,12 +202,12 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 **Plans:** 9 plans
 
 Plans:
-- [ ] 06.1-01-PLAN.md -- Supabase project setup, SDK install, config, database connection, RBAC custom claims hook
-- [ ] 06.1-02-PLAN.md -- Auth migration to Supabase Auth (register, login, phone OTP, JWT verification) + WhatsApp sessions
-- [ ] 06.1-03-PLAN.md -- Storage migration (S3 to Supabase Storage) + Realtime migration (Redis to Supabase Realtime)
-- [ ] 06.1-04-PLAN.md -- RLS policy migration (SET LOCAL to auth.jwt()), public views for anon role, tenant filter update
-- [ ] 06.1-05-PLAN.md -- Frontend split: municipal dashboard (frontend-dashboard/) with Supabase Auth + Realtime
-- [ ] 06.1-06-PLAN.md -- Frontend split: public dashboard (frontend-public/) with Supabase anon + RLS views
-- [ ] 06.1-07-PLAN.md -- Test suite update, regression verification, GBV firewall check, final verification
-- [ ] 06.1-08-PLAN.md -- Shared design system + municipal dashboard premium UI (dark mode, GSAP transitions, branded login with 3D globe)
-- [ ] 06.1-09-PLAN.md -- Public dashboard premium UI + scroll storytelling landing page with interactive 3D SA globe
+- [x] 06.1-01-PLAN.md -- Supabase project setup, SDK install, config, database connection, RBAC custom claims hook
+- [x] 06.1-02-PLAN.md -- Auth migration to Supabase Auth (register, login, phone OTP, JWT verification) + WhatsApp sessions
+- [x] 06.1-03-PLAN.md -- Storage migration (S3 to Supabase Storage) + Realtime migration (Redis to Supabase Realtime)
+- [x] 06.1-04-PLAN.md -- RLS policy migration (SET LOCAL to auth.jwt()), public views for anon role, tenant filter update
+- [x] 06.1-05-PLAN.md -- Frontend split: municipal dashboard (frontend-dashboard/) with Supabase Auth + Realtime
+- [x] 06.1-06-PLAN.md -- Frontend split: public dashboard (frontend-public/) with Supabase anon + RLS views
+- [x] 06.1-07-PLAN.md -- Test suite update, regression verification, GBV firewall check, final verification
+- [x] 06.1-08-PLAN.md -- Shared design system + municipal dashboard premium UI (dark mode, GSAP transitions, branded login with 3D globe)
+- [x] 06.1-09-PLAN.md -- Public dashboard premium UI + scroll storytelling landing page with interactive 3D SA globe
