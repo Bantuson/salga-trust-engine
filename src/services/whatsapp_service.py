@@ -5,8 +5,12 @@ Handles media downloads, phone-to-user mapping, and message processing.
 """
 import logging
 import uuid
+from datetime import datetime, timezone
 from typing import Any
+from uuid import UUID
 
+from sqlalchemy import select
+from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
@@ -18,6 +22,7 @@ from src.core.conversation import ConversationManager
 from src.guardrails.engine import guardrails_engine
 from src.models.media import MediaAttachment
 from src.models.user import User
+from src.models.whatsapp_session import WhatsAppSession
 from src.services.storage_service import StorageService, StorageServiceError
 
 logger = logging.getLogger(__name__)
@@ -52,6 +57,88 @@ class WhatsAppService:
         else:
             logger.warning("Twilio client not configured (missing credentials)")
             self._twilio_client = None
+
+    async def lookup_or_create_session(
+        self,
+        phone: str,
+        db: AsyncSession
+    ) -> WhatsAppSession | None:
+        """Look up existing valid WhatsApp session for phone number.
+
+        Args:
+            phone: Phone number in E.164 format (e.g., +27123456789)
+            db: Database session
+
+        Returns:
+            WhatsAppSession if valid session exists, None if expired or not found
+        """
+        # Query for session by phone number
+        result = await db.execute(
+            select(WhatsAppSession).where(
+                WhatsAppSession.phone_number == phone,
+                WhatsAppSession.expires_at > datetime.now(timezone.utc)
+            )
+        )
+        session = result.scalar_one_or_none()
+
+        if session:
+            logger.debug(f"Found valid session for phone {phone}")
+            return session
+
+        logger.debug(f"No valid session found for phone {phone}")
+        return None
+
+    async def create_session(
+        self,
+        phone: str,
+        user_id: UUID,
+        tenant_id: str,
+        db: AsyncSession
+    ) -> WhatsAppSession:
+        """Create or update WhatsApp session for phone number.
+
+        Uses upsert pattern to handle duplicate phone numbers.
+
+        Args:
+            phone: Phone number in E.164 format
+            user_id: Supabase Auth user UUID
+            tenant_id: Municipality UUID as string
+            db: Database session
+
+        Returns:
+            Created or updated WhatsAppSession
+        """
+        # Create new session with 24-hour expiry
+        session = WhatsAppSession(
+            phone_number=phone,
+            user_id=user_id,
+            tenant_id=tenant_id
+        )
+
+        # Upsert: ON CONFLICT (phone_number) DO UPDATE
+        stmt = insert(WhatsAppSession).values(
+            phone_number=phone,
+            user_id=user_id,
+            tenant_id=tenant_id,
+            expires_at=session.expires_at,
+            created_at=datetime.now(timezone.utc),
+            updated_at=datetime.now(timezone.utc)
+        ).on_conflict_do_update(
+            index_elements=['phone_number'],
+            set_={
+                'user_id': user_id,
+                'tenant_id': tenant_id,
+                'expires_at': session.expires_at,
+                'updated_at': datetime.now(timezone.utc)
+            }
+        ).returning(WhatsAppSession)
+
+        result = await db.execute(stmt)
+        await db.commit()
+
+        created_session = result.scalar_one()
+        logger.info(f"Created/updated session for phone {phone}")
+        return created_session
 
     async def process_incoming_message(
         self,

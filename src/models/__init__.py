@@ -8,6 +8,7 @@ from src.models.ticket import Ticket, TicketCategory, TicketStatus, TicketSeveri
 from src.models.team import Team
 from src.models.assignment import TicketAssignment
 from src.models.sla_config import SLAConfig
+from src.models.whatsapp_session import WhatsAppSession
 
 __all__ = [
     "Base",
@@ -26,4 +27,5 @@ __all__ = [
     "Team",
     "TicketAssignment",
     "SLAConfig",
+    "WhatsAppSession",
 ]
