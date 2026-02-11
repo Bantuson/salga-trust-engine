@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 6 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plans 01-06 complete
-Last activity: 2026-02-11 — Completed 06.1-05: Created independent frontend-dashboard Vite app with Supabase Auth (email+OTP), Supabase Realtime for live updates, Supabase Storage for file uploads, migrated all dashboard components
+Plan: 7 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plans 01-07 complete
+Last activity: 2026-02-11 — Completed 06.1-07: Updated test suite for Supabase migration - created 6 new test files (auth, storage, RLS, WhatsApp sessions, public dashboard, realtime), fixed broken tests, updated fixtures for Supabase JWT format
 
-Progress: [██████░░░░] 67% (6/9 plans)
+Progress: [███████░░░] 78% (7/9 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 34
-- Average duration: 18.3 minutes
-- Total execution time: 10.4 hours
+- Total plans completed: 35
+- Average duration: 18.2 minutes
+- Total execution time: 10.6 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [██████░░░░] 67% (6/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 6 | 82.2m | 13.7m |
+| 06.1 | 7 | 97.2m | 13.9m |
 
 **Recent Trend:**
-- Last 5 plans: 15.6m, 5.3m, 19.8m, 23.1m, (next plan)
-- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontend-public complete
+- Last 5 plans: 5.3m, 19.8m, 23.1m, 15.0m, (next plan)
+- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS, frontends, testing complete
 
 *Updated after each plan completion*
 
@@ -80,6 +80,7 @@ Progress: [██████░░░░] 67% (6/9 plans)
 | 06.1-04 | 5.3m (316s) | 2 | 4 |
 | 06.1-05 | 23.1m (1386s) | 2 | 42 |
 | 06.1-06 | 19.8m (1190s) | 2 | 22 |
+| 06.1-07 | 15.0m (899s) | 1 | 11 |
 
 ## Accumulated Context
 
@@ -272,8 +273,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 06)
-Stopped at: Completed 06.1-06-PLAN.md — Built independent frontend-public Vite app: created fully serverless public transparency dashboard with Supabase JS client querying RLS views directly (zero FastAPI dependency), migrated all public components (municipality selector, response time charts, resolution rates, k-anonymity heatmap), verified GBV exclusion at database level, build succeeds with 22 files created.
+Last session: 2026-02-11 (Phase 6.1 Plan 07)
+Stopped at: Completed 06.1-07-PLAN.md — Updated test suite for Supabase migration: created 6 new test files (Supabase auth, storage, RLS, WhatsApp sessions, public dashboard, realtime), rewritten test_security_unit.py for JWT verification, updated test fixtures (create_supabase_access_token helper, mock_supabase_admin, "supabase_managed" passwords), fixed existing tests (test_popia, test_multitenancy, test_tickets_api), verified migration integrity (no boto3/Redis, GBV firewall at all layers).
 Resume file: None
 
 ---
