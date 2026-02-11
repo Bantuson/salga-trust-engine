@@ -1,0 +1,131 @@
+{
+  "type": "FeatureCollection",
+  "features": [
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Gauteng",
+        "code": "GP",
+        "performance": 0.82
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [27.8, -25.4], [28.5, -25.4], [28.5, -26.5], [27.8, -26.5], [27.8, -25.4]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Western Cape",
+        "code": "WC",
+        "performance": 0.75
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [17.8, -32.0], [19.5, -32.0], [20.0, -33.5], [22.0, -34.8], [18.3, -34.8], [17.8, -32.0]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "KwaZulu-Natal",
+        "code": "KZN",
+        "performance": 0.65
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [28.8, -27.2], [30.9, -27.2], [32.0, -28.5], [32.0, -31.0], [29.5, -31.0], [28.8, -27.2]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Eastern Cape",
+        "code": "EC",
+        "performance": 0.58
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [22.5, -30.5], [27.5, -30.5], [28.0, -32.5], [27.5, -34.0], [24.5, -34.0], [22.5, -30.5]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Limpopo",
+        "code": "LP",
+        "performance": 0.55
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [28.0, -22.0], [31.5, -22.0], [31.5, -25.5], [28.0, -25.5], [28.0, -22.0]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Mpumalanga",
+        "code": "MP",
+        "performance": 0.60
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [28.8, -24.8], [31.5, -24.8], [31.5, -27.5], [28.8, -27.5], [28.8, -24.8]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "North West",
+        "code": "NW",
+        "performance": 0.52
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [24.0, -24.5], [28.0, -24.5], [28.0, -27.5], [24.0, -27.5], [24.0, -24.5]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Free State",
+        "code": "FS",
+        "performance": 0.68
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [24.5, -27.0], [29.5, -27.0], [29.5, -30.5], [24.5, -30.5], [24.5, -27.0]
+        ]]
+      }
+    },
+    {
+      "type": "Feature",
+      "properties": {
+        "name": "Northern Cape",
+        "code": "NC",
+        "performance": 0.62
+      },
+      "geometry": {
+        "type": "Polygon",
+        "coordinates": [[
+          [16.5, -28.0], [24.5, -28.0], [24.5, -32.5], [19.0, -32.5], [16.5, -28.0]
+        ]]
+      }
+    }
+  ]
+}
