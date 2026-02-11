@@ -14,4 +14,14 @@ export default defineConfig({
     dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
     preserveSymlinks: false,
   },
+  optimizeDeps: {
+    // Include shared folder in dependency optimization
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
+  },
+  server: {
+    fs: {
+      // Allow serving files from shared folder
+      allow: ['..'],
+    },
+  },
 })
