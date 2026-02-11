@@ -2,20 +2,30 @@ import { useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function ProblemSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useGSAP(() => {
     const lines = sectionRef.current?.querySelectorAll('.reveal-line');
-    lines?.forEach((line) => {
+
+    if (reducedMotion) {
+      // Set elements to final state immediately
+      gsap.set(lines, { opacity: 1, y: 0 });
+      return;
+    }
+
+    lines?.forEach((line, index) => {
       gsap.from(line, {
         y: 60,
         opacity: 0,
-        duration: 0.8,
-        ease: 'power2.out',
+        duration: 0.9,
+        delay: index * 0.15, // Stagger delay between lines
+        ease: 'power3.out',
         scrollTrigger: {
           trigger: line,
           start: 'top 85%',
@@ -23,7 +33,7 @@ export function ProblemSection() {
         },
       });
     });
-  }, { scope: sectionRef });
+  }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
     <section ref={sectionRef} className="problem-section">

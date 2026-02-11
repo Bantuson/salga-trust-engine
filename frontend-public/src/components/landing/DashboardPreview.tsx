@@ -3,17 +3,27 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 
 gsap.registerPlugin(ScrollTrigger);
 
 export function DashboardPreview() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useGSAP(() => {
     // Ensure DOM element exists before creating ScrollTrigger
     if (!sectionRef.current) return;
 
-    gsap.fromTo('.preview-mockup', {
+    const mockup = sectionRef.current.querySelector('.preview-mockup');
+
+    if (reducedMotion) {
+      // Set elements to final state immediately
+      gsap.set(mockup, { opacity: 1, y: 0 });
+      return;
+    }
+
+    gsap.fromTo(mockup, {
       y: 50,
       opacity: 0,
     }, {
@@ -26,7 +36,7 @@ export function DashboardPreview() {
         scrub: true,
       },
     });
-  }, { scope: sectionRef });
+  }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
     <section ref={sectionRef} className="dashboard-preview-section">

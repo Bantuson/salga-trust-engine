@@ -30,7 +30,7 @@ export const CitizenPortalPage: React.FC = () => {
     }}>
       {/* Background */}
       <AnimatedGradientBg />
-      <NdebelePattern opacity={0.05} />
+      <NdebelePattern variant="background" opacity={0.05} />
 
       {/* Content */}
       <div style={{

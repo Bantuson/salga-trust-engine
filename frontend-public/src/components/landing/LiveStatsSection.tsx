@@ -1,5 +1,7 @@
 import { useRef, useEffect } from 'react';
 import { animate } from 'animejs';
+import { useReducedMotion } from '@shared/hooks/useReducedMotion';
+import { NdebelePattern } from '@shared/components/NdebelePattern';
 
 export function LiveStatsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -7,11 +9,20 @@ export function LiveStatsSection() {
   const ticketsRef = useRef<HTMLDivElement>(null);
   const municipalitiesRef = useRef<HTMLDivElement>(null);
   const responseRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useEffect(() => {
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !hasAnimated.current) {
         hasAnimated.current = true;
+
+        if (reducedMotion) {
+          // Set final values immediately for reduced motion
+          if (ticketsRef.current) ticketsRef.current.innerHTML = '12847';
+          if (municipalitiesRef.current) municipalitiesRef.current.innerHTML = '5';
+          if (responseRef.current) responseRef.current.innerHTML = '73';
+          return;
+        }
 
         if (ticketsRef.current) {
           animate(ticketsRef.current, {
@@ -44,25 +55,31 @@ export function LiveStatsSection() {
 
     if (sectionRef.current) observer.observe(sectionRef.current);
     return () => observer.disconnect();
-  }, []);
+  }, [reducedMotion]);
 
   return (
     <section ref={sectionRef} className="live-stats-section">
+      <div style={{ marginBottom: '2rem' }}>
+        <NdebelePattern variant="border" opacity={0.15} />
+      </div>
       <h2 className="stats-title">Real Impact, Real Results</h2>
       <div className="stats-grid">
         <div className="stat-card">
-          <div ref={ticketsRef} className="stat-number counter-tickets">0</div>
+          <div ref={ticketsRef} className="stat-number counter-tickets">{reducedMotion ? '12847' : '0'}</div>
           <div className="stat-label">Tickets Resolved</div>
         </div>
         <div className="stat-card">
-          <div ref={municipalitiesRef} className="stat-number counter-municipalities">0</div>
+          <div ref={municipalitiesRef} className="stat-number counter-municipalities">{reducedMotion ? '5' : '0'}</div>
           <div className="stat-label">Pilot Municipalities</div>
         </div>
         <div className="stat-card">
-          <div ref={responseRef} className="stat-number counter-response">0</div>
+          <div ref={responseRef} className="stat-number counter-response">{reducedMotion ? '73' : '0'}</div>
           <div className="stat-suffix">%</div>
           <div className="stat-label">Faster Response</div>
         </div>
+      </div>
+      <div style={{ marginTop: '2rem' }}>
+        <NdebelePattern variant="border" opacity={0.15} />
       </div>
     </section>
   );

@@ -2,6 +2,7 @@ import { useRef } from 'react';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
+import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -15,9 +16,18 @@ const pilotMunicipalities = [
 
 export function MunicipalityShowcase() {
   const sectionRef = useRef<HTMLDivElement>(null);
+  const reducedMotion = useReducedMotion();
 
   useGSAP(() => {
-    gsap.from('.showcase-card', {
+    const cards = sectionRef.current?.querySelectorAll('.showcase-card');
+
+    if (reducedMotion) {
+      // Set elements to final state immediately
+      gsap.set(cards, { opacity: 1, y: 0 });
+      return;
+    }
+
+    gsap.from(cards, {
       y: 60,
       opacity: 0,
       duration: 0.6,
@@ -28,7 +38,7 @@ export function MunicipalityShowcase() {
         start: 'top 75%',
       },
     });
-  }, { scope: sectionRef });
+  }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
     <section ref={sectionRef} className="municipality-showcase-section">
