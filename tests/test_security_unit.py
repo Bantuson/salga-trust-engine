@@ -1,140 +1,130 @@
-"""Pure unit tests for security module (JWT, password hashing, token validation).
+"""Pure unit tests for security module (Supabase JWT verification).
 
 These tests require NO database connection.
+
+NOTE: Password hashing is now handled by Supabase Auth (not local code).
+Custom JWT creation replaced by Supabase Auth JWTs with app_metadata.
+See test_supabase_auth.py for comprehensive Supabase Auth integration tests.
 """
 import os
-from datetime import timedelta
+from datetime import timedelta, datetime, timezone
+from uuid import uuid4
 
 import jwt
 
 # Set environment variables before importing settings
-os.environ.setdefault("SECRET_KEY", "test-secret-key-at-least-32-characters-long-for-jwt-security")
+os.environ.setdefault("SUPABASE_JWT_SECRET", "test-supabase-jwt-secret-for-unit-tests")
 os.environ.setdefault("DATABASE_URL", "postgresql+psycopg://test:test@localhost:5432/test")
 
 from src.core.config import settings
-from src.core.security import (
-    create_access_token,
-    create_refresh_token,
-    decode_access_token,
-    decode_refresh_token,
-    get_password_hash,
-    verify_password,
-)
+from src.core.security import verify_supabase_token
 
 
-class TestPasswordHashing:
-    """Test password hashing and verification."""
+class TestSupabaseJWTVerification:
+    """Test Supabase JWT token verification (local function)."""
 
-    def test_password_hash_produces_argon2_string(self):
-        """get_password_hash should produce argon2 hash string."""
-        result = get_password_hash("test")
-        assert result.startswith("$argon2")
-
-    def test_password_hash_different_each_time(self):
-        """get_password_hash should produce different hashes due to salt."""
-        hash1 = get_password_hash("test")
-        hash2 = get_password_hash("test")
-        assert hash1 != hash2
-
-    def test_verify_password_correct(self):
-        """verify_password should return True for correct password."""
-        password = "securepassword123"
-        hashed = get_password_hash(password)
-        assert verify_password(password, hashed) is True
-
-    def test_verify_password_incorrect(self):
-        """verify_password should return False for incorrect password."""
-        password = "securepassword123"
-        hashed = get_password_hash(password)
-        assert verify_password("wrongpassword", hashed) is False
-
-
-class TestAccessToken:
-    """Test JWT access token creation and validation."""
-
-    def test_create_access_token_contains_claims(self):
-        """create_access_token should contain all required claims."""
-        data = {
-            "sub": "user-123",
-            "tenant_id": "tenant-456",
-            "role": "admin"
+    def test_verify_supabase_token_valid(self):
+        """verify_supabase_token should decode valid token."""
+        payload = {
+            "sub": str(uuid4()),
+            "aud": "authenticated",
+            "role": "authenticated",
+            "email": "test@example.com",
+            "app_metadata": {
+                "role": "citizen",
+                "tenant_id": str(uuid4()),
+            },
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
         }
-        token = create_access_token(data)
 
-        # Decode manually with PyJWT to inspect claims
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+        token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
-        assert payload["sub"] == "user-123"
-        assert payload["tenant_id"] == "tenant-456"
-        assert payload["role"] == "admin"
-        assert payload["type"] == "access"
-        assert "exp" in payload
-        assert "iat" in payload
+        result = verify_supabase_token(token)
 
-    def test_create_access_token_custom_expiry(self):
-        """create_access_token should respect custom expires_delta."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "admin"}
-        custom_delta = timedelta(minutes=10)
-        token = create_access_token(data, expires_delta=custom_delta)
+        assert result is not None
+        assert result["sub"] == payload["sub"]
+        assert result["email"] == payload["email"]
+        assert result["app_metadata"]["role"] == "citizen"
+        assert result["app_metadata"]["tenant_id"] == payload["app_metadata"]["tenant_id"]
 
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    def test_verify_supabase_token_expired(self):
+        """verify_supabase_token should return None for expired token."""
+        payload = {
+            "sub": str(uuid4()),
+            "aud": "authenticated",
+            "role": "authenticated",
+            "exp": datetime.now(timezone.utc) - timedelta(hours=1),  # Expired
+        }
 
-        # Check that exp is roughly 10 minutes from iat (allow 2 second tolerance)
-        exp_delta = payload["exp"] - payload["iat"]
-        expected_seconds = custom_delta.total_seconds()
-        assert abs(exp_delta - expected_seconds) < 2
+        token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
-    def test_decode_access_token_valid(self):
-        """decode_access_token should decode valid access token."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "citizen"}
-        token = create_access_token(data)
+        result = verify_supabase_token(token)
 
-        payload = decode_access_token(token)
+        assert result is None
 
-        assert payload is not None
-        assert payload["sub"] == "user-123"
-        assert payload["tenant_id"] == "tenant-456"
-        assert payload["role"] == "citizen"
-        assert payload["type"] == "access"
+    def test_verify_supabase_token_invalid_signature(self):
+        """verify_supabase_token should return None for wrong secret."""
+        payload = {
+            "sub": str(uuid4()),
+            "aud": "authenticated",
+            "role": "authenticated",
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        }
 
-    def test_decode_access_token_rejects_refresh(self):
-        """decode_access_token should reject refresh tokens."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "admin"}
-        refresh_token = create_refresh_token(data)
+        # Sign with wrong secret
+        token = jwt.encode(payload, "wrong-secret", algorithm="HS256")
 
-        payload = decode_access_token(refresh_token)
+        result = verify_supabase_token(token)
 
-        assert payload is None
+        assert result is None
 
-    def test_decode_access_token_expired(self):
-        """decode_access_token should return None for expired token."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "admin"}
-        # Create token that expired 1 second ago
-        token = create_access_token(data, expires_delta=timedelta(seconds=-1))
+    def test_verify_supabase_token_wrong_audience(self):
+        """verify_supabase_token should return None for wrong audience."""
+        payload = {
+            "sub": str(uuid4()),
+            "aud": "public",  # Wrong audience (should be "authenticated")
+            "role": "authenticated",
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        }
 
-        payload = decode_access_token(token)
+        token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
-        assert payload is None
+        result = verify_supabase_token(token)
 
+        assert result is None
 
-class TestRefreshToken:
-    """Test JWT refresh token creation and validation."""
+    def test_verify_supabase_token_malformed(self):
+        """verify_supabase_token should return None for malformed token."""
+        result = verify_supabase_token("not-a-valid-jwt-token")
 
-    def test_create_refresh_token_type_is_refresh(self):
-        """create_refresh_token should have type='refresh'."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "admin"}
-        token = create_refresh_token(data)
+        assert result is None
 
-        payload = jwt.decode(token, settings.SECRET_KEY, algorithms=[settings.ALGORITHM])
+    def test_verify_supabase_token_extracts_app_metadata(self):
+        """verify_supabase_token should preserve app_metadata structure."""
+        payload = {
+            "sub": str(uuid4()),
+            "aud": "authenticated",
+            "role": "authenticated",
+            "email": "manager@example.com",
+            "app_metadata": {
+                "role": "manager",
+                "tenant_id": str(uuid4()),
+                "ward_id": "ward-123",  # Optional field
+            },
+            "user_metadata": {
+                "full_name": "Test Manager",
+                "preferred_language": "af",
+            },
+            "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        }
 
-        assert payload["type"] == "refresh"
-        assert payload["sub"] == "user-123"
+        token = jwt.encode(payload, settings.SUPABASE_JWT_SECRET, algorithm="HS256")
 
-    def test_decode_refresh_token_rejects_access(self):
-        """decode_refresh_token should reject access tokens."""
-        data = {"sub": "user-123", "tenant_id": "tenant-456", "role": "admin"}
-        access_token = create_access_token(data)
+        result = verify_supabase_token(token)
 
-        payload = decode_refresh_token(access_token)
-
-        assert payload is None
+        assert result is not None
+        assert result["app_metadata"]["role"] == "manager"
+        assert result["app_metadata"]["tenant_id"] == payload["app_metadata"]["tenant_id"]
+        assert result["app_metadata"]["ward_id"] == "ward-123"
+        assert result["user_metadata"]["full_name"] == "Test Manager"
+        assert result["user_metadata"]["preferred_language"] == "af"

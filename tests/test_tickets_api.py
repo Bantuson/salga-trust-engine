@@ -295,11 +295,11 @@ class TestEnhancedListTickets:
         """Test WARD_COUNCILLOR role can access list endpoint (read-only)."""
         # Arrange - create ward councillor user
         from src.models.user import User, UserRole
-        from src.core.security import get_password_hash, create_access_token
+        from tests.conftest import create_supabase_access_token
 
         councillor = User(
             email="councillor@example.com",
-            hashed_password=get_password_hash("password123"),
+            hashed_password="supabase_managed",
             full_name="Ward Councillor",
             phone="+27111222444",
             tenant_id=str(test_municipality.id),
@@ -311,10 +311,11 @@ class TestEnhancedListTickets:
         await db_session.commit()
         await db_session.refresh(councillor)
 
-        councillor_token = create_access_token({
+        councillor_token = create_supabase_access_token({
             "sub": str(councillor.id),
             "tenant_id": councillor.tenant_id,
             "role": councillor.role.value,
+            "email": councillor.email,
         })
 
         # Act
@@ -332,11 +333,11 @@ class TestEnhancedListTickets:
         """Test WARD_COUNCILLOR cannot assign tickets (403)."""
         # Arrange
         from src.models.user import User, UserRole
-        from src.core.security import get_password_hash, create_access_token
+        from tests.conftest import create_supabase_access_token
 
         councillor = User(
             email="councillor2@example.com",
-            hashed_password=get_password_hash("password123"),
+            hashed_password="supabase_managed",
             full_name="Ward Councillor 2",
             phone="+27111222555",
             tenant_id=str(test_municipality.id),
@@ -348,10 +349,11 @@ class TestEnhancedListTickets:
         await db_session.commit()
         await db_session.refresh(councillor)
 
-        councillor_token = create_access_token({
+        councillor_token = create_supabase_access_token({
             "sub": str(councillor.id),
             "tenant_id": councillor.tenant_id,
             "role": councillor.role.value,
+            "email": councillor.email,
         })
 
         fake_ticket_id = uuid4()

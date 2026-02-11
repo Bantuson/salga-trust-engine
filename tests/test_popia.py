@@ -5,7 +5,7 @@ import pytest
 from httpx import AsyncClient
 from sqlalchemy import select
 
-from src.core.security import create_access_token
+from tests.conftest import create_supabase_access_token
 from src.models.audit_log import AuditLog
 from src.models.consent import ConsentRecord
 from src.models.user import User
@@ -34,7 +34,7 @@ async def test_data_access_returns_all_user_data(
     await db_session.commit()
 
     # Create access token
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -86,7 +86,7 @@ async def test_delete_account_anonymizes_pii(
     user_id = test_user.id
 
     # Create access token
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -125,7 +125,7 @@ async def test_deleted_user_cannot_login(
     original_email = test_user.email
 
     # Create access token and delete account
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -179,7 +179,7 @@ async def test_consent_list(
     await db_session.commit()
 
     # Create access token
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -221,7 +221,7 @@ async def test_consent_withdraw(
     consent_id = consent.id
 
     # Create access token
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -255,10 +255,9 @@ async def test_consent_belongs_to_user(
 ):
     """Test that user cannot withdraw another user's consent."""
     # Create another user
-    from src.core.security import get_password_hash
     other_user = User(
         email="otheruser@example.com",
-        hashed_password=get_password_hash("password"),
+        hashed_password="supabase_managed",
         full_name="Other User",
         tenant_id=str(test_municipality.id),
         municipality_id=test_municipality.id,
@@ -282,7 +281,7 @@ async def test_consent_belongs_to_user(
     consent_id = consent.id
 
     # Create access token for test_user
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -319,7 +318,7 @@ async def test_audit_logs_preserved_after_deletion(
     await db_session.commit()
 
     # Create access token and delete account
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": user_id,
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value
@@ -347,7 +346,7 @@ async def test_consent_create(
 ):
     """Test creating a new consent record."""
     # Create access token
-    token = create_access_token({
+    token = create_supabase_access_token({
         "sub": str(test_user.id),
         "tenant_id": test_user.tenant_id,
         "role": test_user.role.value

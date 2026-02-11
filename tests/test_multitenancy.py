@@ -24,10 +24,9 @@ async def test_cross_tenant_isolation(db_session: AsyncSession):
     await db_session.refresh(muni_b)
 
     # Create users in Municipality A
-    from src.core.security import get_password_hash
     user_a1 = User(
         email="user1@muni-a.za",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",  # Password managed by Supabase Auth
         full_name="User A1",
         tenant_id=str(muni_a.id),
         municipality_id=muni_a.id,
@@ -35,7 +34,7 @@ async def test_cross_tenant_isolation(db_session: AsyncSession):
     )
     user_a2 = User(
         email="user2@muni-a.za",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",
         full_name="User A2",
         tenant_id=str(muni_a.id),
         municipality_id=muni_a.id,
@@ -45,7 +44,7 @@ async def test_cross_tenant_isolation(db_session: AsyncSession):
     # Create users in Municipality B
     user_b1 = User(
         email="user1@muni-b.za",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",
         full_name="User B1",
         tenant_id=str(muni_b.id),
         municipality_id=muni_b.id,
@@ -53,7 +52,7 @@ async def test_cross_tenant_isolation(db_session: AsyncSession):
     )
     user_b2 = User(
         email="user2@muni-b.za",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",
         full_name="User B2",
         tenant_id=str(muni_b.id),
         municipality_id=muni_b.id,
@@ -95,10 +94,9 @@ async def test_no_tenant_context_fails_closed(db_session: AsyncSession):
     await db_session.commit()
     await db_session.refresh(muni)
 
-    from src.core.security import get_password_hash
     user = User(
         email="test@example.com",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",
         full_name="Test User",
         tenant_id=str(muni.id),
         municipality_id=muni.id,
@@ -137,10 +135,9 @@ async def test_create_user_gets_tenant_id(db_session: AsyncSession):
     await db_session.commit()  # Start new transaction with RLS context
 
     # Create user
-    from src.core.security import get_password_hash
     user = User(
         email="test@example.com",
-        hashed_password=get_password_hash("password123"),
+        hashed_password="supabase_managed",
         full_name="Test User",
         tenant_id=str(muni.id),
         municipality_id=muni.id,

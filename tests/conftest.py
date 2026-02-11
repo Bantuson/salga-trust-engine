@@ -222,32 +222,52 @@ def mock_supabase_admin():
     return mock
 
 
+def create_supabase_access_token(data: dict, expires_delta: timedelta | None = None) -> str:
+    """Helper function to create Supabase-format JWT tokens for tests.
+
+    Args:
+        data: Dict with 'sub', 'tenant_id', 'role', optionally 'email', 'full_name'
+        expires_delta: Custom expiration time (default: 1 hour)
+
+    Returns:
+        Encoded JWT token string
+    """
+    if expires_delta is None:
+        expires_delta = timedelta(hours=1)
+
+    payload = {
+        "sub": data.get("sub", str(uuid4())),
+        "aud": "authenticated",
+        "role": "authenticated",
+        "email": data.get("email", "test@example.com"),
+        "app_metadata": {
+            "role": data.get("role", "citizen"),
+            "tenant_id": data.get("tenant_id", str(uuid4())),
+        },
+        "user_metadata": {
+            "full_name": data.get("full_name", "Test User"),
+            "preferred_language": data.get("preferred_language", "en")
+        },
+        "exp": datetime.now(timezone.utc) + expires_delta,
+        "iat": datetime.now(timezone.utc),
+    }
+
+    secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
+    return pyjwt.encode(payload, secret, algorithm="HS256")
+
+
 @pytest.fixture(scope="function")
 def supabase_jwt_token():
     """Create a test JWT mimicking Supabase token structure.
 
     Returns a valid JWT token for testing auth flows.
     """
-    payload = {
+    return create_supabase_access_token({
         "sub": str(uuid4()),
-        "aud": "authenticated",
-        "role": "authenticated",
         "email": "test@example.com",
-        "app_metadata": {
-            "role": "citizen",
-            "tenant_id": str(uuid4()),
-        },
-        "user_metadata": {
-            "full_name": "Test User",
-            "preferred_language": "en"
-        },
-        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
-        "iat": datetime.now(timezone.utc),
-    }
-
-    # Use test Supabase JWT secret (set in test environment)
-    secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
-    return pyjwt.encode(payload, secret, algorithm="HS256")
+        "role": "citizen",
+        "tenant_id": str(uuid4()),
+    })
 
 
 @pytest_asyncio.fixture(scope="function")
