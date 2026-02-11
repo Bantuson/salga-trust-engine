@@ -12,6 +12,7 @@ import { useAuth } from './hooks/useAuth';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { RequestAccessPage } from './pages/RequestAccessPage';
+import { OnboardingWizardPage } from './pages/OnboardingWizardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { ReportForm } from './components/ReportForm';
@@ -59,24 +60,26 @@ function AppRoutes() {
     );
   }
 
-  // Authenticated routes - wrapped in DashboardLayout
+  // Authenticated routes
   return (
-    <DashboardLayout>
-      <PageTransition routeKey={location.pathname}>
-        <Routes>
-          <Route path="/" element={<DashboardPage />} />
-          <Route path="/tickets" element={<TicketListPage />} />
-          <Route path="/report" element={<ReportForm />} />
-          <Route path="/municipalities" element={<div style={styles.placeholder}>Municipalities (Coming Soon)</div>} />
-          <Route path="/teams" element={<div style={styles.placeholder}>Teams (Coming Soon)</div>} />
-          <Route path="/analytics" element={<div style={styles.placeholder}>Analytics (Coming Soon)</div>} />
-          <Route path="/settings" element={<div style={styles.placeholder}>Settings (Coming Soon)</div>} />
-          <Route path="/system" element={<div style={styles.placeholder}>System (Coming Soon)</div>} />
-          <Route path="/reports" element={<div style={styles.placeholder}>Reports (Coming Soon)</div>} />
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-      </PageTransition>
-    </DashboardLayout>
+    <PageTransition routeKey={location.pathname}>
+      <Routes>
+        {/* Onboarding wizard (full-screen, no layout) */}
+        <Route path="/onboarding" element={<OnboardingWizardPage />} />
+
+        {/* Dashboard routes (wrapped in DashboardLayout) */}
+        <Route path="/" element={<DashboardLayout><DashboardPage /></DashboardLayout>} />
+        <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
+        <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
+        <Route path="/municipalities" element={<DashboardLayout><div style={styles.placeholder}>Municipalities (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/teams" element={<DashboardLayout><div style={styles.placeholder}>Teams (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/analytics" element={<DashboardLayout><div style={styles.placeholder}>Analytics (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/settings" element={<DashboardLayout><div style={styles.placeholder}>Settings (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/system" element={<DashboardLayout><div style={styles.placeholder}>System (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/reports" element={<DashboardLayout><div style={styles.placeholder}>Reports (Coming Soon)</div></DashboardLayout>} />
+        <Route path="*" element={<Navigate to="/" replace />} />
+      </Routes>
+    </PageTransition>
   );
 }
 
