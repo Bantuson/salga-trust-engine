@@ -6,7 +6,27 @@ from fastapi.exceptions import RequestValidationError
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from src.api.v1 import auth, consent, dashboard, data_rights, events, export, messages, municipalities, public, reports, tickets, uploads, users, verification, whatsapp
+from src.api.v1 import (
+    access_requests,
+    auth,
+    citizen,
+    consent,
+    dashboard,
+    data_rights,
+    events,
+    export,
+    invitations,
+    messages,
+    municipalities,
+    onboarding,
+    public,
+    reports,
+    tickets,
+    uploads,
+    users,
+    verification,
+    whatsapp,
+)
 from src.core.config import settings
 from src.middleware.error_handler import (
     global_exception_handler,
@@ -90,3 +110,9 @@ app.include_router(dashboard.router, prefix="/api/v1")
 app.include_router(events.router, prefix="/api/v1")
 app.include_router(export.router, prefix="/api/v1")
 app.include_router(public.router, prefix="/api/v1")
+
+# Phase 6.2 routers: Access requests, onboarding, invitations, citizen portal
+app.include_router(access_requests.router, prefix="/api/v1")
+app.include_router(onboarding.router, prefix="/api/v1")
+app.include_router(invitations.router, prefix="/api/v1")
+app.include_router(citizen.router, prefix="/api/v1")

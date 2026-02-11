@@ -1,5 +1,6 @@
 """Pydantic schemas for citizen portal API."""
 from datetime import datetime
+from typing import Literal
 from uuid import UUID
 
 from pydantic import BaseModel, Field
@@ -33,7 +34,7 @@ class CitizenGBVTicketResponse(BaseModel):
     assigned_officer_name: str | None = Field(None, description="Name of assigned SAPS liaison officer")
     station_name: str | None = Field(None, description="SAPS station handling the case")
     station_phone: str | None = Field(None, description="SAPS station contact number")
-    is_sensitive: bool = Field(True, const=True)
+    is_sensitive: Literal[True] = True
 
     class Config:
         from_attributes = True
