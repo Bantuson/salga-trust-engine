@@ -10,9 +10,9 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 3 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plan 03 complete (Storage and events migration)
-Last activity: 2026-02-11 — Completed 06.1-03: Migrated storage from AWS S3 to Supabase Storage with RLS, migrated events from Redis Pub/Sub to pg_notify triggers for Supabase Realtime
+Plan: 4 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plans 01-03 complete
+Last activity: 2026-02-11 — Completed 06.1-02: Migrated authentication to Supabase Auth with phone OTP and WhatsApp session management
 
 Progress: [███░░░░░░░] 33% (3/9 plans)
 
@@ -33,11 +33,11 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 3 | 19.3m | 6.4m |
+| 06.1 | 3 | 34.0m | 11.3m |
 
 **Recent Trend:**
-- Last 5 plans: 14.9m, 21.5m, 3.6m, 0.1m, 15.6m
-- Trend: Phase 06.1 infrastructure migration - storage and events complete
+- Last 5 plans: 21.5m, 3.6m, 0.1m, 15.6m, 14.7m
+- Trend: Phase 06.1 Supabase migration - auth, storage, and events complete
 
 *Updated after each plan completion*
 
@@ -75,7 +75,7 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 06-02 | 14.9m (892s) | 2 | 10 |
 | 06-03 | 21.5m (1288s) | 2 | 3 |
 | 06.1-01 | 3.6m (215s) | 2 | 7 |
-| 06.1-02 | 0.1m (7s) | 1 | 4 |
+| 06.1-02 | 14.7m (882s) | 2 | 8 |
 | 06.1-03 | 15.6m (935s) | 2 | 7 |
 
 ## Accumulated Context
