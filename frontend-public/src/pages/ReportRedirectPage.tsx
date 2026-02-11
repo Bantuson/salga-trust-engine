@@ -26,7 +26,7 @@ export function ReportRedirectPage() {
                 Sign In
               </Button>
               <Button
-                variant="outline"
+                variant="secondary"
                 size="lg"
                 onClick={() => window.location.href = `${municipalDashboardUrl}#register`}
               >
