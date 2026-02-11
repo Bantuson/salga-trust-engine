@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.1 — Postgres refactor to Supabase and dashboard separation (INSERTED)
+**Current focus:** Phase 6.2 — UX redesign: user journeys, design system, and dashboard consistency (INSERTED)
 
 ## Current Position
 
-Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 9 of 9 in current phase
-Status: COMPLETE — Phase 6.1 all 9 plans complete
-Last activity: 2026-02-11 — Completed 06.1-09: Built cinematic scroll storytelling landing page with interactive 3D South Africa globe (extruded GeoJSON provinces), GSAP scroll-triggered animations, anime.js counters, Lenis smooth scroll, mobile-first dark mode, and full 3D performance optimizations
+Phase: 6.2 of 6+ (UX Redesign — User Journeys, Design System & Dashboard Consistency)
+Plan: 2 of 8 in current phase
+Status: IN PROGRESS — Phase 6.2 in progress
+Last activity: 2026-02-11 — Completed 06.2-01: Created shared design system foundation with Space Grotesk typography, 7 UI components (GlassCard, Button, Input, Skeleton, Badge, AnimatedGradientBg, NdebelePattern), accessibility hooks, and cultural patterns for both dashboards
 
-Progress: [██████████] 100% (9/9 plans)
+Progress: [██░░░░░░░░] 25% (2/8 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 36
-- Average duration: 19.0 minutes
-- Total execution time: 11.3 hours
+- Total plans completed: 37
+- Average duration: 19.1 minutes
+- Total execution time: 11.7 hours
 
 **By Phase:**
 
@@ -34,10 +34,11 @@ Progress: [██████████] 100% (9/9 plans)
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
 | 06.1 | 9 | 153.7m | 17.1m |
+| 06.2 | 1 | 25.8m | 25.8m |
 
 **Recent Trend:**
-- Last 5 plans: 23.1m, 15.0m, 41.2m, 15.3m, (next plan)
-- Trend: Phase 06.1 COMPLETE - Supabase migration with premium UI design layer for both dashboards
+- Last 5 plans: 15.0m, 41.2m, 15.3m, 25.8m, (next plan)
+- Trend: Phase 06.2 STARTED - Backend infrastructure for UX redesign features
 
 *Updated after each plan completion*
 
@@ -83,6 +84,7 @@ Progress: [██████████] 100% (9/9 plans)
 | 06.1-07 | 15.0m (899s) | 1 | 11 |
 | 06.1-08 | 41.2m (2470s) | 2 | 18 |
 | 06.1-09 | 15.3m (915s) | 2 | 19 |
+| 06.2-08 | 25.8m (1548s) | 2 | 14 |
 
 ## Accumulated Context
 
@@ -264,6 +266,11 @@ Recent decisions affecting current work:
 - [Phase 06.1-09]: Simplified SA provinces GeoJSON (9 provinces) instead of full municipal boundaries (performance: 3KB vs 500KB+)
 - [Phase 06.1-09]: Three.js mobile optimization stack: DPR cap at 2, on-demand rendering, mediump shaders, detect-gpu LOD, React.lazy code-splitting
 - [Phase 06.1-09]: Lenis smooth scroll with mobile touch support (syncTouch: true) for public dashboard
+- [Phase 06.2-08]: Municipality access requests use public POST endpoint (no authentication) with admin review workflow
+- [Phase 06.2-08]: Onboarding state persistence uses PostgreSQL INSERT ... ON CONFLICT upsert pattern on (municipality_id, step_id)
+- [Phase 06.2-08]: Team invitations expire after 7 days with timestamp tracking
+- [Phase 06.2-08]: Citizen portal GBV tickets show limited fields only (tracking number, status, SAPS officer, station phone) for privacy
+- [Phase 06.2-08]: Citizen analytics exclude GBV tickets from municipality-wide average resolution time comparison
 
 ### Pending Todos
 
@@ -272,6 +279,7 @@ None - CrewAI successfully installed and integrated.
 ### Roadmap Evolution
 
 - Phase 6.1 inserted after Phase 6: Postgres refactor to Supabase and dashboard separation (URGENT)
+- Phase 6.2 inserted after Phase 6: UX redesign — user journeys, design system, and dashboard consistency (URGENT)
 
 ### Blockers/Concerns
 
@@ -279,8 +287,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 09)
-Stopped at: Completed 06.1-09-PLAN.md — Built cinematic scroll storytelling landing page with interactive 3D SA globe, GSAP scroll-triggered animations, anime.js counters, Lenis smooth scroll, horizontal municipality carousel, mobile-first dark mode design. Phase 6.1 COMPLETE (all 9 plans).
+Last session: 2026-02-11 (Phase 6.2 Plan 08)
+Stopped at: Completed 06.2-08-PLAN.md — Built complete backend infrastructure for Phase 6.2 frontend features: municipality access requests (public API), onboarding wizard state persistence (upsert pattern), team invitation management, citizen portal "My Reports" with GBV privacy filtering, personal analytics with municipality comparison. Phase 6.2 plan 1/8 complete.
 Resume file: None
 
 ---
