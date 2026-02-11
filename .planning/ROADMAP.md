@@ -178,7 +178,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-11 (Phase 6.2 planned — UX redesign, 7 plans in 4 waves)*
+*Last updated: 2026-02-11 (Phase 6.2 revised — UX redesign + full backend integration, 8 plans in 4 waves)*
 
 ### Phase 06.2: UX redesign user journeys design system and dashboard consistency (INSERTED)
 
@@ -189,22 +189,26 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
   2. Public site has 4 pages: Landing, Transparency Dashboard (separate page), Report Issue redirect, About
   3. Municipal dashboard has icon-only sidebar with role-adaptive navigation
   4. 3D globe uses premium materials (metallic/glass), glowing municipality data points, and atmospheric effects
-  5. Municipality registration uses hybrid model (request access form, not open signup)
-  6. Onboarding wizard guides municipalities through 5-step setup
-  7. Citizen portal shows personal analytics with GBV privacy (limited info + lock icon + emergency numbers)
-  8. Heatmap has interactive controls (time filter, category toggle, click-to-drill)
-  9. All animations respect prefers-reduced-motion
-  10. Both frontend apps build with zero errors
-**Plans:** 7 plans
+  5. Municipality registration uses hybrid model (request access form submitting to backend API, not open signup)
+  6. Onboarding wizard guides municipalities through 5-step setup with backend-persisted state
+  7. Team invitations stored in Supabase database via API endpoints
+  8. Citizen portal fetches real ticket data from backend with GBV privacy enforced server-side
+  9. Citizen personal analytics computed server-side (total, resolved, avg time, municipality comparison)
+  10. Heatmap has interactive controls (time filter, category toggle, click-to-drill)
+  11. All animations respect prefers-reduced-motion
+  12. Both frontend apps build with zero errors
+  13. All new backend tables have RLS policies following existing security patterns
+**Plans:** 8 plans
 
 Plans:
 - [ ] 06.2-01-PLAN.md -- Shared design system foundation (typography, glassmorphism, gradient bg, Ndebele patterns, skeleton loaders, a11y hooks)
 - [ ] 06.2-02-PLAN.md -- Public site page structure (React Router, 4 pages, transparent header, footer)
 - [ ] 06.2-03-PLAN.md -- Municipal dashboard restructure (React Router, icon sidebar, role nav, RegisterPage)
 - [ ] 06.2-04-PLAN.md -- 3D globe premium upgrade + scroll animation polish with reduced motion support
-- [ ] 06.2-05-PLAN.md -- Municipality registration (request access) + onboarding wizard (5 steps)
-- [ ] 06.2-06-PLAN.md -- Citizen portal (My Reports, GBV privacy UI) + enhanced heatmap (filters, drill-down)
+- [ ] 06.2-05-PLAN.md -- Municipality registration (request access) + onboarding wizard (5 steps) with backend integration
+- [ ] 06.2-06-PLAN.md -- Citizen portal (My Reports, GBV privacy UI) + enhanced heatmap (filters, drill-down) with backend integration
 - [ ] 06.2-07-PLAN.md -- Skeleton loaders, micro-interaction polish, build verification + visual checkpoint
+- [ ] 06.2-08-PLAN.md -- Backend infrastructure: DB tables (access_requests, onboarding_state, team_invitations), FastAPI endpoints for access requests, onboarding, invitations, citizen portal
 
 ### Phase 06.1: Postgres refactor to Supabase and dashboard separation (INSERTED)
 
