@@ -94,8 +94,9 @@ def add_tenant_filter(orm_execute_state):
     if tenant_id is None:
         raise SecurityError(
             "Tenant context not set for tenant-aware query - potential data leakage. "
-            "This is a security violation. Ensure X-Tenant-ID header is set or "
-            "tenant context is established via JWT token."
+            "This is a security violation. Ensure tenant_id is present in JWT "
+            "app_metadata claims (for authenticated requests) or tenant context is "
+            "set via get_current_user dependency."
         )
 
     # Add tenant_id filter to the query
