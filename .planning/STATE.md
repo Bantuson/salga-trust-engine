@@ -10,18 +10,18 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 1 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plan 01 complete (Supabase infrastructure setup)
-Last activity: 2026-02-11 — Completed 06.1-01: Supabase SDK installed, client module created, database connection migrated, custom access token hook ready
+Plan: 3 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plan 03 complete (Storage and events migration)
+Last activity: 2026-02-11 — Completed 06.1-03: Migrated storage from AWS S3 to Supabase Storage with RLS, migrated events from Redis Pub/Sub to pg_notify triggers for Supabase Realtime
 
-Progress: [█░░░░░░░░░] 11% (1/9 plans)
+Progress: [███░░░░░░░] 33% (3/9 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 32
-- Average duration: 18.5 minutes
-- Total execution time: 10.1 hours
+- Total plans completed: 34
+- Average duration: 18.1 minutes
+- Total execution time: 10.5 hours
 
 **By Phase:**
 
@@ -33,11 +33,11 @@ Progress: [█░░░░░░░░░] 11% (1/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 1 | 3.6m | 3.6m |
+| 06.1 | 3 | 13.4m | 4.5m |
 
 **Recent Trend:**
-- Last 5 plans: 17.6m, 24.5m, 14.9m, 21.5m, 3.6m
-- Trend: Phase 06.1 started - Supabase infrastructure setup complete
+- Last 5 plans: 14.9m, 21.5m, 3.6m, 0.1m, 9.8m
+- Trend: Phase 06.1 rapid execution - storage and events migrated to Supabase
 
 *Updated after each plan completion*
 
@@ -75,6 +75,8 @@ Progress: [█░░░░░░░░░] 11% (1/9 plans)
 | 06-02 | 14.9m (892s) | 2 | 10 |
 | 06-03 | 21.5m (1288s) | 2 | 3 |
 | 06.1-01 | 3.6m (215s) | 2 | 7 |
+| 06.1-02 | 0.1m (7s) | 1 | 4 |
+| 06.1-03 | 9.8m (588s) | 2 | 7 |
 
 ## Accumulated Context
 
@@ -233,6 +235,12 @@ Recent decisions affecting current work:
 - [Phase 06.1-01]: Connection pool limits reduced to 5+10 for Supabase tier constraints (free=60, Pro=200)
 - [Phase 06.1-01]: SUPABASE_DB_URL optional with DATABASE_URL fallback for local dev compatibility
 - [Phase 06.1-01]: Custom access token hook requires manual Supabase Dashboard configuration
+- [Phase 06.1-03]: Supabase Storage replaces AWS S3 with RLS-based access control for tenant isolation
+- [Phase 06.1-03]: Three private buckets: evidence, documents, gbv-evidence with role-based RLS policies
+- [Phase 06.1-03]: GBV evidence bucket restricted to saps_liaison + admin roles only (SEC-05 at storage layer)
+- [Phase 06.1-03]: PostgreSQL pg_notify triggers replace Redis Pub/Sub for Supabase Realtime integration
+- [Phase 06.1-03]: Database triggers broadcast ticket INSERT/UPDATE events automatically
+- [Phase 06.1-03]: SSE endpoint deprecated in favor of Supabase Realtime WebSocket subscriptions
 
 ### Pending Todos
 
@@ -248,8 +256,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 01)
-Stopped at: Completed 06.1-01-PLAN.md — Supabase infrastructure setup: installed Python SDK (2.16.0), created admin/anon client module with lazy initialization, added 6 SUPABASE_* config fields, migrated database connection to Supabase Cloud with local fallback, optimized connection pooling (5+10) for tier limits, updated Alembic for Supabase targeting, created custom access token hook migration for JWT RBAC claims. **USER ACTION REQUIRED: Enable custom_access_token_hook in Supabase Dashboard → Auth → Hooks.**
+Last session: 2026-02-11 (Phase 6.1 Plan 03)
+Stopped at: Completed 06.1-03-PLAN.md — Storage and events migration: migrated file storage from AWS S3 to Supabase Storage with RLS policies, created three private buckets (evidence, documents, gbv-evidence) with GBV bucket restricted to SAPS-only access (SEC-05), migrated events from Redis Pub/Sub to PostgreSQL pg_notify triggers for Supabase Realtime integration, deprecated SSE endpoint in favor of WebSocket subscriptions.
 Resume file: None
 
 ---
