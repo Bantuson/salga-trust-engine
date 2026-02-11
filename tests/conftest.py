@@ -2,6 +2,9 @@
 import os
 import sys
 import asyncio
+from datetime import datetime, timedelta, timezone
+from uuid import uuid4
+from unittest.mock import Mock, AsyncMock, patch
 
 # CRITICAL: Set Windows event loop policy BEFORE any async imports
 if sys.platform == "win32":
@@ -15,12 +18,12 @@ from collections.abc import AsyncGenerator
 
 import pytest
 import pytest_asyncio
+import jwt as pyjwt
 from httpx import ASGITransport, AsyncClient
 from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
 from src.api.deps import get_db
 from src.core.config import settings
-from src.core.security import get_password_hash
 from src.main import app
 from src.models.base import Base
 from src.models.municipality import Municipality
@@ -175,6 +178,78 @@ async def setup_test_database():
         await conn.run_sync(Base.metadata.drop_all)
 
 
+@pytest.fixture(scope="function")
+def mock_supabase_admin():
+    """Mock Supabase admin client for testing.
+
+    Provides mocked auth.admin and storage methods used throughout the app.
+    """
+    mock = Mock()
+
+    # Mock auth.admin methods
+    mock.auth = Mock()
+    mock.auth.admin = Mock()
+    mock.auth.admin.create_user = AsyncMock(return_value=Mock(
+        user=Mock(id=str(uuid4()), email="test@example.com")
+    ))
+    mock.auth.sign_in_with_password = AsyncMock(return_value=Mock(
+        session=Mock(access_token="mock_token", refresh_token="mock_refresh"),
+        user=Mock(id=str(uuid4()))
+    ))
+    mock.auth.refresh_session = AsyncMock(return_value=Mock(
+        session=Mock(access_token="new_mock_token", refresh_token="new_refresh_token")
+    ))
+    mock.auth.sign_in_with_otp = AsyncMock(return_value=Mock(error=None))
+    mock.auth.verify_otp = AsyncMock(return_value=Mock(
+        session=Mock(access_token="mock_otp_token", refresh_token="mock_otp_refresh"),
+        user=Mock(id=str(uuid4()))
+    ))
+
+    # Mock storage methods
+    mock.storage = Mock()
+
+    def from_(bucket_name):
+        storage_mock = Mock()
+        storage_mock.upload = AsyncMock(return_value=Mock(error=None))
+        storage_mock.create_signed_url = Mock(return_value=Mock(
+            signed_url=f"https://supabase.co/storage/v1/object/sign/{bucket_name}/test",
+            error=None
+        ))
+        return storage_mock
+
+    mock.storage.from_ = from_
+
+    return mock
+
+
+@pytest.fixture(scope="function")
+def supabase_jwt_token():
+    """Create a test JWT mimicking Supabase token structure.
+
+    Returns a valid JWT token for testing auth flows.
+    """
+    payload = {
+        "sub": str(uuid4()),
+        "aud": "authenticated",
+        "role": "authenticated",
+        "email": "test@example.com",
+        "app_metadata": {
+            "role": "citizen",
+            "tenant_id": str(uuid4()),
+        },
+        "user_metadata": {
+            "full_name": "Test User",
+            "preferred_language": "en"
+        },
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "iat": datetime.now(timezone.utc),
+    }
+
+    # Use test Supabase JWT secret (set in test environment)
+    secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
+    return pyjwt.encode(payload, secret, algorithm="HS256")
+
+
 @pytest_asyncio.fixture(scope="function")
 async def test_municipality(db_session: AsyncSession) -> Municipality:
     """Create a test municipality for tests."""
@@ -195,7 +270,7 @@ async def test_user(db_session: AsyncSession, test_municipality: Municipality) -
     """Create a test user for tests."""
     user = User(
         email="testuser@example.com",
-        hashed_password=get_password_hash("testpassword123"),
+        hashed_password="supabase_managed",  # Password managed by Supabase Auth
         full_name="Test User",
         phone="+27123456789",
         tenant_id=str(test_municipality.id),
@@ -214,7 +289,7 @@ async def admin_user(db_session: AsyncSession, test_municipality: Municipality) 
     """Create an admin user for tests."""
     user = User(
         email="admin@example.com",
-        hashed_password=get_password_hash("adminpassword123"),
+        hashed_password="supabase_managed",  # Password managed by Supabase Auth
         full_name="Admin User",
         phone="+27987654321",
         tenant_id=str(test_municipality.id),
@@ -230,13 +305,24 @@ async def admin_user(db_session: AsyncSession, test_municipality: Municipality) 
 
 @pytest.fixture(scope="function")
 def admin_token(admin_user: User) -> str:
-    """Create an access token for admin user."""
-    from src.core.security import create_access_token
-    return create_access_token({
+    """Create an access token for admin user using Supabase JWT format."""
+    payload = {
         "sub": str(admin_user.id),
-        "tenant_id": admin_user.tenant_id,
-        "role": admin_user.role.value,
-    })
+        "aud": "authenticated",
+        "role": "authenticated",
+        "email": admin_user.email,
+        "app_metadata": {
+            "role": admin_user.role.value,
+            "tenant_id": admin_user.tenant_id,
+        },
+        "user_metadata": {
+            "full_name": admin_user.full_name,
+        },
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "iat": datetime.now(timezone.utc),
+    }
+    secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
+    return pyjwt.encode(payload, secret, algorithm="HS256")
 
 
 @pytest_asyncio.fixture(scope="function")
@@ -244,7 +330,7 @@ async def citizen_user(db_session: AsyncSession, test_municipality: Municipality
     """Create a citizen user for tests."""
     user = User(
         email="citizen@example.com",
-        hashed_password=get_password_hash("citizenpassword123"),
+        hashed_password="supabase_managed",  # Password managed by Supabase Auth
         full_name="Citizen User",
         phone="+27111222333",
         tenant_id=str(test_municipality.id),
@@ -260,10 +346,21 @@ async def citizen_user(db_session: AsyncSession, test_municipality: Municipality
 
 @pytest.fixture(scope="function")
 def citizen_token(citizen_user: User) -> str:
-    """Create an access token for citizen user."""
-    from src.core.security import create_access_token
-    return create_access_token({
+    """Create an access token for citizen user using Supabase JWT format."""
+    payload = {
         "sub": str(citizen_user.id),
-        "tenant_id": citizen_user.tenant_id,
-        "role": citizen_user.role.value,
-    })
+        "aud": "authenticated",
+        "role": "authenticated",
+        "email": citizen_user.email,
+        "app_metadata": {
+            "role": citizen_user.role.value,
+            "tenant_id": citizen_user.tenant_id,
+        },
+        "user_metadata": {
+            "full_name": citizen_user.full_name,
+        },
+        "exp": datetime.now(timezone.utc) + timedelta(hours=1),
+        "iat": datetime.now(timezone.utc),
+    }
+    secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
+    return pyjwt.encode(payload, secret, algorithm="HS256")
