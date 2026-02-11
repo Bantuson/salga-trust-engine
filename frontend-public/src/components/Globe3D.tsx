@@ -20,9 +20,7 @@ function createExtrudedMesh(
   feature: any,
   projection: any,
   height: number,
-  color: string,
-  onHover?: (name: string | null) => void,
-  onClick?: (code: string) => void
+  color: string
 ) {
   const coordinates = feature.geometry.coordinates[0];
 
@@ -82,9 +80,9 @@ function SAMap({ gpuTier, onHover, onClick }: SAMapProps) {
       const extrudeHeight = 0.1 + (feature.properties.performance * 0.3);
       const perf = feature.properties.performance;
       const color = perf > 0.7 ? '#00D9A6' : perf > 0.5 ? '#FBBF24' : '#FF6B4A';
-      return createExtrudedMesh(feature, projection, extrudeHeight, color, onHover, onClick);
+      return createExtrudedMesh(feature, projection, extrudeHeight, color);
     });
-  }, [projection, gpuTier, onHover, onClick]);
+  }, [projection, gpuTier]);
 
   const handlePointerOver = (e: any) => {
     e.stopPropagation();
