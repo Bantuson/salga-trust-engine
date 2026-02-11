@@ -36,18 +36,21 @@ async def generate_presigned_upload(
     request: PresignedUploadRequest,
     current_user: User = Depends(get_current_user),
 ) -> PresignedUploadResponse:
-    """Generate presigned POST URL for direct browser upload to S3.
+    """Generate Supabase Storage upload path for direct browser upload.
+
+    Frontend uses the returned bucket and path with Supabase JS SDK:
+    supabase.storage.from(bucket).upload(path, file)
 
     Args:
         request: Upload request with filename, content_type, file_size, purpose
         current_user: Authenticated user
 
     Returns:
-        Presigned URL, fields for POST request, and file_id
+        Bucket name, storage path, and file_id
 
     Raises:
         HTTPException: 400 if content type not allowed or file too large
-        HTTPException: 503 if S3 service unavailable
+        HTTPException: 503 if Supabase Storage unavailable
     """
     # Validate content type
     if request.content_type not in ALLOWED_CONTENT_TYPES:
@@ -70,16 +73,14 @@ async def generate_presigned_upload(
     # Initialize storage service
     storage_service = StorageService()
 
-    # Generate presigned POST URL
+    # Generate Supabase Storage upload path
     try:
-        presigned_data = storage_service.generate_presigned_post(
+        upload_info = storage_service.generate_upload_url(
             purpose=request.purpose,
             tenant_id=str(current_user.tenant_id),
-            user_id=str(current_user.id),
             file_id=file_id,
             filename=request.filename,
-            content_type=request.content_type,
-            max_size=max_size
+            content_type=request.content_type
         )
     except StorageServiceError as e:
         raise HTTPException(
@@ -88,9 +89,9 @@ async def generate_presigned_upload(
         )
 
     return PresignedUploadResponse(
-        url=presigned_data["url"],
-        fields=presigned_data["fields"],
-        file_id=presigned_data["file_id"]
+        bucket=upload_info["bucket"],
+        path=upload_info["path"],
+        file_id=upload_info["file_id"]
     )
 
 
@@ -126,23 +127,20 @@ async def confirm_upload(
             detail=f"Invalid purpose '{purpose}'. Must be 'evidence' or 'proof_of_residence'"
         )
 
-    # Determine bucket and construct S3 key
-    # Note: We're storing minimal info here. The full S3 metadata would be
-    # retrieved from S3 in a production system, but for now we'll use placeholders
-    from src.core.config import settings
-
-    bucket = settings.S3_BUCKET_EVIDENCE if purpose == "evidence" else settings.S3_BUCKET_DOCUMENTS
-    s3_key = f"{purpose}/{current_user.tenant_id}/{file_id}/uploaded-file"
+    # Determine bucket and construct storage path
+    storage_service = StorageService()
+    bucket = storage_service._get_bucket_from_purpose(purpose)
+    storage_path = f"{current_user.tenant_id}/{file_id}/uploaded-file"
 
     # Create MediaAttachment record (without ticket_id - will be linked later)
     media_attachment = MediaAttachment(
         ticket_id=None,  # Will be set when report is submitted
         file_id=file_id,
-        s3_bucket=bucket,
-        s3_key=s3_key,
-        filename="uploaded-file",  # Placeholder - would get from S3 metadata in production
-        content_type="image/jpeg",  # Placeholder - would get from S3 metadata
-        file_size=0,  # Placeholder - would get from S3 metadata
+        s3_bucket=bucket,  # Reusing s3_bucket column for Supabase bucket
+        s3_key=storage_path,  # Reusing s3_key column for Supabase path
+        filename="uploaded-file",  # Placeholder - would get from Supabase metadata in production
+        content_type="image/jpeg",  # Placeholder - would get from Supabase metadata
+        file_size=0,  # Placeholder - would get from Supabase metadata
         purpose=purpose,
         source="web",
         is_processed=False,

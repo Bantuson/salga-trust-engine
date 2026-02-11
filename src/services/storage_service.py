@@ -1,93 +1,165 @@
-"""S3 storage service for media uploads and downloads.
+"""Supabase Storage service for media uploads and downloads.
 
-Handles presigned URL generation for direct browser uploads, Twilio media downloads,
-and presigned GET URLs for secure file access.
+Handles file upload/download via Supabase Storage with RLS-enforced access control.
+Supports three private buckets: evidence, documents, gbv-evidence.
 """
 from uuid import uuid4
 import httpx
-import boto3
-from botocore.exceptions import ClientError
 
+from src.core.supabase import get_supabase_admin
 from src.core.config import settings
 
 
 class StorageServiceError(Exception):
-    """Exception raised when S3 storage service is not configured or fails."""
+    """Exception raised when Supabase Storage service is not configured or fails."""
     pass
 
 
 class StorageService:
-    """S3 storage service for presigned URLs and media management."""
+    """Supabase Storage service for media management."""
 
     def __init__(self):
-        """Initialize S3 client if AWS credentials are configured."""
-        if settings.AWS_ACCESS_KEY_ID and settings.AWS_SECRET_ACCESS_KEY:
-            self._client = boto3.client(
-                's3',
-                aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
-                aws_secret_access_key=settings.AWS_SECRET_ACCESS_KEY,
-                region_name=settings.AWS_REGION
-            )
+        """Initialize Supabase Storage client if configured."""
+        self._supabase = get_supabase_admin()
+        if self._supabase is None:
+            # Dev mode without Supabase
+            self._storage_available = False
         else:
-            # Dev mode without S3
-            self._client = None
+            self._storage_available = True
 
-    def generate_presigned_post(
+    def generate_upload_url(
         self,
         purpose: str,
         tenant_id: str,
-        user_id: str,
         file_id: str,
         filename: str,
         content_type: str,
-        max_size: int = 10 * 1024 * 1024  # 10MB default
     ) -> dict:
-        """Generate presigned POST URL for direct browser upload.
+        """Generate upload path info for Supabase Storage.
+
+        Unlike S3 presigned POST URLs, Supabase Storage uses the JS client directly.
+        This endpoint returns the bucket and path pattern for the frontend to use.
 
         Args:
-            purpose: "evidence" or "proof_of_residence"
-            tenant_id: Tenant ID for S3 key prefix
-            user_id: User ID for S3 key prefix
+            purpose: "evidence", "documents", or "gbv-evidence"
+            tenant_id: Tenant ID for path prefix
             file_id: Unique file identifier (UUID string)
             filename: Original filename
-            content_type: MIME type
-            max_size: Maximum file size in bytes
+            content_type: MIME type (for reference)
 
         Returns:
-            dict with url, fields, and file_id
+            dict with bucket, path, and file_id
 
         Raises:
-            StorageServiceError: If S3 not configured
+            StorageServiceError: If Supabase Storage not configured
         """
-        if self._client is None:
-            raise StorageServiceError("S3 storage service not configured (AWS credentials missing)")
+        if not self._storage_available:
+            raise StorageServiceError("Supabase Storage service not configured (SUPABASE_URL missing)")
 
         # Determine bucket from purpose
-        bucket = settings.S3_BUCKET_EVIDENCE if purpose == "evidence" else settings.S3_BUCKET_DOCUMENTS
+        bucket = self._get_bucket_from_purpose(purpose)
 
-        # Generate S3 key: {purpose}/{tenant_id}/{file_id}/{filename}
-        s3_key = f"{purpose}/{tenant_id}/{file_id}/{filename}"
+        # Generate storage path: {tenant_id}/{file_id}/{filename}
+        storage_path = f"{tenant_id}/{file_id}/{filename}"
+
+        return {
+            "bucket": bucket,
+            "path": storage_path,
+            "file_id": file_id
+        }
+
+    async def upload_file(
+        self,
+        bucket: str,
+        path: str,
+        content: bytes,
+        content_type: str
+    ) -> dict:
+        """Server-side upload using admin client (for WhatsApp media).
+
+        Args:
+            bucket: Bucket name (evidence, documents, gbv-evidence)
+            path: Storage path (e.g., {tenant_id}/{file_id}/{filename})
+            content: File content bytes
+            content_type: MIME type
+
+        Returns:
+            dict with bucket and path
+
+        Raises:
+            StorageServiceError: If upload fails
+        """
+        if not self._storage_available:
+            raise StorageServiceError("Supabase Storage service not configured (SUPABASE_URL missing)")
 
         try:
-            # Generate presigned POST
-            presigned = self._client.generate_presigned_post(
-                Bucket=bucket,
-                Key=s3_key,
-                Fields={"Content-Type": content_type},
-                Conditions=[
-                    {"Content-Type": content_type},
-                    ["content-length-range", 0, max_size]
-                ],
-                ExpiresIn=900  # 15 minutes
+            # Upload file via Supabase admin client (bypasses RLS)
+            response = self._supabase.storage.from_(bucket).upload(
+                path=path,
+                file=content,
+                file_options={
+                    "content-type": content_type,
+                    "upsert": "false"
+                }
             )
 
+            # Supabase SDK returns response with 'path' on success
+            # Check for error in response
+            if hasattr(response, 'error') and response.error:
+                raise StorageServiceError(f"Supabase upload failed: {response.error}")
+
             return {
-                "url": presigned["url"],
-                "fields": presigned["fields"],
-                "file_id": file_id
+                "bucket": bucket,
+                "path": path
             }
-        except ClientError as e:
-            raise StorageServiceError(f"Failed to generate presigned POST: {e}")
+        except Exception as e:
+            raise StorageServiceError(f"Failed to upload file to Supabase Storage: {e}")
+
+    def get_signed_url(
+        self,
+        bucket: str,
+        path: str,
+        expiry: int = 3600
+    ) -> str:
+        """Generate signed URL for secure file access.
+
+        Args:
+            bucket: Bucket name
+            path: Storage path
+            expiry: URL expiration in seconds (default 1 hour)
+
+        Returns:
+            Signed URL string
+
+        Raises:
+            StorageServiceError: If URL generation fails
+        """
+        if not self._storage_available:
+            raise StorageServiceError("Supabase Storage service not configured (SUPABASE_URL missing)")
+
+        try:
+            # Create signed URL via Supabase admin client
+            response = self._supabase.storage.from_(bucket).create_signed_url(
+                path=path,
+                expires_in=expiry
+            )
+
+            # Response format: {"signedURL": "...", "error": null}
+            if hasattr(response, 'error') and response.error:
+                raise StorageServiceError(f"Failed to create signed URL: {response.error}")
+
+            # Extract signed URL from response
+            if isinstance(response, dict):
+                signed_url = response.get('signedURL')
+            else:
+                signed_url = getattr(response, 'signed_url', None)
+
+            if not signed_url:
+                raise StorageServiceError("Signed URL not returned from Supabase")
+
+            return signed_url
+        except Exception as e:
+            raise StorageServiceError(f"Failed to generate signed URL: {e}")
 
     async def download_and_upload_media(
         self,
@@ -95,25 +167,27 @@ class StorageService:
         media_content_type: str,
         ticket_id: str,
         tenant_id: str,
-        auth_credentials: tuple[str, str]
+        auth_credentials: tuple[str, str],
+        is_sensitive: bool = False
     ) -> dict:
-        """Download media from Twilio and upload to S3.
+        """Download media from Twilio and upload to Supabase Storage.
 
         Args:
             media_url: Twilio MediaUrl to download from
             media_content_type: Content type of the media
-            ticket_id: Ticket ID for S3 key prefix
-            tenant_id: Tenant ID for S3 key prefix
+            ticket_id: Ticket ID for storage path
+            tenant_id: Tenant ID for storage path
             auth_credentials: (TWILIO_ACCOUNT_SID, TWILIO_AUTH_TOKEN) tuple
+            is_sensitive: If True, upload to gbv-evidence bucket (default False)
 
         Returns:
-            dict with s3_bucket, s3_key, file_id, content_type, file_size
+            dict with bucket, path, file_id, content_type, file_size
 
         Raises:
-            StorageServiceError: If S3 not configured or download/upload fails
+            StorageServiceError: If Supabase not configured or download/upload fails
         """
-        if self._client is None:
-            raise StorageServiceError("S3 storage service not configured (AWS credentials missing)")
+        if not self._storage_available:
+            raise StorageServiceError("Supabase Storage service not configured (SUPABASE_URL missing)")
 
         # Download from Twilio
         try:
@@ -132,61 +206,38 @@ class StorageService:
         file_id = str(uuid4())
         extension = self._get_extension_from_content_type(media_content_type)
 
-        # Generate S3 key: evidence/{tenant_id}/{ticket_id}/{file_id}.{extension}
-        s3_key = f"evidence/{tenant_id}/{ticket_id}/{file_id}.{extension}"
-        bucket = settings.S3_BUCKET_EVIDENCE
+        # Determine bucket based on sensitivity (SEC-05)
+        bucket = "gbv-evidence" if is_sensitive else "evidence"
 
-        # Upload to S3
-        try:
-            self._client.put_object(
-                Bucket=bucket,
-                Key=s3_key,
-                Body=media_content,
-                ContentType=media_content_type,
-                ServerSideEncryption='AES256'
-            )
-        except ClientError as e:
-            raise StorageServiceError(f"Failed to upload media to S3: {e}")
+        # Generate storage path: {tenant_id}/{ticket_id}/{file_id}.{extension}
+        storage_path = f"{tenant_id}/{ticket_id}/{file_id}.{extension}"
+
+        # Upload to Supabase Storage
+        await self.upload_file(
+            bucket=bucket,
+            path=storage_path,
+            content=media_content,
+            content_type=media_content_type
+        )
 
         return {
-            "s3_bucket": bucket,
-            "s3_key": s3_key,
+            "bucket": bucket,
+            "path": storage_path,
             "file_id": file_id,
             "content_type": media_content_type,
             "file_size": len(media_content)
         }
 
-    def generate_presigned_get(
-        self,
-        bucket: str,
-        key: str,
-        expiry: int = 3600
-    ) -> str:
-        """Generate presigned GET URL for downloading files.
-
-        Args:
-            bucket: S3 bucket name
-            key: S3 object key
-            expiry: URL expiration in seconds (default 1 hour)
-
-        Returns:
-            Presigned GET URL
-
-        Raises:
-            StorageServiceError: If S3 not configured or URL generation fails
-        """
-        if self._client is None:
-            raise StorageServiceError("S3 storage service not configured (AWS credentials missing)")
-
-        try:
-            url = self._client.generate_presigned_url(
-                'get_object',
-                Params={'Bucket': bucket, 'Key': key},
-                ExpiresIn=expiry
-            )
-            return url
-        except ClientError as e:
-            raise StorageServiceError(f"Failed to generate presigned GET URL: {e}")
+    @staticmethod
+    def _get_bucket_from_purpose(purpose: str) -> str:
+        """Map purpose to Supabase Storage bucket name."""
+        bucket_map = {
+            "evidence": "evidence",
+            "documents": "documents",
+            "gbv-evidence": "gbv-evidence",
+            "proof_of_residence": "documents",  # Legacy alias
+        }
+        return bucket_map.get(purpose, "evidence")
 
     @staticmethod
     def _get_extension_from_content_type(content_type: str) -> str:

@@ -16,10 +16,14 @@ class PresignedUploadRequest(BaseModel):
 
 
 class PresignedUploadResponse(BaseModel):
-    """Schema for presigned upload response."""
+    """Schema for Supabase Storage upload info.
 
-    url: str
-    fields: dict
+    Frontend uses this to upload directly via Supabase JS SDK:
+    supabase.storage.from(bucket).upload(path, file)
+    """
+
+    bucket: str
+    path: str
     file_id: str
 
 
