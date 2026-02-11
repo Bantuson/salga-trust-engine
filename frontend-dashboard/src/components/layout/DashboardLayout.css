@@ -1,0 +1,27 @@
+/**
+ * Dashboard Layout Styles
+ *
+ * - Sidebar is fixed position (not in document flow)
+ * - Main content has left margin to avoid sidebar overlap
+ * - Mobile adjusts margin-left to 0 (sidebar is overlay)
+ */
+
+.dashboard-layout {
+  min-height: 100vh;
+  background: var(--surface-base);
+}
+
+.dashboard-main {
+  margin-left: 64px;
+  min-height: 100vh;
+  padding: var(--space-2xl);
+}
+
+/* Mobile: No left margin (sidebar is overlay) */
+@media (max-width: 767px) {
+  .dashboard-main {
+    margin-left: 0;
+    padding: var(--space-xl);
+    padding-top: 5rem; /* Space for hamburger button */
+  }
+}
