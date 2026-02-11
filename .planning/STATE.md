@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.1 of 6+ (Postgres Refactor to Supabase and Dashboard Separation)
-Plan: 4 of 9 in current phase
-Status: IN PROGRESS — Phase 6.1 Plans 01-03 complete
-Last activity: 2026-02-11 — Completed 06.1-02: Migrated authentication to Supabase Auth with phone OTP and WhatsApp session management
+Plan: 5 of 9 in current phase
+Status: IN PROGRESS — Phase 6.1 Plans 01-04 complete
+Last activity: 2026-02-11 — Completed 06.1-04: Migrated RLS policies to Supabase auth.jwt() pattern with role-specific ticket access and public views for anon role
 
-Progress: [███░░░░░░░] 33% (3/9 plans)
+Progress: [████░░░░░░] 44% (4/9 plans)
 
 ## Performance Metrics
 
@@ -33,11 +33,11 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 04 | 5 | 124.4m | 24.9m |
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
-| 06.1 | 3 | 34.0m | 11.3m |
+| 06.1 | 4 | 39.3m | 9.8m |
 
 **Recent Trend:**
-- Last 5 plans: 21.5m, 3.6m, 0.1m, 15.6m, 14.7m
-- Trend: Phase 06.1 Supabase migration - auth, storage, and events complete
+- Last 5 plans: 3.6m, 14.7m, 15.6m, 5.3m, (next plan)
+- Trend: Phase 06.1 Supabase migration - infra, auth, storage, events, RLS complete
 
 *Updated after each plan completion*
 
@@ -77,6 +77,8 @@ Progress: [███░░░░░░░] 33% (3/9 plans)
 | 06.1-01 | 3.6m (215s) | 2 | 7 |
 | 06.1-02 | 14.7m (882s) | 2 | 8 |
 | 06.1-03 | 15.6m (935s) | 2 | 7 |
+| 06.1-04 | 5.3m (316s) | 2 | 4 |
+| Phase 06.1 P04 | 316 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -244,6 +246,11 @@ Recent decisions affecting current work:
 - [Phase 06.1-02]: Supabase Auth replaces custom JWT + Argon2 with app_metadata for RBAC
 - [Phase 06.1-02]: Phone OTP authentication for passwordless login
 - [Phase 06.1-02]: WhatsApp sessions with 24hr expiry for cross-tenant phone-to-user mapping
+- [Phase 06.1-04]: RLS policies migrated from SET LOCAL to auth.jwt() -> app_metadata pattern
+- [Phase 06.1-04]: Role-specific ticket SELECT policies enforce RBAC at database level (manager, ward_councillor, citizen, field_worker, saps_liaison)
+- [Phase 06.1-04]: Public views for anon role with GBV exclusion (public_ticket_stats, public_municipalities, public_heatmap)
+- [Phase 06.1-04]: K-anonymity threshold >= 3 for heatmap view to prevent location re-identification
+- [Phase 06.1-04]: Defense-in-depth maintained: RLS policies + application-level tenant filter
 
 ### Pending Todos
 
@@ -259,8 +266,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.1 Plan 03)
-Stopped at: Completed 06.1-03-PLAN.md — Storage and events migration: migrated file storage from AWS S3 to Supabase Storage with RLS policies, created three private buckets (evidence, documents, gbv-evidence) with GBV bucket restricted to SAPS-only access (SEC-05), migrated events from Redis Pub/Sub to PostgreSQL pg_notify triggers for Supabase Realtime integration, deprecated SSE endpoint in favor of WebSocket subscriptions.
+Last session: 2026-02-11 (Phase 6.1 Plan 04)
+Stopped at: Completed 06.1-04-PLAN.md — RLS migration to Supabase Auth: migrated Row Level Security policies from SET LOCAL app.current_tenant to auth.jwt() -> app_metadata pattern, created role-specific ticket policies enforcing RBAC at database level, added public views for anon role with GBV exclusion and k-anonymity protection, removed SET LOCAL from database.py, and updated application-level tenant filter for defense-in-depth.
 Resume file: None
 
 ---
