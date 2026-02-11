@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.2 of 6+ (UX Redesign — User Journeys, Design System & Dashboard Consistency)
-Plan: 3 of 8 in current phase (4 plans completed - 08, 01, 02, 03 out of order)
+Plan: 5 of 8 in current phase (5 plans completed - 08, 01, 02, 03, 05 out of order)
 Status: IN PROGRESS — Phase 6.2 in progress
-Last activity: 2026-02-11 — Completed 06.2-02: Restructured public site from single-scroll to 4-page React Router app with transparent header navigation, dedicated transparency dashboard page, About page, and Report redirect
+Last activity: 2026-02-11 — Completed 06.2-05: Municipality access request form with admin approval workflow + 5-step guided onboarding wizard with backend state persistence and team invitations
 
-Progress: [████░░░░░░] 50% (4/8 plans)
+Progress: [██████░░░░] 62% (5/8 plans)
 
 ## Performance Metrics
 
@@ -34,11 +34,11 @@ Progress: [████░░░░░░] 50% (4/8 plans)
 | 05 | 5 | 90.4m | 18.1m |
 | 06 | 3 | 60.9m | 20.3m |
 | 06.1 | 9 | 153.7m | 17.1m |
-| 06.2 | 4 | 150.7m | 37.7m |
+| 06.2 | 5 | 165.6m | 33.1m |
 
 **Recent Trend:**
-- Last 5 plans: 15.3m, 25.8m, 35.3m, 43.7m, (next plan)
-- Trend: Phase 06.2 in progress - Design system, backend infra, sidebar navigation complete
+- Last 5 plans: 25.8m, 35.3m, 43.7m, 14.9m, (next plan)
+- Trend: Phase 06.2 in progress - Design system, backend infra, sidebar navigation, registration/onboarding complete
 
 *Updated after each plan completion*
 
@@ -88,6 +88,7 @@ Progress: [████░░░░░░] 50% (4/8 plans)
 | 06.2-01 | 35.3m (2117s) | 2 | 15 |
 | 06.2-02 | 45.9m (2751s) | 2 | 24 |
 | 06.2-03 | 43.7m (2622s) | 2 | 13 |
+| 06.2-05 | 14.9m (891s) | 2 | 13 |
 
 ## Accumulated Context
 
@@ -287,6 +288,12 @@ Recent decisions affecting current work:
 - [Phase 06.2-03]: Mobile sidebar uses glassmorphism backdrop instead of solid overlay for visual consistency
 - [Phase 06.2-03]: Field workers see only "My Tickets" and "Submit Report" (no dashboard analytics)
 - [Phase 06.2-03]: Vite server.fs.allow and optimizeDeps.include required for shared folder imports
+- [Phase 06.2-05]: Municipality registration uses hybrid model: request access form → admin review → invite (not open signup)
+- [Phase 06.2-05]: Onboarding wizard has 6 screens: Welcome, Profile (required), Team (skippable), Wards (skippable), SLA (skippable), Completion
+- [Phase 06.2-05]: Onboarding progress persisted to backend (GET/PUT /api/v1/onboarding/state) with localStorage as offline fallback
+- [Phase 06.2-05]: Team invitations submitted to POST /api/v1/invitations/bulk during onboarding
+- [Phase 06.2-05]: Supporting documents for access requests uploaded to Supabase Storage (access-request-docs bucket) before API submission
+- [Phase 06.2-05]: Wizard resumes from first incomplete step using backend state (cross-device resume capability)
 
 ### Pending Todos
 
@@ -303,10 +310,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-11 (Phase 6.2 Plan 02)
-Stopped at: Completed 06.2-02-PLAN.md — Restructured public site from single-scroll to 4-page React Router app with transparent header navigation, dedicated transparency dashboard page, About page, and Report redirect. Phase 6.2 plans 1-3, 8 complete (4/8 total).
+Last session: 2026-02-11 (Phase 6.2 Plan 05)
+Stopped at: Completed 06.2-05-PLAN.md — Municipality access request form with admin approval workflow + 5-step guided onboarding wizard with backend state persistence and team invitations. Phase 6.2 plans 1-3, 5, 8 complete (5/8 total).
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-11*
+*Last updated: 2026-02-11 17:16 UTC*
