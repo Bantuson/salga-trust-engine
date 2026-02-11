@@ -1,37 +1,35 @@
-"""Redis Pub/Sub event broadcaster for real-time dashboard updates.
+"""PostgreSQL pg_notify event broadcaster for Supabase Realtime integration.
 
 Broadcasts ticket events (status changes, new assignments, SLA breaches)
-to all connected SSE clients via Redis Pub/Sub channels.
-Each municipality has its own channel: "dashboard:{municipality_id}".
+via PostgreSQL NOTIFY mechanism. Supabase Realtime automatically forwards
+pg_notify events to connected WebSocket clients.
+
+Each municipality has its own channel: "ticket_updates:{municipality_id}".
+
+Note: Database triggers automatically broadcast INSERT/UPDATE events.
+This service provides programmatic publish for events not triggered by DB changes
+(e.g., manual SLA breach notifications, assignment changes).
 """
 import json
 import logging
-from typing import AsyncGenerator
 
-import redis.asyncio as redis
+from sqlalchemy import text
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.core.config import settings
+from src.core.database import get_db
 
 logger = logging.getLogger(__name__)
 
 
 class EventBroadcaster:
-    """Redis Pub/Sub broadcaster for dashboard events."""
+    """PostgreSQL pg_notify broadcaster for Supabase Realtime."""
 
     def __init__(self):
-        self._redis_client = None
-        self._pubsub = None
+        """Initialize broadcaster (no persistent connections needed)."""
+        pass
 
-    async def _get_redis(self):
-        if self._redis_client is None:
-            self._redis_client = redis.from_url(
-                settings.REDIS_URL,
-                decode_responses=True
-            )
-        return self._redis_client
-
-    async def publish(self, municipality_id: str, event: dict) -> int:
-        """Publish event to municipality's dashboard channel.
+    async def publish(self, municipality_id: str, event: dict) -> None:
+        """Publish event to municipality's channel via pg_notify.
 
         Args:
             municipality_id: Target municipality UUID string
@@ -40,46 +38,31 @@ class EventBroadcaster:
                 data: Event payload (ticket_id, status, category, etc.)
                 ward_id: Ward identifier for WARD_COUNCILLOR filtering
 
-        Returns:
-            Number of subscribers that received the message
+        Note:
+            Supabase Realtime automatically picks up pg_notify and broadcasts to
+            WebSocket subscribers on channel "ticket_updates:{municipality_id}".
         """
-        r = await self._get_redis()
-        channel = f"dashboard:{municipality_id}"
+        channel = f"ticket_updates:{municipality_id}"
         payload = json.dumps(event)
-        count = await r.publish(channel, payload)
-        logger.debug(f"Published {event.get('type')} to {channel} ({count} subscribers)")
-        return count
 
-    async def subscribe(self, municipality_id: str) -> AsyncGenerator[dict, None]:
-        """Subscribe to municipality's dashboard channel and yield events.
-
-        Args:
-            municipality_id: Municipality UUID string
-
-        Yields:
-            Event dicts as they arrive
-        """
-        r = await self._get_redis()
-        pubsub = r.pubsub()
-        channel = f"dashboard:{municipality_id}"
-
-        await pubsub.subscribe(channel)
-        logger.info(f"Subscribed to {channel}")
-
-        try:
-            async for message in pubsub.listen():
-                if message["type"] == "message":
-                    try:
-                        yield json.loads(message["data"])
-                    except json.JSONDecodeError:
-                        logger.warning(f"Invalid JSON in {channel}: {message['data']}")
-        finally:
-            await pubsub.unsubscribe(channel)
-            await pubsub.close()
-            logger.info(f"Unsubscribed from {channel}")
+        # Use database connection to send pg_notify
+        async for db in get_db():
+            try:
+                await db.execute(
+                    text("SELECT pg_notify(:channel, :payload)"),
+                    {"channel": channel, "payload": payload}
+                )
+                await db.commit()
+                logger.debug(f"Published {event.get('type')} to {channel} via pg_notify")
+            except Exception as e:
+                logger.error(f"Failed to publish event to {channel}: {e}")
+                await db.rollback()
+            finally:
+                break  # Only use first db session from generator
 
     async def close(self):
-        """Close Redis connection."""
-        if self._redis_client:
-            await self._redis_client.close()
-            self._redis_client = None
+        """Close connections (no-op for pg_notify implementation).
+
+        Database connections are managed by SQLAlchemy pool, not by this service.
+        """
+        pass

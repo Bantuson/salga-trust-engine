@@ -1,10 +1,27 @@
-"""SSE (Server-Sent Events) endpoint for real-time dashboard updates.
+"""DEPRECATED: SSE endpoint for real-time dashboard updates.
 
-Streams ticket events to connected dashboard clients. Uses Redis Pub/Sub
-to receive events published by other parts of the system (ticket updates,
-SLA breaches, assignments). Filters events by user role:
-- MANAGER/ADMIN: All events for their municipality
-- WARD_COUNCILLOR: Only events matching their ward
+This endpoint is deprecated in favor of Supabase Realtime WebSocket subscriptions.
+
+MIGRATION NOTICE:
+- Old: Redis Pub/Sub -> Server-Sent Events (this endpoint)
+- New: PostgreSQL pg_notify -> Supabase Realtime WebSocket
+
+Frontend clients should migrate to Supabase Realtime:
+```javascript
+const channel = supabase
+  .channel(`ticket_updates:${municipalityId}`)
+  .on('postgres_changes', {
+    event: '*',
+    schema: 'public',
+    table: 'tickets',
+    filter: `tenant_id=eq.${municipalityId}`
+  }, (payload) => {
+    // Handle ticket update
+  })
+  .subscribe();
+```
+
+This SSE endpoint remains for backward compatibility but may be removed in future versions.
 """
 import asyncio
 import json
@@ -23,12 +40,17 @@ logger = logging.getLogger(__name__)
 router = APIRouter(prefix="/dashboard", tags=["dashboard-events"])
 
 
-@router.get("/events")
+@router.get("/events", deprecated=True)
 async def stream_dashboard_events(
     current_user: User = Depends(get_current_user),
     ward_id: str | None = Query(None, description="Ward filter for WARD_COUNCILLOR"),
 ):
-    """SSE endpoint for real-time dashboard event streaming.
+    """DEPRECATED: SSE endpoint for real-time dashboard event streaming.
+
+    This endpoint is deprecated. Please migrate to Supabase Realtime WebSocket:
+    - Direct database change streaming via postgres_changes
+    - Better scalability and lower server load
+    - Native WebSocket reconnection handling
 
     Streams events:
     - ticket_updated: Status or assignment changes
@@ -47,32 +69,37 @@ async def stream_dashboard_events(
         )
 
     municipality_id = str(current_user.tenant_id)
-    broadcaster = EventBroadcaster()
 
     async def event_generator():
+        """
+        DEPRECATED: This SSE implementation is kept for backward compatibility.
+
+        New implementations should use Supabase Realtime WebSocket directly.
+        This endpoint now only sends a deprecation notice and heartbeat.
+        """
         try:
-            # Send initial heartbeat
+            # Send deprecation notice
             yield {
                 "event": "connected",
-                "data": json.dumps({"status": "connected", "municipality_id": municipality_id}),
+                "data": json.dumps({
+                    "status": "deprecated",
+                    "message": "This SSE endpoint is deprecated. Please migrate to Supabase Realtime WebSocket.",
+                    "municipality_id": municipality_id,
+                    "migration_guide": "Use supabase.channel('ticket_updates:{municipality_id}').on('postgres_changes', {...})"
+                }),
                 "id": str(uuid4()),
             }
 
-            async for event in broadcaster.subscribe(municipality_id):
-                # RBAC: Ward councillor filtering
-                if current_user.role == UserRole.WARD_COUNCILLOR:
-                    event_ward = event.get("ward_id")
-                    if ward_id and event_ward and event_ward != ward_id:
-                        continue  # Skip events for other wards
-
+            # Keep connection alive with periodic heartbeats
+            # Real events are now delivered via Supabase Realtime WebSocket
+            while True:
+                await asyncio.sleep(30)
                 yield {
-                    "event": event.get("type", "message"),
-                    "data": json.dumps(event.get("data", {})),
+                    "event": "heartbeat",
+                    "data": json.dumps({"timestamp": asyncio.get_event_loop().time()}),
                     "id": str(uuid4()),
                 }
         except asyncio.CancelledError:
             logger.info(f"SSE client disconnected: {municipality_id}")
-        finally:
-            await broadcaster.close()
 
     return EventSourceResponse(event_generator())
