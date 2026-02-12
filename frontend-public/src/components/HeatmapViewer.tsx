@@ -73,7 +73,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
       {/* Interactive Controls */}
       <div style={{
         padding: 'var(--spacing-lg)',
-        background: 'rgba(10, 14, 26, 0.7)',
+        background: 'rgba(205, 94, 129, 0.7)',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid var(--border-subtle)',
       }}>
@@ -196,7 +196,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(10, 14, 26, 0.9)',
+            backgroundColor: 'rgba(205, 94, 129, 0.9)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
@@ -326,7 +326,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
         fontSize: 'var(--text-xs)',
         color: 'var(--text-muted)',
         textAlign: 'center',
-        background: 'rgba(10, 14, 26, 0.5)',
+        background: 'rgba(205, 94, 129, 0.5)',
         borderTop: '1px solid var(--border-subtle)',
       }}>
         Heatmap shows aggregated report density (k-anonymity ≥3). Individual addresses are not displayed to protect privacy.

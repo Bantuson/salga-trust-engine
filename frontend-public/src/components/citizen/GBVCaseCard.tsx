@@ -24,7 +24,7 @@ export const GBVCaseCard: React.FC<GBVCaseCardProps> = ({ ticket }) => {
       style={{
         padding: 'var(--spacing-lg)',
         borderLeft: '4px solid var(--color-coral)',
-        background: 'linear-gradient(135deg, rgba(255, 107, 74, 0.05) 0%, rgba(10, 14, 26, 0.95) 100%)',
+        background: 'linear-gradient(135deg, rgba(255, 107, 74, 0.05) 0%, rgba(205, 94, 129, 0.95) 100%)',
       }}
     >
       {/* Header with Lock Icon */}

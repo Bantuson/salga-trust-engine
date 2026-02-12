@@ -63,7 +63,7 @@
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 14, 26, 0.8);
+  background: rgba(205, 94, 129, 0.8);
   backdrop-filter: blur(4px);
   z-index: 999;
   animation: fadeIn 0.2s ease;
@@ -197,7 +197,7 @@
   height: 40px;
   border-radius: 50%;
   background: var(--color-teal);
-  color: var(--color-navy);
+  color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
