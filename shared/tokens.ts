@@ -4,27 +4,27 @@
  */
 
 export const colors = {
-  navy: '#0A0E1A',
-  navyLight: '#131829',
-  navySurface: '#1A1F3A',
-  coral: '#FF6B4A',
-  coralHover: '#FF8566',
-  teal: '#00D9A6',
-  tealHover: '#00F0B8',
+  rose: '#cd5e81',
+  roseLight: '#e68ba5',
+  roseDeep: '#a34866',
+  accentGold: '#ffd54f',
+  accentGoldHover: '#ffe082',
+  teal: '#00bfa5',
+  tealHover: '#00d9b8',
   gold: '#FBBF24',
   white: '#FFFFFF',
-  textPrimary: '#E8E8EC',
-  textSecondary: '#9CA3AF',
-  textMuted: '#6B7280',
-  surfaceElevated: 'rgba(255,255,255,0.05)',
-  surfaceHigher: 'rgba(255,255,255,0.08)',
-  surfaceHighest: 'rgba(255,255,255,0.11)',
-  border: 'rgba(255,255,255,0.1)',
-  borderHover: 'rgba(255,255,255,0.2)',
-  chartPrimary: '#FF6B4A',
-  chartSecondary: '#00D9A6',
-  chartTertiary: '#A78BFA',
-  chartQuaternary: '#FBBF24',
+  textPrimary: '#f9f7f8',
+  textSecondary: '#e0d4d8',
+  textMuted: '#c7b3ba',
+  surfaceElevated: 'rgba(255,255,255,0.08)',
+  surfaceHigher: 'rgba(255,255,255,0.12)',
+  surfaceHighest: 'rgba(255,255,255,0.16)',
+  border: 'rgba(255,255,255,0.15)',
+  borderHover: 'rgba(255,255,255,0.25)',
+  chartPrimary: '#ffd54f',
+  chartSecondary: '#00bfa5',
+  chartTertiary: '#7c4dff',
+  chartQuaternary: '#ff6e40',
 } as const;
 
 export const typography = {
@@ -33,9 +33,9 @@ export const typography = {
 } as const;
 
 export const gradients = [
-  'linear-gradient(135deg, #0A0E1A 0%, #1A1F3A 50%, #0F1523 100%)',
-  'linear-gradient(225deg, #0A0E1A 0%, #1C1A2E 50%, #131829 100%)',
-  'linear-gradient(315deg, #0A0E1A 0%, #0F2322 50%, #1A1F3A 100%)',
+  'linear-gradient(135deg, #cd5e81 0%, #e68ba5 50%, #d97491 100%)',
+  'linear-gradient(225deg, #cd5e81 0%, #c25474 50%, #a34866 100%)',
+  'linear-gradient(315deg, #cd5e81 0%, #b84d6f 50%, #e68ba5 100%)',
 ] as const;
 
 export const animation = {
