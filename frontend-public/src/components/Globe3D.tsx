@@ -88,10 +88,10 @@ function MunicipalityDataPoint({ position, reducedMotion, gpuTier }: Municipalit
   const meshRef = useRef<THREE.Mesh>(null);
   const timeOffset = useMemo(() => Math.random() * Math.PI * 2, []); // Random phase for variety
 
-  useFrame((state) => {
+  useFrame(({ clock }) => {
     if (meshRef.current && !reducedMotion && gpuTier >= 2) {
       // Gentle pulsing animation
-      const scale = 0.8 + Math.sin(state.clock.elapsedTime * 1.5 + timeOffset) * 0.2;
+      const scale = 0.8 + Math.sin(clock.elapsedTime * 1.5 + timeOffset) * 0.2;
       meshRef.current.scale.setScalar(scale);
     }
   });
@@ -127,7 +127,7 @@ function SAMap({ gpuTier, onHover, onClick, reducedMotion }: SAMapProps) {
   );
 
   // Auto-rotate and animations (disabled for reduced motion)
-  useFrame((state, delta) => {
+  useFrame((_, delta) => {
     if (groupRef.current && !reducedMotion) {
       groupRef.current.rotation.y += delta * 0.05; // Slow auto-rotate
     }
@@ -241,14 +241,45 @@ export default function Globe3D({ className, onMunicipalityClick }: Globe3DProps
   const gpuTier = useGPUTier();
   const reducedMotion = useReducedMotion();
   const [hovered, setHovered] = useState<string | null>(null);
+  const [webglError, setWebglError] = useState(false);
 
   return (
     <div className={className} style={{ width: '100%', height: '100%', position: 'relative' }}>
-      <Canvas
+      {webglError ? (
+        // Fallback when WebGL fails
+        <div style={{
+          width: '100%',
+          height: '100%',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          background: 'radial-gradient(circle at center, rgba(0, 217, 166, 0.15) 0%, rgba(255, 107, 74, 0.1) 50%, transparent 100%)',
+        }}>
+          <div style={{
+            width: '60%',
+            height: '60%',
+            maxWidth: '400px',
+            maxHeight: '400px',
+            borderRadius: '50%',
+            background: 'radial-gradient(circle at 30% 30%, rgba(0, 217, 166, 0.2), rgba(255, 107, 74, 0.15))',
+            border: '2px solid rgba(0, 217, 166, 0.3)',
+            boxShadow: '0 0 60px rgba(0, 217, 166, 0.2), inset 0 0 40px rgba(0, 217, 166, 0.1)',
+          }} />
+        </div>
+      ) : (
+        <Canvas
         dpr={[1, Math.min(window.devicePixelRatio, 2)]}  // DPR cap at 2 for mobile
         frameloop="demand"                                 // On-demand rendering
         camera={{ position: [0, 0, 5], fov: 45 }}
+        onCreated={({ gl }) => {
+          // Add error handler for WebGL context loss
+          gl.domElement.addEventListener('webglcontextlost', (e) => {
+            e.preventDefault();
+            setWebglError(true);
+          });
+        }}
         gl={{
+          alpha: true,                                    // Transparent canvas background
           precision: 'mediump',                           // mediump shaders for mobile
           antialias: gpuTier >= 2,                        // Disable AA on low-end
           powerPreference: 'high-performance',
@@ -279,6 +310,7 @@ export default function Globe3D({ className, onMunicipalityClick }: Globe3DProps
           maxPolarAngle={Math.PI / 1.5}
         />
       </Canvas>
+      )}
       {hovered && (
         <div style={{
           position: 'absolute',

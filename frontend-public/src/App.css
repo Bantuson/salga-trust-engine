@@ -40,6 +40,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
+  background: var(--surface-base); /* Dark navy background (#0A0E1A) */
 }
 
 .hero-globe-container {
@@ -212,6 +213,7 @@ body {
   border-radius: var(--radius-lg);
   padding: var(--space-xl);
   transition: var(--transition-base);
+  opacity: 1; /* Default visible state - GSAP enhances progressively */
 }
 
 .feature-card:hover {
@@ -577,6 +579,11 @@ body {
 
   .showcase-carousel {
     padding-left: var(--space-md);
+  }
+
+  /* Hide decorative NdebelePattern on mobile to prevent text overlap */
+  .ndebele-pattern {
+    display: none !important;
   }
 }
 

@@ -12,9 +12,20 @@ export function LiveStatsSection() {
   const reducedMotion = useReducedMotion();
 
   useEffect(() => {
+    // Fallback timeout - if animation hasn't triggered after 3 seconds, show final values
+    const fallbackTimer = setTimeout(() => {
+      if (!hasAnimated.current) {
+        hasAnimated.current = true;
+        if (ticketsRef.current) ticketsRef.current.innerHTML = '12847';
+        if (municipalitiesRef.current) municipalitiesRef.current.innerHTML = '5';
+        if (responseRef.current) responseRef.current.innerHTML = '73';
+      }
+    }, 3000);
+
     const observer = new IntersectionObserver(([entry]) => {
       if (entry.isIntersecting && !hasAnimated.current) {
         hasAnimated.current = true;
+        clearTimeout(fallbackTimer);
 
         if (reducedMotion) {
           // Set final values immediately for reduced motion
@@ -51,10 +62,13 @@ export function LiveStatsSection() {
           });
         }
       }
-    }, { threshold: 0.3 });
+    }, { threshold: 0.1 }); // Lowered threshold from 0.3 to 0.1 for better triggering
 
     if (sectionRef.current) observer.observe(sectionRef.current);
-    return () => observer.disconnect();
+    return () => {
+      clearTimeout(fallbackTimer);
+      observer.disconnect();
+    };
   }, [reducedMotion]);
 
   return (

@@ -14,24 +14,33 @@ export function FeaturesSection() {
   useGSAP(() => {
     const cards = sectionRef.current?.querySelectorAll('.feature-card');
 
-    if (reducedMotion) {
+    if (reducedMotion || !cards || cards.length === 0) {
       // Set elements to final state immediately
       gsap.set(cards, { opacity: 1, y: 0, rotateX: 0 });
       return;
     }
 
-    gsap.from(cards, {
-      y: 80,
-      rotateX: 5, // Slight rotation for perspective effect
-      opacity: 0,
-      duration: 0.8,
-      stagger: 0.2,
-      ease: 'back.out(1.7)',
-      scrollTrigger: {
-        trigger: '.features-grid',
-        start: 'top 75%',
+    // Use autoAlpha instead of opacity for better reliability
+    gsap.fromTo(cards,
+      {
+        autoAlpha: 0,
+        y: 80,
+        rotateX: 5,
       },
-    });
+      {
+        autoAlpha: 1,
+        y: 0,
+        rotateX: 0,
+        duration: 0.8,
+        stagger: 0.2,
+        ease: 'back.out(1.7)',
+        scrollTrigger: {
+          trigger: '.features-grid',
+          start: 'top 75%',
+          toggleActions: 'play none none none', // Ensure animation plays only once
+        },
+      }
+    );
   }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
