@@ -206,7 +206,7 @@ export function RequestAccessPage() {
       const fileName = `${timestamp}-${randomStr}-${uploadedFile.file.name}`;
       const filePath = `access-requests/${fileName}`;
 
-      const { data, error } = await supabase.storage
+      const { error } = await supabase.storage
         .from('access-request-docs')
         .upload(filePath, uploadedFile.file);
 
@@ -260,8 +260,8 @@ export function RequestAccessPage() {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || 'Failed to submit request');
+        const errorData = await response.json().catch(() => ({}));
+        throw new Error((errorData as any).detail || 'Failed to submit request');
       }
 
       // Success!
@@ -278,7 +278,8 @@ export function RequestAccessPage() {
     return (
       <div ref={containerRef} style={styles.container}>
         <AnimatedGradientBg />
-        <GlassCard glow="teal" style={styles.card}>
+        <div>
+          <GlassCard glow="teal" style={styles.card}>
           <div style={styles.successContent}>
             <div style={styles.successIcon}>
               <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-teal)" strokeWidth="2">
@@ -301,7 +302,8 @@ export function RequestAccessPage() {
               </Button>
             </div>
           </div>
-        </GlassCard>
+          </GlassCard>
+        </div>
       </div>
     );
   }
@@ -310,7 +312,8 @@ export function RequestAccessPage() {
     <div ref={containerRef} style={styles.container}>
       <AnimatedGradientBg />
 
-      <GlassCard ref={cardRef} style={styles.card}>
+      <div ref={cardRef}>
+        <GlassCard style={styles.card}>
         <div style={styles.header}>
           <h1 style={styles.title}>Request Municipal Access</h1>
           <p style={styles.subtitle}>
@@ -498,7 +501,8 @@ export function RequestAccessPage() {
             </Link>
           </p>
         </div>
-      </GlassCard>
+        </GlassCard>
+      </div>
     </div>
   );
 }

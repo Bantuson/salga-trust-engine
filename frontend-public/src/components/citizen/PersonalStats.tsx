@@ -9,7 +9,6 @@ import { Skeleton } from '@shared/components/ui/Skeleton';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import type { CitizenStats } from '../../hooks/useCitizenReports';
 import * as animeImport from 'animejs';
-// @ts-expect-error - accessing default export
 const anime = (animeImport as any).default || animeImport;
 
 export interface PersonalStatsProps {

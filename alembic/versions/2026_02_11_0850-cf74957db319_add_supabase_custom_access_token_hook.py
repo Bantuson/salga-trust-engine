@@ -57,6 +57,13 @@ def upgrade() -> None:
         $$ LANGUAGE plpgsql SECURITY DEFINER;
     """)
 
+    # Grant execute to supabase_auth_admin (required for hook to appear in Dashboard)
+    op.execute("""
+        GRANT USAGE ON SCHEMA public TO supabase_auth_admin;
+        GRANT EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) TO supabase_auth_admin;
+        REVOKE EXECUTE ON FUNCTION public.custom_access_token_hook(jsonb) FROM authenticated, anon;
+    """)
+
     # Add helpful comment
     op.execute("""
         COMMENT ON FUNCTION public.custom_access_token_hook(jsonb) IS

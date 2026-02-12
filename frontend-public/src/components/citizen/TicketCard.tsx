@@ -3,7 +3,7 @@
  * Full details card for regular municipal tickets (non-GBV)
  */
 
-import React, { useState } from 'react';
+import React from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Badge, TicketStatus } from '@shared/components/ui/Badge';
 import { Button } from '@shared/components/ui/Button';
@@ -14,8 +14,6 @@ export interface TicketCardProps {
 }
 
 export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
-  const [isHovered, setIsHovered] = useState(false);
-
   // Format relative date
   const getRelativeDate = (dateString: string | undefined): string => {
     if (!dateString) return 'Unknown date';
@@ -58,11 +56,7 @@ export const TicketCard: React.FC<TicketCardProps> = ({ ticket }) => {
       variant="interactive"
       style={{
         padding: 'var(--spacing-lg)',
-        transform: isHovered ? 'translateY(-4px)' : 'translateY(0)',
-        transition: 'var(--transition-base)',
       }}
-      onMouseEnter={() => setIsHovered(true)}
-      onMouseLeave={() => setIsHovered(false)}
     >
       {/* Header Row: Tracking Number + Status Badge */}
       <div style={{
