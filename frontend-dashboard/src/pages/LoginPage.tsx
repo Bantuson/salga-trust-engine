@@ -2,8 +2,7 @@
  * Premium Branded Login Page for Municipal Dashboard
  *
  * Features:
- * - Full-viewport dark background with GradientMeshBg
- * - Small decorative 3D globe (React.lazy + Suspense)
+ * - Full-viewport skyline background with pink overlay
  * - Glassmorphism login card with SALGA branding
  * - Staggered GSAP animation sequence on load
  * - Dual auth modes: Email+password and Phone OTP
@@ -12,7 +11,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -111,7 +109,10 @@ export function LoginPage() {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      <AnimatedGradientBg />
+      {/* Skyline background layers */}
+      <div className="auth-skyline-bg" />
+      <div className="auth-skyline-overlay" />
+      <div className="auth-skyline-frame" />
 
       {/* Glassmorphism Login Card */}
       <div ref={cardRef} className="glass" style={styles.card}>
@@ -296,7 +297,7 @@ const styles = {
     padding: '3rem 2.5rem',
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
-    zIndex: 10,
+    zIndex: 2,
     marginLeft: 'auto',
     marginRight: '10%',
   } as React.CSSProperties,

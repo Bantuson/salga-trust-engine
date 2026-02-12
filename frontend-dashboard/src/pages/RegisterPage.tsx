@@ -2,8 +2,7 @@
  * Premium Registration Page for Municipal Dashboard
  *
  * Features:
- * - Full-viewport dark background with AnimatedGradientBg
- * - Small decorative 3D globe (React.lazy + Suspense)
+ * - Full-viewport skyline background with pink overlay
  * - Glassmorphism registration card with SALGA branding
  * - Staggered GSAP animation sequence on load
  * - Registration with email + password + full name
@@ -12,7 +11,6 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
-import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -101,7 +99,10 @@ export function RegisterPage() {
   if (success) {
     return (
       <div ref={containerRef} style={styles.container}>
-        <AnimatedGradientBg />
+        {/* Skyline background layers */}
+        <div className="auth-skyline-bg" />
+        <div className="auth-skyline-overlay" />
+        <div className="auth-skyline-frame" />
 
         <div ref={cardRef} className="glass" style={styles.card}>
           <div style={styles.logoSection}>
@@ -139,7 +140,10 @@ export function RegisterPage() {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      <AnimatedGradientBg />
+      {/* Skyline background layers */}
+      <div className="auth-skyline-bg" />
+      <div className="auth-skyline-overlay" />
+      <div className="auth-skyline-frame" />
 
       {/* Glassmorphism Registration Card */}
       <div ref={cardRef} className="glass" style={styles.card}>
@@ -250,7 +254,7 @@ const styles = {
     padding: '3rem 2.5rem',
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
-    zIndex: 10,
+    zIndex: 2,
     marginLeft: 'auto',
     marginRight: '10%',
   } as React.CSSProperties,

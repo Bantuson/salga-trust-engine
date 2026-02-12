@@ -14,7 +14,6 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
@@ -277,7 +276,10 @@ export function RequestAccessPage() {
   if (state === 'success') {
     return (
       <div ref={containerRef} style={styles.container}>
-        <AnimatedGradientBg />
+        {/* Skyline background layers */}
+        <div className="auth-skyline-bg" />
+        <div className="auth-skyline-overlay" />
+        <div className="auth-skyline-frame" />
         <div>
           <GlassCard glow="teal" style={styles.card}>
           <div style={styles.successContent}>
@@ -310,7 +312,10 @@ export function RequestAccessPage() {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      <AnimatedGradientBg />
+      {/* Skyline background layers */}
+      <div className="auth-skyline-bg" />
+      <div className="auth-skyline-overlay" />
+      <div className="auth-skyline-frame" />
 
       <div ref={cardRef}>
         <GlassCard style={styles.card}>
@@ -522,7 +527,7 @@ const styles = {
     maxWidth: '600px',
     padding: '3rem 2.5rem',
     position: 'relative' as const,
-    zIndex: 10,
+    zIndex: 2,
   } as React.CSSProperties,
   header: {
     marginBottom: '2rem',
