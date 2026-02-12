@@ -591,11 +591,6 @@ body {
     padding-left: var(--space-md);
   }
 
-  /* Hide decorative NdebelePattern on mobile to prevent text overlap */
-  .ndebele-pattern {
-    display: none !important;
-  }
-
   /* Mobile: skyline positioned lower for better text readability */
   .skyline-background {
     background-position: center 60%;

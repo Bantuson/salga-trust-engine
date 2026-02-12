@@ -1,5 +1,4 @@
 import { GlassCard } from '@shared/components/ui/GlassCard';
-import { NdebelePattern } from '@shared/components/NdebelePattern';
 import { useState } from 'react';
 
 export function AboutPage() {
@@ -22,8 +21,6 @@ export function AboutPage() {
             every municipality is accountable, and every citizen can see the results.
           </p>
         </GlassCard>
-
-        <NdebelePattern variant="border" />
 
         <GlassCard variant="default">
           <h2>How It Works</h2>
@@ -55,8 +52,6 @@ export function AboutPage() {
           </div>
         </GlassCard>
 
-        <NdebelePattern variant="border" />
-
         <div className="about-benefits">
           <GlassCard variant="default">
             <h2>For Citizens</h2>
@@ -82,8 +77,6 @@ export function AboutPage() {
             </ul>
           </GlassCard>
         </div>
-
-        <NdebelePattern variant="border" />
 
         <GlassCard variant="default">
           <h2>Frequently Asked Questions</h2>

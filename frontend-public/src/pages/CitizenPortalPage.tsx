@@ -12,7 +12,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
-import { NdebelePattern } from '@shared/components/NdebelePattern';
 import { Button } from '@shared/components/ui/Button';
 import { PersonalStats } from '../components/citizen/PersonalStats';
 import { MyReportsList } from '../components/citizen/MyReportsList';
@@ -30,7 +29,6 @@ export const CitizenPortalPage: React.FC = () => {
     }}>
       {/* Background */}
       <AnimatedGradientBg />
-      <NdebelePattern variant="background" opacity={0.05} />
 
       {/* Content */}
       <div style={{

@@ -1,19 +1,15 @@
-import { useState, Suspense, lazy } from 'react';
+import { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
-import { NdebelePattern } from '@shared/components/NdebelePattern';
 import { MunicipalitySelector } from '../components/MunicipalitySelector';
 import { ResponseTimeChart } from '../components/ResponseTimeChart';
 import { ResolutionRateChart } from '../components/ResolutionRateChart';
 import { HeatmapViewer } from '../components/HeatmapViewer';
-import { GlobeLoadingSkeleton } from '../components/GlobeLoadingSkeleton';
 import {
   useSystemSummary,
   useResponseTimes,
   useResolutionRates
 } from '../hooks/usePublicStats';
-
-const Globe3D = lazy(() => import('../components/Globe3D'));
 
 export function TransparencyDashboardPage() {
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
@@ -27,13 +23,8 @@ export function TransparencyDashboardPage() {
 
   return (
     <div className="transparency-dashboard-page">
-      {/* Header with 3D Globe */}
+      {/* Header */}
       <div className="dashboard-header">
-        <div className="dashboard-header-globe">
-          <Suspense fallback={<GlobeLoadingSkeleton />}>
-            <Globe3D />
-          </Suspense>
-        </div>
         <div className="dashboard-header-content">
           <h1 className="dashboard-title">Municipal Transparency Dashboard</h1>
           <p className="dashboard-subtitle">
@@ -61,8 +52,6 @@ export function TransparencyDashboardPage() {
             <div className="metric-note">GBV reports excluded from location data</div>
           </GlassCard>
         </div>
-
-        <NdebelePattern variant="border" />
 
         {/* Municipality Selector */}
         <MunicipalitySelector
@@ -95,8 +84,6 @@ export function TransparencyDashboardPage() {
             </>
           )}
         </div>
-
-        <NdebelePattern variant="border" />
 
         {/* Privacy Notice */}
         <GlassCard variant="elevated">

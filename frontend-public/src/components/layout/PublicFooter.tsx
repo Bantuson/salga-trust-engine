@@ -1,11 +1,8 @@
 import { Link } from 'react-router-dom';
-import { NdebelePattern } from '@shared/components/NdebelePattern';
 
 export function PublicFooter() {
   return (
     <footer className="public-footer">
-      <NdebelePattern variant="border" className="footer-decoration" />
-
       <div className="footer-container">
         <div className="footer-columns">
           {/* Left Column: Logo + Tagline */}

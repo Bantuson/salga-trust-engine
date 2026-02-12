@@ -1,7 +1,6 @@
 import { useRef, useEffect } from 'react';
 import { animate } from 'animejs';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
-import { NdebelePattern } from '@shared/components/NdebelePattern';
 
 export function LiveStatsSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
@@ -73,9 +72,6 @@ export function LiveStatsSection() {
 
   return (
     <section ref={sectionRef} className="live-stats-section">
-      <div style={{ marginBottom: '2rem' }}>
-        <NdebelePattern variant="border" opacity={0.15} />
-      </div>
       <h2 className="stats-title">Real Impact, Real Results</h2>
       <div className="stats-grid">
         <div className="stat-card">
@@ -91,9 +87,6 @@ export function LiveStatsSection() {
           <div className="stat-suffix">%</div>
           <div className="stat-label">Faster Response</div>
         </div>
-      </div>
-      <div style={{ marginTop: '2rem' }}>
-        <NdebelePattern variant="border" opacity={0.15} />
       </div>
     </section>
   );
