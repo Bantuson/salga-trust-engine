@@ -180,6 +180,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-11 (Phase 6.2 revised — UX redesign + full backend integration, 8 plans in 4 waves)*
 
+### Phase 06.3: Complete UI redesign with Johannesburg skyline background glassmorphic cards pink rose theme and proper design system for both dashboards (INSERTED)
+
+**Goal:** Complete visual identity overhaul for both dashboards: replace navy dark mode with pink/rose (#cd5e81) dominant background, use the Johannesburg skyline photograph as hero imagery, refine glassmorphic card system for the new color palette, remove 3D globe and Ndebele patterns, and ensure both apps share an identical theme. All existing page structure and functionality stays — this is a re-skin, not a restructure.
+**Depends on:** Phase 6.2
+**Plans:** 6 plans
+
+Plans:
+- [ ] 06.3-01-PLAN.md -- Design tokens + animations + AnimatedGradientBg + GlassCard + Skeleton (pink/rose foundation)
+- [ ] 06.3-02-PLAN.md -- Remove Globe3D and NdebelePattern from both dashboards
+- [ ] 06.3-03-PLAN.md -- Skyline hero on public landing page with GSAP scroll fade + pink border frame
+- [ ] 06.3-04-PLAN.md -- Public dashboard App.css full pink/rose re-skin (header, footer, all sections)
+- [ ] 06.3-05-PLAN.md -- Municipal dashboard App.css re-skin + skyline backgrounds on login/register/request-access
+- [ ] 06.3-06-PLAN.md -- Build verification + visual checkpoint
+
 ### Phase 06.2: UX redesign user journeys design system and dashboard consistency (INSERTED)
 
 **Goal:** Redesign both dashboards with properly defined user journeys, a consistent design system (Space Grotesk + Inter, glassmorphism, animated gradient, Ndebele/Zulu accents), complete registration/onboarding flows, page structure separation (transparency dashboard as dedicated page), and improved 3D elements
