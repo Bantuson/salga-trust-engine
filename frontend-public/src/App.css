@@ -78,7 +78,7 @@ body {
 }
 
 .text-coral {
-  background: linear-gradient(135deg, var(--color-coral), var(--color-teal));
+  background: linear-gradient(135deg, var(--color-accent-gold), var(--color-teal));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -517,7 +517,7 @@ body {
 
 /* Footer */
 .site-footer {
-  background: var(--color-navy-light);
+  background: rgba(163, 72, 102, 0.6);
   color: var(--text-secondary);
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
@@ -609,13 +609,13 @@ body {
   left: 0;
   right: 0;
   z-index: 100;
-  background-color: rgba(10, 14, 26, 0);
+  background-color: rgba(205, 94, 129, 0);
   transition: background-color 0.3s ease, backdrop-filter 0.3s ease, border-bottom-color 0.3s ease;
   border-bottom: 1px solid transparent;
 }
 
 .public-header.scrolled {
-  background-color: rgba(10, 14, 26, 0.95);
+  background-color: rgba(163, 72, 102, 0.92);
   backdrop-filter: blur(10px);
   border-bottom-color: var(--border-subtle);
 }
@@ -642,7 +642,7 @@ body {
   font-family: var(--font-display);
   font-size: 1.25rem;
   font-weight: 700;
-  background: linear-gradient(135deg, var(--color-coral), var(--color-teal));
+  background: linear-gradient(135deg, var(--text-primary), var(--color-accent-gold));
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -678,7 +678,7 @@ body {
   left: 0;
   right: 0;
   height: 2px;
-  background: var(--color-coral);
+  background: var(--color-accent-gold);
 }
 
 .desktop-nav {
@@ -705,7 +705,7 @@ body {
 .mobile-menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(10, 14, 26, 0.98);
+  background: rgba(163, 72, 102, 0.96);
   backdrop-filter: blur(10px);
   z-index: 150;
   display: flex;
@@ -749,7 +749,7 @@ body {
 
 .mobile-nav-link:hover,
 .mobile-nav-link.active {
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
 }
 
 .mobile-cta {
@@ -828,7 +828,7 @@ body {
 }
 
 .footer-link:hover {
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
 }
 
 .emergency-numbers {
@@ -849,7 +849,7 @@ body {
 }
 
 .emergency-number {
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
   font-size: 1.25rem;
   font-weight: 700;
   text-decoration: none;
