@@ -1,43 +1,43 @@
 /**
  * SALGA Trust Engine — Design Token System
  * Shared CSS custom properties for municipal and public dashboards
- * Color palette: Navy #0A0E1A, Coral #FF6B4A, Teal #00D9A6
+ * Color palette: Rose #cd5e81, Gold #ffd54f, Teal #00bfa5
  */
 
 @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Inter:wght@300;400;500;600;700&display=swap');
 
 :root {
   /* Core Palette */
-  --color-navy: #0A0E1A;
-  --color-navy-light: #131829;
-  --color-navy-surface: #1A1F3A;
-  --color-coral: #FF6B4A;
-  --color-coral-hover: #FF8566;
-  --color-teal: #00D9A6;
-  --color-teal-hover: #00F0B8;
+  --color-rose: #cd5e81;
+  --color-rose-light: #e68ba5;
+  --color-rose-deep: #a34866;
+  --color-accent-gold: #ffd54f;
+  --color-accent-gold-hover: #ffe082;
+  --color-teal: #00bfa5;
+  --color-teal-hover: #00d9b8;
   --color-gold: #FBBF24;
   --color-white: #FFFFFF;
 
   /* Text */
-  --text-primary: #E8E8EC;
-  --text-secondary: #9CA3AF;
-  --text-muted: #6B7280;
+  --text-primary: #f9f7f8;
+  --text-secondary: #e0d4d8;
+  --text-muted: #c7b3ba;
 
   /* Surfaces (Material Design 3 elevation) */
-  --surface-base: #0A0E1A;
-  --surface-elevated: rgba(255, 255, 255, 0.05);
-  --surface-higher: rgba(255, 255, 255, 0.08);
-  --surface-highest: rgba(255, 255, 255, 0.11);
+  --surface-base: #cd5e81;
+  --surface-elevated: rgba(255, 255, 255, 0.08);
+  --surface-higher: rgba(255, 255, 255, 0.12);
+  --surface-highest: rgba(255, 255, 255, 0.16);
 
   /* Borders */
-  --border-subtle: rgba(255, 255, 255, 0.1);
-  --border-hover: rgba(255, 255, 255, 0.2);
+  --border-subtle: rgba(255, 255, 255, 0.15);
+  --border-hover: rgba(255, 255, 255, 0.25);
 
   /* Glow Effects */
-  --glow-coral: 0 0 20px rgba(255, 107, 74, 0.15), 0 0 60px rgba(255, 107, 74, 0.05);
-  --glow-teal: 0 0 20px rgba(0, 217, 166, 0.15), 0 0 60px rgba(0, 217, 166, 0.05);
-  --glow-coral-border: rgba(255, 107, 74, 0.2);
-  --glow-teal-border: rgba(0, 217, 166, 0.2);
+  --glow-gold: 0 0 20px rgba(255, 213, 79, 0.2), 0 0 60px rgba(255, 213, 79, 0.08);
+  --glow-teal: 0 0 20px rgba(0, 191, 165, 0.2), 0 0 60px rgba(0, 191, 165, 0.08);
+  --glow-gold-border: rgba(255, 213, 79, 0.25);
+  --glow-teal-border: rgba(0, 191, 165, 0.25);
 
   /* Typography */
   --font-body: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
@@ -72,17 +72,23 @@
   --radius-xl: 24px;
 
   /* Chart Colors */
-  --chart-primary: #FF6B4A;
-  --chart-secondary: #00D9A6;
-  --chart-tertiary: #A78BFA;
-  --chart-quaternary: #FBBF24;
-  --chart-grid: rgba(255, 255, 255, 0.06);
-  --chart-axis-text: #9CA3AF;
+  --chart-primary: #ffd54f;
+  --chart-secondary: #00bfa5;
+  --chart-tertiary: #7c4dff;
+  --chart-quaternary: #ff6e40;
+  --chart-grid: rgba(255, 255, 255, 0.08);
+  --chart-axis-text: #e0d4d8;
 
   /* Glassmorphism */
-  --glass-bg: rgba(255, 255, 255, 0.05);
-  --glass-border: rgba(255, 255, 255, 0.1);
-  --glass-blur: 20px;
+  --glass-white-frost: rgba(255, 255, 255, 0.15);
+  --glass-pink-frost: rgba(205, 94, 129, 0.15);
+  --glass-border: rgba(255, 255, 255, 0.2);
+  --glass-blur-subtle: 10px;
+  --glass-blur-medium: 20px;
+
+  /* Skeleton tokens */
+  --skeleton-base: rgba(163, 72, 102, 0.3);
+  --skeleton-highlight: rgba(205, 94, 129, 0.5);
 
   /* Transitions */
   --transition-fast: 150ms ease;
@@ -90,7 +96,7 @@
   --transition-slow: 500ms ease;
 
   /* Animated Gradients */
-  --gradient-1: linear-gradient(135deg, #0A0E1A 0%, #1A1F3A 50%, #0F1523 100%);
-  --gradient-2: linear-gradient(225deg, #0A0E1A 0%, #1C1A2E 50%, #131829 100%);
-  --gradient-3: linear-gradient(315deg, #0A0E1A 0%, #0F2322 50%, #1A1F3A 100%);
+  --gradient-1: linear-gradient(135deg, #cd5e81 0%, #e68ba5 50%, #d97491 100%);
+  --gradient-2: linear-gradient(225deg, #cd5e81 0%, #c25474 50%, #a34866 100%);
+  --gradient-3: linear-gradient(315deg, #cd5e81 0%, #b84d6f 50%, #e68ba5 100%);
 }
