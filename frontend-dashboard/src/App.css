@@ -52,9 +52,9 @@ code {
   border: 1px solid var(--glass-border);
 }
 
-.card-glow-coral {
-  box-shadow: var(--glow-coral);
-  border: 1px solid var(--glow-coral-border);
+.card-glow-gold {
+  box-shadow: var(--glow-gold);
+  border: 1px solid var(--glow-gold-border);
 }
 
 .card-glow-teal {
@@ -98,7 +98,7 @@ table {
 }
 
 thead {
-  background: var(--color-navy-light);
+  background: rgba(163, 72, 102, 0.4);
 }
 
 th {
@@ -135,8 +135,8 @@ button {
 }
 
 .button-primary {
-  background: var(--color-coral);
-  color: white;
+  background: var(--color-accent-gold);
+  color: #333;
   padding: var(--space-sm) var(--space-md);
   border: none;
   border-radius: var(--radius-sm);
@@ -146,8 +146,8 @@ button {
 }
 
 .button-primary:hover {
-  background: var(--color-coral-hover);
-  box-shadow: var(--glow-coral);
+  background: var(--color-accent-gold-hover);
+  box-shadow: var(--glow-gold);
 }
 
 .button-secondary {
@@ -295,11 +295,11 @@ textarea:focus-visible {
 /* Hover Button Glow */
 .button-primary:hover,
 .button-primary:focus-visible {
-  box-shadow: var(--glow-coral);
+  box-shadow: var(--glow-gold);
 }
 
 /* Card Hover Animation */
-.animated-card:hover .card-glow-coral {
+.animated-card:hover .card-glow-gold {
   animation: glowPulse 2s ease-in-out infinite;
 }
 
@@ -383,5 +383,37 @@ textarea.error {
   .card:hover,
   .animated-card:hover {
     transform: none !important;
+  }
+}
+
+/* ===== AUTH PAGE SKYLINE BACKGROUNDS ===== */
+/* Skyline background for auth pages (login, register, request-access) */
+.auth-skyline-bg {
+  position: fixed;
+  inset: 0;
+  background-image: url('/assets/skyline.png');
+  background-size: cover;
+  background-position: center bottom;
+  z-index: 0;
+}
+
+.auth-skyline-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(205, 94, 129, 0.3);
+  z-index: 0;
+}
+
+.auth-skyline-frame {
+  position: fixed;
+  inset: 0;
+  border: 20px solid rgba(205, 94, 129, 0.4);
+  pointer-events: none;
+  z-index: 1;
+}
+
+@media (max-width: 767px) {
+  .auth-skyline-frame {
+    border-width: 12px;
   }
 }
