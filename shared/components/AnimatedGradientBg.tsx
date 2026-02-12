@@ -11,7 +11,7 @@ export const AnimatedGradientBg: React.FC = () => {
   const reducedMotion = useReducedMotion();
 
   if (reducedMotion) {
-    // Static navy background when reduced motion is preferred
+    // Static rose background when reduced motion is preferred
     return (
       <div
         style={{
@@ -21,7 +21,7 @@ export const AnimatedGradientBg: React.FC = () => {
           right: 0,
           bottom: 0,
           zIndex: -1,
-          background: 'var(--color-navy)',
+          background: 'var(--color-rose)',
         }}
       />
     );

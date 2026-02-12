@@ -16,13 +16,13 @@ export interface SkeletonProps {
   style?: React.CSSProperties;
 }
 
-const darkModeColors = {
-  baseColor: 'rgba(255, 255, 255, 0.05)',
-  highlightColor: 'rgba(255, 255, 255, 0.1)',
+const themeColors = {
+  baseColor: 'rgba(163, 72, 102, 0.3)',
+  highlightColor: 'rgba(205, 94, 129, 0.5)',
 };
 
 export const SkeletonTheme: React.FC<{ children: React.ReactNode }> = ({ children }) => (
-  <BaseSkeletonTheme baseColor={darkModeColors.baseColor} highlightColor={darkModeColors.highlightColor}>
+  <BaseSkeletonTheme baseColor={themeColors.baseColor} highlightColor={themeColors.highlightColor}>
     {children}
   </BaseSkeletonTheme>
 );
