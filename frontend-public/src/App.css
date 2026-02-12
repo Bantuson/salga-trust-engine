@@ -94,20 +94,20 @@ body {
 .hero-cta {
   display: inline-block;
   padding: 1rem 2.5rem;
-  background: var(--color-coral);
-  color: white;
+  background: var(--color-accent-gold);
+  color: #333;
   text-decoration: none;
   border-radius: var(--radius-md);
   font-weight: 600;
   font-size: 1.125rem;
   transition: var(--transition-base);
-  box-shadow: var(--glow-coral);
+  box-shadow: var(--glow-gold);
 }
 
 .hero-cta:hover {
-  background: var(--color-coral-hover);
+  background: var(--color-accent-gold-hover);
   transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(255, 107, 74, 0.3), 0 0 80px rgba(255, 107, 74, 0.1);
+  box-shadow: 0 0 30px rgba(255, 213, 79, 0.35), 0 0 80px rgba(255, 213, 79, 0.12);
 }
 
 .hero-gradient-overlay {
@@ -159,7 +159,7 @@ body {
   justify-content: center;
   gap: var(--space-3xl);
   padding: var(--space-3xl) var(--space-lg);
-  background: linear-gradient(135deg, rgba(255, 107, 74, 0.05), rgba(0, 217, 166, 0.05));
+  background: linear-gradient(135deg, rgba(255, 213, 79, 0.08), rgba(0, 191, 165, 0.08));
 }
 
 .solution-problem-side,
@@ -191,7 +191,7 @@ body {
   content: '→';
   position: absolute;
   left: 0;
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
   font-weight: 700;
 }
 
@@ -231,12 +231,12 @@ body {
   border-color: var(--border-hover);
 }
 
-.card-glow-coral {
-  border-color: var(--glow-coral-border);
+.card-glow-gold {
+  border-color: var(--glow-gold-border);
 }
 
-.card-glow-coral:hover {
-  box-shadow: var(--glow-coral);
+.card-glow-gold:hover {
+  box-shadow: var(--glow-gold);
 }
 
 .card-glow-teal {
@@ -256,7 +256,7 @@ body {
 }
 
 .feature-icon {
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
   margin-bottom: var(--space-md);
 }
 
@@ -276,7 +276,7 @@ body {
 /* Live Stats Section */
 .live-stats-section {
   padding: var(--space-3xl) var(--space-lg);
-  background: linear-gradient(135deg, rgba(0, 217, 166, 0.1), transparent);
+  background: linear-gradient(135deg, rgba(0, 191, 165, 0.1), transparent);
 }
 
 .stats-title {
@@ -424,7 +424,7 @@ body {
   align-items: center;
   justify-content: center;
   padding: var(--space-3xl) var(--space-lg);
-  background: linear-gradient(135deg, rgba(255, 107, 74, 0.05), rgba(0, 217, 166, 0.05));
+  background: linear-gradient(135deg, rgba(255, 213, 79, 0.08), rgba(0, 191, 165, 0.08));
   position: relative;
 }
 
@@ -510,7 +510,7 @@ body {
 
 /* Dashboard Section */
 .dashboard-section {
-  background: var(--color-navy-light);
+  background: rgba(163, 72, 102, 0.5);
   min-height: 100vh;
   padding: var(--space-2xl) 0;
 }
@@ -998,7 +998,7 @@ body {
 .about-hero {
   text-align: center;
   padding: var(--space-3xl) var(--space-lg);
-  background: linear-gradient(135deg, rgba(255, 107, 74, 0.1), rgba(0, 217, 166, 0.1));
+  background: linear-gradient(135deg, rgba(255, 213, 79, 0.08), rgba(0, 191, 165, 0.08));
 }
 
 .about-title {
@@ -1227,7 +1227,7 @@ body {
   content: '•';
   position: absolute;
   left: var(--space-sm);
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
   font-weight: 700;
 }
 
@@ -1292,19 +1292,19 @@ body {
 
 .preview-cta-button {
   padding: var(--space-lg) var(--space-2xl);
-  background: var(--color-coral);
-  color: white;
+  background: var(--color-accent-gold);
+  color: #333;
   font-weight: 600;
   font-size: 1.125rem;
   border-radius: var(--radius-md);
   transition: var(--transition-base);
-  box-shadow: var(--glow-coral);
+  box-shadow: var(--glow-gold);
 }
 
 .preview-cta-button:hover {
-  background: var(--color-coral-hover);
+  background: var(--color-accent-gold-hover);
   transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(255, 107, 74, 0.3), 0 0 80px rgba(255, 107, 74, 0.1);
+  box-shadow: 0 0 30px rgba(255, 213, 79, 0.35), 0 0 80px rgba(255, 213, 79, 0.12);
 }
 
 /* ===== ANIMATIONS ===== */
@@ -1331,7 +1331,7 @@ body {
 
 /* Filter tabs hover effect */
 .filter-tab:hover {
-  background: rgba(0, 217, 166, 0.1) !important;
+  background: rgba(0, 191, 165, 0.15) !important;
   color: var(--color-teal) !important;
 }
 
@@ -1339,8 +1339,8 @@ body {
 .gbv-emergency-section {
   margin-top: var(--space-lg);
   padding: var(--space-md);
-  background: rgba(255, 107, 74, 0.1);
-  border: 1px solid rgba(255, 107, 74, 0.3);
+  background: rgba(255, 213, 79, 0.1);
+  border: 1px solid rgba(255, 213, 79, 0.3);
   border-radius: var(--radius-md);
 }
 
@@ -1371,13 +1371,13 @@ body {
   border-radius: 50%;
   background: var(--color-teal);
   cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 217, 166, 0.5);
+  box-shadow: 0 0 10px rgba(0, 191, 165, 0.5);
   transition: var(--transition-base);
 }
 
 .heatmap-range-slider::-webkit-slider-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(0, 217, 166, 0.7);
+  box-shadow: 0 0 15px rgba(0, 191, 165, 0.7);
 }
 
 .heatmap-range-slider::-moz-range-thumb {
@@ -1387,13 +1387,13 @@ body {
   background: var(--color-teal);
   cursor: pointer;
   border: none;
-  box-shadow: 0 0 10px rgba(0, 217, 166, 0.5);
+  box-shadow: 0 0 10px rgba(0, 191, 165, 0.5);
   transition: var(--transition-base);
 }
 
 .heatmap-range-slider::-moz-range-thumb:hover {
   transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(0, 217, 166, 0.7);
+  box-shadow: 0 0 15px rgba(0, 191, 165, 0.7);
 }
 
 /* Category pills hover effect */
@@ -1475,7 +1475,7 @@ button:disabled {
   left: 0;
   width: 0;
   height: 2px;
-  background: var(--color-coral);
+  background: var(--color-accent-gold);
   transition: width 0.3s ease;
 }
 
@@ -1494,14 +1494,14 @@ input:focus,
 select:focus,
 textarea:focus {
   border-color: var(--color-teal);
-  box-shadow: 0 0 0 3px rgba(0, 217, 166, 0.1), 0 0 10px rgba(0, 217, 166, 0.2);
+  box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.1), 0 0 10px rgba(0, 191, 165, 0.2);
 }
 
 input.error,
 select.error,
 textarea.error {
-  border-color: var(--color-coral);
-  box-shadow: 0 0 0 3px rgba(255, 107, 74, 0.1), 0 0 10px rgba(255, 107, 74, 0.2);
+  border-color: #ff5252;
+  box-shadow: 0 0 0 3px rgba(255, 82, 82, 0.15), 0 0 10px rgba(255, 82, 82, 0.2);
 }
 
 /* ===== ACCESSIBILITY: PREFERS-REDUCED-MOTION ===== */
