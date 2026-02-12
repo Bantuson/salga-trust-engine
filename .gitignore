@@ -75,3 +75,12 @@ Thumbs.db
 # Local database
 *.db
 *.sqlite
+node_modules
+
+# Playwright screenshots / audit artifacts
+*.jpeg
+audit-*.png
+post-fix-*.png
+Screenshot*.png
+*-output.txt
+nul
