@@ -84,3 +84,6 @@ post-fix-*.png
 Screenshot*.png
 *-output.txt
 nul
+
+# TypeScript build info
+*.tsbuildinfo
