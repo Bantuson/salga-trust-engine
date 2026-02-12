@@ -585,6 +585,11 @@ body {
   .ndebele-pattern {
     display: none !important;
   }
+
+  /* Reduce globe opacity on mobile so hero text is readable */
+  .hero-globe-container {
+    opacity: 0.3;
+  }
 }
 
 /* ===== PUBLIC HEADER ===== */
