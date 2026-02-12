@@ -9,15 +9,12 @@
  * - Dual auth modes: Email+password and Phone OTP
  */
 
-import { useState, Suspense, lazy, useRef } from 'react';
+import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
-
-// Code-split 3D globe for performance
-const Globe3DSmall = lazy(() => import('../components/Globe3DSmall'));
 
 type AuthMode = 'email' | 'phone' | 'verify-otp';
 
@@ -115,13 +112,6 @@ export function LoginPage() {
   return (
     <div ref={containerRef} style={styles.container}>
       <AnimatedGradientBg />
-
-      {/* Decorative 3D Globe */}
-      <div style={styles.globeContainer}>
-        <Suspense fallback={null}>
-          <Globe3DSmall />
-        </Suspense>
-      </div>
 
       {/* Glassmorphism Login Card */}
       <div ref={cardRef} className="glass" style={styles.card}>
@@ -299,16 +289,6 @@ const styles = {
     justifyContent: 'center',
     position: 'relative' as const,
     overflow: 'hidden',
-  } as React.CSSProperties,
-  globeContainer: {
-    position: 'absolute' as const,
-    left: '10%',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    width: '300px',
-    height: '300px',
-    opacity: 0.6,
-    pointerEvents: 'none' as const,
   } as React.CSSProperties,
   card: {
     width: '100%',
