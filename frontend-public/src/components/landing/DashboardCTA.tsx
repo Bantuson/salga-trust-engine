@@ -1,10 +1,40 @@
+import { useRef } from 'react';
 import { Link } from 'react-router-dom';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
+import { useGSAP } from '@gsap/react';
 import { Button } from '@shared/components/ui/Button';
 import { GlassCard } from '@shared/components/ui/GlassCard';
+import { useReducedMotion } from '@shared/hooks/useReducedMotion';
+
+gsap.registerPlugin(ScrollTrigger);
 
 export function DashboardCTA() {
+  const sectionRef = useRef<HTMLElement>(null);
+  const reducedMotion = useReducedMotion();
+
+  useGSAP(() => {
+    if (reducedMotion) {
+      gsap.set(sectionRef.current, { opacity: 1, y: 0 });
+      return;
+    }
+
+    // Section fade + slide entrance
+    gsap.from(sectionRef.current, {
+      opacity: 0,
+      y: 60,
+      duration: 1,
+      ease: 'power3.out',
+      scrollTrigger: {
+        trigger: sectionRef.current,
+        start: 'top 80%',
+        toggleActions: 'play none none reverse',
+      },
+    });
+  }, { scope: sectionRef, dependencies: [reducedMotion] });
+
   return (
-    <section className="dashboard-cta-section">
+    <section ref={sectionRef} className="dashboard-cta-section">
       <GlassCard variant="elevated">
         <div className="dashboard-cta-content">
           <h2 className="dashboard-cta-title">
