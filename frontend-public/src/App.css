@@ -235,11 +235,6 @@ body {
 }
 
 .feature-card {
-  background: rgba(255, 255, 255, 0.18);
-  border: 1px solid rgba(255, 255, 255, 0.22);
-  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.1);
-  border-radius: var(--radius-lg);
-  padding: var(--space-xl);
   transition: var(--transition-base);
   opacity: 1; /* Default visible state - GSAP enhances progressively */
 }
@@ -662,8 +657,10 @@ body {
 /* ===== PUBLIC FOOTER ===== */
 
 .public-footer {
-  background: var(--surface-elevated);
-  border-top: 1px solid var(--border-subtle);
+  background: var(--glass-pink-frost);
+  backdrop-filter: blur(var(--glass-blur-medium));
+  -webkit-backdrop-filter: blur(var(--glass-blur-medium));
+  border-top: 1px solid var(--glass-border);
   padding: var(--space-3xl) var(--space-lg) var(--space-xl);
 }
 

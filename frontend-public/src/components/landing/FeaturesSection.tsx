@@ -3,6 +3,7 @@ import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
+import { GlassCard } from '@shared/components/ui/GlassCard';
 
 gsap.registerPlugin(ScrollTrigger);
 
@@ -14,12 +15,10 @@ export function FeaturesSection() {
     const cards = sectionRef.current?.querySelectorAll('.feature-card');
 
     if (reducedMotion || !cards || cards.length === 0) {
-      // Set elements to final state immediately
       gsap.set(cards, { opacity: 1, y: 0, rotateX: 0 });
       return;
     }
 
-    // Use autoAlpha instead of opacity for better reliability
     gsap.fromTo(cards,
       {
         autoAlpha: 0,
@@ -36,7 +35,7 @@ export function FeaturesSection() {
         scrollTrigger: {
           trigger: '.features-grid',
           start: 'top 75%',
-          toggleActions: 'play none none none', // Ensure animation plays only once
+          toggleActions: 'play none none none',
         },
       }
     );
@@ -46,7 +45,7 @@ export function FeaturesSection() {
     <section ref={sectionRef} className="features-section">
       <h2 className="features-title">How It Works</h2>
       <div className="features-grid">
-        <div className="feature-card card-glow-coral">
+        <GlassCard variant="elevated" className="feature-card card-glow-coral">
           <div className="feature-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
@@ -56,9 +55,9 @@ export function FeaturesSection() {
           <p className="feature-description">
             Report issues via WhatsApp or web portal. AI categorizes and routes your request automatically.
           </p>
-        </div>
+        </GlassCard>
 
-        <div className="feature-card card-glow-teal">
+        <GlassCard variant="elevated" className="feature-card card-glow-teal">
           <div className="feature-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
@@ -69,9 +68,9 @@ export function FeaturesSection() {
           <p className="feature-description">
             Get a unique tracking number. Receive real-time updates on WhatsApp as your ticket progresses.
           </p>
-        </div>
+        </GlassCard>
 
-        <div className="feature-card card-glow-violet">
+        <GlassCard variant="elevated" className="feature-card card-glow-violet">
           <div className="feature-icon">
             <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
               <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
@@ -82,7 +81,7 @@ export function FeaturesSection() {
           <p className="feature-description">
             View public performance metrics. See how municipalities respond, resolve, and improve over time.
           </p>
-        </div>
+        </GlassCard>
       </div>
     </section>
   );

@@ -3,6 +3,7 @@ import { MunicipalitySelector } from '../components/MunicipalitySelector';
 import { ResponseTimeChart } from '../components/ResponseTimeChart';
 import { ResolutionRateChart } from '../components/ResolutionRateChart';
 import { HeatmapViewer } from '../components/HeatmapViewer';
+import { GlassCard } from '@shared/components/ui/GlassCard';
 import {
   useSystemSummary,
   useResponseTimes,
@@ -22,12 +23,13 @@ export function PublicDashboardPage() {
   return (
     <div style={{
       minHeight: '100vh',
-      backgroundColor: '#f9fafb'
+      backgroundColor: 'var(--surface-base)'
     }}>
       {/* Header Banner */}
       <header style={{
-        backgroundColor: '#1e3a8a',
-        color: 'white',
+        backgroundColor: 'rgba(163, 72, 102, 0.8)',
+        backdropFilter: 'blur(10px)',
+        color: 'var(--text-primary)',
         padding: '32px 24px',
         marginBottom: '32px'
       }}>
@@ -59,50 +61,35 @@ export function PublicDashboardPage() {
           gap: '20px',
           marginBottom: '32px'
         }}>
-          <div style={{
-            padding: '24px',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px'
-          }}>
-            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+          <GlassCard variant="elevated" style={{ padding: '24px' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
               Total Municipalities
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)' }}>
               {summary.total_municipalities}
             </div>
-          </div>
+          </GlassCard>
 
-          <div style={{
-            padding: '24px',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px'
-          }}>
-            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+          <GlassCard variant="elevated" style={{ padding: '24px' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
               Total Service Requests
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)' }}>
               {summary.total_tickets.toLocaleString()}
             </div>
-          </div>
+          </GlassCard>
 
-          <div style={{
-            padding: '24px',
-            backgroundColor: 'white',
-            border: '1px solid #e5e7eb',
-            borderRadius: '8px'
-          }}>
-            <div style={{ fontSize: '14px', color: '#6b7280', marginBottom: '8px' }}>
+          <GlassCard variant="elevated" style={{ padding: '24px' }}>
+            <div style={{ fontSize: '14px', color: 'var(--text-secondary)', marginBottom: '8px' }}>
               Sensitive Reports (System-wide)
             </div>
-            <div style={{ fontSize: '32px', fontWeight: '700', color: '#111827' }}>
+            <div style={{ fontSize: '32px', fontWeight: '700', color: 'var(--text-primary)' }}>
               {summary.total_sensitive_tickets.toLocaleString()}
             </div>
-            <div style={{ fontSize: '11px', color: '#9ca3af', marginTop: '4px' }}>
+            <div style={{ fontSize: '11px', color: 'var(--text-muted)', marginTop: '4px' }}>
               GBV reports excluded from location data
             </div>
-          </div>
+          </GlassCard>
         </div>
 
         {/* Municipality Selector */}
@@ -126,11 +113,11 @@ export function PublicDashboardPage() {
         <div style={{
           marginTop: '32px',
           padding: '16px',
-          backgroundColor: '#fef3c7',
-          border: '1px solid #fcd34d',
-          borderRadius: '8px',
+          backgroundColor: 'rgba(255, 213, 79, 0.15)',
+          border: '1px solid rgba(255, 213, 79, 0.3)',
+          borderRadius: 'var(--radius-xl)',
           fontSize: '14px',
-          color: '#78350f'
+          color: 'var(--text-primary)'
         }}>
           <strong>Privacy Notice:</strong> GBV and sensitive reports are excluded from this public dashboard
           to protect victims' privacy. Individual addresses are not displayed; heatmap shows aggregated
@@ -143,7 +130,7 @@ export function PublicDashboardPage() {
           padding: '12px',
           textAlign: 'center',
           fontSize: '12px',
-          color: '#6b7280'
+          color: 'var(--text-secondary)'
         }}>
           Powered by Supabase · Data queried directly from PostgreSQL RLS views
         </div>
