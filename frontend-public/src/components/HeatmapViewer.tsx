@@ -72,7 +72,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
     }}>
       {/* Interactive Controls */}
       <div style={{
-        padding: 'var(--spacing-lg)',
+        padding: 'var(--space-xl)',
         background: 'rgba(205, 94, 129, 0.7)',
         backdropFilter: 'blur(10px)',
         borderBottom: '1px solid var(--border-subtle)',
@@ -81,18 +81,18 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
           fontSize: 'var(--text-lg)',
           fontWeight: 600,
           color: 'var(--text-primary)',
-          marginBottom: 'var(--spacing-md)',
+          marginBottom: 'var(--space-lg)',
         }}>
           Geographic Distribution of Reports
         </h3>
 
         {/* Time Range Slider */}
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
+        <div style={{ marginBottom: 'var(--space-md)' }}>
           <div style={{
             display: 'flex',
             justifyContent: 'space-between',
             alignItems: 'center',
-            marginBottom: 'var(--spacing-sm)',
+            marginBottom: 'var(--space-sm)',
           }}>
             <label style={{
               fontSize: 'var(--text-sm)',
@@ -135,17 +135,17 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
             fontSize: 'var(--text-sm)',
             color: 'var(--text-secondary)',
             fontWeight: 600,
-            marginBottom: 'var(--spacing-sm)',
+            marginBottom: 'var(--space-sm)',
             display: 'block',
           }}>
             Categories
           </label>
           <div style={{
             display: 'flex',
-            gap: 'var(--spacing-xs)',
+            gap: 'var(--space-sm)',
             flexWrap: 'wrap',
             overflowX: 'auto',
-            paddingBottom: 'var(--spacing-xs)',
+            paddingBottom: 'var(--space-xs)',
           }}>
             {CATEGORIES.map((category) => {
               const isActive = selectedCategories.includes(category.id);
@@ -154,7 +154,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
                   key={category.id}
                   onClick={() => toggleCategory(category.id)}
                   style={{
-                    padding: '6px 16px',
+                    padding: '8px 18px',
                     borderRadius: 'var(--radius-full)',
                     border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
                     background: isActive ? 'var(--color-coral)' : 'transparent',
@@ -175,7 +175,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
           <div style={{
             fontSize: 'var(--text-xs)',
             color: 'var(--text-muted)',
-            marginTop: 'var(--spacing-xs)',
+            marginTop: 'var(--space-xs)',
             fontStyle: 'italic',
           }}>
             Note: Category filtering coming soon
@@ -211,7 +211,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
                 borderTopColor: 'transparent',
                 borderRadius: '50%',
                 animation: 'spin 1s linear infinite',
-                margin: '0 auto var(--spacing-md)',
+                margin: '0 auto var(--space-md)',
               }} />
               Loading heatmap data...
             </div>
@@ -273,28 +273,28 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
                 >
                   <Popup>
                     <div style={{
-                      padding: 'var(--spacing-sm)',
+                      padding: 'var(--space-sm)',
                       minWidth: '200px',
                     }}>
                       <h4 style={{
                         fontSize: 'var(--text-base)',
                         fontWeight: 600,
-                        marginBottom: 'var(--spacing-xs)',
-                        color: '#111827',
+                        marginBottom: 'var(--space-xs)',
+                        color: '#a34866',
                       }}>
                         High Activity Area
                       </h4>
                       <div style={{
                         fontSize: 'var(--text-sm)',
-                        color: '#6b7280',
-                        marginBottom: 'var(--spacing-sm)',
+                        color: '#6b5560',
+                        marginBottom: 'var(--space-sm)',
                       }}>
                         <strong>Intensity:</strong> {point.intensity} reports
                       </div>
                       <div style={{
                         fontSize: 'var(--text-xs)',
-                        color: '#9ca3af',
-                        marginBottom: 'var(--spacing-sm)',
+                        color: '#8b7580',
+                        marginBottom: 'var(--space-sm)',
                       }}>
                         Category breakdown: Data aggregated for privacy
                       </div>
@@ -322,7 +322,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
 
       {/* Privacy Notice */}
       <div style={{
-        padding: 'var(--spacing-md)',
+        padding: 'var(--space-md)',
         fontSize: 'var(--text-xs)',
         color: 'var(--text-muted)',
         textAlign: 'center',
