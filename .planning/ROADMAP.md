@@ -180,6 +180,21 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-11 (Phase 6.2 revised — UX redesign + full backend integration, 8 plans in 4 waves)*
 
+### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
+
+**Goal:** Establish citizen authentication on the public portal, build citizen report form and profile page, add auth-gated boundaries, polish landing page with scroll animations and readability fixes, enhance municipal dashboard login page with product info.
+**Depends on:** Phase 6
+**Plans:** 7 plans
+
+Plans:
+- [ ] 06.4-01-PLAN.md -- Citizen auth infrastructure (AuthContext, useAuth, ProtectedRoute, Supabase client update)
+- [ ] 06.4-02-PLAN.md -- Landing page GSAP scroll animations + hero readability fix
+- [ ] 06.4-03-PLAN.md -- Municipal dashboard login page enhancement with product info
+- [ ] 06.4-04-PLAN.md -- Citizen login + register pages with return URL redirect
+- [ ] 06.4-05-PLAN.md -- App.tsx routing update + PublicHeader auth state (user menu dropdown)
+- [ ] 06.4-06-PLAN.md -- Citizen report form page + GBV consent dialog + receipt card
+- [ ] 06.4-07-PLAN.md -- Citizen profile page + proof of residence component
+
 ### Phase 06.3: Complete UI redesign with Johannesburg skyline background glassmorphic cards pink rose theme and proper design system for both dashboards (INSERTED)
 
 **Goal:** Complete visual identity overhaul for both dashboards: replace navy dark mode with pink/rose (#cd5e81) dominant background, use the Johannesburg skyline photograph as hero imagery, refine glassmorphic card system for the new color palette, remove 3D globe and Ndebele patterns, and ensure both apps share an identical theme. All existing page structure and functionality stays — this is a re-skin, not a restructure.
