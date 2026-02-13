@@ -12,13 +12,14 @@ export function HeroSection() {
   const sectionRef = useRef<HTMLDivElement>(null);
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLParagraphElement>(null);
+  const ctaRef = useRef<HTMLDivElement>(null);
   const skylineRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
 
   useGSAP(() => {
     if (reducedMotion) {
       // Set elements to final state immediately for reduced motion
-      gsap.set([headlineRef.current, subtitleRef.current], { opacity: 1, y: 0 });
+      gsap.set([headlineRef.current, subtitleRef.current, ctaRef.current], { opacity: 1, y: 0 });
       gsap.set(skylineRef.current, { opacity: 1 });
       return;
     }
@@ -30,7 +31,10 @@ export function HeroSection() {
     })
     .from(subtitleRef.current, {
       y: 40, opacity: 0, duration: 0.8, ease: 'power2.out'
-    }, '-=0.5');
+    }, '-=0.5')
+    .from(ctaRef.current, {
+      y: 30, opacity: 0, duration: 0.6, ease: 'power2.out'
+    }, '-=0.3');
 
     // Fade skyline to reveal solid pink behind it
     if (skylineRef.current) {
@@ -52,23 +56,27 @@ export function HeroSection() {
       {/* Layer 2: Skyline photograph that fades on scroll */}
       <div ref={skylineRef} className="skyline-background" />
 
-      {/* Layer 3: Pink border frame overlay */}
-      <div className="skyline-frame" />
+      {/* Layer 3: Pink/rose semi-transparent overlay for text readability */}
+      <div className="hero-text-overlay" />
 
-      {/* Layer 4: Hero content */}
+      {/* Hero content */}
       <div className="hero-content">
-        <h1 ref={headlineRef} className="hero-headline" style={{ textShadow: '0 2px 20px rgba(0,0,0,0.5)' }}>
+        <h1 ref={headlineRef} className="hero-headline">
           Transparent Municipal Services.<br />
           <span className="text-coral">For Every Citizen.</span>
         </h1>
-        <p ref={subtitleRef} className="hero-subtitle">
-          Track service delivery, hold municipalities accountable, and see real results across South Africa.
-        </p>
-        <Link to="/dashboard">
-          <Button variant="primary" size="lg" className="hero-cta">
-            View Municipal Performance
-          </Button>
-        </Link>
+        <div className="hero-subtitle-container">
+          <p ref={subtitleRef} className="hero-subtitle">
+            Track service delivery, hold municipalities accountable, and see real results across South Africa.
+          </p>
+        </div>
+        <div ref={ctaRef} className="hero-cta-container">
+          <Link to="/dashboard">
+            <Button variant="primary" size="lg" className="hero-cta">
+              View Municipal Performance
+            </Button>
+          </Link>
+        </div>
       </div>
       <div className="hero-gradient-overlay" />
     </section>
