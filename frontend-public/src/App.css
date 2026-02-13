@@ -92,7 +92,7 @@ body {
   backdrop-filter: blur(10px);
   -webkit-backdrop-filter: blur(10px);
   padding: 1rem 1.5rem;
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-xl);
   display: inline-block;
   margin-bottom: 1.5rem;
 }

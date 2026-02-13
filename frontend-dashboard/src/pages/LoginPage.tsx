@@ -344,6 +344,13 @@ const styles = {
     maxWidth: '480px',
     marginLeft: '5%',
     color: 'white',
+    background: 'rgba(205, 94, 129, 0.35)',
+    backdropFilter: 'blur(16px)',
+    WebkitBackdropFilter: 'blur(16px)',
+    border: '1px solid rgba(255, 255, 255, 0.15)',
+    borderRadius: 'var(--radius-xl)',
+    padding: 'var(--space-xl)',
+    boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
   } as React.CSSProperties,
   productTagline: {
     fontSize: '3rem',
