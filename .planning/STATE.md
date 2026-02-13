@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 06.4 of 6+ (Dashboard Landing Pages, Public Hero Polish, and Citizen Auth Architecture)
-Plan: 5 of 7 in current phase (5 plans completed)
+Plan: 6 of 7 in current phase (6 plans completed)
 Status: IN PROGRESS — Phase 06.4 in progress
-Last activity: 2026-02-13 — Completed 06.4-05: Auth-gated routing and authenticated header state
+Last activity: 2026-02-13 — Completed 06.4-07: Citizen profile page with proof of residence upload
 
-Progress: [███████░░░] 71.4% (5/7 plans)
+Progress: [████████░░] 85.7% (6/7 plans)
 
 ## Performance Metrics
 
@@ -36,11 +36,11 @@ Progress: [███████░░░] 71.4% (5/7 plans)
 | 06.1 | 9 | 153.7m | 17.1m |
 | 06.2 | 6 | 184.1m | 30.7m |
 | 06.3 | 5 | 38.1m | 7.6m |
-| 06.4 | 5 | 18.0m | 3.6m |
+| 06.4 | 6 | 26.8m | 4.5m |
 
 **Recent Trend:**
-- Last 5 plans: 4.2m, 3.0m, 4.5m, 6.9m, 3.2m
-- Trend: Phase 06.4 in progress - auth-gated routing and authenticated header state
+- Last 5 plans: 3.0m, 4.5m, 6.9m, 3.2m, 8.8m
+- Trend: Phase 06.4 in progress - citizen profile page with proof of residence upload
 
 *Updated after each plan completion*
 
@@ -101,6 +101,7 @@ Progress: [███████░░░] 71.4% (5/7 plans)
 | 06.4-01 | 3.0m (180s) | 2 | 5 |
 | 06.4-04 | 6.9m (413s) | 2 | 2 |
 | 06.4-05 | 3.2m (193s) | 2 | 7 |
+| Phase 06.4 P07 | 529 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -320,6 +321,8 @@ Recent decisions affecting current work:
 - [Phase 06.4-03]: Municipal dashboard login page includes product info section instead of separate landing page (per user decision)
 - [Phase 06.4-01]: Frontend lib/ exceptions added to .gitignore (!frontend-public/src/lib/, !frontend-dashboard/src/lib/)
 - [Phase 06.4-01]: Citizen auth uses dual-purpose Supabase client (anon queries + authenticated sessions)
+- [Phase 06.4-07]: Proof of residence NOT required at signup - upload available in profile page only
+- [Phase 06.4-07]: Native drag-and-drop instead of react-dropzone library for proof of residence upload
 
 ### Pending Todos
 
@@ -338,8 +341,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (Phase 06.4 Plan 05)
-Stopped at: Completed 06.4-05-PLAN.md — Auth-gated routing and authenticated header state. App.tsx wrapped in AuthProvider with protected routes. PublicHeader shows user menu dropdown when authenticated. Phase 06.4 plan 5 complete (5/7 total).
+Last session: 2026-02-13 (Phase 06.4 Plan 07)
+Stopped at: Completed 06.4-07-PLAN.md — Citizen profile page with proof of residence upload. Full profile page with editable fields (name, phone, municipality) and ProofOfResidence component with drag-and-drop support. Phase 06.4 plan 6 complete (6/7 total).
 Resume file: None
 
 ---
