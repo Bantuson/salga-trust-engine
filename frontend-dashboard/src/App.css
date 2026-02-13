@@ -404,16 +404,11 @@ textarea.error {
   z-index: 0;
 }
 
-.auth-skyline-frame {
-  position: fixed;
-  inset: 0;
-  border: 20px solid rgba(205, 94, 129, 0.4);
-  pointer-events: none;
-  z-index: 1;
-}
-
-@media (max-width: 767px) {
-  .auth-skyline-frame {
-    border-width: 12px;
+/* ===== LOGIN PAGE PRODUCT INFO SECTION ===== */
+/* Hide product info section on mobile, show centered login card only */
+@media (max-width: 768px) {
+  .login-product-info {
+    display: none;
   }
 }
+

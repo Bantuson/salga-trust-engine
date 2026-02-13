@@ -1,25 +1,32 @@
-import { createClient } from '@supabase/supabase-js';
-
 /**
- * Supabase client for public dashboard.
+ * Supabase client configuration for public portal.
  *
- * CRITICAL:
- * - Uses anon key (not service_role) for read-only access
- * - persistSession: false - NO authentication needed
- * - autoRefreshToken: false - NO session management
+ * Provides dual-purpose client:
+ * 1. Anonymous public queries via anon key (RLS views)
+ * 2. Citizen authentication with session persistence
  *
  * RLS policies enforce:
- * - Only public_* views accessible to anon role
+ * - Public views accessible to anon role (public_*)
  * - GBV tickets excluded at database level
  * - K-anonymity >= 3 for heatmap
+ * - Citizen-owned tickets accessible to authenticated users
  */
-export const supabase = createClient(
-  import.meta.env.VITE_SUPABASE_URL,
-  import.meta.env.VITE_SUPABASE_ANON_KEY,
-  {
-    auth: {
-      persistSession: false,  // No auth needed for public dashboard
-      autoRefreshToken: false,
-    }
-  }
-);
+
+import { createClient } from '@supabase/supabase-js';
+
+const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
+const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+
+if (!supabaseUrl || !supabaseAnonKey) {
+  throw new Error(
+    'Missing Supabase environment variables. Please check .env file.'
+  );
+}
+
+export const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,      // Citizens stay logged in across page refreshes
+    autoRefreshToken: true,     // Automatic session refresh
+    detectSessionInUrl: true,   // OAuth/magic link flows
+  },
+});

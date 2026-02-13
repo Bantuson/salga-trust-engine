@@ -11,6 +11,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -34,18 +35,26 @@ export function LoginPage() {
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
   const formFieldsRef = useRef<HTMLDivElement>(null);
+  const productInfoRef = useRef<HTMLDivElement>(null);
 
   // Staggered entrance animation
   useGSAP(
     () => {
       const tl = gsap.timeline();
+      // Product info slides in from left
+      tl.from(productInfoRef.current, {
+        x: -30,
+        opacity: 0,
+        duration: 0.6,
+        ease: 'power2.out',
+      });
       // Card slides up with bounce
       tl.from(cardRef.current, {
         y: 50,
         opacity: 0,
         duration: 0.8,
         ease: 'back.out(1.7)',
-      });
+      }, '-=0.2');
       // Form fields stagger in
       tl.from(
         formFieldsRef.current?.children || [],
@@ -112,10 +121,45 @@ export function LoginPage() {
       {/* Skyline background layers */}
       <div className="auth-skyline-bg" />
       <div className="auth-skyline-overlay" />
-      <div className="auth-skyline-frame" />
+
+      {/* Product Info Section */}
+      <div ref={productInfoRef} className="login-product-info" style={styles.productInfo}>
+        <h2 style={styles.productTagline}>Municipal Service Management</h2>
+        <p style={styles.productDescription}>
+          Manage citizen reports, track service delivery, and monitor municipal performance in real time.
+          AI-powered routing, SLA tracking, and automated escalation ensure no issue falls through the cracks.
+        </p>
+
+        <div style={styles.featureList}>
+          <div style={styles.featureItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span style={styles.featureText}>Real-time ticket management and assignment</span>
+          </div>
+          <div style={styles.featureItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span style={styles.featureText}>SLA compliance monitoring with auto-escalation</span>
+          </div>
+          <div style={styles.featureItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span style={styles.featureText}>Team workload analytics and performance tracking</span>
+          </div>
+          <div style={styles.featureItem}>
+            <span style={styles.checkIcon}>✓</span>
+            <span style={styles.featureText}>Citizen communication via WhatsApp integration</span>
+          </div>
+        </div>
+
+        <div style={styles.productCta}>
+          <p style={styles.ctaText}>Are you a municipality?</p>
+          <Link to="/request-access" style={styles.ctaLink}>
+            Request access to get started →
+          </Link>
+        </div>
+      </div>
 
       {/* Glassmorphism Login Card */}
-      <div ref={cardRef} className="glass" style={styles.card}>
+      <div ref={cardRef}>
+      <GlassCard style={styles.card}>
         <div style={styles.logoSection}>
           <h1 style={styles.title}>SALGA Trust Engine</h1>
           <p style={styles.tagline}>Municipal Dashboard</p>
@@ -277,6 +321,7 @@ export function LoginPage() {
           </form>
         )}
         </div>
+      </GlassCard>
       </div>
     </div>
   );
@@ -287,9 +332,81 @@ const styles = {
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
-    justifyContent: 'center',
+    justifyContent: 'space-between',
     position: 'relative' as const,
     overflow: 'hidden',
+    padding: '0 5%',
+  } as React.CSSProperties,
+  productInfo: {
+    position: 'relative' as const,
+    zIndex: 2,
+    maxWidth: '480px',
+    marginLeft: '5%',
+    color: 'white',
+  } as React.CSSProperties,
+  productTagline: {
+    fontSize: '3rem',
+    fontWeight: '800',
+    marginBottom: '1.5rem',
+    lineHeight: '1.1',
+    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  } as React.CSSProperties,
+  productDescription: {
+    fontSize: '1.125rem',
+    lineHeight: '1.7',
+    marginBottom: '2rem',
+    color: 'rgba(255, 255, 255, 0.95)',
+    textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)',
+  } as React.CSSProperties,
+  featureList: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.75rem',
+    marginBottom: '2.5rem',
+  } as React.CSSProperties,
+  featureItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '0.75rem',
+  } as React.CSSProperties,
+  checkIcon: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    backgroundColor: 'var(--color-teal)',
+    color: 'white',
+    fontSize: '0.875rem',
+    fontWeight: '700',
+    flexShrink: 0,
+  } as React.CSSProperties,
+  featureText: {
+    fontSize: '1rem',
+    color: 'rgba(255, 255, 255, 0.9)',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+  } as React.CSSProperties,
+  productCta: {
+    paddingTop: '1.5rem',
+    borderTop: '1px solid rgba(255, 255, 255, 0.2)',
+  } as React.CSSProperties,
+  ctaText: {
+    fontSize: '0.95rem',
+    color: 'rgba(255, 255, 255, 0.8)',
+    marginBottom: '0.5rem',
+  } as React.CSSProperties,
+  ctaLink: {
+    display: 'inline-block',
+    fontSize: '1.125rem',
+    fontWeight: '600',
+    color: 'var(--color-teal)',
+    textDecoration: 'none',
+    transition: 'all 0.2s',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
   } as React.CSSProperties,
   card: {
     width: '100%',
@@ -298,8 +415,6 @@ const styles = {
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
     zIndex: 2,
-    marginLeft: 'auto',
-    marginRight: '10%',
   } as React.CSSProperties,
   logoSection: {
     marginBottom: '2rem',
