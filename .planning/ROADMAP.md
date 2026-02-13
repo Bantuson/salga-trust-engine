@@ -175,10 +175,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 5. Municipal Operations Dashboard | 5/5 | ✓ Complete | 2026-02-10 |
 | 6. Public Transparency & Rollout | 3/3 | ✓ Complete | 2026-02-10 |
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
+| 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-11 (Phase 6.2 revised — UX redesign + full backend integration, 8 plans in 4 waves)*
+*Last updated: 2026-02-13 (Phase 6.4 complete — citizen auth, landing polish, report form, profile page)*
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 
@@ -187,13 +188,13 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 **Plans:** 7 plans
 
 Plans:
-- [ ] 06.4-01-PLAN.md -- Citizen auth infrastructure (AuthContext, useAuth, ProtectedRoute, Supabase client update)
-- [ ] 06.4-02-PLAN.md -- Landing page GSAP scroll animations + hero readability fix
-- [ ] 06.4-03-PLAN.md -- Municipal dashboard login page enhancement with product info
-- [ ] 06.4-04-PLAN.md -- Citizen login + register pages with return URL redirect
-- [ ] 06.4-05-PLAN.md -- App.tsx routing update + PublicHeader auth state (user menu dropdown)
-- [ ] 06.4-06-PLAN.md -- Citizen report form page + GBV consent dialog + receipt card
-- [ ] 06.4-07-PLAN.md -- Citizen profile page + proof of residence component
+- [x] 06.4-01-PLAN.md -- Citizen auth infrastructure (AuthContext, useAuth, ProtectedRoute, Supabase client update)
+- [x] 06.4-02-PLAN.md -- Landing page GSAP scroll animations + hero readability fix
+- [x] 06.4-03-PLAN.md -- Municipal dashboard login page enhancement with product info
+- [x] 06.4-04-PLAN.md -- Citizen login + register pages with return URL redirect
+- [x] 06.4-05-PLAN.md -- App.tsx routing update + PublicHeader auth state (user menu dropdown)
+- [x] 06.4-06-PLAN.md -- Citizen report form page + GBV consent dialog + receipt card
+- [x] 06.4-07-PLAN.md -- Citizen profile page + proof of residence component
 
 ### Phase 06.3: Complete UI redesign with Johannesburg skyline background glassmorphic cards pink rose theme and proper design system for both dashboards (INSERTED)
 
