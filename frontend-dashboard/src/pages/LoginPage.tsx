@@ -9,7 +9,6 @@
  */
 
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
@@ -122,6 +121,15 @@ export function LoginPage() {
       <div className="auth-skyline-bg" />
       <div className="auth-skyline-overlay" />
 
+      {/* Top-right branding pill (like Report Issue CTA in public portal) */}
+      <div style={styles.brandingCorner}>
+        <div style={styles.brandingPill}>
+          <span style={styles.brandingTitle}>SALGA Trust Engine</span>
+          <span style={styles.brandingSeparator}>|</span>
+          <span style={styles.brandingSubtitle}>Municipal Dashboard</span>
+        </div>
+      </div>
+
       {/* Product Info Section */}
       <div ref={productInfoRef} className="login-product-info" style={styles.productInfo}>
         <h2 style={styles.productTagline}>Municipal Service Management</h2>
@@ -148,19 +156,6 @@ export function LoginPage() {
             <span style={styles.featureText}>Citizen communication via WhatsApp integration</span>
           </div>
         </div>
-
-        <div style={styles.productCta}>
-          <p style={styles.ctaText}>Are you a municipality?</p>
-          <Link to="/request-access" style={styles.ctaLink}>
-            Request access to get started →
-          </Link>
-        </div>
-      </div>
-
-      {/* Top-right branding */}
-      <div style={styles.brandingCorner}>
-        <h1 style={styles.brandingTitle}>SALGA Trust Engine</h1>
-        <p style={styles.brandingSubtitle}>Municipal Dashboard</p>
       </div>
 
       {/* Glassmorphism Login Card */}
@@ -221,22 +216,6 @@ export function LoginPage() {
             >
               Sign in with Phone OTP
             </button>
-
-            <div style={styles.divider}>
-              <span style={styles.dividerText}>Don't have an account?</span>
-            </div>
-
-            <Link to="/register" style={styles.linkButton}>
-              Create Account
-            </Link>
-
-            <div style={{ ...styles.divider, marginTop: '0.5rem' }}>
-              <span style={styles.dividerText}>Are you a municipality?</span>
-            </div>
-
-            <Link to="/request-access" style={styles.linkButton}>
-              Request Access →
-            </Link>
           </form>
         )}
 
@@ -353,14 +332,11 @@ const styles = {
     boxShadow: '0 8px 32px rgba(0, 0, 0, 0.15)',
   } as React.CSSProperties,
   productTagline: {
-    fontSize: '3rem',
+    fontSize: '2rem',
     fontWeight: '800',
     marginBottom: '1.5rem',
     lineHeight: '1.1',
-    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: 'white',
   } as React.CSSProperties,
   productDescription: {
     fontSize: '1.125rem',
@@ -373,7 +349,6 @@ const styles = {
     display: 'flex',
     flexDirection: 'column' as const,
     gap: '0.75rem',
-    marginBottom: '2.5rem',
   } as React.CSSProperties,
   featureItem: {
     display: 'flex',
@@ -398,45 +373,36 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.9)',
     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
   } as React.CSSProperties,
-  productCta: {
-    paddingTop: '1.5rem',
-    borderTop: '1px solid rgba(255, 255, 255, 0.2)',
-  } as React.CSSProperties,
-  ctaText: {
-    fontSize: '0.95rem',
-    color: 'rgba(255, 255, 255, 0.8)',
-    marginBottom: '0.5rem',
-  } as React.CSSProperties,
-  ctaLink: {
-    display: 'inline-block',
-    fontSize: '1.125rem',
-    fontWeight: '600',
-    color: 'var(--color-teal)',
-    textDecoration: 'none',
-    transition: 'all 0.2s',
-    textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
-  } as React.CSSProperties,
   brandingCorner: {
     position: 'absolute' as const,
-    top: '2rem',
+    top: '1.5rem',
     right: '5%',
     zIndex: 3,
-    textAlign: 'right' as const,
+  } as React.CSSProperties,
+  brandingPill: {
+    display: 'inline-flex',
+    alignItems: 'center',
+    gap: '0.5rem',
+    padding: '0.625rem 1.25rem',
+    background: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(12px)',
+    WebkitBackdropFilter: 'blur(12px)',
+    border: '1px solid rgba(255, 255, 255, 0.25)',
+    borderRadius: 'var(--radius-xl)',
   } as React.CSSProperties,
   brandingTitle: {
-    fontSize: '1.5rem',
+    fontSize: '1rem',
     fontWeight: '700',
-    margin: 0,
-    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
-    WebkitBackgroundClip: 'text',
-    WebkitTextFillColor: 'transparent',
-    backgroundClip: 'text',
+    color: 'var(--color-accent-gold)',
+  } as React.CSSProperties,
+  brandingSeparator: {
+    color: 'rgba(255, 255, 255, 0.3)',
+    fontSize: '1rem',
   } as React.CSSProperties,
   brandingSubtitle: {
     fontSize: '0.875rem',
-    fontWeight: '400',
-    color: 'var(--text-secondary)',
-    margin: 0,
+    fontWeight: '500',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   card: {
     width: '100%',
