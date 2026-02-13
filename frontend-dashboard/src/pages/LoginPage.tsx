@@ -157,14 +157,15 @@ export function LoginPage() {
         </div>
       </div>
 
+      {/* Top-right branding */}
+      <div style={styles.brandingCorner}>
+        <h1 style={styles.brandingTitle}>SALGA Trust Engine</h1>
+        <p style={styles.brandingSubtitle}>Municipal Dashboard</p>
+      </div>
+
       {/* Glassmorphism Login Card */}
       <div ref={cardRef}>
       <GlassCard style={styles.card}>
-        <div style={styles.logoSection}>
-          <h1 style={styles.title}>SALGA Trust Engine</h1>
-          <p style={styles.tagline}>Municipal Dashboard</p>
-        </div>
-
         {error && (
           <div style={styles.errorBox}>
             {error}
@@ -408,32 +409,35 @@ const styles = {
     transition: 'all 0.2s',
     textShadow: '0 1px 2px rgba(0, 0, 0, 0.3)',
   } as React.CSSProperties,
-  card: {
-    width: '100%',
-    maxWidth: '440px',
-    padding: '3rem 2.5rem',
-    borderRadius: 'var(--radius-xl)',
-    position: 'relative' as const,
-    zIndex: 2,
+  brandingCorner: {
+    position: 'absolute' as const,
+    top: '2rem',
+    right: '5%',
+    zIndex: 3,
+    textAlign: 'right' as const,
   } as React.CSSProperties,
-  logoSection: {
-    marginBottom: '2rem',
-    textAlign: 'center' as const,
-  } as React.CSSProperties,
-  title: {
-    fontSize: '2rem',
+  brandingTitle: {
+    fontSize: '1.5rem',
     fontWeight: '700',
-    color: 'var(--text-primary)',
-    marginBottom: '0.5rem',
+    margin: 0,
     background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
   } as React.CSSProperties,
-  tagline: {
-    fontSize: '1rem',
+  brandingSubtitle: {
+    fontSize: '0.875rem',
     fontWeight: '400',
     color: 'var(--text-secondary)',
+    margin: 0,
+  } as React.CSSProperties,
+  card: {
+    width: '100%',
+    maxWidth: '440px',
+    padding: '1.75rem 2rem',
+    borderRadius: 'var(--radius-xl)',
+    position: 'relative' as const,
+    zIndex: 2,
   } as React.CSSProperties,
   errorBox: {
     padding: '0.75rem',
@@ -456,7 +460,7 @@ const styles = {
   form: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '1.25rem',
+    gap: '0.875rem',
   } as React.CSSProperties,
   formGroup: {
     display: 'flex',
@@ -469,7 +473,7 @@ const styles = {
     color: 'var(--text-primary)',
   } as React.CSSProperties,
   input: {
-    padding: '0.75rem',
+    padding: '0.625rem',
     border: '1px solid var(--border-subtle)',
     borderRadius: 'var(--radius-sm)',
     fontSize: '1rem',
@@ -482,7 +486,7 @@ const styles = {
     color: 'var(--text-muted)',
   } as React.CSSProperties,
   button: {
-    padding: '0.875rem',
+    padding: '0.75rem',
     backgroundColor: 'var(--color-coral)',
     color: 'white',
     border: 'none',
@@ -509,7 +513,7 @@ const styles = {
   } as React.CSSProperties,
   divider: {
     textAlign: 'center' as const,
-    margin: '0.5rem 0',
+    margin: '0.25rem 0',
   } as React.CSSProperties,
   dividerText: {
     color: 'var(--text-muted)',

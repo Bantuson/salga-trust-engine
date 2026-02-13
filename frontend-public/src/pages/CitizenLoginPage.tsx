@@ -307,18 +307,18 @@ const styles = {
   card: {
     width: '100%',
     maxWidth: '440px',
-    padding: '3rem 2.5rem',
+    padding: '1.75rem 2rem',
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
     zIndex: 2,
-    margin: '0 auto', // Centered for citizens (vs municipal dashboard right-align)
+    margin: '0 auto',
   } as React.CSSProperties,
   logoSection: {
-    marginBottom: '2rem',
+    marginBottom: '1.25rem',
     textAlign: 'center' as const,
   } as React.CSSProperties,
   title: {
-    fontSize: '2rem',
+    fontSize: '1.75rem',
     fontWeight: '700',
     color: 'var(--text-primary)',
     marginBottom: '0.5rem',
@@ -353,7 +353,7 @@ const styles = {
   form: {
     display: 'flex',
     flexDirection: 'column' as const,
-    gap: '1.25rem',
+    gap: '0.875rem',
   } as React.CSSProperties,
   formGroup: {
     display: 'flex',
@@ -366,7 +366,7 @@ const styles = {
     color: 'var(--text-primary)',
   } as React.CSSProperties,
   input: {
-    padding: '0.75rem',
+    padding: '0.625rem',
     border: '1px solid var(--border-subtle)',
     borderRadius: 'var(--radius-sm)',
     fontSize: '1rem',
@@ -379,7 +379,7 @@ const styles = {
     color: 'var(--text-muted)',
   } as React.CSSProperties,
   button: {
-    padding: '0.875rem',
+    padding: '0.75rem',
     backgroundColor: 'var(--color-coral)',
     color: 'white',
     border: 'none',
@@ -406,7 +406,7 @@ const styles = {
   } as React.CSSProperties,
   divider: {
     textAlign: 'center' as const,
-    margin: '0.5rem 0',
+    margin: '0.25rem 0',
   } as React.CSSProperties,
   dividerText: {
     color: 'var(--text-muted)',
