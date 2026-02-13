@@ -25,7 +25,7 @@
 
   /* Surfaces (Material Design 3 elevation) */
   --surface-base: #cd5e81;
-  --surface-elevated: rgba(255, 255, 255, 0.08);
+  --surface-elevated: rgba(255, 255, 255, 0.15);
   --surface-higher: rgba(255, 255, 255, 0.12);
   --surface-highest: rgba(255, 255, 255, 0.16);
 
@@ -80,11 +80,19 @@
   --chart-axis-text: #e0d4d8;
 
   /* Glassmorphism */
-  --glass-white-frost: rgba(255, 255, 255, 0.15);
-  --glass-pink-frost: rgba(205, 94, 129, 0.15);
+  --glass-white-frost: rgba(255, 255, 255, 0.25);
+  --glass-pink-frost: rgba(205, 94, 129, 0.25);
   --glass-border: rgba(255, 255, 255, 0.2);
   --glass-blur-subtle: 10px;
   --glass-blur-medium: 20px;
+  --glass-card-padding: var(--space-xl);
+
+  /* Chart Container Theming */
+  --chart-bg: rgba(255, 255, 255, 0.18);
+  --chart-border: rgba(255, 255, 255, 0.2);
+  --chart-text: var(--text-primary);
+  --chart-text-secondary: var(--text-secondary);
+  --chart-grid-stroke: rgba(255, 255, 255, 0.15);
 
   /* Skeleton tokens */
   --skeleton-base: rgba(163, 72, 102, 0.3);
