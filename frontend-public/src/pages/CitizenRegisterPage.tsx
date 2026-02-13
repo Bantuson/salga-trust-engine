@@ -1,16 +1,452 @@
-import { GlassCard } from '@shared/components/ui/GlassCard';
-
 /**
- * Citizen registration page - placeholder until Plan 04 implementation
- * Will be replaced with full registration form with metadata
+ * Premium Citizen Registration Page for Public Portal
+ *
+ * Features:
+ * - Full-viewport skyline background with pink overlay
+ * - Glassmorphism registration card centered
+ * - GSAP animation sequence on load
+ * - Email+password signup with optional phone and municipality
+ * - NO proof of residence required at signup (per user decision)
  */
+
+import { useState, useRef } from 'react';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { useAuth } from '../hooks/useAuth';
+import { GlassCard } from '@shared/components/ui/GlassCard';
+import gsap from 'gsap';
+import { useGSAP } from '@gsap/react';
+
+const PILOT_MUNICIPALITIES = [
+  { value: '', label: 'Select your municipality (optional)' },
+  { value: 'city-of-johannesburg', label: 'City of Johannesburg' },
+  { value: 'ethekwini', label: 'eThekwini Metropolitan' },
+  { value: 'city-of-cape-town', label: 'City of Cape Town' },
+  { value: 'city-of-tshwane', label: 'City of Tshwane' },
+  { value: 'buffalo-city', label: 'Buffalo City Metropolitan' },
+];
+
 export function CitizenRegisterPage() {
+  const { signUp } = useAuth();
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [success, setSuccess] = useState(false);
+
+  // Form fields
+  const [fullName, setFullName] = useState('');
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+  const [phone, setPhone] = useState('');
+  const [municipality, setMunicipality] = useState('');
+
+  // Validation errors
+  const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // Animation refs
+  const containerRef = useRef<HTMLDivElement>(null);
+  const cardRef = useRef<HTMLDivElement>(null);
+  const formFieldsRef = useRef<HTMLDivElement>(null);
+
+  // Staggered entrance animation
+  useGSAP(
+    () => {
+      const tl = gsap.timeline();
+      // Card slides up with bounce
+      tl.from(cardRef.current, {
+        y: 50,
+        opacity: 0,
+        duration: 0.8,
+        ease: 'back.out(1.7)',
+      });
+      // Form fields stagger in
+      tl.from(
+        formFieldsRef.current?.children || [],
+        {
+          y: 20,
+          opacity: 0,
+          duration: 0.4,
+          stagger: 0.1,
+        },
+        '-=0.3'
+      );
+    },
+    { scope: containerRef }
+  );
+
+  const validateForm = (): boolean => {
+    const errors: Record<string, string> = {};
+
+    if (!fullName.trim()) {
+      errors.fullName = 'Full name is required';
+    }
+
+    if (!email.trim()) {
+      errors.email = 'Email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+      errors.email = 'Please enter a valid email address';
+    }
+
+    if (!password) {
+      errors.password = 'Password is required';
+    } else if (password.length < 8) {
+      errors.password = 'Password must be at least 8 characters';
+    }
+
+    if (password !== confirmPassword) {
+      errors.confirmPassword = 'Passwords do not match';
+    }
+
+    setFieldErrors(errors);
+    return Object.keys(errors).length === 0;
+  };
+
+  const handleRegister = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+
+    if (!validateForm()) {
+      return;
+    }
+
+    setLoading(true);
+
+    try {
+      // Sign up with metadata
+      await signUp(email, password, {
+        full_name: fullName,
+        phone: phone || undefined,
+        municipality: municipality || undefined,
+      });
+
+      // Show success message
+      setSuccess(true);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Registration failed');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // If registration successful, show confirmation instead of form
+  if (success) {
+    return (
+      <div ref={containerRef} style={styles.container}>
+        <div className="auth-skyline-bg" />
+        <div className="auth-skyline-overlay" />
+
+        <div ref={cardRef}>
+          <GlassCard style={styles.card}>
+            <div style={styles.logoSection}>
+              <h1 style={styles.title}>Account Created!</h1>
+              <p style={styles.tagline}>Welcome to SALGA Trust Engine</p>
+            </div>
+
+            <div style={styles.successBox}>
+              <p style={{ marginBottom: '1rem' }}>
+                Your account has been created successfully. Please check your email to verify your account.
+              </p>
+              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Check your spam folder if you don't see the email within a few minutes.
+              </p>
+            </div>
+
+            <Link
+              to="/login"
+              state={{ from: location.state?.from }}
+              style={styles.button}
+            >
+              Go to Login
+            </Link>
+          </GlassCard>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '2rem', paddingTop: '100px' }}>
-      <GlassCard>
-        <h1>Citizen Registration</h1>
-        <p>Registration page coming soon...</p>
-      </GlassCard>
+    <div ref={containerRef} style={styles.container}>
+      {/* Skyline background layers */}
+      <div className="auth-skyline-bg" />
+      <div className="auth-skyline-overlay" />
+
+      {/* Glassmorphism Registration Card - Centered for Citizens */}
+      <div ref={cardRef}>
+        <GlassCard style={styles.card}>
+          <div style={styles.logoSection}>
+            <h1 style={styles.title}>Create Your Account</h1>
+            <p style={styles.tagline}>Join the SALGA Trust Engine citizen portal</p>
+          </div>
+
+          {error && (
+            <div style={styles.errorBox}>
+              {error}
+            </div>
+          )}
+
+          <form onSubmit={handleRegister} style={styles.form} ref={formFieldsRef}>
+            <div style={styles.formGroup}>
+              <label htmlFor="fullName" style={styles.label}>
+                Full Name <span style={styles.required}>*</span>
+              </label>
+              <input
+                id="fullName"
+                type="text"
+                value={fullName}
+                onChange={(e) => setFullName(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="John Doe"
+              />
+              {fieldErrors.fullName && (
+                <span style={styles.fieldError}>{fieldErrors.fullName}</span>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="email" style={styles.label}>
+                Email Address <span style={styles.required}>*</span>
+              </label>
+              <input
+                id="email"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="your.email@example.com"
+              />
+              {fieldErrors.email && (
+                <span style={styles.fieldError}>{fieldErrors.email}</span>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="password" style={styles.label}>
+                Password <span style={styles.required}>*</span>
+              </label>
+              <input
+                id="password"
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="At least 8 characters"
+              />
+              {fieldErrors.password && (
+                <span style={styles.fieldError}>{fieldErrors.password}</span>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="confirmPassword" style={styles.label}>
+                Confirm Password <span style={styles.required}>*</span>
+              </label>
+              <input
+                id="confirmPassword"
+                type="password"
+                value={confirmPassword}
+                onChange={(e) => setConfirmPassword(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="Re-enter your password"
+              />
+              {fieldErrors.confirmPassword && (
+                <span style={styles.fieldError}>{fieldErrors.confirmPassword}</span>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="phone" style={styles.label}>
+                Phone Number (optional)
+              </label>
+              <input
+                id="phone"
+                type="tel"
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+                style={styles.input}
+                placeholder="+27123456789"
+              />
+              <small style={styles.helperText}>Format: +27XXXXXXXXX</small>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="municipality" style={styles.label}>
+                Municipality (optional)
+              </label>
+              <select
+                id="municipality"
+                value={municipality}
+                onChange={(e) => setMunicipality(e.target.value)}
+                style={styles.input}
+              >
+                {PILOT_MUNICIPALITIES.map((muni) => (
+                  <option key={muni.value} value={muni.value}>
+                    {muni.label}
+                  </option>
+                ))}
+              </select>
+              <small style={styles.helperText}>You can set this later in your profile</small>
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                ...styles.button,
+                ...(loading ? styles.buttonDisabled : {}),
+              }}
+            >
+              {loading ? 'Creating Account...' : 'Create Account'}
+            </button>
+
+            <div style={styles.divider}>
+              <span style={styles.dividerText}>Already have an account?</span>
+            </div>
+
+            <Link to="/login" style={styles.linkButton}>
+              Sign in
+            </Link>
+          </form>
+        </GlassCard>
+      </div>
     </div>
   );
 }
+
+const styles = {
+  container: {
+    minHeight: '100vh',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    position: 'relative' as const,
+    overflow: 'hidden',
+    padding: 'var(--space-lg) 0',
+  } as React.CSSProperties,
+  card: {
+    width: '100%',
+    maxWidth: '500px',
+    padding: '3rem 2.5rem',
+    borderRadius: 'var(--radius-xl)',
+    position: 'relative' as const,
+    zIndex: 2,
+    margin: '0 auto',
+  } as React.CSSProperties,
+  logoSection: {
+    marginBottom: '2rem',
+    textAlign: 'center' as const,
+  } as React.CSSProperties,
+  title: {
+    fontSize: '2rem',
+    fontWeight: '700',
+    color: 'var(--text-primary)',
+    marginBottom: '0.5rem',
+    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+  } as React.CSSProperties,
+  tagline: {
+    fontSize: '1rem',
+    fontWeight: '400',
+    color: 'var(--text-secondary)',
+  } as React.CSSProperties,
+  errorBox: {
+    padding: '0.75rem',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid var(--color-coral)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--color-coral)',
+    marginBottom: '1rem',
+    fontSize: '0.875rem',
+  } as React.CSSProperties,
+  successBox: {
+    padding: '1rem',
+    backgroundColor: 'rgba(0, 217, 166, 0.1)',
+    border: '1px solid var(--color-teal)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    marginBottom: '1.5rem',
+    fontSize: '0.95rem',
+    lineHeight: '1.6',
+  } as React.CSSProperties,
+  form: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '1.25rem',
+  } as React.CSSProperties,
+  formGroup: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  label: {
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    color: 'var(--text-primary)',
+  } as React.CSSProperties,
+  required: {
+    color: 'var(--color-coral)',
+  } as React.CSSProperties,
+  input: {
+    padding: '0.75rem',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '1rem',
+    backgroundColor: 'var(--surface-elevated)',
+    color: 'var(--text-primary)',
+    transition: 'border-color 0.2s',
+  } as React.CSSProperties,
+  helperText: {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+  } as React.CSSProperties,
+  fieldError: {
+    fontSize: '0.75rem',
+    color: 'var(--color-coral)',
+  } as React.CSSProperties,
+  button: {
+    padding: '0.875rem',
+    backgroundColor: 'var(--color-coral)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '1rem',
+    fontWeight: '600',
+    cursor: 'pointer',
+    transition: 'all 0.2s',
+    textAlign: 'center' as const,
+    textDecoration: 'none',
+    display: 'block',
+  } as React.CSSProperties,
+  buttonDisabled: {
+    backgroundColor: 'var(--surface-higher)',
+    cursor: 'not-allowed',
+    opacity: 0.6,
+  } as React.CSSProperties,
+  linkButton: {
+    padding: '0.5rem',
+    backgroundColor: 'transparent',
+    color: 'var(--color-teal)',
+    border: 'none',
+    fontSize: '0.875rem',
+    fontWeight: '500',
+    cursor: 'pointer',
+    textDecoration: 'underline',
+    textAlign: 'center' as const,
+    display: 'block',
+  } as React.CSSProperties,
+  divider: {
+    textAlign: 'center' as const,
+    margin: '0.5rem 0',
+  } as React.CSSProperties,
+  dividerText: {
+    color: 'var(--text-muted)',
+    fontSize: '0.875rem',
+  } as React.CSSProperties,
+};
