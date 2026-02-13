@@ -1408,3 +1408,22 @@ textarea.error {
     transform: none !important;
   }
 }
+
+/* ===== AUTH PAGE SKYLINE BACKGROUND ===== */
+
+/* Skyline background for citizen auth pages (login, register) */
+.auth-skyline-bg {
+  position: fixed;
+  inset: 0;
+  background-image: url('/assets/skyline.png');
+  background-size: cover;
+  background-position: center bottom;
+  z-index: 0;
+}
+
+.auth-skyline-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(205, 94, 129, 0.3);
+  z-index: 0;
+}
