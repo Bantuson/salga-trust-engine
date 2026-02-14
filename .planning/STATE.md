@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.6 of 6.6 (Playwright MCP Automated Dashboard Testing)
-Plan: 4 of 6 in current phase
+Plan: 5 of 6 in current phase
 Status: IN PROGRESS — Building E2E test coverage for public and municipal dashboards
-Last activity: 2026-02-14 — Phase 6.6 Plan 04 complete: security and isolation E2E tests (OWASP, multi-tenant, RBAC, GBV privacy firewall)
+Last activity: 2026-02-14 — Phase 6.6 Plan 05 complete: cross-dashboard integration tests (report-to-resolution, data persistence, full suite verification)
 
-Progress: [██████░░░░] 67% (4/6 plans)
+Progress: [████████░░] 83% (5/6 plans)
 
 ## Performance Metrics
 
@@ -112,6 +112,7 @@ Progress: [██████░░░░] 67% (4/6 plans)
 | Phase 06.6 P03 | 956 | 2 tasks | 4 files |
 | Phase 06.6 P04 | 777 | 2 tasks | 8 files |
 | Phase 06.6 P04 | 777 | 2 tasks | 8 files |
+| Phase 06.6 P05 | 478 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -347,6 +348,11 @@ Recent decisions affecting current work:
 - [Phase 06.5]: Dashboard title uses gradient text matching hero style (text-coral class)
 - [Phase 06.5]: Login tagline changes based on source page for context-aware UX
 - [Phase 06.5]: Profile routing replaces my-reports routing (with redirect for backwards compatibility)
+- [Phase 06.6-05]: Integration tests use multiple authenticated browser contexts within same test to verify cross-dashboard flows
+- [Phase 06.6-05]: Faker library for unique test data generation (descriptions, addresses, emails, phone numbers)
+- [Phase 06.6-05]: GBV firewall validated across full integration path (citizen submission → manager cannot see)
+- [Phase 06.6-05]: Data persistence verified at three levels: page refresh, new session, new browser context
+- [Phase 06.6-05]: Full test suite inventory: 130 unique tests × 4 projects = 520 total test executions
 
 ### Pending Todos
 
@@ -368,7 +374,7 @@ None yet.
 ## Session Continuity
 
 Last session: 2026-02-14 (Phase 6.6 in progress)
-Stopped at: Completed 06.6-04-PLAN.md — security and isolation E2E tests (OWASP, multi-tenant, RBAC, GBV privacy)
+Stopped at: Completed 06.6-05-PLAN.md — cross-dashboard integration tests (report-to-resolution, data persistence, full suite verification)
 Resume file: None
 
 ---
