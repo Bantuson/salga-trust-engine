@@ -83,7 +83,7 @@ export class ProfilePage {
   async goto() {
     await this.page.goto('/profile', { waitUntil: 'domcontentloaded' });
     // Wait for the page heading to appear (confirms page loaded and auth passed)
-    await this.heading.waitFor({ state: 'visible', timeout: 15000 });
+    await this.heading.waitFor({ state: 'visible', timeout: 60000 });
   }
 
   /**

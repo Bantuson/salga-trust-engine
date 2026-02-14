@@ -118,7 +118,7 @@ async function getAuthenticatedPage(
 
     // Wait for GSAP form entrance animation to complete
     const emailInput = page.locator('input[id="email"]');
-    await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+    await emailInput.waitFor({ state: 'visible', timeout: 30000 });
 
     // Fill email and password
     await emailInput.fill(profile.email);

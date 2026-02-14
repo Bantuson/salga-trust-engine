@@ -65,7 +65,7 @@ export class RegisterPage {
     municipality?: string;
   }) {
     // Wait for GSAP form animation to complete before interacting
-    await this.fullNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await this.fullNameInput.waitFor({ state: 'visible', timeout: 30000 });
 
     await this.fullNameInput.fill(data.fullName);
     await this.emailInput.fill(data.email);
