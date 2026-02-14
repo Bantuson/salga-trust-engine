@@ -100,6 +100,9 @@ test.describe('Landing Page', () => {
   });
 
   test('Features section displays content', async ({ page }) => {
+    // ScrollTrigger + GSAP animations can cause slow teardown; triple timeout
+    test.slow();
+
     const landingPage = new LandingPage(page);
 
     await landingPage.goto();

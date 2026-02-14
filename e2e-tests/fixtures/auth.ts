@@ -83,7 +83,8 @@ async function getAuthenticatedPage(
   profile: { name: string; role: string; email: string; password: string; tenantId: string }
 ): Promise<Page> {
   const authDir = path.join(process.cwd(), '.auth');
-  const authFile = path.join(authDir, `${profile.role}-${profile.tenantId}.json`);
+  // Use email as cache key to ensure uniqueness (role+tenantId collides for same-role users)
+  const authFile = path.join(authDir, `${profile.email.replace(/[@.]/g, '_')}.json`);
 
   // Ensure .auth directory exists
   if (!fs.existsSync(authDir)) {

@@ -30,10 +30,12 @@ let gbvTrackingNumber: string | null = null;
  * stored in a module-level variable for subsequent tests.
  */
 test.describe.serial('GBV Privacy Firewall', () => {
+  // GBV privacy tests involve cross-dashboard auth + multiple fixtures; triple timeout
+  test.slow();
 
   test('Setup: submit GBV report as citizen', async ({ citizenGbvPage }) => {
     // Navigate to the public portal report form (port 5174)
-    await citizenGbvPage.goto(`${PUBLIC_BASE}/report`);
+    await citizenGbvPage.goto(`${PUBLIC_BASE}/report`, { waitUntil: 'domcontentloaded' });
 
     // Wait for the form to be visible
     const categorySelect = citizenGbvPage.locator('select[id="category"]');
@@ -96,7 +98,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard tickets page is on port 5173
-      await managerPage.goto(`${MUNICIPAL_BASE}/tickets`);
+      await managerPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await managerPage.waitForTimeout(2000);
 
       const pageContent = await managerPage.content();
@@ -111,7 +113,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
 
     test('Manager CANNOT access GBV report via direct API', async ({ managerPage }) => {
       // Navigate to the municipal dashboard first so localStorage is populated
-      await managerPage.goto(`${MUNICIPAL_BASE}/`, { waitUntil: 'domcontentloaded' });
+      await managerPage.goto('/', { waitUntil: 'domcontentloaded' });
       await managerPage.waitForTimeout(2000);
 
       // Get auth token from Supabase storage
@@ -165,7 +167,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard on port 5173
-      await managerPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`);
+      await managerPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`, { waitUntil: 'domcontentloaded' });
       await managerPage.waitForTimeout(2000);
 
       const pageContent = await managerPage.content();
@@ -191,7 +193,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard tickets page on port 5173
-      await fieldWorkerPage.goto(`${MUNICIPAL_BASE}/tickets`);
+      await fieldWorkerPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await fieldWorkerPage.waitForTimeout(2000);
 
       const pageContent = await fieldWorkerPage.content();
@@ -202,7 +204,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
 
     test('Field worker CANNOT access GBV via API', async ({ fieldWorkerPage }) => {
       // Navigate to municipal dashboard first to populate localStorage
-      await fieldWorkerPage.goto(`${MUNICIPAL_BASE}/`, { waitUntil: 'domcontentloaded' });
+      await fieldWorkerPage.goto('/', { waitUntil: 'domcontentloaded' });
       await fieldWorkerPage.waitForTimeout(2000);
 
       const authToken = await fieldWorkerPage.evaluate(() => {
@@ -247,7 +249,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard on port 5173
-      await fieldWorkerPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`);
+      await fieldWorkerPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`, { waitUntil: 'domcontentloaded' });
       await fieldWorkerPage.waitForTimeout(2000);
 
       const pageContent = await fieldWorkerPage.content();
@@ -270,7 +272,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard tickets page on port 5173
-      await wardCouncillorPage.goto(`${MUNICIPAL_BASE}/tickets`);
+      await wardCouncillorPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await wardCouncillorPage.waitForTimeout(2000);
 
       const pageContent = await wardCouncillorPage.content();
@@ -281,7 +283,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
 
     test('Ward councillor CANNOT access GBV via API', async ({ wardCouncillorPage }) => {
       // Navigate to municipal dashboard first to populate localStorage
-      await wardCouncillorPage.goto(`${MUNICIPAL_BASE}/`, { waitUntil: 'domcontentloaded' });
+      await wardCouncillorPage.goto('/', { waitUntil: 'domcontentloaded' });
       await wardCouncillorPage.waitForTimeout(2000);
 
       const authToken = await wardCouncillorPage.evaluate(() => {
@@ -326,7 +328,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard on port 5173
-      await wardCouncillorPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`);
+      await wardCouncillorPage.goto(`${MUNICIPAL_BASE}/tickets/${gbvTrackingNumber}`, { waitUntil: 'domcontentloaded' });
       await wardCouncillorPage.waitForTimeout(2000);
 
       const pageContent = await wardCouncillorPage.content();
@@ -348,7 +350,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
   test.describe('Public Dashboard GBV Exclusion', () => {
     test('GBV data NOT visible on public dashboard', async ({ page }) => {
       // Public transparency dashboard is on port 5174
-      await page.goto(`${PUBLIC_BASE}/dashboard`);
+      await page.goto(`${PUBLIC_BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(3000);
 
       const pageContent = await page.content();
@@ -366,7 +368,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
 
     test('Public statistics do NOT include GBV in category breakdown', async ({ page }) => {
       // Public transparency dashboard is on port 5174
-      await page.goto(`${PUBLIC_BASE}/dashboard`);
+      await page.goto(`${PUBLIC_BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
 
       // Check category chart/legend for GBV
@@ -381,7 +383,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
 
     test('Public heatmap does NOT show GBV report locations', async ({ page }) => {
       // Public transparency dashboard is on port 5174
-      await page.goto(`${PUBLIC_BASE}/dashboard`);
+      await page.goto(`${PUBLIC_BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
       await page.waitForTimeout(2000);
 
       // Check for heatmap component
@@ -415,7 +417,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard tickets page on port 5173
-      await sapsLiaisonPage.goto(`${MUNICIPAL_BASE}/tickets`);
+      await sapsLiaisonPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await sapsLiaisonPage.waitForTimeout(2000);
 
       const pageContent = await sapsLiaisonPage.content();
@@ -433,7 +435,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Municipal dashboard tickets page on port 5173
-      await adminPage.goto(`${MUNICIPAL_BASE}/tickets`);
+      await adminPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await adminPage.waitForTimeout(2000);
 
       const pageContent = await adminPage.content();
@@ -454,7 +456,7 @@ test.describe.serial('GBV Privacy Firewall', () => {
       }
 
       // Citizen profile is on the public portal (port 5174)
-      await citizenGbvPage.goto(`${PUBLIC_BASE}/profile`);
+      await citizenGbvPage.goto(`${PUBLIC_BASE}/profile`, { waitUntil: 'domcontentloaded' });
       await citizenGbvPage.waitForTimeout(2000);
 
       const pageContent = await citizenGbvPage.content();

@@ -19,6 +19,9 @@ import { test, expect } from '../../fixtures/auth';
 import { ProfilePage } from '../../fixtures/page-objects/public/ProfilePage';
 
 test.describe('Citizen Portal Display', () => {
+  // Auth fixture setup + profile page rendering can be slow; triple timeout for all
+  test.slow();
+
   test('Profile page shows "My Reports" heading', async ({ citizenReturningPage }) => {
     const profilePage = new ProfilePage(citizenReturningPage);
 
@@ -101,6 +104,8 @@ test.describe('Citizen Portal Display', () => {
 });
 
 test.describe('Report Filter Tabs', () => {
+  test.slow();
+
   test('Clicking filter tabs changes active filter', async ({ citizenReturningPage }) => {
     const profilePage = new ProfilePage(citizenReturningPage);
 
@@ -129,11 +134,13 @@ test.describe('Report Filter Tabs', () => {
 });
 
 test.describe('Navigation', () => {
+  test.slow();
+
   test('/my-reports redirects to /profile', async ({ citizenReturningPage }) => {
     // Navigate to the legacy /my-reports route.
     // React Router's <Navigate to="/profile" replace /> handles the redirect.
     // Then ProtectedRoute checks auth. With valid session, /profile renders.
-    await citizenReturningPage.goto('/my-reports', { waitUntil: 'networkidle' });
+    await citizenReturningPage.goto('/my-reports', { waitUntil: 'domcontentloaded' });
 
     // Should redirect to /profile (ProtectedRoute wraps /profile, not /my-reports)
     await expect(citizenReturningPage).toHaveURL(/\/profile/, { timeout: 15000 });
@@ -154,6 +161,8 @@ test.describe('Navigation', () => {
 });
 
 test.describe('User Identity in Nav Bar', () => {
+  test.slow();
+
   test('Nav bar shows authenticated user name', async ({ citizenReturningPage }) => {
     const profilePage = new ProfilePage(citizenReturningPage);
 

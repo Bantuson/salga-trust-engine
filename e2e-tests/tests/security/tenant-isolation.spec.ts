@@ -72,12 +72,15 @@ test.describe('Multi-Tenant API Isolation', () => {
     await managerPage.goto('http://localhost:5173/');
     await managerPage.waitForLoadState('domcontentloaded');
 
-    // Get auth token from storage
+    // Get auth token from storage (dynamic key scan — project ref varies per environment)
     const authToken = await managerPage.evaluate(() => {
-      const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
-      if (supabaseAuth) {
-        const parsed = JSON.parse(supabaseAuth);
-        return parsed.access_token;
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key)!);
+            return parsed.access_token || null;
+          } catch { return null; }
+        }
       }
       return null;
     });
@@ -113,12 +116,15 @@ test.describe('Multi-Tenant API Isolation', () => {
     await managerPage.goto('http://localhost:5173/');
     await managerPage.waitForLoadState('domcontentloaded');
 
-    // Get Jozi auth token
+    // Get Jozi auth token (dynamic key scan — project ref varies per environment)
     const joziAuthToken = await managerPage.evaluate(() => {
-      const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
-      if (supabaseAuth) {
-        const parsed = JSON.parse(supabaseAuth);
-        return parsed.access_token;
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key)!);
+            return parsed.access_token || null;
+          } catch { return null; }
+        }
       }
       return null;
     });
@@ -176,12 +182,15 @@ test.describe('URL Manipulation Protection', () => {
     await managerPage.goto('http://localhost:5173/');
     await managerPage.waitForLoadState('domcontentloaded');
 
-    // Get auth token
+    // Get auth token (dynamic key scan — project ref varies per environment)
     const authToken = await managerPage.evaluate(() => {
-      const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
-      if (supabaseAuth) {
-        const parsed = JSON.parse(supabaseAuth);
-        return parsed.access_token;
+      for (const key of Object.keys(localStorage)) {
+        if (key.startsWith('sb-') && key.endsWith('-auth-token')) {
+          try {
+            const parsed = JSON.parse(localStorage.getItem(key)!);
+            return parsed.access_token || null;
+          } catch { return null; }
+        }
       }
       return null;
     });
