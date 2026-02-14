@@ -4,7 +4,7 @@
  * The most important test file in the suite - verifies the platform's core value proposition:
  * "Citizens report a problem and the municipality visibly responds."
  *
- * Tests span both dashboards (public portal at :5173 and municipal dashboard at :5174)
+ * Tests span both dashboards (public portal at :5174 and municipal dashboard at :5173)
  * using multiple authenticated contexts within the same test.
  *
  * Success Criteria Mapping:
@@ -23,14 +23,14 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
   }) => {
     // Step A: Create new browser context for citizen
     const citizenContext = await browser.newContext({
-      baseURL: 'http://localhost:5173',
+      baseURL: 'http://localhost:5174',
     });
     const citizenPage = await citizenContext.newPage();
 
     // Authenticate citizen (using returning citizen profile)
     await citizenPage.goto('/login');
-    await citizenPage.locator('input[id="email"]').fill('citizen-returning@test.example.com');
-    await citizenPage.locator('input[id="password"]').fill('TestPass123!');
+    await citizenPage.locator('input[id="email"]').fill('citizen-return@test-jozi-001.test');
+    await citizenPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await citizenPage.locator('button[type="submit"]').click();
     await citizenPage.waitForURL(/\/(profile|report)/, { timeout: 10000 });
 
@@ -41,7 +41,7 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     const uniqueDescription = `Pothole on ${faker.location.streetAddress()} - Test ${faker.string.alphanumeric(8)}`;
     const manualAddress = faker.location.streetAddress();
 
-    await reportPage.selectCategory('Pothole');
+    await reportPage.selectCategory('Roads & Potholes');
     await reportPage.fillDescription(uniqueDescription);
     await reportPage.fillAddress(manualAddress);
     await reportPage.submit();
@@ -58,14 +58,14 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
 
     // Step D: Create separate browser context for manager
     const managerContext = await browser.newContext({
-      baseURL: 'http://localhost:5174',
+      baseURL: 'http://localhost:5173',
     });
     const managerPage = await managerContext.newPage();
 
     // Authenticate manager
     await managerPage.goto('/login');
-    await managerPage.locator('input[id="email"]').fill('manager@jozi.example.com');
-    await managerPage.locator('input[id="password"]').fill('TestPass123!');
+    await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
+    await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
     await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
 
@@ -93,21 +93,21 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     browser,
   }) => {
     // Citizen submits 2 different reports
-    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const citizenPage = await citizenContext.newPage();
 
     await citizenPage.goto('/login');
-    await citizenPage.locator('input[id="email"]').fill('citizen-multireport@test.example.com');
-    await citizenPage.locator('input[id="password"]').fill('TestPass123!');
+    await citizenPage.locator('input[id="email"]').fill('citizen-multi@test-jozi-001.test');
+    await citizenPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await citizenPage.locator('button[type="submit"]').click();
     await citizenPage.waitForURL(/\/(profile|report)/, { timeout: 10000 });
 
     const reportPage = new ReportIssuePage(citizenPage);
     const trackingNumbers: string[] = [];
 
-    // Submit first report (Pothole)
+    // Submit first report (Roads & Potholes)
     await reportPage.goto();
-    await reportPage.selectCategory('Pothole');
+    await reportPage.selectCategory('Roads & Potholes');
     await reportPage.fillDescription(
       `Pothole at ${faker.location.streetAddress()} - ${faker.string.alphanumeric(8)}`
     );
@@ -119,9 +119,9 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     expect(tracking1).toBeTruthy();
     trackingNumbers.push(tracking1!);
 
-    // Submit second report (Water Leak)
+    // Submit second report (Water & Sanitation)
     await reportPage.goto();
-    await reportPage.selectCategory('Water Leak');
+    await reportPage.selectCategory('Water & Sanitation');
     await reportPage.fillDescription(
       `Water leak at ${faker.location.streetAddress()} - ${faker.string.alphanumeric(8)}`
     );
@@ -138,12 +138,12 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await citizenContext.close();
 
     // Manager searches for both tracking numbers
-    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const managerPage = await managerContext.newPage();
 
     await managerPage.goto('/login');
-    await managerPage.locator('input[id="email"]').fill('manager@jozi.example.com');
-    await managerPage.locator('input[id="password"]').fill('TestPass123!');
+    await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
+    await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
     await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
 
@@ -164,19 +164,19 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
   });
 
   test('Report with different categories routes correctly', async ({ browser }) => {
-    // Citizen submits Water Leak category
-    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    // Citizen submits Water & Sanitation category
+    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const citizenPage = await citizenContext.newPage();
 
     await citizenPage.goto('/login');
-    await citizenPage.locator('input[id="email"]').fill('citizen-returning@test.example.com');
-    await citizenPage.locator('input[id="password"]').fill('TestPass123!');
+    await citizenPage.locator('input[id="email"]').fill('citizen-return@test-jozi-001.test');
+    await citizenPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await citizenPage.locator('button[type="submit"]').click();
     await citizenPage.waitForURL(/\/(profile|report)/, { timeout: 10000 });
 
     const reportPage = new ReportIssuePage(citizenPage);
     await reportPage.goto();
-    await reportPage.selectCategory('Water Leak');
+    await reportPage.selectCategory('Water & Sanitation');
     await reportPage.fillDescription(
       `Water leak ${faker.location.streetAddress()} - ${faker.string.alphanumeric(8)}`
     );
@@ -189,21 +189,21 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
 
     await citizenContext.close();
 
-    // Manager filters by Water Leak category
-    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    // Manager filters by Water & Sanitation category
+    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const managerPage = await managerContext.newPage();
 
     await managerPage.goto('/login');
-    await managerPage.locator('input[id="email"]').fill('manager@jozi.example.com');
-    await managerPage.locator('input[id="password"]').fill('TestPass123!');
+    await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
+    await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
     await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
 
     const ticketListPage = new TicketListPage(managerPage);
     await ticketListPage.goto();
 
-    // Filter by Water Leak category
-    await ticketListPage.filterByCategory('Water Leak');
+    // Filter by Water & Sanitation category
+    await ticketListPage.filterByCategory('Water & Sanitation');
 
     // Search for the specific tracking number
     await ticketListPage.searchTickets(trackingNumber!);
@@ -211,25 +211,25 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     // Report should appear in filtered results
     await expect(managerPage.locator('tbody').getByText(trackingNumber!)).toBeVisible();
 
-    console.log(`[Test] Water Leak report ${trackingNumber} found in filtered results`);
+    console.log(`[Test] Water & Sanitation report ${trackingNumber} found in filtered results`);
 
     await managerContext.close();
   });
 
   test('Citizen can see submitted report on profile page', async ({ browser }) => {
     // Citizen submits report
-    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const citizenPage = await citizenContext.newPage();
 
     await citizenPage.goto('/login');
-    await citizenPage.locator('input[id="email"]').fill('citizen-returning@test.example.com');
-    await citizenPage.locator('input[id="password"]').fill('TestPass123!');
+    await citizenPage.locator('input[id="email"]').fill('citizen-return@test-jozi-001.test');
+    await citizenPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await citizenPage.locator('button[type="submit"]').click();
     await citizenPage.waitForURL(/\/(profile|report)/, { timeout: 10000 });
 
     const reportPage = new ReportIssuePage(citizenPage);
     await reportPage.goto();
-    await reportPage.selectCategory('Refuse Collection');
+    await reportPage.selectCategory('Waste Management');
     await reportPage.fillDescription(
       `Refuse not collected at ${faker.location.streetAddress()} - ${faker.string.alphanumeric(8)}`
     );
@@ -257,7 +257,7 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
 
   test('Status update is visible on public transparency dashboard', async ({ browser }) => {
     // Navigate to public /dashboard (transparency page)
-    const publicContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const publicContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const publicPage = await publicContext.newPage();
 
     await publicPage.goto('/dashboard');
@@ -281,12 +281,12 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     browser,
   }) => {
     // Citizen submits GBV report on public portal (with consent flow)
-    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const citizenContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const citizenPage = await citizenContext.newPage();
 
     await citizenPage.goto('/login');
-    await citizenPage.locator('input[id="email"]').fill('citizen-gbv@test.example.com');
-    await citizenPage.locator('input[id="password"]').fill('TestPass123!');
+    await citizenPage.locator('input[id="email"]').fill('citizen-gbv@test-jozi-001.test');
+    await citizenPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await citizenPage.locator('button[type="submit"]').click();
     await citizenPage.waitForURL(/\/(profile|report)/, { timeout: 10000 });
 
@@ -313,12 +313,12 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await citizenContext.close();
 
     // Manager searches for GBV tracking number on municipal dashboard
-    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const managerContext = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const managerPage = await managerContext.newPage();
 
     await managerPage.goto('/login');
-    await managerPage.locator('input[id="email"]').fill('manager@jozi.example.com');
-    await managerPage.locator('input[id="password"]').fill('TestPass123!');
+    await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
+    await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
     await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
 
