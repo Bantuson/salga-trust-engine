@@ -36,7 +36,7 @@ test.describe('Municipal Access Request', () => {
 
   test.beforeEach(async ({ browser }) => {
     // Create fresh context without authentication (public form)
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     page = await context.newPage();
     requestAccessPage = new RequestAccessPage(page);
     await requestAccessPage.goto();
@@ -61,14 +61,14 @@ test.describe('Municipal Access Request', () => {
     // Submit form
     await requestAccessPage.submit();
 
-    // Verify success confirmation
+    // Verify success confirmation — h1 says "Request Submitted!"
     const isSuccess = await requestAccessPage.isSuccessShown();
     expect(isSuccess).toBe(true);
 
-    // Verify success message contains confirmation details
-    await expect(requestAccessPage.successState).toContainText(/submitted/i);
-    await expect(requestAccessPage.successState).toContainText(/5 business days/i);
-    await expect(requestAccessPage.successState).toContainText('john.smith@capetown.gov.za');
+    // Verify success message content — look in the parent GlassCard container
+    const successContainer = page.locator('div').filter({ has: requestAccessPage.successState });
+    await expect(successContainer.first()).toContainText(/5 business days/i);
+    await expect(successContainer.first()).toContainText('john.smith@capetown.gov.za');
   });
 
   test('Access request validates required fields', async () => {
@@ -78,27 +78,33 @@ test.describe('Municipal Access Request', () => {
     // Wait for validation errors
     await page.waitForTimeout(500);
 
-    // Verify validation errors are displayed
-    const validationErrors = page.locator('div, span').filter({ hasText: /required|invalid/i });
-    const errorCount = await validationErrors.count();
-    expect(errorCount).toBeGreaterThan(0);
+    // The form's validateForm() sets these specific error messages:
+    // - "Municipality name is required"
+    // - "Province is required"
+    // - "Contact name is required"
+    // - "Contact email is required"
+    // Also shows top-level error: "Please fix the validation errors"
 
-    // Verify specific required fields have errors
-    const municipalityError = page.locator('div, span').filter({ hasText: /municipality.*required/i });
+    // Verify top-level error banner
+    const topError = page.locator('div').filter({ hasText: /Please fix the validation errors/i });
+    await expect(topError.first()).toBeVisible();
+
+    // Verify specific field-level errors (rendered as fieldError divs)
+    const municipalityError = page.locator('div').filter({ hasText: /Municipality name is required/i });
     await expect(municipalityError.first()).toBeVisible();
 
-    const provinceError = page.locator('div, span').filter({ hasText: /province.*required/i });
+    const provinceError = page.locator('div').filter({ hasText: /Province is required/i });
     await expect(provinceError.first()).toBeVisible();
 
-    const contactNameError = page.locator('div, span').filter({ hasText: /contact.*name.*required/i });
+    const contactNameError = page.locator('div').filter({ hasText: /Contact name is required/i });
     await expect(contactNameError.first()).toBeVisible();
 
-    const emailError = page.locator('div, span').filter({ hasText: /email.*required/i });
+    const emailError = page.locator('div').filter({ hasText: /Contact email is required/i });
     await expect(emailError.first()).toBeVisible();
   });
 
   test('Access request validates email format', async () => {
-    // Fill form with invalid email
+    // Fill form with invalid email — must also fill contact name to isolate email error
     await requestAccessPage.municipalityNameInput.fill('Test Municipality');
     await requestAccessPage.provinceSelect.selectOption('Gauteng');
     await requestAccessPage.contactNameInput.fill('Jane Doe');
@@ -108,26 +114,28 @@ test.describe('Municipal Access Request', () => {
     await requestAccessPage.submitButton.click();
     await page.waitForTimeout(500);
 
-    // Verify email validation error
-    const emailError = page.locator('div, span').filter({ hasText: /invalid.*email/i });
+    // The validateForm() in RequestAccessPage.tsx checks:
+    // if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) errors.contactEmail = 'Invalid email format'
+    const emailError = page.locator('div').filter({ hasText: /Invalid email format/i });
     await expect(emailError.first()).toBeVisible();
   });
 
   test('Access request accepts document upload', async () => {
-    // Create a test file
-    const testFilePath = path.join(process.cwd(), 'test-document.txt');
-    fs.writeFileSync(testFilePath, 'Test document content');
+    // Create a test PDF file (must be PDF, JPG, or PNG per ALLOWED_TYPES)
+    const testFilePath = path.join(process.cwd(), 'test-document.pdf');
+    // Write minimal valid-ish PDF content (Playwright doesn't validate PDF contents)
+    fs.writeFileSync(testFilePath, '%PDF-1.4 test document content');
 
     try {
-      // Upload file
+      // Upload file via hidden file input
       await requestAccessPage.uploadDocument(testFilePath);
 
       // Wait for file to appear in file list
       await page.waitForTimeout(500);
 
-      // Verify file is listed
-      const fileList = page.locator('div').filter({ hasText: /test-document\.txt/i });
-      await expect(fileList.first()).toBeVisible();
+      // Verify file is listed (file name span within the fileItem div)
+      const fileItem = page.locator('span').filter({ hasText: /test-document\.pdf/i });
+      await expect(fileItem.first()).toBeVisible();
 
       // Verify remove button is present
       const removeButton = page.locator('button').filter({ hasText: /remove/i });
@@ -147,14 +155,16 @@ test.describe('Municipal Access Request', () => {
     await requestAccessPage.contactNameInput.fill('Sarah Johnson');
     await requestAccessPage.contactEmailInput.fill('sarah@ethekwini.gov.za');
 
-    // Wait for auto-save (debounce)
-    await page.waitForTimeout(1000);
+    // Wait for auto-save (useEffect fires on formData change, no debounce)
+    await page.waitForTimeout(500);
 
     // Reload page
     await page.reload();
     await page.waitForLoadState('networkidle');
+    // Wait for GSAP animation and React hydration
+    await page.waitForTimeout(2000);
 
-    // Verify fields are restored
+    // Verify fields are restored from localStorage draft
     await expect(requestAccessPage.municipalityNameInput).toHaveValue('eThekwini Municipality');
     await expect(requestAccessPage.provinceSelect).toHaveValue('KwaZulu-Natal');
     await expect(requestAccessPage.contactNameInput).toHaveValue('Sarah Johnson');
