@@ -13,7 +13,7 @@ import { test, expect } from '../../fixtures/auth';
 test.describe('Multi-Tenant UI Isolation', () => {
   test('Jozi manager cannot see Pretoria tickets in ticket list', async ({ managerPage }) => {
     // Navigate to tickets page
-    await managerPage.goto('http://localhost:5174/tickets');
+    await managerPage.goto('http://localhost:5173/tickets');
 
     // Wait for ticket list to load
     await managerPage.waitForSelector('table, [data-testid="ticket-table"]', { timeout: 10000 }).catch(() => {});
@@ -39,7 +39,7 @@ test.describe('Multi-Tenant UI Isolation', () => {
 
   test('Pretoria manager cannot see Jozi tickets in ticket list', async ({ managerPretoriaPage }) => {
     // Navigate to tickets page
-    await managerPretoriaPage.goto('http://localhost:5174/tickets');
+    await managerPretoriaPage.goto('http://localhost:5173/tickets');
 
     // Wait for ticket list to load
     await managerPretoriaPage.waitForSelector('table, [data-testid="ticket-table"]', { timeout: 10000 }).catch(() => {});
@@ -68,6 +68,10 @@ test.describe('Multi-Tenant UI Isolation', () => {
  */
 test.describe('Multi-Tenant API Isolation', () => {
   test('Jozi manager API call returns only Jozi data', async ({ managerPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await managerPage.goto('http://localhost:5173/');
+    await managerPage.waitForLoadState('domcontentloaded');
+
     // Get auth token from storage
     const authToken = await managerPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
@@ -105,9 +109,9 @@ test.describe('Multi-Tenant API Isolation', () => {
   });
 
   test('Cross-tenant ticket access via API returns 403', async ({ managerPage, managerPretoriaPage }) => {
-    // First, get a Pretoria ticket ID (if any exist)
-    // For this test, we'll attempt to access a known Pretoria ticket structure
-    // Since we don't have a ticket ID, we'll test the generic pattern
+    // Navigate first to avoid SecurityError on about:blank
+    await managerPage.goto('http://localhost:5173/');
+    await managerPage.waitForLoadState('domcontentloaded');
 
     // Get Jozi auth token
     const joziAuthToken = await managerPage.evaluate(() => {
@@ -152,7 +156,7 @@ test.describe('URL Manipulation Protection', () => {
   test('URL manipulation cannot access other tenant\'s dashboard', async ({ managerPage }) => {
     // Attempt to manipulate URL to access Pretoria data
     // (Most dashboards filter by auth token, not URL params)
-    await managerPage.goto('http://localhost:5174/tickets?tenant_id=test-pretoria-001');
+    await managerPage.goto('http://localhost:5173/tickets?tenant_id=test-pretoria-001');
 
     // Wait for page load
     await managerPage.waitForTimeout(2000);
@@ -168,6 +172,10 @@ test.describe('URL Manipulation Protection', () => {
   });
 
   test('Metrics endpoint returns only tenant-scoped data', async ({ managerPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await managerPage.goto('http://localhost:5173/');
+    await managerPage.waitForLoadState('domcontentloaded');
+
     // Get auth token
     const authToken = await managerPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
