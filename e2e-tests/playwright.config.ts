@@ -23,6 +23,9 @@ export default defineConfig({
   /* Opt out of parallel tests on CI */
   workers: process.env.CI ? 2 : 4,
 
+  /* Global test timeout - increase for GSAP animations */
+  timeout: 60000, // 60s per test
+
   /* Reporter to use. See https://playwright.dev/docs/test-reporters */
   reporter: [
     ['html'],
