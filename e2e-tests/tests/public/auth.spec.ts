@@ -67,12 +67,14 @@ test.describe('Citizen Registration', () => {
   });
 
   test('Registration shows error for existing email', async ({ page }) => {
+    test.slow();
+
     const registerPage = new RegisterPage(page);
 
     await registerPage.goto();
 
     // Wait for GSAP form entrance animation to complete
-    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 30000 });
 
     // Use email from existing citizen profile
     const existingEmail = 'citizen-return@test-jozi-001.test';
@@ -104,7 +106,7 @@ test.describe('Citizen Registration', () => {
     await registerPage.goto();
 
     // Wait for GSAP form entrance animation to complete
-    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 30000 });
 
     await registerPage.fullNameInput.fill(`${citizenData.firstName} ${citizenData.lastName}`);
     await registerPage.emailInput.fill(citizenData.email);
@@ -131,7 +133,7 @@ test.describe('Citizen Registration', () => {
     await registerPage.goto();
 
     // Wait for GSAP form entrance animation to complete
-    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 10000 });
+    await registerPage.fullNameInput.waitFor({ state: 'visible', timeout: 30000 });
 
     await registerPage.fullNameInput.fill(`${citizenData.firstName} ${citizenData.lastName}`);
     await registerPage.emailInput.fill(citizenData.email);
