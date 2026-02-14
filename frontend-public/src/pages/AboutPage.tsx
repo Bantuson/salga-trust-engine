@@ -12,7 +12,7 @@ export function AboutPage() {
       </div>
 
       <div className="about-content">
-        <GlassCard variant="default">
+        <GlassCard variant="elevated">
           <h2>What is SALGA Trust Engine?</h2>
           <p>
             SALGA Trust Engine is South Africa's first AI-powered platform for transparent municipal service delivery.
@@ -22,11 +22,16 @@ export function AboutPage() {
           </p>
         </GlassCard>
 
-        <GlassCard variant="default">
+        <GlassCard variant="elevated">
           <h2>How It Works</h2>
           <div className="how-it-works-steps">
             <div className="step">
-              <div className="step-icon">📱</div>
+              <div className="step-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-gold)" strokeWidth="2">
+                  <rect x="5" y="2" width="14" height="20" rx="2" ry="2"></rect>
+                  <line x1="12" y1="18" x2="12" y2="18"></line>
+                </svg>
+              </div>
               <h3>1. Report</h3>
               <p>
                 Citizens report issues via WhatsApp or the web portal. Our AI classifies the issue and routes it
@@ -34,7 +39,12 @@ export function AboutPage() {
               </p>
             </div>
             <div className="step">
-              <div className="step-icon">👁️</div>
+              <div className="step-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-gold)" strokeWidth="2">
+                  <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
+                  <circle cx="12" cy="12" r="3"></circle>
+                </svg>
+              </div>
               <h3>2. Track</h3>
               <p>
                 Every report gets a unique tracking number. Citizens receive real-time WhatsApp updates as their
@@ -42,7 +52,12 @@ export function AboutPage() {
               </p>
             </div>
             <div className="step">
-              <div className="step-icon">✅</div>
+              <div className="step-icon">
+                <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-gold)" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10"></circle>
+                  <path d="M9 12l2 2 4-4"></path>
+                </svg>
+              </div>
               <h3>3. Resolve</h3>
               <p>
                 Municipal teams respond within SLA timeframes. Citizens are notified when work begins and when
@@ -53,7 +68,7 @@ export function AboutPage() {
         </GlassCard>
 
         <div className="about-benefits">
-          <GlassCard variant="default">
+          <GlassCard variant="elevated">
             <h2>For Citizens</h2>
             <ul>
               <li>Report issues in seconds via WhatsApp or web</li>
@@ -65,7 +80,7 @@ export function AboutPage() {
             </ul>
           </GlassCard>
 
-          <GlassCard variant="default">
+          <GlassCard variant="elevated">
             <h2>For Municipalities</h2>
             <ul>
               <li>AI-powered automatic issue classification and routing</li>
@@ -78,7 +93,7 @@ export function AboutPage() {
           </GlassCard>
         </div>
 
-        <GlassCard variant="default">
+        <GlassCard variant="elevated">
           <h2>Frequently Asked Questions</h2>
           <div className="faq-list">
             <FAQItem

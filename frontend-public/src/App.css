@@ -1033,6 +1033,15 @@ body {
   transition: background 0.3s ease;
 }
 
+.faq-question::marker {
+  color: var(--color-accent-gold);
+}
+
+/* Webkit fallback for FAQ arrow markers */
+.faq-question::-webkit-details-marker {
+  color: var(--color-accent-gold);
+}
+
 .faq-question:hover {
   background: var(--surface-higher);
 }

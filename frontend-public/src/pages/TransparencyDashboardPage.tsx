@@ -26,7 +26,9 @@ export function TransparencyDashboardPage() {
       {/* Header */}
       <div className="dashboard-header">
         <div className="dashboard-header-content">
-          <h1 className="dashboard-title">Municipal Transparency Dashboard</h1>
+          <h1 className="dashboard-title">
+            <span className="text-coral">Municipal Transparency Dashboard</span>
+          </h1>
           <p className="dashboard-subtitle">
             Public performance metrics for South African municipalities
           </p>
@@ -36,17 +38,17 @@ export function TransparencyDashboardPage() {
       <div className="dashboard-content">
         {/* System Summary Cards */}
         <div className="dashboard-summary-grid">
-          <GlassCard variant="default">
+          <GlassCard variant="elevated">
             <div className="metric-label">Total Municipalities</div>
             <div className="metric-value">{summary.total_municipalities}</div>
           </GlassCard>
 
-          <GlassCard variant="default">
+          <GlassCard variant="elevated">
             <div className="metric-label">Total Service Requests</div>
             <div className="metric-value">{summary.total_tickets.toLocaleString()}</div>
           </GlassCard>
 
-          <GlassCard variant="default">
+          <GlassCard variant="elevated">
             <div className="metric-label">Sensitive Reports (System-wide)</div>
             <div className="metric-value">{summary.total_sensitive_tickets.toLocaleString()}</div>
             <div className="metric-note">GBV reports excluded from location data</div>
