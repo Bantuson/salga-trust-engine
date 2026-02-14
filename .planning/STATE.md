@@ -11,8 +11,8 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 Phase: 6.5 of 6+ (Public Dashboard UI Refinements)
 Plan: 3 of 3 in current phase (all plans completed)
-Status: COMPLETE — Phase 6.5 Plan 03 verified
-Last activity: 2026-02-14 — Phase 6.5 Plan 03 complete: Municipal dashboard login and request access pages polished
+Status: COMPLETE — Phase 6.5 all plans verified
+Last activity: 2026-02-14 — Phase 6.5 Plan 01 complete: Header scroll, GSAP animations, feature cards, mobile refinements (executed after Plan 03)
 
 Progress: [██████████] 100% (3/3 plans)
 
@@ -20,8 +20,8 @@ Progress: [██████████] 100% (3/3 plans)
 
 **Velocity:**
 - Total plans completed: 51
-- Average duration: 18.3 minutes
-- Total execution time: 15.6 hours
+- Average duration: 18.1 minutes
+- Total execution time: 15.8 hours
 
 **By Phase:**
 
@@ -37,11 +37,11 @@ Progress: [██████████] 100% (3/3 plans)
 | 06.2 | 6 | 184.1m | 30.7m |
 | 06.3 | 5 | 38.1m | 7.6m |
 | 06.4 | 6 | 28.8m | 4.8m |
-| 06.5 | 3 | 4.8m | 4.8m |
+| 06.5 | 3 | 14.9m | 5.0m |
 
 **Recent Trend:**
-- Last 5 plans: 6.9m, 3.2m, 10.6m, 10.6m, 4.8m
-- Trend: Phase 06.5 complete - municipal dashboard login and request access UI polish
+- Last 5 plans: 3.2m, 10.6m, 10.6m, 4.8m, 10.1m
+- Trend: Phase 06.5 complete - public dashboard header scroll, animations, feature cards, mobile refinements
 
 *Updated after each plan completion*
 
@@ -104,6 +104,7 @@ Progress: [██████████] 100% (3/3 plans)
 | 06.4-05 | 3.2m (193s) | 2 | 7 |
 | 06.4-06 | 10.6m (634s) | 2 | 3 |
 | 06.5-03 | 4.8m (288s) | 2 | 3 |
+| 06.5-01 | 10.1m (607s) | 2 | 7 |
 
 ## Accumulated Context
 
