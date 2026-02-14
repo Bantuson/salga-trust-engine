@@ -39,6 +39,7 @@ export function ReportReceipt({
   return (
     <GlassCard
       variant="elevated"
+      data-testid="report-receipt"
       style={{
         maxWidth: '600px',
         margin: '0 auto',

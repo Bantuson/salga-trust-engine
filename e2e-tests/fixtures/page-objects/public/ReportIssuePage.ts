@@ -44,23 +44,21 @@ export class ReportIssuePage {
       hasText: 'Submit Report',
     });
 
-    // GBV consent (assuming it renders as a modal/overlay)
-    this.gbvConsentDialog = page.locator('div').filter({ hasText: /GBV.*consent/i }).first();
-    this.gbvAcceptButton = page.locator('button', { hasText: /accept|continue|i understand/i });
-    this.gbvDeclineButton = page.locator('button', { hasText: /decline|cancel/i });
+    // GBV consent dialog (overlay has class gbv-consent-overlay)
+    this.gbvConsentDialog = page.locator('.gbv-consent-overlay');
+    this.gbvAcceptButton = page.locator('.gbv-consent-overlay button', { hasText: /I Understand, Continue/i });
+    this.gbvDeclineButton = page.locator('.gbv-consent-overlay button', { hasText: /cancel/i });
 
     // Receipt
     this.trackingNumber = page.locator('text=/TKT-\\d{8}-[A-F0-9]{6}/');
-    this.receiptCard = page.locator('div').filter({ hasText: /tracking.*number/i }).first();
+    this.receiptCard = page.locator('[data-testid="report-receipt"]');
 
     // Errors and info
-    this.errorMessage = page.locator('div').filter({ hasText: /error|failed/i }).first();
+    this.errorMessage = page.locator('[data-testid="form-error"]');
     this.locationSuccessMessage = page.locator('div').filter({
       hasText: /location captured/i,
     }).first();
-    this.residenceGate = page.locator('div').filter({
-      hasText: /proof of residence required/i,
-    }).first();
+    this.residenceGate = page.locator('[data-testid="residence-gate"]');
   }
 
   /**

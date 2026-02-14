@@ -9,7 +9,7 @@ import { cn } from '../../lib/utils';
 export type GlassCardVariant = 'default' | 'elevated' | 'interactive';
 export type GlowColor = 'gold' | 'teal' | 'none';
 
-export interface GlassCardProps {
+export interface GlassCardProps extends React.HTMLAttributes<HTMLDivElement> {
   children: React.ReactNode;
   className?: string;
   variant?: GlassCardVariant;
@@ -34,6 +34,7 @@ const baseStyles: React.CSSProperties = {
   borderRadius: 'var(--radius-xl)',
   transition: 'var(--transition-base)',
   position: 'relative',
+  padding: 'var(--glass-card-padding)',
 };
 
 const variantStyles: Record<GlassCardVariant, React.CSSProperties> = {
@@ -67,6 +68,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
   style,
   onMouseEnter,
   onMouseLeave,
+  ...rest
 }) => {
   const [isHovered, setIsHovered] = React.useState(false);
 
@@ -100,6 +102,7 @@ export const GlassCard: React.FC<GlassCardProps> = ({
       onClick={onClick}
       onMouseEnter={handleMouseEnter}
       onMouseLeave={handleMouseLeave}
+      {...rest}
     >
       {children}
     </div>
