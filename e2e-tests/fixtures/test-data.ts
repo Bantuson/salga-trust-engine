@@ -37,25 +37,26 @@ const REPORT_CATEGORIES = [
 
 /**
  * Fixed test municipalities (created by global-setup.ts)
+ * Uses deterministic UUIDs for test predictability
  */
 export const TEST_MUNICIPALITIES = [
   {
-    id: 'test-jozi-001',
+    id: '00000000-0000-0000-0000-000000000001', // Deterministic UUID for Jozi
     name: 'City of Johannesburg (Test)',
     province: 'Gauteng',
     code: 'MUN001',
-    contact_name: 'Test Contact Jozi',
     contact_email: 'contact@test-jozi-001.gov.za',
-    contact_phone: '+27111234567',
+    population: 5635127,
+    is_active: true,
   },
   {
-    id: 'test-pretoria-001',
+    id: '00000000-0000-0000-0000-000000000002', // Deterministic UUID for Tshwane
     name: 'City of Tshwane (Test)',
     province: 'Gauteng',
     code: 'MUN002',
-    contact_name: 'Test Contact Tshwane',
     contact_email: 'contact@test-pretoria-001.gov.za',
-    contact_phone: '+27123456789',
+    population: 3275152,
+    is_active: true,
   },
 ];
 

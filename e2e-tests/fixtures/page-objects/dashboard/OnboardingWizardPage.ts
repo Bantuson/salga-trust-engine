@@ -52,7 +52,7 @@ export class OnboardingWizardPage {
    * Navigate to onboarding wizard
    */
   async goto() {
-    await this.page.goto('/onboarding');
+    await this.page.goto('/onboarding', { waitUntil: 'domcontentloaded' });
   }
 
   /**

@@ -79,7 +79,7 @@ export class TicketListPage {
    * Navigate to ticket list page
    */
   async goto() {
-    await this.page.goto('/tickets');
+    await this.page.goto('/tickets', { waitUntil: 'domcontentloaded' });
   }
 
   /**

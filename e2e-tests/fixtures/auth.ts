@@ -120,10 +120,11 @@ async function getAuthenticatedPage(
     await page.locator('input[id="password"]').fill(profile.password);
 
     // Submit login
-    await page.locator('button[type="submit"]', { hasText: 'Sign In' }).click();
+    await page.locator('button[type="submit"]').filter({ hasText: /sign in/i }).click();
 
     // Wait for successful navigation (not back to /login)
-    await page.waitForURL(/\/(profile|onboarding|\/)/, { timeout: 10000 });
+    // Citizens redirect to /profile, municipal users redirect to / (dashboard)
+    await page.waitForURL(/\/(profile|onboarding|dashboard|tickets)?\/?$/, { timeout: 15000 });
 
     // Save storageState
     await page.context().storageState({ path: authFile });
