@@ -107,6 +107,7 @@ Progress: [██████████] 100% (3/3 plans)
 | 06.5-01 | 10.1m (607s) | 2 | 7 |
 | 06.5-02 | 9.2m (550s) | 2 | 6 |
 | Phase 06.5 P02 | 550 | 2 tasks | 6 files |
+| Phase 06.6 P01 | 1006 | 2 tasks | 31 files |
 
 ## Accumulated Context
 
@@ -354,6 +355,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.3 inserted after Phase 6: Complete UI redesign — Johannesburg skyline background, glassmorphic cards, pink/rose (#cd5e81) theme, proper design system for both dashboards (URGENT)
 - Phase 6.4 inserted after Phase 6: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (URGENT)
 - Phase 6.5 inserted after Phase 6.4: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (URGENT)
+- Phase 6.6 inserted after Phase 6.5: Playwright MCP automated dashboard testing — E2E tests, 10 role profiles, multi-tenant isolation, OWASP security (URGENT)
 
 ### Blockers/Concerns
 
