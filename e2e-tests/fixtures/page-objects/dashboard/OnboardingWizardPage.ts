@@ -106,6 +106,8 @@ export class OnboardingWizardPage {
       const nameInput = this.page.locator('input').filter({
         has: this.page.locator('label:has-text("Municipality")'),
       }).first();
+      // Wait for GSAP animation before interacting
+      await nameInput.waitFor({ state: 'visible', timeout: 10000 });
       await nameInput.fill(data.municipalityName);
     }
 
@@ -129,6 +131,9 @@ export class OnboardingWizardPage {
       const emailInput = this.page.locator('input[type="email"]').last();
       const roleSelect = this.page.locator('select').last();
       const addButton = this.page.locator('button').filter({ hasText: /add|invite/i }).last();
+
+      // Wait for form to be ready
+      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
 
       await emailInput.fill(invite.email);
       await roleSelect.selectOption(invite.role);

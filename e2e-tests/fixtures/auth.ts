@@ -115,8 +115,12 @@ async function getAuthenticatedPage(
     // Navigate to login page
     await page.goto(getLoginUrl(profile.role));
 
+    // Wait for GSAP form entrance animation to complete
+    const emailInput = page.locator('input[id="email"]');
+    await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+
     // Fill email and password
-    await page.locator('input[id="email"]').fill(profile.email);
+    await emailInput.fill(profile.email);
     await page.locator('input[id="password"]').fill(profile.password);
 
     // Submit login

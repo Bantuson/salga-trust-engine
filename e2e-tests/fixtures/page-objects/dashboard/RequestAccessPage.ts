@@ -85,6 +85,9 @@ export class RequestAccessPage {
     contactPhone: string;
     notes?: string;
   }) {
+    // Wait for GSAP form animation to complete before interacting
+    await this.municipalityNameInput.waitFor({ state: 'visible', timeout: 10000 });
+
     await this.municipalityNameInput.fill(data.municipalityName);
     await this.provinceSelect.selectOption(data.province);
     await this.municipalityCodeInput.fill(data.municipalityCode);
