@@ -76,30 +76,27 @@ test.describe('Landing Page', () => {
     const header = page.locator('header').first();
     await expect(header).toBeVisible({ timeout: 5000 });
 
-    // Get initial transform value
-    const initialTransform = await header.evaluate((el) =>
-      window.getComputedStyle(el).transform
+    // Header should NOT have hidden class initially
+    await expect(header).not.toHaveClass(/public-header--hidden/, { timeout: 2000 });
+
+    // Scroll down using mouse wheel (works with Lenis smooth scroll)
+    await page.mouse.wheel(0, 300);
+
+    // Wait for scroll + CSS transition (transform 0.3s ease)
+    await page.waitForTimeout(1000);
+
+    // Header should have hidden class after scrolling down
+    const hasHiddenClass = await header.evaluate((el) =>
+      el.classList.contains('public-header--hidden')
     );
-
-    // Scroll down significantly (> 80px threshold)
-    await page.evaluate(() => window.scrollBy(0, 200));
-
-    // Wait for GSAP animation to complete
-    await page.waitForTimeout(600);
-
-    // Check if header has transformed (hidden or moved up)
-    const afterScrollTransform = await header.evaluate((el) =>
-      window.getComputedStyle(el).transform
-    );
+    expect(hasHiddenClass).toBe(true);
 
     // Scroll back to top
-    await page.evaluate(() => window.scrollTo(0, 0));
+    await page.mouse.wheel(0, -500);
+    await page.waitForTimeout(1000);
 
-    // Wait for animation
-    await page.waitForTimeout(600);
-
-    // Header should be visible again
-    await expect(header).toBeVisible();
+    // Header should be visible again (no hidden class)
+    await expect(header).not.toHaveClass(/public-header--hidden/, { timeout: 3000 });
   });
 
   test('Features section displays content', async ({ page }) => {

@@ -75,10 +75,11 @@ export interface CitizenData {
 export function generateCitizenData(tenantId?: string): CitizenData {
   const firstName = faker.person.firstName();
   const lastName = faker.person.lastName();
-  const suffix = tenantId ? `@${tenantId}.test` : '@test.local';
+  const domain = tenantId ? `${tenantId}.example.com` : 'e2e-test.example.com';
+  const slug = `${firstName}.${lastName}`.toLowerCase().replace(/[^a-z0-9.]/g, '');
 
   return {
-    email: faker.internet.email({ firstName, lastName }).toLowerCase() + suffix,
+    email: `${slug}.${Date.now()}@${domain}`,
     password: process.env.TEST_PASSWORD || 'Test123!@#',
     phone: `+27${faker.number.int({ min: 600000000, max: 899999999 })}`,
     firstName,

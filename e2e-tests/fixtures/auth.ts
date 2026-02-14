@@ -126,9 +126,8 @@ async function getAuthenticatedPage(
     // Submit login
     await page.locator('button[type="submit"]').filter({ hasText: /sign in/i }).click();
 
-    // Wait for successful navigation (not back to /login)
-    // Citizens redirect to /profile, municipal users redirect to / (dashboard)
-    await page.waitForURL(/\/(profile|onboarding|dashboard|tickets)?\/?$/, { timeout: 15000 });
+    // Wait for navigation AWAY from /login (citizens → /profile, municipal → /dashboard or /)
+    await page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 });
 
     // Save storageState
     await page.context().storageState({ path: authFile });

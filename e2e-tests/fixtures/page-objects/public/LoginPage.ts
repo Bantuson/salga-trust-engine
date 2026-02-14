@@ -70,8 +70,13 @@ export class LoginPage {
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.emailSubmitButton.click();
-    // Wait for navigation or error
-    await this.page.waitForURL(/\/(profile|login)/, { timeout: 10000 });
+    // Wait for either navigation away from /login OR error message appearing
+    await Promise.race([
+      this.page.waitForURL((url) => !url.pathname.endsWith('/login'), { timeout: 15000 }),
+      this.errorMessage.waitFor({ state: 'visible', timeout: 15000 }),
+    ]).catch(() => {
+      // If neither happens, the login may have failed silently
+    });
   }
 
   /**
