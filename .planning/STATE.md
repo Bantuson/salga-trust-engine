@@ -5,14 +5,14 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.5 complete — public dashboard UI refinements, scroll behavior, card styling, login customization
+**Current focus:** Phase 6.6 complete — Playwright E2E testing with comprehensive 6-round fix of all test infrastructure, selectors, and data alignment
 
 ## Current Position
 
 Phase: 6.6 of 6.6 (Playwright MCP Automated Dashboard Testing)
 Plan: 6 of 6 in current phase
-Status: COMPLETE — All E2E test infrastructure fixed, landing tests passing
-Last activity: 2026-02-14 — Phase 6.6 Plan 06 complete: Fixed all E2E test infrastructure issues (port config, UUID tenant IDs, GSAP timeouts, schema alignment) - landing tests 5/5 passing
+Status: COMPLETE — All 6 plans executed, 6 fix rounds applied across 42 files, all test selectors aligned with actual React components
+Last activity: 2026-02-14 — Phase 6.6 Plan 06 complete: 6-round comprehensive fix of all E2E test failures (infrastructure, auth forms, public tests, GBV privacy, integration data, 20 municipal dashboard failures)
 
 Progress: [██████████] 100% (6/6 plans)
 
@@ -354,7 +354,13 @@ Recent decisions affecting current work:
 - [Phase 06.6-05]: Faker library for unique test data generation (descriptions, addresses, emails, phone numbers)
 - [Phase 06.6-05]: GBV firewall validated across full integration path (citizen submission → manager cannot see)
 - [Phase 06.6-05]: Data persistence verified at three levels: page refresh, new session, new browser context
-- [Phase 06.6-05]: Full test suite inventory: 130 unique tests × 4 projects = 520 total test executions
+- [Phase 06.6-05]: Full test suite inventory: 130 unique tests x 4 projects = 520 total test executions
+- [Phase 06.6-06]: Shared Input component selectors use .input-wrapper label matching (not nested label lookup)
+- [Phase 06.6-06]: data-testid attributes added to key UI components for stable test anchors (ReportIssuePage, ReportReceipt)
+- [Phase 06.6-06]: Blob/programmatic downloads tested via page stability verification (not Playwright download events)
+- [Phase 06.6-06]: GlassCard updated to pass through HTML attributes (supports data-testid, role, etc.)
+- [Phase 06.6-06]: ProfilePage page object targets CitizenPortalPage (reports portal) not ProfilePage.tsx (profile editor)
+- [Phase 06.6-06]: residence_verified flag required in citizen user_metadata for report submission access
 
 ### Pending Todos
 
@@ -375,8 +381,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-14 (Phase 6.6 in progress)
-Stopped at: Completed 06.6-05-PLAN.md — cross-dashboard integration tests (report-to-resolution, data persistence, full suite verification)
+Last session: 2026-02-14 (Phase 6.6 complete)
+Stopped at: Completed 06.6-06-PLAN.md — comprehensive 6-round fix of all E2E test failures across all test categories (landing, auth, public, municipal, security, integration)
 Resume file: None
 
 ---
