@@ -20,7 +20,8 @@ export class ProfilePage {
   readonly saveButton: Locator;
   readonly cancelButton: Locator;
 
-  // Form fields (edit mode)
+  // Form fields (edit mode and read-only)
+  readonly emailInput: Locator;
   readonly fullNameInput: Locator;
   readonly phoneInput: Locator;
   readonly municipalitySelect: Locator;
@@ -49,14 +50,11 @@ export class ProfilePage {
     this.saveButton = page.locator('button', { hasText: 'Save' });
     this.cancelButton = page.locator('button', { hasText: 'Cancel' });
 
-    // Form fields (edit mode - these match ProfilePage form)
-    this.fullNameInput = page.locator('input').filter({ hasText: /name/i }).or(
-      page.locator('input[type="text"]').first()
-    );
-    this.phoneInput = page.locator('input').filter({ hasText: /phone/i }).or(
-      page.locator('input[type="tel"]')
-    );
-    this.municipalitySelect = page.locator('select').first();
+    // Form fields (edit mode and read-only - these match ProfilePage form IDs)
+    this.emailInput = page.locator('input[id="email"]');
+    this.fullNameInput = page.locator('input[id="fullName"]');
+    this.phoneInput = page.locator('input[id="phone"]');
+    this.municipalitySelect = page.locator('select[id="municipality"]');
 
     // Reports
     this.reportsList = page.locator('[data-reports-list], div').filter({
