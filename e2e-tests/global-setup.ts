@@ -22,6 +22,7 @@ import { profile as citizenMulti } from './profiles/public/citizen-multireport.p
 import { profile as citizenTracking } from './profiles/public/citizen-tracking.profile.js';
 import { profile as admin } from './profiles/municipal/admin.profile.js';
 import { profile as manager } from './profiles/municipal/manager.profile.js';
+import { profile as managerPretoria } from './profiles/municipal/manager-pretoria.profile.js';
 import { profile as fieldWorker } from './profiles/municipal/field-worker.profile.js';
 import { profile as sapsLiaison } from './profiles/municipal/saps-liaison.profile.js';
 import { profile as wardCouncillor } from './profiles/municipal/ward-councillor.profile.js';
@@ -76,6 +77,7 @@ async function globalSetup() {
       citizenTracking,
       admin,
       manager,
+      managerPretoria,
       fieldWorker,
       sapsLiaison,
       wardCouncillor,
