@@ -102,16 +102,21 @@ export class OnboardingWizardPage {
   }
 
   /**
-   * Get current step based on visible title
+   * Get current step based on visible title.
+   * Waits briefly for GSAP transitions to settle before checking visibility.
    */
   async getCurrentStep(): Promise<string> {
+    // Allow GSAP transition to settle
+    await this.page.waitForTimeout(500);
+
     // Check each step title visibility (order matters for disambiguation)
-    if (await this.welcomeStepTitle.isVisible().catch(() => false)) return 'welcome';
-    if (await this.profileStepTitle.isVisible().catch(() => false)) return 'profile';
-    if (await this.teamStepTitle.isVisible().catch(() => false)) return 'team';
-    if (await this.wardsStepTitle.isVisible().catch(() => false)) return 'wards';
-    if (await this.slaStepTitle.isVisible().catch(() => false)) return 'sla';
-    if (await this.completionStepTitle.isVisible().catch(() => false)) return 'complete';
+    // Use waitFor with short timeout to be more reliable than bare isVisible
+    try { await this.welcomeStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'welcome'; } catch {}
+    try { await this.profileStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'profile'; } catch {}
+    try { await this.teamStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'team'; } catch {}
+    try { await this.wardsStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'wards'; } catch {}
+    try { await this.slaStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'sla'; } catch {}
+    try { await this.completionStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'complete'; } catch {}
     return 'unknown';
   }
 
@@ -119,32 +124,40 @@ export class OnboardingWizardPage {
    * Click "Start Setup" on welcome screen
    */
   async clickStart() {
+    await this.startButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.startButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for GSAP transition to next step
+    await this.page.waitForTimeout(1500);
   }
 
   /**
    * Go to next step (clicks "Next" or "Finish" button)
    */
   async goToNextStep() {
+    await this.nextButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.nextButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for GSAP transition + possible backend round-trip
+    await this.page.waitForTimeout(1500);
   }
 
   /**
    * Go back to previous step
    */
   async goBack() {
+    await this.backButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.backButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for GSAP transition
+    await this.page.waitForTimeout(1500);
   }
 
   /**
    * Skip current step
    */
   async skipStep() {
+    await this.skipButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.skipButton.click();
-    await this.page.waitForTimeout(500);
+    // Wait for GSAP transition
+    await this.page.waitForTimeout(1500);
   }
 
   /**
@@ -171,7 +184,7 @@ export class OnboardingWizardPage {
         .locator('.input-wrapper')
         .filter({ hasText: /Full Municipality Name/i })
         .locator('input');
-      await nameInput.waitFor({ state: 'visible', timeout: 10000 });
+      await nameInput.waitFor({ state: 'visible', timeout: 30000 });
       await nameInput.fill(data.municipalityName);
     }
 
@@ -221,7 +234,7 @@ export class OnboardingWizardPage {
       const roleSelect = this.page.locator('select').last();
       const addButton = this.page.locator('button').filter({ hasText: /Add Another/i }).last();
 
-      await emailInput.waitFor({ state: 'visible', timeout: 10000 });
+      await emailInput.waitFor({ state: 'visible', timeout: 30000 });
       await emailInput.fill(invite.email);
       await roleSelect.selectOption(invite.role);
       await addButton.click();
