@@ -88,6 +88,7 @@ export class TicketListPage {
    * Search tickets by query
    */
   async searchTickets(query: string) {
+    await this.searchInput.waitFor({ state: 'visible', timeout: 30000 });
     await this.searchInput.fill(query);
     // Wait for debounce (300ms) + network response
     await this.page.waitForTimeout(600);
