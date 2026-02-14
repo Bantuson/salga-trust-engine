@@ -122,7 +122,7 @@ test.describe('Citizen Login', () => {
     // Login with citizen-returning profile credentials
     await loginPage.loginWithEmail(
       'citizen-return@test-jozi-001.test',
-      'TestPassword123!'
+      'Test123!@#'
     );
 
     // Verify redirect to profile or dashboard
