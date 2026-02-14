@@ -94,6 +94,10 @@ body {
   display: inline-block;
 }
 
+.hero-cta-card {
+  display: inline-block;
+}
+
 .hero-cta {
   display: inline-block;
   padding: 1rem 2.5rem;
@@ -220,6 +224,25 @@ body {
 .feature-card:hover {
   transform: translateY(-4px);
   border-color: var(--border-hover);
+}
+
+.feature-card-header {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  margin-bottom: var(--space-md);
+}
+
+.feature-card-header--reversed {
+  flex-direction: row-reverse;
+}
+
+.feature-card-header .feature-icon {
+  margin-bottom: 0; /* Override existing margin */
+}
+
+.feature-card-header .feature-title {
+  margin-bottom: 0; /* Override existing margin */
 }
 
 .card-glow-gold {

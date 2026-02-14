@@ -9,19 +9,19 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 6.4 of 6+ (Dashboard Landing Pages, Public Hero Polish, and Citizen Auth Architecture)
-Plan: 7 of 7 in current phase (all plans completed)
-Status: COMPLETE — Phase 6.4 verified (human testing pending)
-Last activity: 2026-02-13 — Phase 6.4 complete: all 7 plans across 3 waves executed and verified
+Phase: 6.5 of 6+ (Public Dashboard UI Refinements)
+Plan: 3 of 3 in current phase (all plans completed)
+Status: COMPLETE — Phase 6.5 Plan 03 verified
+Last activity: 2026-02-14 — Phase 6.5 Plan 03 complete: Municipal dashboard login and request access pages polished
 
-Progress: [██████████] 100% (7/7 plans)
+Progress: [██████████] 100% (3/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 50
-- Average duration: 18.5 minutes
-- Total execution time: 15.5 hours
+- Total plans completed: 51
+- Average duration: 18.3 minutes
+- Total execution time: 15.6 hours
 
 **By Phase:**
 
@@ -37,10 +37,11 @@ Progress: [██████████] 100% (7/7 plans)
 | 06.2 | 6 | 184.1m | 30.7m |
 | 06.3 | 5 | 38.1m | 7.6m |
 | 06.4 | 6 | 28.8m | 4.8m |
+| 06.5 | 3 | 4.8m | 4.8m |
 
 **Recent Trend:**
-- Last 5 plans: 4.5m, 6.9m, 3.2m, 10.6m, 10.6m
-- Trend: Phase 06.4 in progress - citizen report form with GBV safety and receipt card
+- Last 5 plans: 6.9m, 3.2m, 10.6m, 10.6m, 4.8m
+- Trend: Phase 06.5 complete - municipal dashboard login and request access UI polish
 
 *Updated after each plan completion*
 
@@ -102,6 +103,7 @@ Progress: [██████████] 100% (7/7 plans)
 | 06.4-04 | 6.9m (413s) | 2 | 2 |
 | 06.4-05 | 3.2m (193s) | 2 | 7 |
 | 06.4-06 | 10.6m (634s) | 2 | 3 |
+| 06.5-03 | 4.8m (288s) | 2 | 3 |
 
 ## Accumulated Context
 
@@ -323,6 +325,10 @@ Recent decisions affecting current work:
 - [Phase 06.4-01]: Citizen auth uses dual-purpose Supabase client (anon queries + authenticated sessions)
 - [Phase 06.4-07]: Proof of residence NOT required at signup - upload available in profile page only
 - [Phase 06.4-07]: Native drag-and-drop instead of react-dropzone library for proof of residence upload
+- [Phase 06.5-03]: Municipal login links use gold instead of teal for better visibility and consistency with theme
+- [Phase 06.5-03]: Check marks changed from green circles to teal text-only (matching public about page)
+- [Phase 06.5-03]: Province selector uses glassmorphic styling (white frost + blur + custom gold dropdown arrow)
+- [Phase 06.5-03]: Form submit buttons styled as CTAs (gold background, dark text, glow) for professional look
 
 ### Pending Todos
 
@@ -334,6 +340,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.2 inserted after Phase 6: UX redesign — user journeys, design system, and dashboard consistency (URGENT)
 - Phase 6.3 inserted after Phase 6: Complete UI redesign — Johannesburg skyline background, glassmorphic cards, pink/rose (#cd5e81) theme, proper design system for both dashboards (URGENT)
 - Phase 6.4 inserted after Phase 6: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (URGENT)
+- Phase 6.5 inserted after Phase 6.4: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (URGENT)
 
 ### Blockers/Concerns
 
@@ -341,10 +348,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-13 (Phase 6.4 complete)
-Stopped at: Phase 6.4 complete — all 7 plans executed across 3 waves, verification passed (30/30 must-haves), human testing pending.
+Last session: 2026-02-14 (Phase 6.5 Plan 03 complete)
+Stopped at: Phase 6.5 Plan 03 complete — Municipal dashboard login and request access pages polished (8/8 must-haves verified).
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-13*
+*Last updated: 2026-02-14*

@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import gsap from 'gsap';
 import { ScrollTrigger } from 'gsap/ScrollTrigger';
 import { useGSAP } from '@gsap/react';
-import { Button } from '@shared/components/ui/Button';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 
@@ -19,18 +18,21 @@ export function DashboardCTA() {
       return;
     }
 
-    // Section fade + slide entrance
-    gsap.from(sectionRef.current, {
-      opacity: 0,
-      y: 60,
-      duration: 1,
-      ease: 'power3.out',
-      scrollTrigger: {
-        trigger: sectionRef.current,
-        start: 'top 80%',
-        toggleActions: 'play none none reverse',
-      },
-    });
+    // Section fade + slide entrance with immediate pink tint visibility
+    gsap.fromTo(sectionRef.current,
+      { opacity: 0.3, y: 60 },
+      {
+        opacity: 1,
+        y: 0,
+        duration: 1,
+        ease: 'power3.out',
+        scrollTrigger: {
+          trigger: sectionRef.current,
+          start: 'top 80%',
+          toggleActions: 'play none none reverse',
+        },
+      }
+    );
   }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
@@ -44,10 +46,8 @@ export function DashboardCTA() {
             Explore real-time performance data, service delivery metrics, and transparency statistics
             for municipalities across South Africa.
           </p>
-          <Link to="/dashboard">
-            <Button variant="primary" size="lg">
-              View Dashboard
-            </Button>
+          <Link to="/dashboard" className="hero-cta" style={{ marginTop: 'var(--space-xl)' }}>
+            <span className="text-coral">View Dashboard</span>
           </Link>
         </div>
       </GlassCard>
