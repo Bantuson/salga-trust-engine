@@ -279,7 +279,6 @@ export function RequestAccessPage() {
         {/* Skyline background layers */}
         <div className="auth-skyline-bg" />
         <div className="auth-skyline-overlay" />
-        <div className="auth-skyline-frame" />
         <div>
           <GlassCard glow="teal" style={styles.card}>
           <div style={styles.successContent}>
@@ -332,7 +331,7 @@ export function RequestAccessPage() {
           </div>
         )}
 
-        <form onSubmit={handleSubmit} style={styles.form}>
+        <form onSubmit={handleSubmit} style={styles.form} className="request-access-form">
           {/* Municipality Name */}
           <Input
             label="Municipality Name *"
@@ -353,6 +352,7 @@ export function RequestAccessPage() {
               id="province"
               value={formData.province}
               onChange={(e) => handleInputChange('province', e.target.value)}
+              className="province-select"
               style={{
                 ...styles.select,
                 ...(validationErrors.province ? { borderColor: 'var(--color-coral)' } : {}),
@@ -476,19 +476,31 @@ export function RequestAccessPage() {
           </div>
 
           {/* Submit Button */}
-          <Button
+          <button
             type="submit"
-            variant="primary"
-            loading={state === 'uploading' || state === 'submitting'}
             disabled={state === 'uploading' || state === 'submitting'}
-            style={{ width: '100%' }}
+            className="request-access-submit"
+            style={{
+              width: '100%',
+              padding: 'var(--space-lg) var(--space-2xl)',
+              background: 'var(--color-accent-gold)',
+              color: '#333',
+              fontWeight: '600',
+              fontSize: '1.125rem',
+              borderRadius: 'var(--radius-md)',
+              border: 'none',
+              cursor: state === 'uploading' || state === 'submitting' ? 'not-allowed' : 'pointer',
+              opacity: state === 'uploading' || state === 'submitting' ? 0.6 : 1,
+              transition: 'var(--transition-base)',
+              boxShadow: '0 0 20px rgba(255, 213, 79, 0.2), 0 0 60px rgba(255, 213, 79, 0.08)',
+            }}
           >
             {state === 'uploading'
               ? 'Uploading documents...'
               : state === 'submitting'
               ? 'Submitting request...'
               : 'Submit Request'}
-          </Button>
+          </button>
         </form>
 
         {/* Navigation Links */}
@@ -536,9 +548,8 @@ const styles = {
   title: {
     fontSize: '2rem',
     fontWeight: '700',
-    color: 'var(--text-primary)',
     marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    background: 'linear-gradient(135deg, var(--color-accent-gold), var(--color-teal))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
@@ -574,12 +585,19 @@ const styles = {
     padding: '0.75rem',
     fontSize: '1rem',
     fontFamily: 'var(--font-body)',
-    backgroundColor: 'var(--surface-elevated)',
+    backgroundColor: 'rgba(255, 255, 255, 0.15)',
+    backdropFilter: 'blur(10px)',
+    WebkitBackdropFilter: 'blur(10px)',
     color: 'var(--text-primary)',
-    border: '1px solid var(--border-subtle)',
+    border: '1px solid rgba(255, 255, 255, 0.2)',
     borderRadius: 'var(--radius-md)',
     outline: 'none',
     transition: 'var(--transition-base)',
+    appearance: 'none' as const,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffd54f' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 0.75rem center',
+    paddingRight: '2.5rem',
   } as React.CSSProperties,
   textarea: {
     width: '100%',
@@ -670,7 +688,7 @@ const styles = {
     color: 'var(--text-muted)',
   } as React.CSSProperties,
   link: {
-    color: 'var(--color-teal)',
+    color: 'var(--color-accent-gold)',
     textDecoration: 'underline',
     fontWeight: '500',
   } as React.CSSProperties,
