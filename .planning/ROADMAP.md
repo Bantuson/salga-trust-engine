@@ -176,10 +176,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6. Public Transparency & Rollout | 3/3 | ✓ Complete | 2026-02-10 |
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
+| 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-13 (Phase 6.4 complete — citizen auth, landing polish, report form, profile page)*
+*Last updated: 2026-02-14 (Phase 6.5 complete — public dashboard UI refinements)*
+
+### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
+
+**Goal:** Fix header/navbar scroll persistence (should hide on scroll), fix scroll-to-top on navigation, improve scroll animation looping and inverse behavior, standardize card styling (white gloss → pink gloss), fix mobile layout spacing and backgrounds, customize login card titles per context, polish request access page styling, fix dashboard hero text and stats card colors.
+**Depends on:** Phase 6.4
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 06.5 to break down)
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 
