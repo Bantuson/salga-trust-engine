@@ -177,19 +177,42 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
+| 6.6. Playwright MCP Automated Testing | 0/5 | Not Started | - |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-14 (Phase 6.5 complete — public dashboard UI refinements)*
+*Last updated: 2026-02-14 (Phase 6.6 planned — 5 plans in 4 waves)*
 
 ### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
 **Goal:** Fix header/navbar scroll persistence (should hide on scroll), fix scroll-to-top on navigation, improve scroll animation looping and inverse behavior, standardize card styling (white gloss → pink gloss), fix mobile layout spacing and backgrounds, customize login card titles per context, polish request access page styling, fix dashboard hero text and stats card colors.
 **Depends on:** Phase 6.4
-**Plans:** 0 plans
+**Plans:** 3 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 06.5 to break down)
+- [x] 06.5-01-PLAN.md -- Header scroll behavior, GSAP animation looping, feature card styling
+- [x] 06.5-02-PLAN.md -- Dashboard visual refinements, context-aware login tagline
+- [x] 06.5-03-PLAN.md -- Mobile layout, request access styling, stats card colors
+
+### Phase 06.6: Playwright MCP automated dashboard testing (INSERTED)
+
+**Goal:** End-to-end automated testing using Playwright MCP across both dashboards. Create 10 test profiles (5 per dashboard, role-specific for municipal). Test against mock municipality "Jozi Municipal Test" with second municipality for multi-tenant isolation. Cover full user journeys: account creation, report submission, routing, status updates, access requests, onboarding, GBV handling, and security/adversarial testing at OWASP level.
+**Depends on:** Phase 6.5
+**Success Criteria** (what must be TRUE):
+  1. All users can create and manage accounts across both dashboards
+  2. Database persistence of user data verified end-to-end
+  3. Reports made in dashboard are routed and received by appropriate municipal role user for resolution and accountability; status updates persist and are visible in public dashboard tracking
+  4. Municipality admin can request access, get approval, and gain access to onboard team
+  5. Edge cases are considered and accounted for
+  6. Security is maintained at OWASP level for all endpoints, user authorization and access restrictions, rate limiting and other security/adversarial tests pass
+**Plans:** 5 plans
+
+Plans:
+- [ ] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
+- [ ] 06.6-02-PLAN.md -- Public dashboard E2E tests: citizen auth, report submission, GBV consent, profile, landing
+- [ ] 06.6-03-PLAN.md -- Municipal dashboard E2E tests: access request, onboarding, RBAC, ticket management
+- [ ] 06.6-04-PLAN.md -- Security tests: OWASP auth, tenant isolation, GBV privacy firewall, input validation
+- [ ] 06.6-05-PLAN.md -- Integration tests: cross-dashboard report-to-resolution, data persistence verification
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 
