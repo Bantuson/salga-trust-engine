@@ -71,8 +71,8 @@ export class TicketListPage {
     // First ticket ID (tracking number in first cell of first row)
     this.firstTicketId = page.locator('tbody tr').first().locator('td').first();
 
-    // Empty state — "No tickets found" message
-    this.emptyState = page.locator('div').filter({ hasText: /No tickets found/i });
+    // Empty state — "No tickets found" message (exact text match for the inner div)
+    this.emptyState = page.locator('div', { hasText: /No tickets found/i });
   }
 
   /**
@@ -80,6 +80,8 @@ export class TicketListPage {
    */
   async goto() {
     await this.page.goto('/tickets', { waitUntil: 'domcontentloaded' });
+    // Wait for React render + GSAP animations + initial data fetch
+    await this.page.waitForTimeout(2000);
   }
 
   /**

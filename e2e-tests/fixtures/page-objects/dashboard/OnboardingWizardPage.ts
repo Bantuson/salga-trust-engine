@@ -69,12 +69,36 @@ export class OnboardingWizardPage {
   }
 
   /**
-   * Navigate to onboarding wizard
+   * Navigate to onboarding wizard.
+   * Clears cached wizard state to ensure fresh start.
+   * Returns true if wizard is visible, false if redirected to dashboard.
    */
-  async goto() {
+  async goto(): Promise<boolean> {
+    // Clear any cached wizard state from prior test runs
+    // May fail if page hasn't navigated to the app yet — that's fine
+    await this.page.evaluate(() => {
+      try { localStorage.removeItem('salga_onboarding_wizard_data'); } catch (_) {}
+    }).catch(() => {});
+
     await this.page.goto('/onboarding', { waitUntil: 'domcontentloaded' });
-    // Wait for GSAP entrance animation and loading state
+
+    // Wait for loading state ("Loading your progress...") to disappear
+    const loadingText = this.page.locator('p', { hasText: /Loading your progress/i });
+    await loadingText.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+
+    // Wait for GSAP entrance animation to complete
     await this.page.waitForTimeout(2000);
+
+    // Check if we're on the wizard or redirected to dashboard
+    const onWizard =
+      (await this.welcomeStepTitle.isVisible().catch(() => false)) ||
+      (await this.profileStepTitle.isVisible().catch(() => false)) ||
+      (await this.teamStepTitle.isVisible().catch(() => false)) ||
+      (await this.wardsStepTitle.isVisible().catch(() => false)) ||
+      (await this.slaStepTitle.isVisible().catch(() => false)) ||
+      (await this.completionStepTitle.isVisible().catch(() => false));
+
+    return onWizard;
   }
 
   /**

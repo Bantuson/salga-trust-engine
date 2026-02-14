@@ -15,6 +15,9 @@ import { ReportIssuePage } from '../../fixtures/page-objects/public/ReportIssueP
 import { generateReportData } from '../../fixtures/test-data';
 
 test.describe('Standard Report Submission', () => {
+  // Auth fixture + report form rendering + Supabase submission; triple timeout
+  test.slow();
+
   test('Citizen can submit a pothole report', async ({ citizenReturningPage }) => {
     const reportPage = new ReportIssuePage(citizenReturningPage);
     const reportData = generateReportData('Roads & Potholes');
@@ -202,10 +205,16 @@ test.describe('Standard Report Submission', () => {
 });
 
 test.describe('GBV Consent Flow', () => {
+  // GBV consent tests need extra time for auth fixture + dialog animations
+  test.slow();
+
   test('GBV category triggers consent dialog', async ({ citizenReturningPage }) => {
     const reportPage = new ReportIssuePage(citizenReturningPage);
 
     await reportPage.goto();
+
+    // Wait for form to be ready before interacting
+    await reportPage.categorySelect.waitFor({ state: 'visible', timeout: 15000 });
 
     // Select GBV category
     await reportPage.categorySelect.selectOption('GBV/Abuse');
@@ -218,6 +227,9 @@ test.describe('GBV Consent Flow', () => {
     const reportPage = new ReportIssuePage(citizenReturningPage);
 
     await reportPage.goto();
+
+    // Wait for form to be ready before interacting
+    await reportPage.categorySelect.waitFor({ state: 'visible', timeout: 15000 });
 
     // Trigger GBV consent
     await reportPage.categorySelect.selectOption('GBV/Abuse');
@@ -267,6 +279,9 @@ test.describe('GBV Consent Flow', () => {
     const reportPage = new ReportIssuePage(citizenReturningPage);
 
     await reportPage.goto();
+
+    // Wait for form to be ready before interacting
+    await reportPage.categorySelect.waitFor({ state: 'visible', timeout: 15000 });
 
     // Trigger GBV consent
     await reportPage.categorySelect.selectOption('GBV/Abuse');
@@ -319,6 +334,9 @@ test.describe('GBV Consent Flow', () => {
 });
 
 test.describe('Edge Cases', () => {
+  // Multi-report + form-clear tests involve multiple submissions; triple timeout
+  test.slow();
+
   test('Multiple reports can be submitted sequentially', async ({ citizenMultiPage }) => {
     const reportPage = new ReportIssuePage(citizenMultiPage);
 

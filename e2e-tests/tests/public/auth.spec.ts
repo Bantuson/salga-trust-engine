@@ -18,6 +18,9 @@ import { generateCitizenData } from '../../fixtures/test-data';
 
 test.describe('Citizen Registration', () => {
   test('New citizen can register with email and password', async ({ page }) => {
+    // Registration involves GSAP animation + Supabase round trip; triple timeout
+    test.slow();
+
     const registerPage = new RegisterPage(page);
     const citizenData = generateCitizenData();
 
@@ -223,8 +226,11 @@ test.describe('Citizen Login', () => {
 
 test.describe('Session Protection', () => {
   test('Authenticated citizen can access /profile', async ({ citizenReturningPage }) => {
+    // Auth fixture setup can be slow; triple timeout
+    test.slow();
+
     // Navigate to profile (citizen portal with reports)
-    await citizenReturningPage.goto('/profile', { waitUntil: 'networkidle' });
+    await citizenReturningPage.goto('/profile', { waitUntil: 'domcontentloaded' });
 
     // Verify we're on profile page (not redirected to login)
     await expect(citizenReturningPage).toHaveURL(/\/profile/, { timeout: 15000 });

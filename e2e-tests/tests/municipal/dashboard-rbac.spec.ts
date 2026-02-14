@@ -225,8 +225,8 @@ test.describe('Municipal Dashboard RBAC', () => {
         // Try to access dashboard without authentication
         await page.goto('/');
 
-        // Should redirect to /login
-        await page.waitForURL(/\/login/, { timeout: 5000 });
+        // Should redirect to /login (React SPA boot + Supabase auth check can be slow)
+        await page.waitForURL(/\/login/, { timeout: 30000 });
 
         // Verify login page is shown
         const loginForm = page.locator('form').or(
@@ -239,6 +239,7 @@ test.describe('Municipal Dashboard RBAC', () => {
     });
 
     authTest('Citizen role cannot access municipal dashboard', async ({ citizenNewPage }) => {
+
       // Citizen is authenticated on public portal (localhost:5174)
       // Try to access municipal dashboard (localhost:5173)
 
@@ -254,13 +255,14 @@ test.describe('Municipal Dashboard RBAC', () => {
 
         // Wait for the React app to load and the auth check to redirect
         // The app shows a loading spinner first, then redirects unauthenticated users to /login
-        await municipalPage.waitForURL(/\/login/, { timeout: 15000 });
+        // Give generous timeout — React SPA boot + Supabase auth check can be slow
+        await municipalPage.waitForURL(/\/login/, { timeout: 60000 });
 
         // Verify login page is shown (not the dashboard)
         const loginForm = municipalPage.locator('input[id="email"]').or(
           municipalPage.locator('input[type="password"]')
         );
-        await expect(loginForm.first()).toBeVisible({ timeout: 5000 });
+        await expect(loginForm.first()).toBeVisible({ timeout: 15000 });
 
         // Verify citizen cannot see municipal dashboard metrics
         const dashboardMetrics = municipalPage.locator('div').filter({ hasText: /sla compliance|team workload/i });

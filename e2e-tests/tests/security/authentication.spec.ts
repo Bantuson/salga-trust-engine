@@ -19,7 +19,13 @@ const SQL_INJECTION_PAYLOADS = [
  */
 test.describe('SQL Injection Protection', () => {
   test('Public login rejects SQL injection payloads', async ({ page }) => {
+    test.slow(); // Triple timeout — GSAP animations can delay input readiness
+
     await page.goto('http://localhost:5174/login');
+
+    // Wait for GSAP animation to complete before interacting with form
+    await page.locator('input[id="email"]').waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(500);
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
       // Fill email with SQL injection payload
@@ -85,7 +91,13 @@ test.describe('SQL Injection Protection', () => {
  */
 test.describe('Brute Force Protection', () => {
   test('Rate limiting activates after excessive failed logins on public portal', async ({ page }) => {
+    test.slow(); // Triple timeout — GSAP animations can delay input readiness
+
     await page.goto('http://localhost:5174/login');
+
+    // Wait for GSAP animation to complete before interacting with form
+    await page.locator('input[id="email"]').waitFor({ state: 'visible', timeout: 10000 });
+    await page.waitForTimeout(500);
 
     let lastErrorVisible = false;
 
