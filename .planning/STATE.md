@@ -327,6 +327,10 @@ Recent decisions affecting current work:
 - [Phase 06.4-07]: Proof of residence NOT required at signup - upload available in profile page only
 - [Phase 06.4-07]: Native drag-and-drop instead of react-dropzone library for proof of residence upload
 - [Phase 06.5-03]: Municipal login links use gold instead of teal for better visibility and consistency with theme
+- [Phase 06.5-01]: Header hide-on-scroll uses 80px threshold (always visible at top, hides on scroll down, shows on scroll up)
+- [Phase 06.5-01]: GSAP animations use toggleActions 'play none none reverse' with once: false for looping and reversal
+- [Phase 06.5-01]: DashboardCTA starts at opacity 0.3 instead of 0 for immediate pink tint visibility
+- [Phase 06.5-01]: Mobile uses separate mobile-background-skyline.png for optimized portrait viewport
 - [Phase 06.5-03]: Check marks changed from green circles to teal text-only (matching public about page)
 - [Phase 06.5-03]: Province selector uses glassmorphic styling (white frost + blur + custom gold dropdown arrow)
 - [Phase 06.5-03]: Form submit buttons styled as CTAs (gold background, dark text, glow) for professional look
@@ -349,8 +353,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-14 (Phase 6.5 Plan 03 complete)
-Stopped at: Phase 6.5 Plan 03 complete — Municipal dashboard login and request access pages polished (8/8 must-haves verified).
+Last session: 2026-02-14 (Phase 6.5 complete)
+Stopped at: Phase 6.5 Plan 01 complete — Header scroll behavior, GSAP animations, feature cards, mobile refinements (12/12 must-haves verified). All Phase 6.5 plans complete.
 Resume file: None
 
 ---
