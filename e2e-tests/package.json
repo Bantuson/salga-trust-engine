@@ -1,0 +1,28 @@
+{
+  "name": "@salga-trust-engine/e2e-tests",
+  "version": "1.0.0",
+  "description": "End-to-end tests for SALGA Trust Engine dashboards",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "test": "playwright test",
+    "test:public": "playwright test --project=public-chromium",
+    "test:dashboard": "playwright test --project=dashboard-chromium",
+    "test:security": "playwright test tests/security/",
+    "report": "playwright show-report"
+  },
+  "devDependencies": {
+    "@faker-js/faker": "^9.2.0",
+    "@playwright/test": "^1.49.0",
+    "@supabase/supabase-js": "^2.48.1",
+    "dotenv": "^16.4.7",
+    "typescript": "^5.9.3"
+  },
+  "keywords": [
+    "playwright",
+    "e2e",
+    "testing"
+  ],
+  "author": "SALGA Trust Engine Team",
+  "license": "UNLICENSED"
+}
