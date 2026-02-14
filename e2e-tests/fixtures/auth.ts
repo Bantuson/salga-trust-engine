@@ -57,12 +57,12 @@ interface AuthFixtures {
  * Helper: Get login URL based on role
  */
 function getLoginUrl(role: string): string {
-  // Citizen roles use public dashboard login
+  // Citizen roles use public dashboard login (port 5174)
   if (role === 'citizen') {
-    return 'http://localhost:5173/login';
+    return 'http://localhost:5174/login';
   }
-  // Municipal roles use dashboard login
-  return 'http://localhost:5174/login';
+  // Municipal roles use dashboard login (port 5173)
+  return 'http://localhost:5173/login';
 }
 
 /**
@@ -70,9 +70,9 @@ function getLoginUrl(role: string): string {
  */
 function getBaseUrl(role: string): string {
   if (role === 'citizen') {
-    return 'http://localhost:5173';
+    return 'http://localhost:5174';
   }
-  return 'http://localhost:5174';
+  return 'http://localhost:5173';
 }
 
 /**
@@ -142,80 +142,80 @@ async function getAuthenticatedPage(
  * Extend Playwright test with auth fixtures
  */
 export const test = base.extend<AuthFixtures>({
-  // Citizen fixtures
+  // Citizen fixtures (public dashboard on port 5174)
   citizenNewPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenNew);
     await use(page);
     await context.close();
   },
 
   citizenReturningPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenReturning);
     await use(page);
     await context.close();
   },
 
   citizenGbvPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenGbv);
     await use(page);
     await context.close();
   },
 
   citizenMultiPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenMulti);
     await use(page);
     await context.close();
   },
 
   citizenTrackingPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenTracking);
     await use(page);
     await context.close();
   },
 
-  // Municipal fixtures
+  // Municipal fixtures (dashboard on port 5173)
   adminPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, admin);
     await use(page);
     await context.close();
   },
 
   managerPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, manager);
     await use(page);
     await context.close();
   },
 
   managerPretoriaPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, managerPretoria);
     await use(page);
     await context.close();
   },
 
   fieldWorkerPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, fieldWorker);
     await use(page);
     await context.close();
   },
 
   sapsLiaisonPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, sapsLiaison);
     await use(page);
     await context.close();
   },
 
   wardCouncillorPage: async ({ browser }, use) => {
-    const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, wardCouncillor);
     await use(page);
     await context.close();

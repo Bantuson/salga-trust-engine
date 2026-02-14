@@ -65,7 +65,7 @@ export default defineConfig({
       name: 'public-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://localhost:5174', // Public dashboard is on 5174
       },
       dependencies: ['setup'],
     },
@@ -75,7 +75,7 @@ export default defineConfig({
       name: 'public-firefox',
       use: {
         ...devices['Desktop Firefox'],
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://localhost:5174', // Public dashboard is on 5174
       },
       dependencies: ['setup'],
     },
@@ -85,7 +85,7 @@ export default defineConfig({
       name: 'dashboard-chromium',
       use: {
         ...devices['Desktop Chrome'],
-        baseURL: 'http://localhost:5174',
+        baseURL: 'http://localhost:5173', // Municipal dashboard is on 5173
       },
       dependencies: ['setup'],
     },
@@ -95,7 +95,7 @@ export default defineConfig({
       name: 'mobile-chrome',
       use: {
         ...devices['Pixel 5'],
-        baseURL: 'http://localhost:5173',
+        baseURL: 'http://localhost:5174', // Public dashboard is on 5174
       },
       dependencies: ['setup'],
     },
@@ -105,14 +105,14 @@ export default defineConfig({
   webServer: [
     {
       command: 'npm run dev',
-      url: 'http://localhost:5173',
+      url: 'http://localhost:5174',
       cwd: '../frontend-public',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
     },
     {
       command: 'npm run dev',
-      url: 'http://localhost:5174',
+      url: 'http://localhost:5173',
       cwd: '../frontend-dashboard',
       reuseExistingServer: !process.env.CI,
       timeout: 120 * 1000,
