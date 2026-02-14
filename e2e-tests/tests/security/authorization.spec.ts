@@ -12,6 +12,10 @@ import { test, expect } from '../../fixtures/auth';
  */
 test.describe('Vertical Privilege Escalation Protection', () => {
   test('Field worker cannot access admin endpoints', async ({ fieldWorkerPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await fieldWorkerPage.goto('http://localhost:5173/');
+    await fieldWorkerPage.waitForLoadState('domcontentloaded');
+
     // Get auth token
     const authToken = await fieldWorkerPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
@@ -46,6 +50,10 @@ test.describe('Vertical Privilege Escalation Protection', () => {
   });
 
   test('Citizen cannot access municipal dashboard API', async ({ citizenReturningPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await citizenReturningPage.goto('http://localhost:5174/');
+    await citizenReturningPage.waitForLoadState('domcontentloaded');
+
     // Get citizen auth token
     const authToken = await citizenReturningPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
@@ -70,6 +78,10 @@ test.describe('Vertical Privilege Escalation Protection', () => {
   });
 
   test('Ward councillor cannot modify tickets outside ward', async ({ wardCouncillorPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await wardCouncillorPage.goto('http://localhost:5173/');
+    await wardCouncillorPage.waitForLoadState('domcontentloaded');
+
     // Get auth token
     const authToken = await wardCouncillorPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
@@ -101,6 +113,12 @@ test.describe('Vertical Privilege Escalation Protection', () => {
  */
 test.describe('Horizontal Privilege Escalation Protection', () => {
   test('Manager cannot access another manager\'s settings', async ({ managerPage, managerPretoriaPage }) => {
+    // Navigate first to avoid SecurityError on about:blank
+    await managerPage.goto('http://localhost:5173/');
+    await managerPage.waitForLoadState('domcontentloaded');
+    await managerPretoriaPage.goto('http://localhost:5173/');
+    await managerPretoriaPage.waitForLoadState('domcontentloaded');
+
     // Get Jozi manager auth token
     const joziAuthToken = await managerPage.evaluate(() => {
       const supabaseAuth = localStorage.getItem('sb-localhost-auth-token');
@@ -140,8 +158,12 @@ test.describe('Horizontal Privilege Escalation Protection', () => {
  */
 test.describe('URL Manipulation Protection', () => {
   test('Field worker navigating to /municipalities shows access denied or redirect', async ({ fieldWorkerPage }) => {
+    // Establish auth context by loading base URL first
+    await fieldWorkerPage.goto('http://localhost:5173/');
+    await fieldWorkerPage.waitForLoadState('domcontentloaded');
+
     // Navigate to admin-only page
-    await fieldWorkerPage.goto('http://localhost:5174/municipalities');
+    await fieldWorkerPage.goto('http://localhost:5173/municipalities');
 
     // Wait for page load
     await fieldWorkerPage.waitForTimeout(2000);
@@ -162,7 +184,11 @@ test.describe('URL Manipulation Protection', () => {
   });
 
   test('Field worker navigating to /analytics shows access denied or redirect', async ({ fieldWorkerPage }) => {
-    await fieldWorkerPage.goto('http://localhost:5174/analytics');
+    // Establish auth context by loading base URL first
+    await fieldWorkerPage.goto('http://localhost:5173/');
+    await fieldWorkerPage.waitForLoadState('domcontentloaded');
+
+    await fieldWorkerPage.goto('http://localhost:5173/analytics');
     await fieldWorkerPage.waitForTimeout(2000);
 
     const currentUrl = fieldWorkerPage.url();
@@ -177,7 +203,11 @@ test.describe('URL Manipulation Protection', () => {
   });
 
   test('Field worker navigating to /settings shows access denied or redirect', async ({ fieldWorkerPage }) => {
-    await fieldWorkerPage.goto('http://localhost:5174/settings');
+    // Establish auth context by loading base URL first
+    await fieldWorkerPage.goto('http://localhost:5173/');
+    await fieldWorkerPage.waitForLoadState('domcontentloaded');
+
+    await fieldWorkerPage.goto('http://localhost:5173/settings');
     await fieldWorkerPage.waitForTimeout(2000);
 
     const currentUrl = fieldWorkerPage.url();
@@ -193,7 +223,7 @@ test.describe('URL Manipulation Protection', () => {
 
   test('Citizen navigating to dashboard URL gets login page', async ({ page }) => {
     // Fresh context (no auth)
-    await page.goto('http://localhost:5174');
+    await page.goto('http://localhost:5173');
 
     // Wait for page load
     await page.waitForTimeout(2000);
