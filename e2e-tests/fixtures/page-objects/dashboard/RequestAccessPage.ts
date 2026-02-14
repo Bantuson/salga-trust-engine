@@ -70,7 +70,7 @@ export class RequestAccessPage {
    * Navigate to request access page
    */
   async goto() {
-    await this.page.goto('/request-access');
+    await this.page.goto('/request-access', { waitUntil: 'domcontentloaded' });
   }
 
   /**

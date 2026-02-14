@@ -5,7 +5,7 @@
 export const profile = {
   name: 'Citizen New',
   role: 'citizen',
-  tenantId: 'test-jozi-001',
+  tenantId: '00000000-0000-0000-0000-000000000001', // Johannesburg test tenant
   email: 'citizen-new@test-jozi-001.test',
   password: process.env.TEST_PASSWORD || 'Test123!@#',
   phone: '+27601234567',

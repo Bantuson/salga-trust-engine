@@ -39,6 +39,10 @@ export default defineConfig({
 
     /* Capture video only on failure */
     video: 'retain-on-failure',
+
+    /* Increase timeouts for GSAP animations and Lenis smooth scroll */
+    navigationTimeout: 60000, // 60s for heavy animations on landing page
+    actionTimeout: 15000, // 15s for element interactions
   },
 
   /* Global setup and teardown */

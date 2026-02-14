@@ -47,9 +47,9 @@ async function globalSetup() {
             name: muni.name,
             province: muni.province,
             code: muni.code,
-            contact_name: muni.contact_name,
             contact_email: muni.contact_email,
-            contact_phone: muni.contact_phone,
+            population: muni.population,
+            is_active: muni.is_active,
           },
           {
             onConflict: 'id',

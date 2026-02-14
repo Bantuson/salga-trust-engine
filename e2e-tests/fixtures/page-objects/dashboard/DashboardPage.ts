@@ -78,7 +78,7 @@ export class DashboardPage {
    * Navigate to dashboard page
    */
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/', { waitUntil: 'domcontentloaded' });
   }
 
   /**

@@ -31,12 +31,10 @@ export class LandingPage {
   constructor(page: Page) {
     this.page = page;
 
-    this.heroSection = page.locator('section, div').filter({ hasText: /hero/i }).or(
-      page.locator('.hero-section, .landing-hero').first()
-    );
-    this.heroTitle = page.locator('h1').first();
-    this.getStartedButton = page.locator('button, a').filter({
-      hasText: /get started|start reporting/i,
+    this.heroSection = page.locator('.hero-section').first();
+    this.heroTitle = page.locator('h1.hero-headline').first();
+    this.getStartedButton = page.locator('a, button').filter({
+      hasText: /view municipal|get started|start reporting/i,
     }).first();
 
     this.header = page.locator('header, nav').first();
@@ -47,7 +45,7 @@ export class LandingPage {
     this.featuresSection = page.locator('section').filter({
       hasText: /features|how it works/i,
     }).first();
-    this.featureCards = page.locator('[class*="feature"], [class*="card"]');
+    this.featureCards = page.locator('.feature-card');
 
     this.dashboardCTA = page.locator('section').filter({
       hasText: /dashboard|transparency/i,
@@ -58,9 +56,10 @@ export class LandingPage {
 
   /**
    * Navigate to landing page
+   * Uses domcontentloaded to avoid GSAP animation timeout
    */
   async goto() {
-    await this.page.goto('/');
+    await this.page.goto('/', { waitUntil: 'domcontentloaded' });
   }
 
   /**

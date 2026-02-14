@@ -5,7 +5,7 @@
 export const profile = {
   name: 'Admin',
   role: 'admin',
-  tenantId: 'test-jozi-001',
+  tenantId: '00000000-0000-0000-0000-000000000001',
   email: 'admin@test-jozi-001.test',
   password: process.env.TEST_PASSWORD || 'Test123!@#',
   phone: '+27701234567',
@@ -13,7 +13,7 @@ export const profile = {
     full_name: 'Admin User',
     app_metadata: {
       role: 'admin',
-      tenant_id: 'test-jozi-001',
+      tenant_id: '00000000-0000-0000-0000-000000000001',
     },
   },
 };

@@ -5,7 +5,7 @@
 export const profile = {
   name: 'Citizen MultiReport',
   role: 'citizen',
-  tenantId: 'test-jozi-001',
+  tenantId: '00000000-0000-0000-0000-000000000001',
   email: 'citizen-multi@test-jozi-001.test',
   password: process.env.TEST_PASSWORD || 'Test123!@#',
   phone: '+27604567890',

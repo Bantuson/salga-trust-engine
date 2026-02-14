@@ -50,7 +50,7 @@ export class RegisterPage {
    * Navigate to registration page
    */
   async goto() {
-    await this.page.goto('/register');
+    await this.page.goto('/register', { waitUntil: 'domcontentloaded' });
   }
 
   /**

@@ -67,7 +67,7 @@ export class ReportIssuePage {
    * Navigate to report issue page
    */
   async goto() {
-    await this.page.goto('/report');
+    await this.page.goto('/report', { waitUntil: 'domcontentloaded' });
   }
 
   /**
