@@ -15,11 +15,18 @@ html,
 body {
   margin: 0;
   padding: 0;
-  background: var(--surface-base);
+  background: var(--surface-base) url('/assets/skyline.png') center bottom / cover fixed;
   color: var(--text-primary);
   font-family: var(--font-body);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+/* Mobile background uses mobile-specific skyline */
+@media (max-width: 767px) {
+  html, body {
+    background: var(--surface-base) url('/assets/mobile-background-skyline.png') center bottom / cover fixed;
+  }
 }
 
 .App {
@@ -40,27 +47,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-base); /* Solid #cd5e81 revealed as skyline fades */
-}
-
-.skyline-background {
-  position: absolute;
-  inset: 0;
-  background-image: url('/assets/skyline.png');
-  background-size: cover;
-  background-position: center bottom;
-  z-index: 0;
-}
-
-.hero-text-overlay {
-  position: absolute;
-  inset: 0;
-  background: linear-gradient(
-    180deg,
-    rgba(205, 94, 129, 0.3) 0%,
-    rgba(163, 72, 102, 0.5) 100%
-  );
-  z-index: 1;
 }
 
 .hero-content {
@@ -111,31 +97,25 @@ body {
 .hero-cta {
   display: inline-block;
   padding: 1rem 2.5rem;
-  background: var(--color-accent-gold);
-  color: #333;
+  background: transparent;
+  border: none;
   text-decoration: none;
   border-radius: var(--radius-md);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 1.125rem;
   transition: var(--transition-base);
   box-shadow: var(--glow-gold);
 }
 
-.hero-cta:hover {
-  background: var(--color-accent-gold-hover);
-  transform: translateY(-2px);
-  box-shadow: 0 0 30px rgba(255, 213, 79, 0.35), 0 0 80px rgba(255, 213, 79, 0.12);
+.hero-cta .text-coral {
+  font-size: inherit;
+  font-weight: inherit;
 }
 
-.hero-gradient-overlay {
-  position: absolute;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  height: 150px;
-  background: linear-gradient(to top, var(--surface-base), transparent);
-  z-index: 3;
-  pointer-events: none;
+.hero-cta:hover {
+  background: rgba(255, 213, 79, 0.1);
+  transform: translateY(-2px);
+  box-shadow: 0 0 30px rgba(255, 213, 79, 0.35), 0 0 80px rgba(255, 213, 79, 0.12);
 }
 
 /* Problem Section */
@@ -145,7 +125,6 @@ body {
   align-items: center;
   justify-content: center;
   padding: var(--space-3xl) var(--space-lg);
-  background: var(--surface-base);
 }
 
 .problem-content {
@@ -215,7 +194,6 @@ body {
 /* Features Section */
 .features-section {
   padding: var(--space-3xl) var(--space-lg);
-  background: var(--surface-base);
 }
 
 .features-title {
@@ -288,14 +266,14 @@ body {
 
 /* Dashboard Section */
 .dashboard-section {
-  background: rgba(163, 72, 102, 0.5);
+  background: transparent;
   min-height: 100vh;
   padding: var(--space-2xl) 0;
 }
 
 /* Footer */
 .site-footer {
-  background: rgba(163, 72, 102, 0.6);
+  background: rgba(163, 72, 102, 0.4);
   color: var(--text-secondary);
   text-align: center;
   padding: var(--space-2xl) var(--space-lg);
@@ -357,11 +335,22 @@ body {
     flex-direction: column;
   }
 
-  /* Mobile: skyline positioned lower for better text readability */
-  .skyline-background {
-    background-position: center 60%;
+  /* Increased vertical gaps for hero elements */
+  .hero-content {
+    padding-top: var(--space-3xl);
   }
 
+  .hero-headline {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .hero-subtitle-container {
+    margin-bottom: var(--space-2xl);
+  }
+
+  .hero-cta-container {
+    margin-top: var(--space-xl);
+  }
 }
 
 /* ===== PUBLIC HEADER ===== */
@@ -373,14 +362,12 @@ body {
   right: 0;
   z-index: 100;
   background-color: rgba(205, 94, 129, 0);
-  transition: background-color 0.3s ease, backdrop-filter 0.3s ease, border-bottom-color 0.3s ease;
+  transition: background-color 0.3s ease, backdrop-filter 0.3s ease, border-bottom-color 0.3s ease, transform 0.3s ease;
   border-bottom: 1px solid transparent;
 }
 
-.public-header.scrolled {
-  background-color: rgba(163, 72, 102, 0.92);
-  backdrop-filter: blur(10px);
-  border-bottom-color: var(--border-subtle);
+.public-header--hidden {
+  transform: translateY(-100%);
 }
 
 .public-header.no-motion {
@@ -427,7 +414,7 @@ body {
 }
 
 .nav-link:hover {
-  color: var(--text-primary);
+  color: var(--color-teal);
 }
 
 .nav-link.active {
@@ -468,13 +455,21 @@ body {
 .mobile-menu-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(163, 72, 102, 0.96);
-  backdrop-filter: blur(10px);
+  background: url('/assets/skyline.png') center bottom / cover no-repeat;
   z-index: 150;
   display: flex;
   align-items: center;
   justify-content: center;
   animation: fadeIn 0.3s ease;
+}
+
+.mobile-menu-overlay::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: rgba(163, 72, 102, 0.85);
+  backdrop-filter: blur(10px);
+  z-index: -1;
 }
 
 .mobile-menu-content {
@@ -699,6 +694,15 @@ body {
   letter-spacing: 0.05em;
 }
 
+.footer-column-title--emergency {
+  color: var(--color-teal);
+  transition: color 0.3s ease;
+}
+
+.footer-column-title--emergency:hover {
+  color: var(--color-accent-gold);
+}
+
 .footer-nav {
   display: flex;
   flex-direction: column;
@@ -773,17 +777,17 @@ body {
 .transparency-dashboard-page {
   min-height: 100vh;
   padding-top: 80px;
-  background: var(--surface-base);
+  position: relative;
 }
 
 .dashboard-header {
-  position: relative;
-  height: 400px;
-  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
-  margin-bottom: var(--space-3xl);
+  padding: var(--space-2xl) var(--space-lg);
+  margin-bottom: var(--space-md);
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-header-globe {
@@ -795,7 +799,7 @@ body {
 
 .dashboard-header-content {
   position: relative;
-  z-index: 1;
+  z-index: 2;
   text-align: center;
   max-width: 800px;
   padding: 0 var(--space-lg);
@@ -819,13 +823,15 @@ body {
   max-width: 1400px;
   margin: 0 auto;
   padding: 0 var(--space-lg) var(--space-3xl);
+  position: relative;
+  z-index: 2;
 }
 
 .dashboard-summary-grid {
   display: grid;
   grid-template-columns: 1fr;
   gap: var(--space-lg);
-  margin-bottom: var(--space-3xl);
+  margin-bottom: var(--space-xl);
 }
 
 .metric-label {
@@ -877,13 +883,14 @@ body {
 .about-page {
   min-height: 100vh;
   padding-top: 80px;
-  background: var(--surface-base);
+  position: relative;
 }
 
 .about-hero {
   text-align: center;
-  padding: var(--space-3xl) var(--space-lg);
-  background: linear-gradient(135deg, rgba(255, 213, 79, 0.08), rgba(0, 191, 165, 0.08));
+  padding: var(--space-xl) var(--space-lg);
+  position: relative;
+  z-index: 2;
 }
 
 .about-title {
@@ -905,10 +912,12 @@ body {
 .about-content {
   max-width: 1000px;
   margin: 0 auto;
-  padding: var(--space-3xl) var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   display: flex;
   flex-direction: column;
   gap: var(--space-2xl);
+  position: relative;
+  z-index: 2;
 }
 
 .about-content h2 {
@@ -1034,7 +1043,6 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--surface-base);
 }
 
 .report-redirect-content {
@@ -1149,7 +1157,6 @@ body {
 
 .dashboard-cta-section {
   padding: var(--space-3xl) var(--space-lg);
-  background: var(--surface-base);
 }
 
 .dashboard-cta-content {
@@ -1353,20 +1360,8 @@ button:disabled {
   transition: color 0.3s ease;
 }
 
-.nav-link::after {
-  content: '';
-  position: absolute;
-  bottom: -4px;
-  left: 0;
-  width: 0;
-  height: 2px;
-  background: var(--color-accent-gold);
-  transition: width 0.3s ease;
-}
-
-.nav-link:hover::after {
-  width: 100%;
-}
+/* nav-link hover underline removed — teal text color used instead */
+/* .nav-link.active::after gold underline is preserved above */
 
 /* ===== MICRO-INTERACTIONS: FORM INPUTS ===== */
 input,
@@ -1406,21 +1401,3 @@ textarea.error {
   }
 }
 
-/* ===== AUTH PAGE SKYLINE BACKGROUND ===== */
-
-/* Skyline background for citizen auth pages (login, register) */
-.auth-skyline-bg {
-  position: fixed;
-  inset: 0;
-  background-image: url('/assets/skyline.png');
-  background-size: cover;
-  background-position: center bottom;
-  z-index: 0;
-}
-
-.auth-skyline-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(205, 94, 129, 0.3);
-  z-index: 0;
-}

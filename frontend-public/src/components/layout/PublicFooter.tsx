@@ -28,7 +28,7 @@ export function PublicFooter() {
 
           {/* Right Column: Emergency Numbers */}
           <div className="footer-column footer-emergency">
-            <h3 className="footer-column-title">Emergency Numbers</h3>
+            <h3 className="footer-column-title footer-column-title--emergency">Emergency Numbers</h3>
             <div className="emergency-numbers">
               <div className="emergency-item">
                 <span className="emergency-label">Police:</span>

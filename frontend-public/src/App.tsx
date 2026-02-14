@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { LenisProvider } from './providers/LenisProvider';
 import { AuthProvider } from './contexts/AuthContext';
 import { ProtectedRoute } from './components/auth/ProtectedRoute';
@@ -15,6 +16,17 @@ import { PublicFooter } from './components/layout/PublicFooter';
 import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
+
+/**
+ * ScrollToTop component - scrolls window to top on route change
+ */
+function ScrollToTop() {
+  const { pathname } = useLocation();
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+  return null;
+}
 
 /**
  * Public transparency dashboard with citizen authentication.
@@ -35,6 +47,7 @@ import './App.css';
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <AuthProvider>
         <LenisProvider>
           <div className="App">

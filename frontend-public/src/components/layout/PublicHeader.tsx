@@ -1,24 +1,16 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { NavLink, Link } from 'react-router-dom';
 import { Button } from '@shared/components/ui/Button';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import { useAuth } from '../../hooks/useAuth';
 
 export function PublicHeader() {
-  const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isUserMenuOpen, setIsUserMenuOpen] = useState(false);
+  const [isHeaderVisible, setIsHeaderVisible] = useState(true);
+  const lastScrollY = useRef(0);
   const prefersReducedMotion = useReducedMotion();
   const { user, signOut } = useAuth();
-
-  useEffect(() => {
-    const handleScroll = () => {
-      setIsScrolled(window.scrollY >= 50);
-    };
-
-    window.addEventListener('scroll', handleScroll);
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, []);
 
   // Click-outside handler for user dropdown
   useEffect(() => {
@@ -31,17 +23,42 @@ export function PublicHeader() {
     return () => document.removeEventListener('click', handleClickOutside);
   }, [isUserMenuOpen]);
 
+  // Hide-on-scroll behavior
+  useEffect(() => {
+    const handleScroll = () => {
+      const currentScrollY = window.scrollY;
+
+      // Always show header at top of page
+      if (currentScrollY < 80) {
+        setIsHeaderVisible(true);
+      }
+      // Hide when scrolling down
+      else if (currentScrollY > lastScrollY.current && currentScrollY > 80) {
+        setIsHeaderVisible(false);
+      }
+      // Show when scrolling up
+      else if (currentScrollY < lastScrollY.current) {
+        setIsHeaderVisible(true);
+      }
+
+      lastScrollY.current = currentScrollY;
+    };
+
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   const navLinks = [
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/about', label: 'About' },
-    { to: '/my-reports', label: 'My Reports' },
+    { to: '/my-reports', label: 'Profile' },
   ];
 
   return (
     <>
       <header
-        className={`public-header ${isScrolled ? 'scrolled' : ''} ${prefersReducedMotion ? 'no-motion' : ''}`}
+        className={`public-header ${prefersReducedMotion ? 'no-motion' : ''} ${!isHeaderVisible ? 'public-header--hidden' : ''}`}
       >
         <div className="header-container">
           {/* Logo */}
