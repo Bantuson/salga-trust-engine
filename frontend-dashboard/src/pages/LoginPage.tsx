@@ -9,6 +9,7 @@
  */
 
 import { useState, useRef } from 'react';
+import { Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
@@ -121,14 +122,14 @@ export function LoginPage() {
       <div className="auth-skyline-bg" />
       <div className="auth-skyline-overlay" />
 
-      {/* Top-right branding pill (like Report Issue CTA in public portal) */}
-      <div style={styles.brandingCorner}>
-        <div style={styles.brandingPill}>
-          <span style={styles.brandingTitle}>SALGA Trust Engine</span>
-          <span style={styles.brandingSeparator}>|</span>
-          <span style={styles.brandingSubtitle}>Municipal Dashboard</span>
-        </div>
+      {/* Header row — SALGA left, Municipal Dashboard right */}
+      <div style={styles.headerRow}>
+        <h1 style={styles.salgaTitle}>SALGA Trust Engine</h1>
+        <span style={styles.dashboardLabel}>Municipal Dashboard</span>
       </div>
+
+      {/* Cards row — product info + login side by side */}
+      <div style={styles.cardsRow}>
 
       {/* Product Info Section */}
       <div ref={productInfoRef} className="login-product-info" style={styles.productInfo}>
@@ -161,6 +162,9 @@ export function LoginPage() {
       {/* Glassmorphism Login Card */}
       <div ref={cardRef}>
       <GlassCard style={styles.card}>
+        <div style={styles.loginHeader}>
+          <h2 style={styles.loginTitle}>Sign in to access your dashboard</h2>
+        </div>
         {error && (
           <div style={styles.errorBox}>
             {error}
@@ -216,6 +220,13 @@ export function LoginPage() {
             >
               Sign in with Phone OTP
             </button>
+
+            <div style={{ ...styles.divider, marginTop: '0.5rem' }}>
+              <span style={styles.dividerText}>Are you a municipality?</span>
+            </div>
+            <Link to="/request-access" style={styles.linkButton}>
+              Request Access →
+            </Link>
           </form>
         )}
 
@@ -303,6 +314,8 @@ export function LoginPage() {
         </div>
       </GlassCard>
       </div>
+
+      </div>{/* end cardsRow */}
     </div>
   );
 }
@@ -311,17 +324,50 @@ const styles = {
   container: {
     minHeight: '100vh',
     display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
+    flexDirection: 'column' as const,
+    alignItems: 'stretch',
     position: 'relative' as const,
     overflow: 'hidden',
+  } as React.CSSProperties,
+  headerRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    width: '100%',
+    padding: '1.5rem 5%',
+    position: 'relative' as const,
+    zIndex: 3,
+  } as React.CSSProperties,
+  salgaTitle: {
+    fontFamily: 'var(--font-display)',
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    background: 'linear-gradient(135deg, var(--text-primary), var(--color-accent-gold))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
+    margin: 0,
+  } as React.CSSProperties,
+  dashboardLabel: {
+    fontSize: '1rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  } as React.CSSProperties,
+  cardsRow: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    gap: '11.25%',
+    flex: 1,
     padding: '0 5%',
+    position: 'relative' as const,
+    zIndex: 2,
+    width: '100%',
   } as React.CSSProperties,
   productInfo: {
     position: 'relative' as const,
     zIndex: 2,
     maxWidth: '480px',
-    marginLeft: '5%',
     color: 'white',
     background: 'rgba(205, 94, 129, 0.35)',
     backdropFilter: 'blur(16px)',
@@ -361,10 +407,8 @@ const styles = {
     justifyContent: 'center',
     width: '24px',
     height: '24px',
-    borderRadius: '50%',
-    backgroundColor: 'var(--color-teal)',
-    color: 'white',
-    fontSize: '0.875rem',
+    color: 'var(--color-teal)',
+    fontSize: '1.125rem',
     fontWeight: '700',
     flexShrink: 0,
   } as React.CSSProperties,
@@ -373,37 +417,6 @@ const styles = {
     color: 'rgba(255, 255, 255, 0.9)',
     textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
   } as React.CSSProperties,
-  brandingCorner: {
-    position: 'absolute' as const,
-    top: '1.5rem',
-    right: '5%',
-    zIndex: 3,
-  } as React.CSSProperties,
-  brandingPill: {
-    display: 'inline-flex',
-    alignItems: 'center',
-    gap: '0.5rem',
-    padding: '0.625rem 1.25rem',
-    background: 'rgba(255, 255, 255, 0.15)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    border: '1px solid rgba(255, 255, 255, 0.25)',
-    borderRadius: 'var(--radius-xl)',
-  } as React.CSSProperties,
-  brandingTitle: {
-    fontSize: '1rem',
-    fontWeight: '700',
-    color: 'var(--color-accent-gold)',
-  } as React.CSSProperties,
-  brandingSeparator: {
-    color: 'rgba(255, 255, 255, 0.3)',
-    fontSize: '1rem',
-  } as React.CSSProperties,
-  brandingSubtitle: {
-    fontSize: '0.875rem',
-    fontWeight: '500',
-    color: 'var(--text-primary)',
-  } as React.CSSProperties,
   card: {
     width: '100%',
     maxWidth: '440px',
@@ -411,6 +424,16 @@ const styles = {
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
     zIndex: 2,
+  } as React.CSSProperties,
+  loginHeader: {
+    marginBottom: '1.25rem',
+    textAlign: 'center' as const,
+  } as React.CSSProperties,
+  loginTitle: {
+    fontSize: '1.25rem',
+    fontWeight: '600',
+    color: 'var(--text-primary)',
+    marginBottom: '0.25rem',
   } as React.CSSProperties,
   errorBox: {
     padding: '0.75rem',
@@ -475,14 +498,16 @@ const styles = {
     opacity: 0.6,
   } as React.CSSProperties,
   linkButton: {
+    display: 'block',
     padding: '0.5rem',
     backgroundColor: 'transparent',
-    color: 'var(--color-teal)',
+    color: 'var(--color-accent-gold)',
     border: 'none',
     fontSize: '0.875rem',
     fontWeight: '500',
     cursor: 'pointer',
     textDecoration: 'underline',
+    textAlign: 'center' as const,
   } as React.CSSProperties,
   divider: {
     textAlign: 'center' as const,
