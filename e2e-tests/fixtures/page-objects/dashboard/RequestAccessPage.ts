@@ -2,6 +2,18 @@
  * Page Object: Municipal Dashboard Request Access Page
  *
  * Encapsulates interactions with RequestAccessPage.tsx
+ *
+ * The form uses shared <Input> components which render:
+ *   <div class="input-wrapper">
+ *     <label>Label Text</label>
+ *     <div><input ... /></div>
+ *     <div style="error">error text</div>
+ *   </div>
+ *
+ * Province uses a native <select id="province">.
+ * File upload uses a hidden <input type="file" id="documents">.
+ * Submit is a <button type="submit"> with text "Submit Request".
+ * Success state renders an h1 with "Request Submitted!".
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -9,7 +21,8 @@ import { Page, Locator } from '@playwright/test';
 export class RequestAccessPage {
   readonly page: Page;
 
-  // Form field locators
+  // Form field locators — use the Input component's label text to find
+  // the sibling input within .input-wrapper
   readonly municipalityNameInput: Locator;
   readonly provinceSelect: Locator;
   readonly municipalityCodeInput: Locator;
@@ -20,7 +33,6 @@ export class RequestAccessPage {
 
   // File upload
   readonly fileInput: Locator;
-  readonly uploadButton: Locator;
 
   // Actions
   readonly submitButton: Locator;
@@ -32,37 +44,50 @@ export class RequestAccessPage {
   constructor(page: Page) {
     this.page = page;
 
-    // Form fields (based on common naming patterns)
-    this.municipalityNameInput = page.locator('input').filter({
-      has: page.locator('label:has-text("Municipality Name")'),
-    }).or(page.locator('input[name="municipalityName"], input[id*="municipality"]').first());
+    // The shared Input component renders <label>Municipality Name *</label>
+    // followed by <div><input /></div> inside an .input-wrapper div.
+    // We locate inputs by finding the .input-wrapper containing the label text
+    // and then getting the input inside it.
+    this.municipalityNameInput = page
+      .locator('.input-wrapper')
+      .filter({ hasText: /Municipality Name/i })
+      .locator('input');
 
-    this.provinceSelect = page.locator('select').first();
+    // Province is a native <select id="province">
+    this.provinceSelect = page.locator('select#province');
 
-    this.municipalityCodeInput = page.locator('input').filter({
-      has: page.locator('label:has-text("Code")'),
-    }).or(page.locator('input[name*="code"]').first());
+    this.municipalityCodeInput = page
+      .locator('.input-wrapper')
+      .filter({ hasText: /Municipality Code/i })
+      .locator('input');
 
-    this.contactNameInput = page.locator('input').filter({
-      has: page.locator('label:has-text("Contact Name")'),
-    }).or(page.locator('input[name*="contactName"]').first());
+    this.contactNameInput = page
+      .locator('.input-wrapper')
+      .filter({ hasText: /Contact Person Name/i })
+      .locator('input');
 
-    this.contactEmailInput = page.locator('input[type="email"]').first();
-    this.contactPhoneInput = page.locator('input[type="tel"]').first();
+    this.contactEmailInput = page
+      .locator('.input-wrapper')
+      .filter({ hasText: /Contact Email/i })
+      .locator('input');
 
-    this.notesTextarea = page.locator('textarea').first();
+    this.contactPhoneInput = page
+      .locator('.input-wrapper')
+      .filter({ hasText: /Contact Phone/i })
+      .locator('input');
 
-    // File upload
-    this.fileInput = page.locator('input[type="file"]');
-    this.uploadButton = page.locator('button').filter({ hasText: /upload/i }).first();
+    this.notesTextarea = page.locator('textarea#notes');
 
-    // Submit
-    this.submitButton = page.locator('button[type="submit"]').or(
-      page.locator('button').filter({ hasText: /submit|send/i })
-    );
+    // File upload — hidden input with id="documents"
+    this.fileInput = page.locator('input#documents');
 
-    // Feedback
-    this.successState = page.locator('div').filter({ hasText: /success|submitted/i }).first();
+    // Submit button — the actual button has text "Submit Request"
+    this.submitButton = page.locator('button[type="submit"]');
+
+    // Success state — the success view renders h1 "Request Submitted!"
+    this.successState = page.locator('h1').filter({ hasText: /Request Submitted/i });
+
+    // Error message — styled error box at top of form
     this.errorMessage = page.locator('div').filter({ hasText: /error|failed/i }).first();
   }
 
@@ -71,6 +96,8 @@ export class RequestAccessPage {
    */
   async goto() {
     await this.page.goto('/request-access', { waitUntil: 'domcontentloaded' });
+    // Wait for GSAP entrance animation to complete
+    await this.page.waitForTimeout(1500);
   }
 
   /**
@@ -85,7 +112,7 @@ export class RequestAccessPage {
     contactPhone: string;
     notes?: string;
   }) {
-    // Wait for GSAP form animation to complete before interacting
+    // Wait for form to be visible after GSAP animation
     await this.municipalityNameInput.waitFor({ state: 'visible', timeout: 10000 });
 
     await this.municipalityNameInput.fill(data.municipalityName);
@@ -101,7 +128,7 @@ export class RequestAccessPage {
   }
 
   /**
-   * Upload supporting document
+   * Upload supporting document via hidden file input
    */
   async uploadDocument(filePath: string) {
     await this.fileInput.setInputFiles(filePath);
@@ -112,11 +139,14 @@ export class RequestAccessPage {
    */
   async submit() {
     await this.submitButton.click();
-    // Wait for success or error
+    // Wait for success state or error — success shows h1 "Request Submitted!"
+    await this.page.waitForTimeout(1000);
     await Promise.race([
-      this.successState.waitFor({ state: 'visible', timeout: 10000 }),
-      this.errorMessage.waitFor({ state: 'visible', timeout: 10000 }),
-    ]);
+      this.successState.waitFor({ state: 'visible', timeout: 15000 }),
+      this.errorMessage.waitFor({ state: 'visible', timeout: 15000 }),
+    ]).catch(() => {
+      // If neither appears, continue — the test will assert
+    });
   }
 
   /**

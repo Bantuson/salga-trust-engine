@@ -11,6 +11,14 @@
  * - Progress persists after page refresh (backend + localStorage)
  * - Wizard can navigate backwards
  * - Completion redirects to main dashboard
+ *
+ * Actual step titles:
+ * - Welcome: h1 "Welcome to SALGA Trust Engine!"
+ * - Profile: h2 "Municipality Profile"
+ * - Team: h2 "Invite Your Team"
+ * - Wards: h2 "Configure Your Wards"
+ * - SLA: h2 "Set SLA Targets"
+ * - Completion: h1 "Your Dashboard is Ready!"
  */
 
 import { test, expect } from '../../fixtures/auth';
@@ -21,11 +29,14 @@ test.describe('Municipal Onboarding Wizard', () => {
     const wizard = new OnboardingWizardPage(adminPage);
     await wizard.goto();
 
-    // Verify welcome step is visible
+    // Verify welcome step is visible — h1 "Welcome to SALGA Trust Engine!"
     await expect(wizard.welcomeStepTitle).toBeVisible();
     await expect(wizard.welcomeStepTitle).toContainText(/welcome/i);
 
-    // Verify no progress indicator on welcome (it's the first screen)
+    // Verify "Start Setup" button is visible
+    await expect(wizard.startButton).toBeVisible();
+
+    // Verify current step is welcome
     const currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('welcome');
   });
@@ -38,38 +49,28 @@ test.describe('Municipal Onboarding Wizard', () => {
     let currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('welcome');
 
-    // Click Start button (on Welcome screen, Next is labeled "Start")
-    const startButton = adminPage.locator('button').filter({ hasText: /start|begin|next/i }).first();
-    await startButton.click();
-    await adminPage.waitForTimeout(500);
+    // Click "Start Setup" button on welcome screen
+    await wizard.clickStart();
 
-    // Should now be on Profile step
+    // Should now be on Profile step — h2 "Municipality Profile"
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('profile');
     await expect(wizard.profileStepTitle).toBeVisible();
 
-    // Fill profile form (required fields)
-    await adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    ).fill('Test Municipality');
-
-    await adminPage.locator('input').filter({ hasText: /code/i }).or(
-      adminPage.locator('input[name*="code"]').first()
-    ).fill('TST');
-
-    await adminPage.locator('select').first().selectOption('Gauteng');
-
-    await adminPage.locator('input[type="email"]').first().fill('contact@test.gov.za');
-    await adminPage.locator('input[type="tel"]').first().fill('+27123456789');
-
-    await adminPage.locator('input').filter({ hasText: /contact.*name/i }).or(
-      adminPage.locator('input[name*="contactPerson"]').first()
-    ).fill('Test Contact');
+    // Fill profile form using page object helper
+    await wizard.fillProfileStep({
+      municipalityName: 'Test Municipality',
+      municipalityCode: 'TST',
+      province: 'Gauteng',
+      contactEmail: 'contact@test.gov.za',
+      contactPhone: '+27123456789',
+      contactPersonName: 'Test Contact',
+    });
 
     // Click Next to go to Team step
     await wizard.goToNextStep();
 
-    // Should now be on Team step
+    // Should now be on Team step — h2 "Invite Your Team"
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('team');
     await expect(wizard.teamStepTitle).toBeVisible();
@@ -80,27 +81,17 @@ test.describe('Municipal Onboarding Wizard', () => {
     await wizard.goto();
 
     // Navigate to Team step (skip Welcome, fill Profile)
-    const startButton = adminPage.locator('button').filter({ hasText: /start|begin|next/i }).first();
-    await startButton.click();
-    await adminPage.waitForTimeout(500);
+    await wizard.clickStart();
 
     // Fill required profile fields
-    await adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    ).fill('Skip Test Muni');
-
-    await adminPage.locator('input').filter({ hasText: /code/i }).or(
-      adminPage.locator('input[name*="code"]').first()
-    ).fill('SKP');
-
-    await adminPage.locator('select').first().selectOption('Free State');
-
-    await adminPage.locator('input[type="email"]').first().fill('skip@test.gov.za');
-    await adminPage.locator('input[type="tel"]').first().fill('+27111111111');
-
-    await adminPage.locator('input').filter({ hasText: /contact.*name/i }).or(
-      adminPage.locator('input[name*="contactPerson"]').first()
-    ).fill('Skip Contact');
+    await wizard.fillProfileStep({
+      municipalityName: 'Skip Test Muni',
+      municipalityCode: 'SKP',
+      province: 'Free State',
+      contactEmail: 'skip@test.gov.za',
+      contactPhone: '+27111111111',
+      contactPersonName: 'Skip Contact',
+    });
 
     await wizard.goToNextStep();
 
@@ -111,7 +102,7 @@ test.describe('Municipal Onboarding Wizard', () => {
     // Skip Team step
     await wizard.skipStep();
 
-    // Should be at Wards step
+    // Should be at Wards step — h2 "Configure Your Wards"
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('wards');
     await expect(wizard.wardsStepTitle).toBeVisible();
@@ -119,7 +110,7 @@ test.describe('Municipal Onboarding Wizard', () => {
     // Skip Wards step
     await wizard.skipStep();
 
-    // Should be at SLA step
+    // Should be at SLA step — h2 "Set SLA Targets"
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('sla');
     await expect(wizard.slaStepTitle).toBeVisible();
@@ -130,27 +121,17 @@ test.describe('Municipal Onboarding Wizard', () => {
     await wizard.goto();
 
     // Start wizard and complete Profile step
-    const startButton = adminPage.locator('button').filter({ hasText: /start|begin|next/i }).first();
-    await startButton.click();
-    await adminPage.waitForTimeout(500);
+    await wizard.clickStart();
 
     // Fill profile
-    await adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    ).fill('Persistence Test Muni');
-
-    await adminPage.locator('input').filter({ hasText: /code/i }).or(
-      adminPage.locator('input[name*="code"]').first()
-    ).fill('PER');
-
-    await adminPage.locator('select').first().selectOption('Limpopo');
-
-    await adminPage.locator('input[type="email"]').first().fill('persist@test.gov.za');
-    await adminPage.locator('input[type="tel"]').first().fill('+27222222222');
-
-    await adminPage.locator('input').filter({ hasText: /contact.*name/i }).or(
-      adminPage.locator('input[name*="contactPerson"]').first()
-    ).fill('Persist Contact');
+    await wizard.fillProfileStep({
+      municipalityName: 'Persistence Test Muni',
+      municipalityCode: 'PER',
+      province: 'Limpopo',
+      contactEmail: 'persist@test.gov.za',
+      contactPhone: '+27222222222',
+      contactPersonName: 'Persist Contact',
+    });
 
     // Move to Team step
     await wizard.goToNextStep();
@@ -162,8 +143,11 @@ test.describe('Municipal Onboarding Wizard', () => {
     // Refresh page
     await adminPage.reload();
     await adminPage.waitForLoadState('networkidle');
+    // Wait for loading state and GSAP animation
+    await adminPage.waitForTimeout(3000);
 
     // Verify wizard resumes at Team step (not back to Welcome)
+    // The wizard loads progress from backend/localStorage and resumes
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('team');
     await expect(wizard.teamStepTitle).toBeVisible();
@@ -174,27 +158,17 @@ test.describe('Municipal Onboarding Wizard', () => {
     await wizard.goto();
 
     // Start wizard
-    const startButton = adminPage.locator('button').filter({ hasText: /start|begin|next/i }).first();
-    await startButton.click();
-    await adminPage.waitForTimeout(500);
+    await wizard.clickStart();
 
     // Fill profile and go to Team
-    await adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    ).fill('Back Nav Muni');
-
-    await adminPage.locator('input').filter({ hasText: /code/i }).or(
-      adminPage.locator('input[name*="code"]').first()
-    ).fill('BCK');
-
-    await adminPage.locator('select').first().selectOption('Mpumalanga');
-
-    await adminPage.locator('input[type="email"]').first().fill('back@test.gov.za');
-    await adminPage.locator('input[type="tel"]').first().fill('+27333333333');
-
-    await adminPage.locator('input').filter({ hasText: /contact.*name/i }).or(
-      adminPage.locator('input[name*="contactPerson"]').first()
-    ).fill('Back Contact');
+    await wizard.fillProfileStep({
+      municipalityName: 'Back Nav Muni',
+      municipalityCode: 'BCK',
+      province: 'Mpumalanga',
+      contactEmail: 'back@test.gov.za',
+      contactPhone: '+27333333333',
+      contactPersonName: 'Back Contact',
+    });
 
     await wizard.goToNextStep();
 
@@ -213,16 +187,17 @@ test.describe('Municipal Onboarding Wizard', () => {
     expect(currentStep).toBe('team');
     await expect(wizard.teamStepTitle).toBeVisible();
 
-    // Data should be preserved - verify by going back to Profile
+    // Go back to Profile
     await wizard.goBack();
 
     currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('profile');
 
-    // Verify profile data is still there
-    const municipalityInput = adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    );
+    // Verify profile data is still there — check municipality name input
+    const municipalityInput = adminPage
+      .locator('.input-wrapper')
+      .filter({ hasText: /Full Municipality Name/i })
+      .locator('input');
     await expect(municipalityInput).toHaveValue('Back Nav Muni');
   });
 
@@ -231,27 +206,17 @@ test.describe('Municipal Onboarding Wizard', () => {
     await wizard.goto();
 
     // Start wizard
-    const startButton = adminPage.locator('button').filter({ hasText: /start|begin|next/i }).first();
-    await startButton.click();
-    await adminPage.waitForTimeout(500);
+    await wizard.clickStart();
 
     // Fill profile (minimal required)
-    await adminPage.locator('input').filter({ hasText: /municipality.*name/i }).or(
-      adminPage.locator('input[name*="municipality"]').first()
-    ).fill('Complete Test Muni');
-
-    await adminPage.locator('input').filter({ hasText: /code/i }).or(
-      adminPage.locator('input[name*="code"]').first()
-    ).fill('CMP');
-
-    await adminPage.locator('select').first().selectOption('Northern Cape');
-
-    await adminPage.locator('input[type="email"]').first().fill('complete@test.gov.za');
-    await adminPage.locator('input[type="tel"]').first().fill('+27444444444');
-
-    await adminPage.locator('input').filter({ hasText: /contact.*name/i }).or(
-      adminPage.locator('input[name*="contactPerson"]').first()
-    ).fill('Complete Contact');
+    await wizard.fillProfileStep({
+      municipalityName: 'Complete Test Muni',
+      municipalityCode: 'CMP',
+      province: 'Northern Cape',
+      contactEmail: 'complete@test.gov.za',
+      contactPhone: '+27444444444',
+      contactPersonName: 'Complete Contact',
+    });
 
     await wizard.goToNextStep();
 
@@ -260,20 +225,22 @@ test.describe('Municipal Onboarding Wizard', () => {
     await wizard.skipStep(); // Wards
     await wizard.skipStep(); // SLA
 
-    // Should be at Completion step
+    // Should be at Completion step — h1 "Your Dashboard is Ready!"
+    // Wait for the completion API call to finish (shows loading spinner first)
+    await adminPage.waitForTimeout(3000);
+
     const currentStep = await wizard.getCurrentStep();
     expect(currentStep).toBe('complete');
     await expect(wizard.completionStepTitle).toBeVisible();
 
-    // Click "Go to Dashboard" or "Finish" button
-    const finishButton = adminPage.locator('button').filter({ hasText: /dashboard|finish|complete/i }).first();
-    await finishButton.click();
+    // Click "Go to Dashboard" button
+    await wizard.dashboardButton.click();
 
     // Verify redirect to dashboard (URL should be / or /dashboard)
     await adminPage.waitForURL(/\/(dashboard)?$/);
 
-    // Verify dashboard elements are visible
-    const dashboardTitle = adminPage.locator('h1').filter({ hasText: /dashboard/i });
-    await expect(dashboardTitle.first()).toBeVisible();
+    // Verify dashboard elements are visible — h1 "Municipal Operations Dashboard"
+    const dashboardTitle = adminPage.locator('h1').filter({ hasText: /Municipal Operations Dashboard/i });
+    await expect(dashboardTitle.first()).toBeVisible({ timeout: 10000 });
   });
 });

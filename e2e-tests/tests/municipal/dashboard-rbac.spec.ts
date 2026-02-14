@@ -20,14 +20,16 @@ test.describe('Municipal Dashboard RBAC', () => {
   test.describe('Admin Role', () => {
     authTest('Admin can access dashboard', async ({ adminPage }) => {
       await adminPage.goto('/');
+      await adminPage.waitForTimeout(2000);
 
-      // Verify dashboard loads
-      const dashboardTitle = adminPage.locator('h1').filter({ hasText: /dashboard/i });
-      await expect(dashboardTitle.first()).toBeVisible();
+      // Verify dashboard loads — h1 says "Municipal Operations Dashboard"
+      const dashboardTitle = adminPage.locator('h1').filter({ hasText: /Municipal Operations Dashboard/i });
+      await expect(dashboardTitle.first()).toBeVisible({ timeout: 10000 });
 
-      // Verify metrics cards are visible
-      const metricsCards = adminPage.locator('div').filter({ hasText: /open tickets|resolved|sla compliance/i });
-      expect(await metricsCards.count()).toBeGreaterThan(0);
+      // Verify metrics cards are visible (either data or skeleton loading state)
+      // MetricsCards renders "Open Tickets", "Resolved", "SLA Compliance", "SLA Breaches"
+      const metricsSection = adminPage.locator('div').filter({ hasText: /open tickets|sla compliance/i });
+      expect(await metricsSection.count()).toBeGreaterThan(0);
     });
 
     authTest('Admin can access all sidebar navigation items', async ({ adminPage }) => {
@@ -60,28 +62,33 @@ test.describe('Municipal Dashboard RBAC', () => {
   test.describe('Manager Role', () => {
     authTest('Manager can access dashboard', async ({ managerPage }) => {
       await managerPage.goto('/');
+      await managerPage.waitForTimeout(2000);
 
-      // Verify dashboard loads
-      const dashboardTitle = managerPage.locator('h1').filter({ hasText: /dashboard/i });
-      await expect(dashboardTitle.first()).toBeVisible();
+      // Verify dashboard loads — h1 says "Municipal Operations Dashboard"
+      const dashboardTitle = managerPage.locator('h1').filter({ hasText: /Municipal Operations Dashboard/i });
+      await expect(dashboardTitle.first()).toBeVisible({ timeout: 10000 });
 
-      // Verify metrics are visible
-      const metricsSection = managerPage.locator('div').filter({ hasText: /open|resolved|compliance/i });
+      // Verify metrics section is visible (titles or loading skeletons)
+      const metricsSection = managerPage.locator('div').filter({ hasText: /open tickets|sla compliance/i });
       expect(await metricsSection.count()).toBeGreaterThan(0);
     });
 
     authTest('Manager can view and manage tickets', async ({ managerPage }) => {
       await managerPage.goto('/tickets');
 
-      // Verify ticket list loads
+      // Verify ticket list loads — h1 says "Ticket Management"
       const pageTitle = managerPage.locator('h1').filter({ hasText: /ticket/i });
       await expect(pageTitle.first()).toBeVisible();
 
-      // Verify filter bar exists (managers can filter tickets)
-      const filterBar = managerPage.locator('select, input').filter({ hasText: /status|category|search/i });
-      expect(await filterBar.count()).toBeGreaterThan(0);
+      // Verify filter bar exists — FilterBar has labeled selects and search input
+      // Look for the search input (id="search") and status select (id="status")
+      const searchInput = managerPage.locator('input#search');
+      await expect(searchInput).toBeVisible();
 
-      // Verify export button exists (managers can export)
+      const statusSelect = managerPage.locator('select#status');
+      await expect(statusSelect).toBeVisible();
+
+      // Verify export button exists — ExportButton renders "Export CSV" and "Export Excel"
       const exportButton = managerPage.locator('button').filter({ hasText: /export/i });
       await expect(exportButton.first()).toBeVisible();
     });
@@ -123,30 +130,32 @@ test.describe('Municipal Dashboard RBAC', () => {
 
     authTest('Field worker can access ticket list', async ({ fieldWorkerPage }) => {
       await fieldWorkerPage.goto('/tickets');
+      await fieldWorkerPage.waitForTimeout(1000);
 
-      // Verify ticket list loads (should show only their assigned tickets)
+      // Verify ticket list page loads — h1 says "Ticket Management"
       const pageTitle = fieldWorkerPage.locator('h1').filter({ hasText: /ticket/i });
       await expect(pageTitle.first()).toBeVisible();
 
-      // Verify table is visible
-      const table = fieldWorkerPage.locator('table').or(
-        fieldWorkerPage.locator('tbody tr')
-      );
-      await expect(table.first()).toBeVisible();
+      // Verify either table with data or empty state ("No tickets found") is visible
+      const table = fieldWorkerPage.locator('table');
+      const emptyState = fieldWorkerPage.locator('div').filter({ hasText: /No tickets found/i });
+      await expect(table.or(emptyState).first()).toBeVisible();
     });
 
     authTest('Field worker can submit reports', async ({ fieldWorkerPage }) => {
       await fieldWorkerPage.goto('/report');
 
-      // Verify report form loads
-      const form = fieldWorkerPage.locator('form').or(
-        fieldWorkerPage.locator('div').filter({ hasText: /report|submit|category/i })
-      );
+      // Verify report form loads — ReportForm has <h1>Submit a Report</h1>
+      const reportTitle = fieldWorkerPage.locator('h1').filter({ hasText: /Submit a Report/i });
+      await expect(reportTitle.first()).toBeVisible();
+
+      // Verify form element exists
+      const form = fieldWorkerPage.locator('form');
       await expect(form.first()).toBeVisible();
 
-      // Verify category selector exists
-      const categoryInput = fieldWorkerPage.locator('select, input').filter({ hasText: /category/i });
-      expect(await categoryInput.count()).toBeGreaterThan(0);
+      // Verify category selector exists — <select id="category">
+      const categorySelect = fieldWorkerPage.locator('select#category');
+      await expect(categorySelect).toBeVisible();
     });
   });
 
@@ -179,13 +188,14 @@ test.describe('Municipal Dashboard RBAC', () => {
   test.describe('Ward Councillor Role', () => {
     authTest('Ward councillor can access dashboard', async ({ wardCouncillorPage }) => {
       await wardCouncillorPage.goto('/');
+      await wardCouncillorPage.waitForTimeout(2000);
 
-      // Verify dashboard loads
-      const dashboardTitle = wardCouncillorPage.locator('h1').filter({ hasText: /dashboard/i });
-      await expect(dashboardTitle.first()).toBeVisible();
+      // Verify dashboard loads — h1 says "Municipal Operations Dashboard"
+      const dashboardTitle = wardCouncillorPage.locator('h1').filter({ hasText: /Municipal Operations Dashboard/i });
+      await expect(dashboardTitle.first()).toBeVisible({ timeout: 10000 });
 
-      // Verify metrics are visible
-      const metricsSection = wardCouncillorPage.locator('div').filter({ hasText: /open|resolved|ward/i });
+      // Verify some content is visible (metrics or loading skeletons)
+      const metricsSection = wardCouncillorPage.locator('div').filter({ hasText: /open tickets|sla compliance/i });
       expect(await metricsSection.count()).toBeGreaterThan(0);
     });
 
@@ -208,7 +218,7 @@ test.describe('Municipal Dashboard RBAC', () => {
   test.describe('Negative Authorization Tests', () => {
     test('Unauthenticated user redirected to login', async ({ browser }) => {
       // Create fresh context without authentication
-      const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+      const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
       const page = await context.newPage();
 
       try {
@@ -229,26 +239,30 @@ test.describe('Municipal Dashboard RBAC', () => {
     });
 
     authTest('Citizen role cannot access municipal dashboard', async ({ citizenNewPage }) => {
-      // Citizen is authenticated on public portal (localhost:5173)
-      // Try to access municipal dashboard (localhost:5174)
+      // Citizen is authenticated on public portal (localhost:5174)
+      // Try to access municipal dashboard (localhost:5173)
 
-      // Create new context for municipal dashboard
+      // Create new context for municipal dashboard (no auth — citizen's public auth doesn't carry over)
       const context = await citizenNewPage.context().browser()!.newContext({
-        baseURL: 'http://localhost:5174',
+        baseURL: 'http://localhost:5173',
       });
       const municipalPage = await context.newPage();
 
       try {
-        // Try to access municipal dashboard
-        await municipalPage.goto('/');
+        // Navigate to municipal dashboard — app will check session, find none, redirect to /login
+        await municipalPage.goto('/', { waitUntil: 'domcontentloaded' });
 
-        // Should be redirected to login or show unauthorized error
-        await Promise.race([
-          municipalPage.waitForURL(/\/login/, { timeout: 5000 }),
-          municipalPage.locator('div').filter({ hasText: /unauthorized|forbidden|access denied/i }).first().waitFor({ state: 'visible', timeout: 5000 }),
-        ]);
+        // Wait for the React app to load and the auth check to redirect
+        // The app shows a loading spinner first, then redirects unauthenticated users to /login
+        await municipalPage.waitForURL(/\/login/, { timeout: 15000 });
 
-        // Verify citizen cannot see municipal dashboard
+        // Verify login page is shown (not the dashboard)
+        const loginForm = municipalPage.locator('input[id="email"]').or(
+          municipalPage.locator('input[type="password"]')
+        );
+        await expect(loginForm.first()).toBeVisible({ timeout: 5000 });
+
+        // Verify citizen cannot see municipal dashboard metrics
         const dashboardMetrics = municipalPage.locator('div').filter({ hasText: /sla compliance|team workload/i });
         expect(await dashboardMetrics.count()).toBe(0);
       } finally {
@@ -260,7 +274,7 @@ test.describe('Municipal Dashboard RBAC', () => {
       // This test would require field worker authentication and attempting to access admin routes
       // For now, we verify the principle using URL navigation
 
-      const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
+      const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
       const page = await context.newPage();
 
       // Note: In a real scenario, we'd authenticate as field worker

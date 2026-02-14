@@ -68,9 +68,10 @@ export class DashboardPage {
     }).or(page.locator('select').first());
     this.categoryFilter = page.locator('select').nth(1);
 
-    // Realtime indicator
-    this.realtimeIndicator = page.locator('div, span').filter({
-      hasText: /live|realtime|connected/i,
+    // Realtime indicator — RealtimeIndicator component renders:
+    // <span>{statusText}</span> where statusText is "Live" or "Reconnecting..."
+    this.realtimeIndicator = page.locator('span').filter({
+      hasText: /^Live$|^Reconnecting/i,
     }).first();
   }
 

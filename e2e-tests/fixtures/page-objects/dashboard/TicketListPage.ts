@@ -3,6 +3,13 @@
  *
  * Encapsulates interactions with TicketListPage.tsx
  * Server-side pagination, filtering, search, export
+ *
+ * Actual DOM structure:
+ * - h1: "Ticket Management"
+ * - ExportButton: two buttons "Export CSV" and "Export Excel"
+ * - FilterBar: input#search, select#status, select#category, button "Reset"
+ * - TicketTable: <table> with thead/tbody, columns: Tracking #, Category, Status, Severity, Created, SLA Deadline, Address
+ * - Pagination: buttons "Previous" and "Next", span "Page X of Y"
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -15,22 +22,27 @@ export class TicketListPage {
   readonly tableRows: Locator;
   readonly tableHeaders: Locator;
 
-  // Search and filters
+  // Search and filters (using actual IDs from FilterBar component)
   readonly searchInput: Locator;
   readonly statusFilter: Locator;
   readonly categoryFilter: Locator;
   readonly resetFiltersButton: Locator;
 
-  // Pagination
+  // Pagination (using actual button text from Pagination component)
   readonly previousPageButton: Locator;
   readonly nextPageButton: Locator;
   readonly pageInfo: Locator;
 
-  // Export
+  // Export (ExportButton renders "Export CSV" and "Export Excel")
   readonly exportButton: Locator;
+  readonly exportCsvButton: Locator;
+  readonly exportExcelButton: Locator;
 
-  // Ticket details
+  // First ticket ID (tracking number in first cell of first row)
   readonly firstTicketId: Locator;
+
+  // Empty state
+  readonly emptyState: Locator;
 
   constructor(page: Page) {
     this.page = page;
@@ -40,39 +52,27 @@ export class TicketListPage {
     this.tableRows = page.locator('tbody tr');
     this.tableHeaders = page.locator('thead th');
 
-    // Search and filters
-    this.searchInput = page.locator('input[type="search"], input[type="text"]').filter({
-      has: page.locator('label:has-text("Search")'),
-    }).or(page.locator('input[placeholder*="search" i]').first());
+    // Search and filters — use actual element IDs from FilterBar
+    this.searchInput = page.locator('input#search');
+    this.statusFilter = page.locator('select#status');
+    this.categoryFilter = page.locator('select#category');
+    this.resetFiltersButton = page.locator('button').filter({ hasText: /^Reset$/i });
 
-    this.statusFilter = page.locator('select').filter({
-      has: page.locator('label:has-text("Status")'),
-    }).or(page.locator('select[name*="status"]').first());
+    // Pagination — Pagination component renders "Previous" and "Next" buttons
+    this.previousPageButton = page.locator('button').filter({ hasText: /^Previous$/i });
+    this.nextPageButton = page.locator('button').filter({ hasText: /^Next$/i });
+    this.pageInfo = page.locator('span').filter({ hasText: /Page \d+ of \d+/i }).first();
 
-    this.categoryFilter = page.locator('select').filter({
-      has: page.locator('label:has-text("Category")'),
-    }).or(page.locator('select[name*="category"]').first());
+    // Export buttons
+    this.exportButton = page.locator('button').filter({ hasText: /Export CSV/i });
+    this.exportCsvButton = page.locator('button').filter({ hasText: /Export CSV/i });
+    this.exportExcelButton = page.locator('button').filter({ hasText: /Export Excel/i });
 
-    this.resetFiltersButton = page.locator('button').filter({
-      hasText: /reset|clear/i,
-    });
-
-    // Pagination
-    this.previousPageButton = page.locator('button').filter({
-      hasText: /previous|prev|<|‹/i,
-    });
-    this.nextPageButton = page.locator('button').filter({
-      hasText: /next|>|›/i,
-    });
-    this.pageInfo = page.locator('div, span').filter({
-      hasText: /page.*of/i,
-    }).first();
-
-    // Export
-    this.exportButton = page.locator('button').filter({ hasText: /export/i });
-
-    // First ticket ID (for interaction testing)
+    // First ticket ID (tracking number in first cell of first row)
     this.firstTicketId = page.locator('tbody tr').first().locator('td').first();
+
+    // Empty state — "No tickets found" message
+    this.emptyState = page.locator('div').filter({ hasText: /No tickets found/i });
   }
 
   /**
@@ -87,8 +87,8 @@ export class TicketListPage {
    */
   async searchTickets(query: string) {
     await this.searchInput.fill(query);
-    // Wait for debounce (300ms as per plan)
-    await this.page.waitForTimeout(500);
+    // Wait for debounce (300ms) + network response
+    await this.page.waitForTimeout(600);
   }
 
   /**
@@ -96,7 +96,7 @@ export class TicketListPage {
    */
   async filterByStatus(status: string) {
     await this.statusFilter.selectOption(status);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -104,21 +104,26 @@ export class TicketListPage {
    */
   async filterByCategory(category: string) {
     await this.categoryFilter.selectOption(category);
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(500);
   }
 
   /**
-   * Get ticket count (number of rows in table)
+   * Get ticket count (number of rows in table body)
    */
   async getTicketCount(): Promise<number> {
+    // If table is not visible (loading or empty state), return 0
+    const tableVisible = await this.table.isVisible().catch(() => false);
+    if (!tableVisible) return 0;
     return await this.tableRows.count();
   }
 
   /**
-   * Get first ticket ID
+   * Get first ticket tracking number
    */
   async getFirstTicketId(): Promise<string | null> {
     try {
+      const count = await this.tableRows.count();
+      if (count === 0) return null;
       return await this.firstTicketId.textContent();
     } catch {
       return null;
@@ -126,10 +131,10 @@ export class TicketListPage {
   }
 
   /**
-   * Click export button
+   * Click export CSV button
    */
   async clickExport() {
-    await this.exportButton.click();
+    await this.exportCsvButton.click();
   }
 
   /**
@@ -137,7 +142,7 @@ export class TicketListPage {
    */
   async goToNextPage() {
     await this.nextPageButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -145,6 +150,6 @@ export class TicketListPage {
    */
   async goToPreviousPage() {
     await this.previousPageButton.click();
-    await this.page.waitForLoadState('networkidle');
+    await this.page.waitForTimeout(500);
   }
 }
