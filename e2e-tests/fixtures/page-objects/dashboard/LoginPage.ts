@@ -72,6 +72,9 @@ export class LoginPage {
    * Login with email and password
    */
   async login(email: string, password: string) {
+    // Wait for GSAP form animation to complete before interacting
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
+
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.submitButton.click();

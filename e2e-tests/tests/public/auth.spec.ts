@@ -48,7 +48,7 @@ test.describe('Citizen Registration', () => {
     await registerPage.goto();
 
     // Use email from existing citizen profile
-    const existingEmail = 'citizen-returning@test-jozi-001.test';
+    const existingEmail = 'citizen-return@test-jozi-001.test';
 
     // Try to register with existing email using helper method
     await registerPage.fullNameInput.fill('Test User');
@@ -121,7 +121,7 @@ test.describe('Citizen Login', () => {
 
     // Login with citizen-returning profile credentials
     await loginPage.loginWithEmail(
-      'citizen-returning@test-jozi-001.test',
+      'citizen-return@test-jozi-001.test',
       'TestPassword123!'
     );
 
@@ -135,7 +135,7 @@ test.describe('Citizen Login', () => {
     await loginPage.goto();
 
     // Login with wrong password
-    await loginPage.emailInput.fill('citizen-returning@test-jozi-001.test');
+    await loginPage.emailInput.fill('citizen-return@test-jozi-001.test');
     await loginPage.passwordInput.fill('WrongPassword123!');
     await loginPage.emailSubmitButton.click();
 

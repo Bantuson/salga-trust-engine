@@ -65,6 +65,8 @@ export class LoginPage {
    * Login with email and password
    */
   async loginWithEmail(email: string, password: string) {
+    // Wait for GSAP form animation to complete before interacting
+    await this.emailInput.waitFor({ state: 'visible', timeout: 10000 });
     await this.emailInput.fill(email);
     await this.passwordInput.fill(password);
     await this.emailSubmitButton.click();
@@ -76,8 +78,14 @@ export class LoginPage {
    * Login with phone OTP
    */
   async loginWithPhone(phone: string, otp: string) {
+    // Wait for GSAP animation before clicking mode switch
+    await this.phoneModeSwitchButton.waitFor({ state: 'visible', timeout: 10000 });
+
     // Switch to phone mode
     await this.phoneModeSwitchButton.click();
+
+    // Wait for phone input to be visible
+    await this.phoneInput.waitFor({ state: 'visible', timeout: 5000 });
 
     // Enter phone number and request OTP
     await this.phoneInput.fill(phone);
