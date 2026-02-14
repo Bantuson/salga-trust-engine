@@ -14,5 +14,6 @@ export const profile = {
     first_login: false,
     reports_count: 1,
     has_gbv_report: true,
+    residence_verified: true,
   },
 };

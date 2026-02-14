@@ -376,6 +376,7 @@ export function ReportIssuePage() {
             {/* Proof of residence gate */}
             {!isResidenceVerified && (
               <div
+                data-testid="residence-gate"
                 style={{
                   padding: '16px',
                   marginBottom: '24px',
@@ -413,6 +414,8 @@ export function ReportIssuePage() {
             {/* Error message */}
             {error && (
               <div
+                data-testid="form-error"
+                role="alert"
                 style={{
                   padding: '16px',
                   marginBottom: '24px',

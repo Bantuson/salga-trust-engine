@@ -13,5 +13,6 @@ export const profile = {
     full_name: 'Multi Report Citizen',
     first_login: false,
     reports_count: 10,
+    residence_verified: true,
   },
 };

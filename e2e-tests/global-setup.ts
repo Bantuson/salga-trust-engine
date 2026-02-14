@@ -87,10 +87,33 @@ async function globalSetup() {
       try {
         // Check if user already exists
         const { data: existingUser } = await supabaseAdmin.auth.admin.listUsers();
-        const userExists = existingUser?.users?.some((u) => u.email === profile.email);
+        const existing = existingUser?.users?.find((u) => u.email === profile.email);
 
-        if (userExists) {
-          console.log(`  ↩️  User already exists: ${profile.email} (${profile.role})`);
+        if (existing) {
+          // Update existing user password and metadata to ensure consistency
+          const { error: updateError } = await supabaseAdmin.auth.admin.updateUserById(
+            existing.id,
+            {
+              password: profile.password,
+              email_confirm: true,
+              phone_confirm: true,
+              user_metadata: {
+                full_name: profile.metadata.full_name || profile.name,
+                residence_verified: profile.metadata.residence_verified ?? false,
+              },
+              app_metadata: {
+                role: profile.role,
+                tenant_id: profile.tenantId,
+                ...('app_metadata' in profile.metadata ? profile.metadata.app_metadata : {}),
+              },
+            }
+          );
+
+          if (updateError) {
+            console.warn(`  ⚠️  Warning updating user ${profile.email}:`, updateError.message);
+          } else {
+            console.log(`  ↩️  User updated: ${profile.email} (${profile.role})`);
+          }
           continue;
         }
 
@@ -104,6 +127,7 @@ async function globalSetup() {
             phone_confirm: true,
             user_metadata: {
               full_name: profile.metadata.full_name || profile.name,
+              residence_verified: profile.metadata.residence_verified ?? false,
             },
             app_metadata: {
               role: profile.role,

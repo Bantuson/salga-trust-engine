@@ -14,5 +14,6 @@ export const profile = {
     first_login: false,
     reports_count: 3,
     active_tickets: 2,
+    residence_verified: true,
   },
 };

@@ -13,5 +13,6 @@ export const profile = {
     full_name: 'New Citizen',
     first_login: true,
     reports_count: 0,
+    residence_verified: true,
   },
 };
