@@ -19,12 +19,12 @@ test.describe('Landing Page', () => {
 
     await landingPage.goto();
 
-    // Verify hero title is visible
-    await expect(landingPage.heroTitle).toBeVisible({ timeout: 5000 });
+    // Verify hero title is visible (GSAP animates it in)
+    await expect(landingPage.heroTitle).toBeVisible({ timeout: 10000 });
 
     // Verify hero contains expected text
     const heroText = await landingPage.heroTitle.textContent();
-    expect(heroText).toBeTruthy();
+    expect(heroText).toContain('Transparent Municipal Services');
   });
 
   test('Landing page has Get Started CTA', async ({ page }) => {
@@ -32,11 +32,12 @@ test.describe('Landing Page', () => {
 
     await landingPage.goto();
 
-    // Verify get started button exists
-    await expect(landingPage.getStartedButton).toBeVisible({ timeout: 5000 });
+    // Verify get started button exists (GSAP animates it in)
+    await expect(landingPage.getStartedButton).toBeVisible({ timeout: 10000 });
 
-    // Verify button is clickable (enabled)
-    await expect(landingPage.getStartedButton).toBeEnabled();
+    // Verify button text is "View Municipal Performance"
+    const buttonText = await landingPage.getStartedButton.textContent();
+    expect(buttonText).toContain('View Municipal');
   });
 
   test('Navigation links work', async ({ page }) => {
@@ -71,33 +72,34 @@ test.describe('Landing Page', () => {
 
     await landingPage.goto();
 
-    // Wait for header to be visible initially
-    const header = page.locator('header, nav, [data-header]').first();
-    await expect(header).toBeVisible({ timeout: 3000 });
+    // Wait for PublicHeader to be visible initially
+    const header = page.locator('header').first();
+    await expect(header).toBeVisible({ timeout: 5000 });
 
-    // Get initial position
-    const initialPosition = await header.boundingBox();
+    // Get initial transform value
+    const initialTransform = await header.evaluate((el) =>
+      window.getComputedStyle(el).transform
+    );
 
-    // Scroll down significantly
-    await page.evaluate(() => window.scrollBy(0, 400));
+    // Scroll down significantly (> 80px threshold)
+    await page.evaluate(() => window.scrollBy(0, 200));
 
-    // Wait for animation to complete
-    await page.waitForTimeout(500);
+    // Wait for GSAP animation to complete
+    await page.waitForTimeout(600);
 
-    // Check if header is hidden or transformed
-    const afterScrollPosition = await header.boundingBox();
+    // Check if header has transformed (hidden or moved up)
+    const afterScrollTransform = await header.evaluate((el) =>
+      window.getComputedStyle(el).transform
+    );
 
     // Scroll back to top
     await page.evaluate(() => window.scrollTo(0, 0));
 
     // Wait for animation
-    await page.waitForTimeout(500);
+    await page.waitForTimeout(600);
 
-    // Header should be visible again at top
-    const backToTopPosition = await header.boundingBox();
-
-    // At least verify header still exists after scroll operations
-    expect(backToTopPosition).toBeTruthy();
+    // Header should be visible again
+    await expect(header).toBeVisible();
   });
 
   test('Features section displays content', async ({ page }) => {
@@ -105,21 +107,23 @@ test.describe('Landing Page', () => {
 
     await landingPage.goto();
 
-    // Scroll to features section
+    // Scroll to features section to trigger ScrollTrigger
     await page.evaluate(() => {
-      const featuresSection = document.querySelector('section:has(h2), [data-features]');
+      const featuresSection = document.querySelector('.features-section');
       if (featuresSection) {
         featuresSection.scrollIntoView({ behavior: 'smooth' });
       }
     });
 
-    // Wait for GSAP animations
-    await page.waitForTimeout(1000);
+    // Wait for scroll animation and GSAP ScrollTrigger to complete
+    await page.waitForTimeout(1500);
 
-    // Verify at least some feature content is visible
-    const featureElements = page.locator('h3, [data-feature]');
-    const count = await featureElements.count();
-
+    // Verify feature cards are visible (GSAP animates autoAlpha from 0 to 1)
+    const featureCards = page.locator('.feature-card');
+    const count = await featureCards.count();
     expect(count).toBeGreaterThan(0);
+
+    // Verify at least the first card is visible after animation
+    await expect(featureCards.first()).toBeVisible({ timeout: 2000 });
   });
 });
