@@ -52,7 +52,7 @@ export function PublicHeader() {
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/about', label: 'About' },
-    { to: '/my-reports', label: 'Profile' },
+    { to: '/profile', label: 'Profile' },
   ];
 
   return (
@@ -99,9 +99,6 @@ export function PublicHeader() {
 
               {isUserMenuOpen && (
                 <div className="header-user-dropdown">
-                  <Link to="/my-reports" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
-                    My Reports
-                  </Link>
                   <Link to="/profile" className="dropdown-item" onClick={() => setIsUserMenuOpen(false)}>
                     Profile
                   </Link>

@@ -64,14 +64,12 @@ function App() {
                 <Route path="/register" element={<CitizenRegisterPage />} />
 
                 {/* Protected pages - require citizen login */}
-                <Route path="/my-reports" element={
+                <Route path="/profile" element={
                   <ProtectedRoute><CitizenPortalPage /></ProtectedRoute>
                 } />
+                <Route path="/my-reports" element={<Navigate to="/profile" replace />} />
                 <Route path="/report" element={
                   <ProtectedRoute><ReportIssuePage /></ProtectedRoute>
-                } />
-                <Route path="/profile" element={
-                  <ProtectedRoute><ProfilePage /></ProtectedRoute>
                 } />
 
                 {/* Catch-all */}

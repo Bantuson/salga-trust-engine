@@ -27,6 +27,17 @@ export function CitizenLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const getTagline = () => {
+    const fromPath = location.state?.from?.pathname;
+    if (fromPath === '/profile' || fromPath === '/my-reports') {
+      return 'Sign in to access your profile';
+    }
+    if (fromPath === '/dashboard') {
+      return 'Sign in to access your dashboard';
+    }
+    return 'Sign in to track your reports'; // default (e.g., from /report)
+  };
+
   // Email + password fields
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -78,7 +89,7 @@ export function CitizenLoginPage() {
       const returnUrl =
         location.state?.from?.pathname ||
         sessionStorage.getItem('returnUrl') ||
-        '/my-reports';
+        '/profile';
       sessionStorage.removeItem('returnUrl');
       navigate(returnUrl, { replace: true });
     } catch (err) {
@@ -116,7 +127,7 @@ export function CitizenLoginPage() {
       const returnUrl =
         location.state?.from?.pathname ||
         sessionStorage.getItem('returnUrl') ||
-        '/my-reports';
+        '/profile';
       sessionStorage.removeItem('returnUrl');
       navigate(returnUrl, { replace: true });
     } catch (err) {
@@ -128,16 +139,12 @@ export function CitizenLoginPage() {
 
   return (
     <div ref={containerRef} style={styles.container}>
-      {/* Skyline background layers */}
-      <div className="auth-skyline-bg" />
-      <div className="auth-skyline-overlay" />
-
       {/* Glassmorphism Login Card - Centered for Citizens */}
       <div ref={cardRef}>
         <GlassCard style={styles.card}>
           <div style={styles.logoSection}>
             <h1 style={styles.title}>Citizen Portal</h1>
-            <p style={styles.tagline}>Sign in to track your reports</p>
+            <p style={styles.tagline}>{getTagline()}</p>
           </div>
 
           {error && (
@@ -303,18 +310,19 @@ const styles = {
     position: 'relative' as const,
     overflow: 'hidden',
     padding: '0 var(--space-lg)',
+    paddingTop: '80px',
   } as React.CSSProperties,
   card: {
     width: '100%',
     maxWidth: '440px',
-    padding: '1.75rem 2rem',
+    padding: '1.25rem 2rem 1.75rem 2rem',
     borderRadius: 'var(--radius-xl)',
     position: 'relative' as const,
     zIndex: 2,
     margin: '0 auto',
   } as React.CSSProperties,
   logoSection: {
-    marginBottom: '1.25rem',
+    marginBottom: '0.75rem',
     textAlign: 'center' as const,
   } as React.CSSProperties,
   title: {
@@ -397,7 +405,7 @@ const styles = {
   linkButton: {
     padding: '0.5rem',
     backgroundColor: 'transparent',
-    color: 'var(--color-teal)',
+    color: 'var(--color-accent-gold)',
     border: 'none',
     fontSize: '0.875rem',
     fontWeight: '500',
