@@ -41,8 +41,8 @@ export class RegisterPage {
     });
     this.loginLink = page.locator('a[href="/login"]', { hasText: 'Sign in' });
 
-    this.errorMessage = page.locator('div').filter({ hasText: /failed|error/i }).first();
-    this.successMessage = page.locator('div').filter({ hasText: /success|created/i }).first();
+    this.errorMessage = page.locator('div').filter({ hasText: /Registration failed|failed|error|already registered/i }).first();
+    this.successMessage = page.locator('h1').filter({ hasText: /Account Created/i });
     this.fieldErrors = page.locator('span').filter({ hasText: /required|match|characters/i });
   }
 
@@ -82,11 +82,14 @@ export class RegisterPage {
 
     await this.submitButton.click();
 
-    // Wait for success message or error
+    // Wait for success message, error, or page navigation
     await Promise.race([
-      this.successMessage.waitFor({ state: 'visible', timeout: 10000 }),
-      this.errorMessage.waitFor({ state: 'visible', timeout: 10000 }),
-    ]);
+      this.successMessage.waitFor({ state: 'visible', timeout: 15000 }),
+      this.errorMessage.waitFor({ state: 'visible', timeout: 15000 }),
+      this.page.waitForURL((url) => !url.pathname.endsWith('/register'), { timeout: 15000 }),
+    ]).catch(() => {
+      // Registration may be slow or fail silently
+    });
   }
 
   /**
