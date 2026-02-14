@@ -1,7 +1,11 @@
 /**
- * Page Object: Public Dashboard Profile Page
+ * Page Object: Public Dashboard Profile Page (/profile)
  *
- * Encapsulates interactions with ProfilePage.tsx (citizen portal)
+ * The /profile route renders CitizenPortalPage — a citizen reports portal
+ * showing personal stats, report filters, and report list.
+ *
+ * NOTE: The actual ProfilePage.tsx component (with edit form, proof of residence)
+ * is NOT mounted on any route. This page object targets what /profile actually renders.
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -9,108 +13,103 @@ import { Page, Locator } from '@playwright/test';
 export class ProfilePage {
   readonly page: Page;
 
-  // User info display
-  readonly emailDisplay: Locator;
-  readonly fullNameDisplay: Locator;
-  readonly phoneDisplay: Locator;
-  readonly residenceStatusBadge: Locator;
+  // Page heading
+  readonly heading: Locator;
 
-  // Edit mode
-  readonly editButton: Locator;
-  readonly saveButton: Locator;
-  readonly cancelButton: Locator;
+  // Report New Issue CTA
+  readonly reportNewIssueButton: Locator;
 
-  // Form fields (edit mode and read-only)
-  readonly emailInput: Locator;
-  readonly fullNameInput: Locator;
-  readonly phoneInput: Locator;
-  readonly municipalitySelect: Locator;
+  // Filter tabs (inside MyReportsList component)
+  readonly filterAll: Locator;
+  readonly filterOpen: Locator;
+  readonly filterResolved: Locator;
 
   // Reports section
-  readonly reportsList: Locator;
-  readonly reportCount: Locator;
+  readonly reportsHeading: Locator;
 
-  // Proof of residence
-  readonly residenceUploadArea: Locator;
-  readonly residenceVerifiedBadge: Locator;
+  // Personal stats cards (PersonalStats component)
+  readonly statsSection: Locator;
+
+  // Nav bar user identity (PublicHeader)
+  readonly userMenuButton: Locator;
+  readonly userName: Locator;
+  readonly userDropdown: Locator;
+  readonly dropdownProfileLink: Locator;
+  readonly dropdownReportIssueLink: Locator;
+  readonly dropdownSignOutButton: Locator;
+
+  // Demo mode banner
+  readonly demoBanner: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    // Display elements (view mode)
-    this.emailDisplay = page.locator('text=/[a-z0-9._%+-]+@[a-z0-9.-]+\\.[a-z]{2,}$/i').first();
-    this.fullNameDisplay = page.locator('h2, h3').filter({ hasText: /\w+\s+\w+/ }).first();
-    this.phoneDisplay = page.locator('text=/\\+27\\d{9}/').first();
-    this.residenceStatusBadge = page.locator('div, span').filter({
-      hasText: /verified|pending|not uploaded/i,
+    // Main page heading: "My Reports"
+    this.heading = page.getByRole('heading', { name: 'My Reports', level: 1 });
+
+    // "Report New Issue" button inside the header area
+    this.reportNewIssueButton = page.getByRole('link', { name: /Report New Issue/i });
+
+    // Filter tab buttons (rendered by MyReportsList)
+    this.filterAll = page.getByRole('button', { name: 'All Reports' });
+    this.filterOpen = page.getByRole('button', { name: 'Open' });
+    this.filterResolved = page.getByRole('button', { name: 'Resolved' });
+
+    // "Your Reports" sub-heading
+    this.reportsHeading = page.getByRole('heading', { name: 'Your Reports', level: 2 });
+
+    // Stats section — container with stat cards (Total Reports, Resolved, Avg Days)
+    this.statsSection = page.locator('div').filter({
+      hasText: /Total Reports/,
     }).first();
 
-    // Buttons
-    this.editButton = page.locator('button', { hasText: 'Edit' });
-    this.saveButton = page.locator('button', { hasText: 'Save' });
-    this.cancelButton = page.locator('button', { hasText: 'Cancel' });
+    // Nav bar user button (desktop) — the button that opens the user dropdown
+    this.userMenuButton = page.locator('.header-user-button');
+    this.userName = page.locator('.header-user-button .user-name');
 
-    // Form fields (edit mode and read-only - these match ProfilePage form IDs)
-    this.emailInput = page.locator('input[id="email"]');
-    this.fullNameInput = page.locator('input[id="fullName"]');
-    this.phoneInput = page.locator('input[id="phone"]');
-    this.municipalitySelect = page.locator('select[id="municipality"]');
+    // Dropdown items (visible after clicking userMenuButton)
+    this.userDropdown = page.locator('.header-user-dropdown');
+    this.dropdownProfileLink = page.locator('.header-user-dropdown a', { hasText: 'Profile' });
+    this.dropdownReportIssueLink = page.locator('.header-user-dropdown a', { hasText: 'Report Issue' });
+    this.dropdownSignOutButton = page.locator('.header-user-dropdown button', { hasText: 'Sign Out' });
 
-    // Reports
-    this.reportsList = page.locator('[data-reports-list], div').filter({
-      hasText: /your reports|recent activity/i,
-    }).first();
-    this.reportCount = page.locator('text=/\\d+\\s+(report|ticket)/i').first();
-
-    // Residence upload
-    this.residenceUploadArea = page.locator('div, section').filter({
-      hasText: /proof of residence|upload document/i,
-    }).first();
-    this.residenceVerifiedBadge = page.locator('span, div').filter({
-      hasText: /verified/i,
-    }).first();
+    // Demo mode banner
+    this.demoBanner = page.locator('div').filter({ hasText: /Demo Mode/i }).first();
   }
 
   /**
-   * Navigate to profile page
+   * Navigate to the profile/reports page
    */
   async goto() {
     await this.page.goto('/profile', { waitUntil: 'domcontentloaded' });
+    // Wait for the page heading to appear (confirms page loaded and auth passed)
+    await this.heading.waitFor({ state: 'visible', timeout: 15000 });
   }
 
   /**
-   * Get user email
+   * Get the displayed user name from the nav bar
    */
-  async getUserEmail(): Promise<string | null> {
-    try {
-      return await this.emailDisplay.textContent();
-    } catch {
-      return null;
-    }
+  async getUserName(): Promise<string> {
+    return (await this.userName.textContent()) || '';
   }
 
   /**
-   * Get report count
+   * Open the user dropdown in the nav bar
    */
-  async getReportCount(): Promise<number> {
-    try {
-      const text = await this.reportCount.textContent();
-      const match = text?.match(/\d+/);
-      return match ? parseInt(match[0], 10) : 0;
-    } catch {
-      return 0;
-    }
+  async openUserMenu() {
+    await this.userMenuButton.click();
+    await this.userDropdown.waitFor({ state: 'visible', timeout: 3000 });
   }
 
   /**
-   * Check if residence is verified
+   * Click a specific filter tab
    */
-  async isResidenceVerified(): Promise<boolean> {
-    try {
-      const text = await this.residenceVerifiedBadge.textContent();
-      return text?.toLowerCase().includes('verified') || false;
-    } catch {
-      return false;
-    }
+  async selectFilter(filter: 'all' | 'open' | 'resolved') {
+    const filterMap = {
+      all: this.filterAll,
+      open: this.filterOpen,
+      resolved: this.filterResolved,
+    };
+    await filterMap[filter].click();
   }
 }
