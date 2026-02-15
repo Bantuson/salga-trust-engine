@@ -379,8 +379,9 @@ test.describe.serial('GBV Privacy Firewall', () => {
    */
   test.describe('Public Dashboard GBV Exclusion', () => {
     test('GBV data NOT visible on public dashboard', async ({ page }) => {
+      test.slow();
       // Public transparency dashboard is on port 5174
-      await page.goto(`${PUBLIC_BASE}/dashboard`, { waitUntil: 'domcontentloaded' });
+      await page.goto(`${PUBLIC_BASE}/dashboard`, { waitUntil: 'domcontentloaded', timeout: 120000 });
       await page.waitForTimeout(3000);
 
       const pageContent = await page.content();

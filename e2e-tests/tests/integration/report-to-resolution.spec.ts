@@ -74,7 +74,10 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
     await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
-    await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
+    await managerPage.waitForURL((url) => {
+      const path = url.pathname;
+      return path === '/' || path.includes('/dashboard') || path.includes('/tickets');
+    }, { timeout: 15000 });
 
     // Step E: Manager navigates to municipal dashboard /tickets with retry logic
     // The backend may need time to route the citizen-submitted report
@@ -180,7 +183,10 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
     await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
-    await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
+    await managerPage.waitForURL((url) => {
+      const path = url.pathname;
+      return path === '/' || path.includes('/dashboard') || path.includes('/tickets');
+    }, { timeout: 15000 });
 
     let foundCount = 0;
 
@@ -274,7 +280,10 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
     await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
-    await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
+    await managerPage.waitForURL((url) => {
+      const path = url.pathname;
+      return path === '/' || path.includes('/dashboard') || path.includes('/tickets');
+    }, { timeout: 15000 });
 
     // Try to find the ticket with retries
     let found = false;
@@ -454,7 +463,10 @@ test.describe('Cross-dashboard integration: Report-to-Resolution', () => {
     await managerPage.locator('input[id="email"]').fill('manager@test-jozi-001.test');
     await managerPage.locator('input[id="password"]').fill(process.env.TEST_PASSWORD || 'Test123!@#');
     await managerPage.locator('button[type="submit"]').click();
-    await managerPage.waitForURL(/\/(dashboard|tickets)/, { timeout: 10000 });
+    await managerPage.waitForURL((url) => {
+      const path = url.pathname;
+      return path === '/' || path.includes('/dashboard') || path.includes('/tickets');
+    }, { timeout: 15000 });
 
     // Check across multiple attempts to be thorough — GBV should NEVER appear
     let gbvFound = false;

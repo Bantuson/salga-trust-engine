@@ -124,6 +124,6 @@ test.describe('Landing Page', () => {
     expect(count).toBeGreaterThan(0);
 
     // Verify at least the first card is visible after animation
-    await expect(featureCards.first()).toBeVisible({ timeout: 2000 });
+    await expect(featureCards.first()).toBeVisible({ timeout: 10000 });
   });
 });

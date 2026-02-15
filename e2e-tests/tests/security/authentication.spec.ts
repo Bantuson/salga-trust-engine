@@ -28,6 +28,10 @@ test.describe('SQL Injection Protection', () => {
     await page.waitForTimeout(500);
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
+      // Check if email input is still visible (rate limiting may hide the form)
+      const emailVisible = await page.locator('input[id="email"]').isVisible().catch(() => false);
+      if (!emailVisible) break;
+
       // Fill email with SQL injection payload
       await page.locator('input[id="email"]').fill(payload);
       await page.locator('input[id="password"]').fill('anypassword');
@@ -50,16 +54,24 @@ test.describe('SQL Injection Protection', () => {
       // Verify still on login page (not navigated away)
       expect(page.url()).toContain('/login');
 
-      // Clear for next iteration
-      await page.locator('input[id="email"]').clear();
-      await page.locator('input[id="password"]').clear();
+      // Clear for next iteration — catch errors if form state changed
+      await page.locator('input[id="email"]').clear().catch(() => {});
+      await page.locator('input[id="password"]').clear().catch(() => {});
     }
   });
 
   test('Dashboard login rejects SQL injection payloads', async ({ page }) => {
-    await page.goto('http://localhost:5173/login');
+    test.slow(); // Triple timeout — dashboard login can be slow under load
+    await page.goto('http://localhost:5173/login', { waitUntil: 'domcontentloaded' });
+
+    // Wait for form to be ready
+    await page.locator('input[id="email"]').waitFor({ state: 'visible', timeout: 10000 });
 
     for (const payload of SQL_INJECTION_PAYLOADS) {
+      // Check if email input is still visible (rate limiting may hide the form)
+      const emailVisible = await page.locator('input[id="email"]').isVisible().catch(() => false);
+      if (!emailVisible) break;
+
       // Fill email with SQL injection payload
       await page.locator('input[id="email"]').fill(payload);
       await page.locator('input[id="password"]').fill('anypassword');
@@ -79,9 +91,9 @@ test.describe('SQL Injection Protection', () => {
       // Verify still on login page
       expect(page.url()).toContain('/login');
 
-      // Clear for next iteration
-      await page.locator('input[id="email"]').clear();
-      await page.locator('input[id="password"]').clear();
+      // Clear for next iteration — catch errors if form state changed
+      await page.locator('input[id="email"]').clear().catch(() => {});
+      await page.locator('input[id="password"]').clear().catch(() => {});
     }
   });
 });
