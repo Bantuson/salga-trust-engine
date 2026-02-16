@@ -172,6 +172,7 @@ const styles = {
     fontSize: '1.875rem',
     fontWeight: '700',
     color: 'var(--text-primary)',
+    textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
   } as React.CSSProperties,
   chartsGrid: {
     display: 'grid',

@@ -80,11 +80,11 @@
   --chart-axis-text: #e0d4d8;
 
   /* Glassmorphism */
-  --glass-white-frost: rgba(255, 255, 255, 0.25);
-  --glass-pink-frost: rgba(205, 94, 129, 0.25);
-  --glass-border: rgba(255, 255, 255, 0.2);
-  --glass-blur-subtle: 10px;
-  --glass-blur-medium: 20px;
+  --glass-white-frost: rgba(255, 255, 255, 0.35);
+  --glass-pink-frost: rgba(205, 94, 129, 0.35);
+  --glass-border: rgba(255, 255, 255, 0.25);
+  --glass-blur-subtle: 16px;
+  --glass-blur-medium: 28px;
   --glass-card-padding: var(--space-xl);
 
   /* Chart Container Theming */
