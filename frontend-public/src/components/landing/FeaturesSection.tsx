@@ -32,11 +32,12 @@ export function FeaturesSection() {
         duration: 0.8,
         stagger: 0.2,
         ease: 'back.out(1.7)',
+        clearProps: 'opacity,visibility,transform',
         scrollTrigger: {
           trigger: '.features-grid',
-          start: 'top 75%',
-          toggleActions: 'play none none reverse',
-          once: false,
+          start: 'top 85%',
+          toggleActions: 'play none none none',
+          once: true,
         },
       }
     );
