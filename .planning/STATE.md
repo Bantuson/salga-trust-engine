@@ -115,6 +115,7 @@ Progress: [██████████] 100% (8/8 plans)
 | Phase 06.6 P05 | 478 | 2 tasks | 2 files |
 | Phase 06.6 P06 | 7500 | 2 tasks | 25 files |
 | Phase 06.6 P08 | 921 | 4 tasks | 9 files |
+| Phase 06.6 P07 | 1033 | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -364,6 +365,9 @@ Recent decisions affecting current work:
 - [Phase 06.6-08]: Glassmorphism opacity increased from 0.25 to 0.35, blur from 10-20px to 16-28px for text readability over photo backgrounds
 - [Phase 06.6-08]: Ticket fetch retry logic uses MAX_RETRIES=3 with exponential backoff (1s, 2s, 4s) to prevent infinite loops
 - [Phase 06.6-08]: Stale auth refresh tokens logged as warning (not error) and cleared gracefully via signOut()
+- [Phase 06.6]: GSAP clearProps on all animations prevents elements remaining at opacity: 0
+- [Phase 06.6]: Landing CTAs changed from gradient-on-transparent to solid gold background for WCAG AA visibility
+- [Phase 06.6]: CSS @keyframes fallback for feature cards ensures visibility after 2s if GSAP fails
 
 ### Pending Todos
 
