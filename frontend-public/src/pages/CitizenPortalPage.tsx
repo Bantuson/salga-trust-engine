@@ -18,13 +18,13 @@ import { MyReportsList } from '../components/citizen/MyReportsList';
 import { useCitizenReports } from '../hooks/useCitizenReports';
 
 export const CitizenPortalPage: React.FC = () => {
-  const { reports, stats, isLoading, error, isDemoMode, refetch } = useCitizenReports();
+  const { reports, stats, isLoading, isDemoMode } = useCitizenReports();
 
   return (
     <div style={{
       position: 'relative',
       minHeight: '100vh',
-      paddingTop: '80px',
+      paddingTop: '120px',
       paddingBottom: '80px',
     }}>
       {/* Background */}
@@ -103,81 +103,11 @@ export const CitizenPortalPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Error State */}
-        {error && !isDemoMode && (
-          <div style={{
-            padding: 'var(--spacing-lg)',
-            marginBottom: 'var(--spacing-lg)',
-            background: 'rgba(255, 107, 74, 0.1)',
-            border: '2px solid rgba(255, 107, 74, 0.3)',
-            borderRadius: 'var(--radius-md)',
-            textAlign: 'center',
-          }}>
-            <svg
-              width="48"
-              height="48"
-              viewBox="0 0 24 24"
-              fill="none"
-              stroke="var(--color-coral)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ margin: '0 auto var(--spacing-md)' }}
-            >
-              <circle cx="12" cy="12" r="10" />
-              <line x1="12" y1="8" x2="12" y2="12" />
-              <line x1="12" y1="16" x2="12.01" y2="16" />
-            </svg>
-            <h3 style={{
-              fontSize: 'var(--text-xl)',
-              fontWeight: 600,
-              color: 'var(--color-coral)',
-              margin: '0 0 var(--spacing-sm)',
-            }}>
-              Could not load reports
-            </h3>
-            <p style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-              margin: '0 0 var(--spacing-md)',
-            }}>
-              {error}
-            </p>
-            <Button variant="secondary" size="md" onClick={refetch}>
-              <svg
-                width="16"
-                height="16"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-              >
-                <polyline points="23 4 23 10 17 10" />
-                <polyline points="1 20 1 14 7 14" />
-                <path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15" />
-              </svg>
-              Retry
-            </Button>
-          </div>
-        )}
-
         {/* Personal Stats */}
-        {!error && (
-          <PersonalStats stats={stats} loading={isLoading} />
-        )}
+        <PersonalStats stats={stats} loading={isLoading} />
 
         {/* Reports List */}
         <div style={{ marginTop: 'var(--spacing-xl)' }}>
-          <h2 style={{
-            fontSize: 'var(--text-2xl)',
-            fontWeight: 600,
-            color: 'var(--text-primary)',
-            marginBottom: 'var(--spacing-lg)',
-          }}>
-            Your Reports
-          </h2>
           <MyReportsList reports={reports} loading={isLoading} />
         </div>
       </div>

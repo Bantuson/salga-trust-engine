@@ -166,7 +166,8 @@ export function LoginPage() {
       <div ref={cardRef}>
       <GlassCard style={styles.card}>
         <div style={styles.loginHeader}>
-          <h2 style={styles.loginTitle}>Sign in to access your dashboard</h2>
+          <h2 style={styles.loginTitle}>Municipal Portal</h2>
+          <p style={styles.loginSubtitle}>Sign in to access your dashboard</p>
         </div>
         {error && (
           <div style={styles.errorBox}>
@@ -376,7 +377,7 @@ const styles = {
     zIndex: 2,
     maxWidth: '480px',
     color: 'white',
-    background: 'rgba(205, 94, 129, 0.35)',
+    background: 'rgba(255, 255, 255, 0.12)',
     backdropFilter: 'blur(16px)',
     WebkitBackdropFilter: 'blur(16px)',
     border: '1px solid rgba(255, 255, 255, 0.15)',
@@ -389,7 +390,10 @@ const styles = {
     fontWeight: '800',
     marginBottom: '1.5rem',
     lineHeight: '1.1',
-    color: 'white',
+    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
   } as React.CSSProperties,
   productDescription: {
     fontSize: '1.125rem',
@@ -437,10 +441,18 @@ const styles = {
     textAlign: 'center' as const,
   } as React.CSSProperties,
   loginTitle: {
-    fontSize: '1.25rem',
-    fontWeight: '600',
-    color: 'var(--text-primary)',
+    fontSize: '1.75rem',
+    fontWeight: '700',
+    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    WebkitBackgroundClip: 'text',
+    WebkitTextFillColor: 'transparent',
+    backgroundClip: 'text',
     marginBottom: '0.25rem',
+  } as React.CSSProperties,
+  loginSubtitle: {
+    fontSize: '0.95rem',
+    color: 'var(--text-secondary)',
+    marginTop: '0.25rem',
   } as React.CSSProperties,
   errorBox: {
     padding: '0.75rem',
@@ -507,6 +519,7 @@ const styles = {
   } as React.CSSProperties,
   linkButton: {
     display: 'block',
+    width: '100%',
     padding: '0.5rem',
     backgroundColor: 'transparent',
     color: 'var(--color-accent-gold)',
@@ -522,7 +535,7 @@ const styles = {
     margin: '0.25rem 0',
   } as React.CSSProperties,
   dividerText: {
-    color: 'var(--text-muted)',
+    color: '#555',
     fontSize: '0.875rem',
   } as React.CSSProperties,
 };
