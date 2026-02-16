@@ -12,16 +12,22 @@ function getBarColor(hours: number): string {
   return '#ef4444'; // red - needs improvement
 }
 
+const glassContainer: React.CSSProperties = {
+  padding: '20px',
+  border: '1px solid var(--glass-border)',
+  borderRadius: '8px',
+  background: 'var(--chart-bg)',
+  backdropFilter: 'blur(10px)',
+};
+
 export function ResponseTimeChart({ data, isLoading }: ResponseTimeChartProps) {
   if (isLoading) {
     return (
       <div style={{
+        ...glassContainer,
         padding: '40px',
         textAlign: 'center',
-        color: '#6b7280',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        backgroundColor: 'white'
+        color: 'var(--text-secondary)',
       }}>
         Loading response time data...
       </div>
@@ -31,12 +37,10 @@ export function ResponseTimeChart({ data, isLoading }: ResponseTimeChartProps) {
   if (data.length === 0) {
     return (
       <div style={{
+        ...glassContainer,
         padding: '40px',
         textAlign: 'center',
-        color: '#9ca3af',
-        border: '1px solid #e5e7eb',
-        borderRadius: '8px',
-        backgroundColor: 'white'
+        color: 'var(--text-muted)',
       }}>
         No response time data available
       </div>
@@ -44,41 +48,41 @@ export function ResponseTimeChart({ data, isLoading }: ResponseTimeChartProps) {
   }
 
   return (
-    <div style={{
-      padding: '20px',
-      border: '1px solid #e5e7eb',
-      borderRadius: '8px',
-      backgroundColor: 'white'
-    }}>
+    <div style={glassContainer}>
       <h3 style={{
         fontSize: '18px',
         fontWeight: '600',
         marginBottom: '16px',
-        color: '#111827'
+        color: 'var(--text-primary)'
       }}>
         Average Response Times
       </h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 5, right: 30, left: 20, bottom: 60 }}>
-          <CartesianGrid strokeDasharray="3 3" stroke="#e5e7eb" />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
           <XAxis
             dataKey="municipality_name"
             angle={-45}
             textAnchor="end"
             height={80}
             style={{ fontSize: '12px' }}
+            tick={{ fill: 'var(--text-secondary)' }}
           />
           <YAxis
-            label={{ value: 'Hours', angle: -90, position: 'insideLeft' }}
+            label={{ value: 'Hours', angle: -90, position: 'insideLeft', fill: 'var(--text-secondary)' }}
             style={{ fontSize: '12px' }}
+            tick={{ fill: 'var(--text-secondary)' }}
           />
           <Tooltip
             formatter={(value: number) => [`${value.toFixed(1)} hours`, 'Avg Response Time']}
             contentStyle={{
-              backgroundColor: 'white',
-              border: '1px solid #e5e7eb',
-              borderRadius: '6px'
+              backgroundColor: 'rgba(163, 72, 102, 0.95)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '6px',
+              color: 'var(--text-primary)',
             }}
+            labelStyle={{ color: 'var(--text-primary)' }}
+            itemStyle={{ color: 'var(--text-secondary)' }}
           />
           <Bar dataKey="avg_response_hours" radius={[4, 4, 0, 0]}>
             {data.map((entry, index) => (
@@ -90,7 +94,7 @@ export function ResponseTimeChart({ data, isLoading }: ResponseTimeChartProps) {
       <div style={{
         marginTop: '12px',
         fontSize: '12px',
-        color: '#6b7280',
+        color: 'var(--text-secondary)',
         display: 'flex',
         gap: '16px',
         justifyContent: 'center'

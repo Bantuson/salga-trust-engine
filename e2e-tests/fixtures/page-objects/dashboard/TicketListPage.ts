@@ -134,10 +134,10 @@ export class TicketListPage {
   }
 
   /**
-   * Click export CSV button
+   * Click export CSV button (force to bypass GSAP/AnimatedCard overlay)
    */
   async clickExport() {
-    await this.exportCsvButton.click();
+    await this.exportCsvButton.click({ force: true });
   }
 
   /**

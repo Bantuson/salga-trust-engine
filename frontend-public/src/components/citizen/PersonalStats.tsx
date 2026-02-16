@@ -8,8 +8,7 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton } from '@shared/components/ui/Skeleton';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import type { CitizenStats } from '../../hooks/useCitizenReports';
-import * as animeImport from 'animejs';
-const anime = (animeImport as any).default || animeImport;
+import { animate } from 'animejs';
 
 export interface PersonalStatsProps {
   stats: CitizenStats | null;
@@ -41,7 +40,7 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
       avg: 0,
     };
 
-    anime({
+    animate({
       targets,
       total: stats.total_reports,
       resolved: stats.resolved_count,

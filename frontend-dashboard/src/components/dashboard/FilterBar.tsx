@@ -34,12 +34,14 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
       gap: '1rem',
       alignItems: 'center',
       padding: '1rem',
-      backgroundColor: '#f5f5f5',
-      borderRadius: '4px',
+      background: 'var(--glass-white-frost)',
+      backdropFilter: 'blur(10px)',
+      border: '1px solid var(--glass-border)',
+      borderRadius: 'var(--radius-md)',
       marginBottom: '1rem'
     }}>
       <div style={{ flex: 1 }}>
-        <label htmlFor="search" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500' }}>
+        <label htmlFor="search" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
           Search
         </label>
         <input
@@ -51,15 +53,17 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid var(--glass-border)',
             borderRadius: '4px',
-            fontSize: '0.875rem'
+            fontSize: '0.875rem',
+            backgroundColor: 'var(--surface-elevated)',
+            color: 'var(--text-primary)',
           }}
         />
       </div>
 
       <div style={{ minWidth: '150px' }}>
-        <label htmlFor="status" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500' }}>
+        <label htmlFor="status" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
           Status
         </label>
         <select
@@ -69,10 +73,11 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid var(--glass-border)',
             borderRadius: '4px',
             fontSize: '0.875rem',
-            backgroundColor: 'white'
+            backgroundColor: 'var(--surface-elevated)',
+            color: 'var(--text-primary)',
           }}
         >
           <option value="">All</option>
@@ -85,7 +90,7 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
       </div>
 
       <div style={{ minWidth: '150px' }}>
-        <label htmlFor="category" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500' }}>
+        <label htmlFor="category" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
           Category
         </label>
         <select
@@ -95,10 +100,11 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
           style={{
             width: '100%',
             padding: '0.5rem',
-            border: '1px solid #d1d5db',
+            border: '1px solid var(--glass-border)',
             borderRadius: '4px',
             fontSize: '0.875rem',
-            backgroundColor: 'white'
+            backgroundColor: 'var(--surface-elevated)',
+            color: 'var(--text-primary)',
           }}
         >
           <option value="">All</option>
@@ -116,16 +122,14 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
           onClick={onReset}
           style={{
             padding: '0.5rem 1rem',
-            backgroundColor: '#6b7280',
-            color: 'white',
-            border: 'none',
+            backgroundColor: 'var(--surface-higher)',
+            color: 'var(--text-primary)',
+            border: '1px solid var(--glass-border)',
             borderRadius: '4px',
             fontSize: '0.875rem',
             cursor: 'pointer',
             fontWeight: '500'
           }}
-          onMouseOver={(e) => e.currentTarget.style.backgroundColor = '#4b5563'}
-          onMouseOut={(e) => e.currentTarget.style.backgroundColor = '#6b7280'}
         >
           Reset
         </button>

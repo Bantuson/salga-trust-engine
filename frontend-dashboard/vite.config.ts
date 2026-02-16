@@ -19,6 +19,7 @@ export default defineConfig({
     include: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
   },
   server: {
+    port: 5173, // Municipal dashboard
     fs: {
       // Allow serving files from shared folder
       allow: ['..'],

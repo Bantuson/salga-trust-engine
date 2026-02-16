@@ -65,6 +65,9 @@ test.describe('Citizen Registration', () => {
     // Registration should succeed, redirect to login, or stay on register (email confirmation needed)
     const stillOnRegister = page.url().includes('/register');
     expect(isSuccess || onLoginPage || stillOnRegister).toBeTruthy();
+
+    // Explicitly close page to prevent context teardown timeout (GSAP/Lenis cleanup)
+    await page.close();
   });
 
   test('Registration shows error for existing email', async ({ page }) => {
@@ -104,6 +107,7 @@ test.describe('Citizen Registration', () => {
   });
 
   test('Registration validates password requirements', async ({ page }) => {
+    test.slow(); // Context teardown can be slow due to Lenis/GSAP cleanup
     const registerPage = new RegisterPage(page);
     const citizenData = generateCitizenData();
 

@@ -101,7 +101,7 @@ export function TicketListPage() {
           marginBottom: '1.5rem',
         }}
       >
-        <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: '#111827', margin: 0 }}>
+        <h1 style={{ fontSize: '1.875rem', fontWeight: '700', color: 'var(--text-primary)', margin: 0 }}>
           Ticket Management
         </h1>
         <ExportButton filters={filters} />
@@ -112,10 +112,10 @@ export function TicketListPage() {
         <div
           style={{
             padding: '1rem',
-            backgroundColor: '#fee2e2',
+            backgroundColor: 'rgba(239, 68, 68, 0.1)',
             border: '1px solid #ef4444',
             borderRadius: '4px',
-            color: '#991b1b',
+            color: '#ef4444',
             marginBottom: '1rem',
           }}
         >

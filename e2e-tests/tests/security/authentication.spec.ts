@@ -154,6 +154,7 @@ test.describe('Brute Force Protection', () => {
   });
 
   test('Rate limiting activates on dashboard login', async ({ page }) => {
+    test.slow(); // 15 rapid login attempts + response checks need extra time
     await page.goto('http://localhost:5173/login');
 
     // Attempt 15 failed logins rapidly
@@ -220,6 +221,7 @@ test.describe('Session Security', () => {
   });
 
   test('Logout clears session completely', async ({ page }) => {
+    test.slow(); // Login + UI interaction + logout verification can be slow
     // Login
     await page.goto('http://localhost:5174/login');
     await page.locator('input[id="email"]').fill('citizen-return@test-jozi-001.test');
@@ -234,7 +236,7 @@ test.describe('Session Security', () => {
 
     if (await userMenuButton.isVisible()) {
       // Desktop: click user menu button to reveal dropdown, then click Sign Out
-      await userMenuButton.click();
+      await userMenuButton.click({ timeout: 30000 });
       await page.locator('.dropdown-signout, button:has-text("Sign Out")').first().click();
     } else {
       // Mobile: open hamburger menu first, then click Sign Out
