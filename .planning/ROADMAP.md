@@ -177,11 +177,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
-| 6.6. Playwright MCP Automated Testing | 0/5 | Not Started | - |
+| 6.6. Playwright MCP Automated Testing | 0/8 | In Progress | - |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-14 (Phase 6.6 planned — 5 plans in 4 waves)*
+*Last updated: 2026-02-16 (Phase 6.6 gap closure — 2 plans added for UAT UI/UX fixes)*
 
 ### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
@@ -205,15 +205,17 @@ Plans:
   4. Municipality admin can request access, get approval, and gain access to onboard team
   5. Edge cases are considered and accounted for
   6. Security is maintained at OWASP level for all endpoints, user authorization and access restrictions, rate limiting and other security/adversarial tests pass
-**Plans:** 6 plans
+**Plans:** 8 plans
 
 Plans:
-- [ ] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
-- [ ] 06.6-02-PLAN.md -- Public dashboard E2E tests: citizen auth, report submission, GBV consent, profile, landing
-- [ ] 06.6-03-PLAN.md -- Municipal dashboard E2E tests: access request, onboarding, RBAC, ticket management
-- [ ] 06.6-04-PLAN.md -- Security tests: OWASP auth, tenant isolation, GBV privacy firewall, input validation
-- [ ] 06.6-05-PLAN.md -- Integration tests: cross-dashboard report-to-resolution, data persistence verification
-- [ ] 06.6-06-PLAN.md -- Run full suite, diagnose failures, fix selectors/timing/app bugs, iterate to 100% green
+- [x] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
+- [x] 06.6-02-PLAN.md -- Public dashboard E2E tests: citizen auth, report submission, GBV consent, profile, landing
+- [x] 06.6-03-PLAN.md -- Municipal dashboard E2E tests: access request, onboarding, RBAC, ticket management
+- [x] 06.6-04-PLAN.md -- Security tests: OWASP auth, tenant isolation, GBV privacy firewall, input validation
+- [x] 06.6-05-PLAN.md -- Integration tests: cross-dashboard report-to-resolution, data persistence verification
+- [x] 06.6-06-PLAN.md -- Run full suite, diagnose failures, fix selectors/timing/app bugs, iterate to 100% green
+- [ ] 06.6-07-PLAN.md -- Fix GSAP animation visibility (auth buttons, feature cards, headings) + register layout (gap closure)
+- [ ] 06.6-08-PLAN.md -- Fix glass readability tokens, dashboard card contrast, ticket page retry loop (gap closure)
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 
