@@ -109,6 +109,7 @@ export function RequestAccessPage() {
         opacity: 0,
         duration: 0.8,
         ease: 'back.out(1.7)',
+        clearProps: 'opacity,transform',
       });
     },
     { scope: containerRef }
@@ -341,6 +342,7 @@ export function RequestAccessPage() {
             placeholder="e.g., City of Johannesburg"
             error={validationErrors.municipalityName}
             disabled={state === 'uploading' || state === 'submitting'}
+            autoComplete="organization"
           />
 
           {/* Province */}
@@ -358,6 +360,7 @@ export function RequestAccessPage() {
                 ...(validationErrors.province ? { borderColor: 'var(--color-coral)' } : {}),
               }}
               disabled={state === 'uploading' || state === 'submitting'}
+              autoComplete="address-level1"
             >
               <option value="">Select province</option>
               {SA_PROVINCES.map((province) => (
@@ -390,6 +393,7 @@ export function RequestAccessPage() {
             placeholder="Full name"
             error={validationErrors.contactName}
             disabled={state === 'uploading' || state === 'submitting'}
+            autoComplete="name"
           />
 
           {/* Contact Email */}
@@ -401,6 +405,7 @@ export function RequestAccessPage() {
             placeholder="email@municipality.gov.za"
             error={validationErrors.contactEmail}
             disabled={state === 'uploading' || state === 'submitting'}
+            autoComplete="email"
           />
 
           {/* Contact Phone */}
@@ -411,6 +416,7 @@ export function RequestAccessPage() {
             onChange={(e) => handleInputChange('contactPhone', e.target.value)}
             placeholder="+27123456789"
             disabled={state === 'uploading' || state === 'submitting'}
+            autoComplete="tel"
           />
 
           {/* Supporting Documents */}
@@ -505,12 +511,6 @@ export function RequestAccessPage() {
 
         {/* Navigation Links */}
         <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Already have an invite?{' '}
-            <Link to="/login" style={styles.link}>
-              Sign In
-            </Link>
-          </p>
           <p style={styles.footerText}>
             Already have an account?{' '}
             <Link to="/login" style={styles.link}>
