@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import type { SortingState, PaginationState } from '@tanstack/react-table';
 import { fetchTickets } from '../services/api';
 import { useTicketFilters } from '../hooks/useTicketFilters';
@@ -8,12 +8,17 @@ import { TicketTable } from '../components/dashboard/TicketTable';
 import { Pagination } from '../components/dashboard/Pagination';
 import { ExportButton } from '../components/dashboard/ExportButton';
 
+const MAX_RETRIES = 3;
+
 export function TicketListPage() {
   const { filters, updateFilter, resetFilters } = useTicketFilters();
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [pageCount, setPageCount] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [retryCount, setRetryCount] = useState(0);
+  const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const prevFiltersRef = useRef<string>('');
 
   // TanStack Table pagination state
   const [pagination, setPagination] = useState<PaginationState>({
@@ -68,8 +73,25 @@ export function TicketListPage() {
     [updateFilter]
   );
 
-  // Fetch tickets whenever filters change
+  // Reset retry count when filters genuinely change
   useEffect(() => {
+    const filtersKey = JSON.stringify(filters);
+    if (filtersKey !== prevFiltersRef.current) {
+      prevFiltersRef.current = filtersKey;
+      setRetryCount(0);
+      setError(null);
+      // Clear any pending retry timeout
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+        retryTimeoutRef.current = null;
+      }
+    }
+  }, [filters]);
+
+  // Fetch tickets with retry logic
+  useEffect(() => {
+    if (retryCount > MAX_RETRIES) return; // Stop after max retries
+
     async function loadTickets() {
       try {
         setIsLoading(true);
@@ -77,18 +99,37 @@ export function TicketListPage() {
         const response = await fetchTickets(filters);
         setTickets(response.tickets);
         setPageCount(response.page_count);
+        setRetryCount(0); // Reset on success
       } catch (err) {
-        console.error('[TicketListPage] Failed to fetch tickets:', err);
-        setError(err instanceof Error ? err.message : 'Failed to load tickets');
+        console.error(`[TicketListPage] Fetch failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, err);
         setTickets([]);
         setPageCount(0);
+
+        if (retryCount < MAX_RETRIES) {
+          const backoffMs = Math.pow(2, retryCount) * 1000; // 1s, 2s, 4s
+          setError(`Connection failed. Retrying in ${backoffMs / 1000}s...`);
+          retryTimeoutRef.current = setTimeout(() => {
+            setRetryCount((prev) => prev + 1);
+          }, backoffMs);
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to load tickets. Please try again.');
+        }
       } finally {
         setIsLoading(false);
       }
     }
 
     loadTickets();
-  }, [filters]);
+  }, [filters, retryCount]);
+
+  // Cleanup timeout on unmount
+  useEffect(() => {
+    return () => {
+      if (retryTimeoutRef.current) {
+        clearTimeout(retryTimeoutRef.current);
+      }
+    };
+  }, []);
 
   return (
     <div style={{ padding: '2rem', maxWidth: '1400px', margin: '0 auto' }}>
@@ -107,16 +148,51 @@ export function TicketListPage() {
         <ExportButton filters={filters} />
       </div>
 
-      {/* Error message */}
-      {error && (
+      {/* Error message - max retries exhausted */}
+      {error && retryCount > MAX_RETRIES && (
         <div
           style={{
-            padding: '1rem',
-            backgroundColor: 'rgba(239, 68, 68, 0.1)',
-            border: '1px solid #ef4444',
-            borderRadius: '4px',
-            color: '#ef4444',
+            padding: '2rem',
+            textAlign: 'center',
+            color: 'var(--color-coral)',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid var(--color-coral)',
+            borderRadius: 'var(--radius-md)',
             marginBottom: '1rem',
+          }}
+        >
+          <p style={{ marginBottom: '1rem', fontSize: '1rem' }}>{error}</p>
+          <button
+            onClick={() => {
+              setRetryCount(0);
+              setError(null);
+            }}
+            style={{
+              padding: '0.5rem 1.5rem',
+              backgroundColor: 'var(--color-coral)',
+              color: 'white',
+              border: 'none',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.875rem',
+              fontWeight: '600',
+              cursor: 'pointer',
+            }}
+          >
+            Retry
+          </button>
+        </div>
+      )}
+      {/* Error message - retrying */}
+      {error && retryCount <= MAX_RETRIES && (
+        <div
+          style={{
+            padding: '0.75rem 1rem',
+            color: 'var(--color-accent-gold)',
+            background: 'rgba(255, 213, 79, 0.1)',
+            border: '1px solid rgba(255, 213, 79, 0.3)',
+            borderRadius: 'var(--radius-sm)',
+            marginBottom: '1rem',
+            fontSize: '0.875rem',
           }}
         >
           {error}
