@@ -355,10 +355,8 @@ export function ReportIssuePage() {
                 margin: '0 0 8px 0',
                 fontSize: '2rem',
                 fontWeight: 600,
-                background: 'linear-gradient(135deg, #ff6b9d 0%, #4dd0e1 100%)',
-                WebkitBackgroundClip: 'text',
-                WebkitTextFillColor: 'transparent',
-                backgroundClip: 'text',
+                color: 'var(--text-primary)',
+                textShadow: '0 1px 3px rgba(0, 0, 0, 0.3)',
               }}
             >
               Report an Issue
@@ -505,7 +503,7 @@ export function ReportIssuePage() {
                     resize: 'vertical',
                   }}
                 />
-                <small style={{ color: 'rgba(255, 255, 255, 0.6)' }}>
+                <small style={{ color: 'var(--text-secondary)', textShadow: '0 1px 2px rgba(0, 0, 0, 0.15)' }}>
                   {description.length} / 2000 characters (minimum 20)
                 </small>
               </div>
@@ -739,7 +737,19 @@ export function ReportIssuePage() {
                 type="submit"
                 variant="primary"
                 disabled={isSubmitting || !isResidenceVerified}
-                style={{ width: '100%' }}
+                style={{
+                  width: '100%',
+                  backgroundColor: 'var(--color-coral)',
+                  color: '#fff',
+                  fontWeight: '600',
+                  fontSize: '1.1rem',
+                  padding: '14px 24px',
+                  border: 'none',
+                  borderRadius: 'var(--radius-md)',
+                  cursor: isSubmitting || !isResidenceVerified ? 'not-allowed' : 'pointer',
+                  opacity: isSubmitting || !isResidenceVerified ? 0.6 : 1,
+                  textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)',
+                }}
                 title={!isResidenceVerified ? 'Verify residence first' : ''}
               >
                 {isSubmitting ? 'Submitting...' : 'Submit Report'}
