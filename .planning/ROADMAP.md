@@ -205,7 +205,7 @@ Plans:
   4. Municipality admin can request access, get approval, and gain access to onboard team
   5. Edge cases are considered and accounted for
   6. Security is maintained at OWASP level for all endpoints, user authorization and access restrictions, rate limiting and other security/adversarial tests pass
-**Plans:** 8 plans
+**Plans:** 2/2 plans complete
 
 Plans:
 - [x] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
