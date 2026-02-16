@@ -27,9 +27,9 @@ export function TransparencyDashboardPage() {
       <div className="dashboard-header">
         <div className="dashboard-header-content">
           <h1 className="dashboard-title">
-            <span className="text-coral">Municipal Transparency Dashboard</span>
+            <span style={{ color: 'var(--text-primary)', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>Municipal Transparency Dashboard</span>
           </h1>
-          <p className="dashboard-subtitle">
+          <p className="dashboard-subtitle" style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}>
             Public performance metrics for South African municipalities
           </p>
         </div>
