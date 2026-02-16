@@ -177,7 +177,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
-| 6.6. Playwright MCP Automated Testing | 8/8 | ✓ Complete | 2026-02-16 |
+| 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
 
 ---
 *Roadmap created: 2026-02-09*
@@ -205,7 +205,7 @@ Plans:
   4. Municipality admin can request access, get approval, and gain access to onboard team
   5. Edge cases are considered and accounted for
   6. Security is maintained at OWASP level for all endpoints, user authorization and access restrictions, rate limiting and other security/adversarial tests pass
-**Plans:** 2/2 plans complete
+**Plans:** 9 plans
 
 Plans:
 - [x] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
@@ -214,8 +214,9 @@ Plans:
 - [x] 06.6-04-PLAN.md -- Security tests: OWASP auth, tenant isolation, GBV privacy firewall, input validation
 - [x] 06.6-05-PLAN.md -- Integration tests: cross-dashboard report-to-resolution, data persistence verification
 - [x] 06.6-06-PLAN.md -- Run full suite, diagnose failures, fix selectors/timing/app bugs, iterate to 100% green
-- [ ] 06.6-07-PLAN.md -- Fix GSAP animation visibility (auth buttons, feature cards, headings) + register layout (gap closure)
-- [ ] 06.6-08-PLAN.md -- Fix glass readability tokens, dashboard card contrast, ticket page retry loop (gap closure)
+- [x] 06.6-07-PLAN.md -- Fix GSAP animation visibility (auth buttons, feature cards, headings) + register layout (gap closure)
+- [x] 06.6-08-PLAN.md -- Fix glass readability tokens, dashboard card contrast, ticket page retry loop (gap closure)
+- [x] 06.6-09-PLAN.md -- Fix CTA button backgrounds, mobile feature card visibility, Citizen Portal heading (gap closure)
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 
