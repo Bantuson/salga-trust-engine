@@ -334,12 +334,14 @@ const styles = {
   title: {
     fontSize: '1.75rem',
     fontWeight: '700',
-    color: 'var(--text-primary)',
+    color: 'var(--color-coral, #FF6B4A)',
     marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    background: 'linear-gradient(135deg, var(--color-coral, #FF6B4A), var(--color-teal, #00bfa5))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
+    transform: 'none',
+    opacity: 1,
   } as React.CSSProperties,
   tagline: {
     fontSize: '1rem',
