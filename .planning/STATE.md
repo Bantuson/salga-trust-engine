@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.6 of 6.6 (Playwright MCP Automated Dashboard Testing)
-Plan: 6 of 6 in current phase
-Status: COMPLETE — All 6 plans executed, 6 fix rounds applied across 42 files, all test selectors aligned with actual React components
-Last activity: 2026-02-14 — Phase 6.6 Plan 06 complete: 6-round comprehensive fix of all E2E test failures (infrastructure, auth forms, public tests, GBV privacy, integration data, 20 municipal dashboard failures)
+Plan: 8 of 8 in current phase
+Status: COMPLETE — All 8 plans executed, UAT gap closure complete
+Last activity: 2026-02-16 — Phase 6.6 Plan 08 complete: UAT UI/UX fixes covering glass readability, retry logic, report form styling, auth token handling
 
-Progress: [██████████] 100% (6/6 plans)
+Progress: [██████████] 100% (8/8 plans)
 
 ## Performance Metrics
 
@@ -114,7 +114,7 @@ Progress: [██████████] 100% (6/6 plans)
 | Phase 06.6 P04 | 777 | 2 tasks | 8 files |
 | Phase 06.6 P05 | 478 | 2 tasks | 2 files |
 | Phase 06.6 P06 | 7500 | 2 tasks | 25 files |
-| Phase 06.6 P06 | 7500 | 2 tasks | 25 files |
+| Phase 06.6 P08 | 921 | 4 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -361,6 +361,9 @@ Recent decisions affecting current work:
 - [Phase 06.6-06]: GlassCard updated to pass through HTML attributes (supports data-testid, role, etc.)
 - [Phase 06.6-06]: ProfilePage page object targets CitizenPortalPage (reports portal) not ProfilePage.tsx (profile editor)
 - [Phase 06.6-06]: residence_verified flag required in citizen user_metadata for report submission access
+- [Phase 06.6-08]: Glassmorphism opacity increased from 0.25 to 0.35, blur from 10-20px to 16-28px for text readability over photo backgrounds
+- [Phase 06.6-08]: Ticket fetch retry logic uses MAX_RETRIES=3 with exponential backoff (1s, 2s, 4s) to prevent infinite loops
+- [Phase 06.6-08]: Stale auth refresh tokens logged as warning (not error) and cleared gracefully via signOut()
 
 ### Pending Todos
 
@@ -381,10 +384,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-14 (Phase 6.6 complete)
-Stopped at: Completed 06.6-06-PLAN.md — comprehensive 6-round fix of all E2E test failures across all test categories (landing, auth, public, municipal, security, integration)
+Last session: 2026-02-16 (Phase 6.6 complete)
+Stopped at: Completed 06.6-08-PLAN.md — UAT UI/UX fixes covering glass readability, retry logic, report form styling, transparency dashboard contrast, auth token handling
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-14*
+*Last updated: 2026-02-16*
