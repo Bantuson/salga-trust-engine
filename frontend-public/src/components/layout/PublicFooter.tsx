@@ -47,9 +47,6 @@ export function PublicFooter() {
           <p className="footer-copyright">
             © {new Date().getFullYear()} SALGA Trust Engine. All rights reserved.
           </p>
-          <p className="footer-privacy-notice">
-            GBV and sensitive reports are excluded from all public statistics.
-          </p>
         </div>
       </div>
     </footer>

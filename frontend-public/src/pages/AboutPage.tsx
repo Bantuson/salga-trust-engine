@@ -6,9 +6,6 @@ export function AboutPage() {
     <div className="about-page">
       <div className="about-hero">
         <h1 className="about-title">How SALGA Trust Engine Works</h1>
-        <p className="about-subtitle">
-          Empowering South African citizens with transparent municipal service delivery
-        </p>
       </div>
 
       <div className="about-content">

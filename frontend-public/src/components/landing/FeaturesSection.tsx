@@ -53,7 +53,7 @@ export function FeaturesSection() {
         <GlassCard variant="elevated" className="feature-card card-glow-coral">
           <div className="feature-card-header">
             <div className="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>
               </svg>
             </div>
@@ -67,7 +67,7 @@ export function FeaturesSection() {
         <GlassCard variant="elevated" className="feature-card card-glow-teal">
           <div className="feature-card-header">
             <div className="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"></path>
                 <circle cx="12" cy="10" r="3"></circle>
               </svg>
@@ -80,14 +80,14 @@ export function FeaturesSection() {
         </GlassCard>
 
         <GlassCard variant="elevated" className="feature-card card-glow-violet">
-          <div className="feature-card-header feature-card-header--reversed">
-            <h3 className="feature-title">Transparency</h3>
+          <div className="feature-card-header">
             <div className="feature-icon">
-              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+              <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                 <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"></path>
                 <circle cx="12" cy="12" r="3"></circle>
               </svg>
             </div>
+            <h3 className="feature-title">Transparency</h3>
           </div>
           <p className="feature-description">
             View public performance metrics. See how municipalities respond, resolve, and improve over time.

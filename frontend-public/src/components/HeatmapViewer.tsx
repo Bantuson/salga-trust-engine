@@ -64,23 +64,23 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
 
   return (
     <div style={{
-      background: 'var(--surface-elevated)',
-      border: '1px solid var(--border-subtle)',
+      background: 'var(--glass-white-frost)',
+      border: '1px solid var(--glass-border)',
       borderRadius: 'var(--radius-lg)',
       overflow: 'hidden',
-      position: 'relative'
+      position: 'relative',
+      backdropFilter: 'blur(var(--glass-blur-medium))',
     }}>
       {/* Interactive Controls */}
       <div style={{
         padding: 'var(--space-xl)',
-        background: 'rgba(205, 94, 129, 0.7)',
-        backdropFilter: 'blur(10px)',
-        borderBottom: '1px solid var(--border-subtle)',
+        background: 'rgba(0, 0, 0, 0.03)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.06)',
       }}>
         <h3 style={{
           fontSize: 'var(--text-lg)',
           fontWeight: 600,
-          color: 'var(--text-primary)',
+          color: '#1a1a1a',
           marginBottom: 'var(--space-lg)',
         }}>
           Geographic Distribution of Reports
@@ -96,7 +96,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
           }}>
             <label style={{
               fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
+              color: '#555',
               fontWeight: 600,
             }}>
               Time Range
@@ -121,8 +121,8 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
               borderRadius: '3px',
               outline: 'none',
               background: 'linear-gradient(to right, var(--color-teal) 0%, var(--color-teal) ' +
-                ((timeRange - 7) / (365 - 7) * 100) + '%, rgba(255,255,255,0.2) ' +
-                ((timeRange - 7) / (365 - 7) * 100) + '%, rgba(255,255,255,0.2) 100%)',
+                ((timeRange - 7) / (365 - 7) * 100) + '%, rgba(0,0,0,0.1) ' +
+                ((timeRange - 7) / (365 - 7) * 100) + '%, rgba(0,0,0,0.1) 100%)',
               cursor: 'pointer',
             }}
             className="heatmap-range-slider"
@@ -133,7 +133,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
         <div>
           <label style={{
             fontSize: 'var(--text-sm)',
-            color: 'var(--text-secondary)',
+            color: '#555',
             fontWeight: 600,
             marginBottom: 'var(--space-sm)',
             display: 'block',
@@ -156,9 +156,9 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
                   style={{
                     padding: '8px 18px',
                     borderRadius: 'var(--radius-full)',
-                    border: isActive ? 'none' : '1px solid rgba(255, 255, 255, 0.3)',
+                    border: isActive ? 'none' : '1px solid rgba(0, 0, 0, 0.15)',
                     background: isActive ? 'var(--color-coral)' : 'transparent',
-                    color: isActive ? 'white' : 'var(--text-secondary)',
+                    color: isActive ? 'white' : '#555',
                     fontSize: 'var(--text-sm)',
                     fontWeight: 600,
                     cursor: 'pointer',
@@ -174,7 +174,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
           </div>
           <div style={{
             fontSize: 'var(--text-xs)',
-            color: 'var(--text-muted)',
+            color: '#888',
             marginTop: 'var(--space-xs)',
             fontStyle: 'italic',
           }}>
@@ -187,7 +187,7 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
       <div style={{
         height: '500px',
         position: 'relative',
-        background: 'var(--surface-base)',
+        background: '#f0f0f0',
       }}>
         {isLoading && (
           <div style={{
@@ -196,12 +196,12 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(205, 94, 129, 0.9)',
+            backgroundColor: 'rgba(255, 255, 255, 0.9)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 1000,
-            color: 'var(--text-secondary)',
+            color: '#555',
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{
@@ -224,8 +224,8 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: 'var(--text-secondary)',
-            background: 'var(--surface-elevated)',
+            color: '#555',
+            background: 'rgba(255, 255, 255, 0.5)',
           }}>
             No heatmap data available
           </div>
@@ -324,10 +324,10 @@ export function HeatmapViewer({ municipalityId }: HeatmapViewerProps) {
       <div style={{
         padding: 'var(--space-md)',
         fontSize: 'var(--text-xs)',
-        color: 'var(--text-muted)',
+        color: '#888',
         textAlign: 'center',
-        background: 'rgba(205, 94, 129, 0.5)',
-        borderTop: '1px solid var(--border-subtle)',
+        background: 'rgba(0, 0, 0, 0.03)',
+        borderTop: '1px solid rgba(0, 0, 0, 0.06)',
       }}>
         Heatmap shows aggregated report density (k-anonymity ≥3). Individual addresses are not displayed to protect privacy.
       </div>

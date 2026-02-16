@@ -23,18 +23,6 @@ export function TransparencyDashboardPage() {
 
   return (
     <div className="transparency-dashboard-page">
-      {/* Header */}
-      <div className="dashboard-header">
-        <div className="dashboard-header-content">
-          <h1 className="dashboard-title">
-            <span style={{ color: 'var(--text-primary)', textShadow: '0 2px 4px rgba(0, 0, 0, 0.3)' }}>Municipal Transparency Dashboard</span>
-          </h1>
-          <p className="dashboard-subtitle" style={{ textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)' }}>
-            Public performance metrics for South African municipalities
-          </p>
-        </div>
-      </div>
-
       <div className="dashboard-content">
         {/* System Summary Cards */}
         <div className="dashboard-summary-grid">
@@ -90,9 +78,10 @@ export function TransparencyDashboardPage() {
         {/* Privacy Notice */}
         <GlassCard variant="elevated">
           <div className="privacy-notice">
-            <strong>Privacy Notice:</strong> GBV and sensitive reports are excluded from this public dashboard
-            to protect victims' privacy. Individual addresses are not displayed; heatmap shows aggregated
-            density only (k-anonymity threshold ≥3).
+            <strong>Privacy Notice:</strong> GBV and sensitive report statistics are included in aggregate figures on this dashboard.
+            However, all personal case data, victim identities, and individual report details are kept strictly
+            private and protected. Individual addresses are not displayed; the heatmap shows aggregated density
+            only (k-anonymity threshold ≥3).
           </div>
         </GlassCard>
       </div>

@@ -489,8 +489,8 @@ export function RequestAccessPage() {
             style={{
               width: '100%',
               padding: 'var(--space-lg) var(--space-2xl)',
-              background: 'var(--color-accent-gold)',
-              color: '#333',
+              background: 'var(--color-coral)',
+              color: 'white',
               fontWeight: '600',
               fontSize: '1.125rem',
               borderRadius: 'var(--radius-md)',
@@ -498,7 +498,7 @@ export function RequestAccessPage() {
               cursor: state === 'uploading' || state === 'submitting' ? 'not-allowed' : 'pointer',
               opacity: state === 'uploading' || state === 'submitting' ? 0.6 : 1,
               transition: 'var(--transition-base)',
-              boxShadow: '0 0 20px rgba(255, 213, 79, 0.2), 0 0 60px rgba(255, 213, 79, 0.08)',
+              boxShadow: '0 0 20px rgba(255, 107, 74, 0.2), 0 0 60px rgba(255, 107, 74, 0.08)',
             }}
           >
             {state === 'uploading'
@@ -549,7 +549,7 @@ const styles = {
     fontSize: '2rem',
     fontWeight: '700',
     marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, var(--color-accent-gold), var(--color-teal))',
+    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
