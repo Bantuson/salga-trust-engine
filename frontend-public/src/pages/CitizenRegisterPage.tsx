@@ -60,6 +60,7 @@ export function CitizenRegisterPage() {
         opacity: 0,
         duration: 0.8,
         ease: 'back.out(1.7)',
+        clearProps: 'opacity,transform',
       });
       // Form fields stagger in
       tl.from(
@@ -69,6 +70,7 @@ export function CitizenRegisterPage() {
           opacity: 0,
           duration: 0.4,
           stagger: 0.1,
+          clearProps: 'opacity,transform',
         },
         '-=0.3'
       );
@@ -199,6 +201,7 @@ export function CitizenRegisterPage() {
                 required
                 style={styles.input}
                 placeholder="John Doe"
+                autoComplete="name"
               />
               {fieldErrors.fullName && (
                 <span style={styles.fieldError}>{fieldErrors.fullName}</span>
@@ -217,6 +220,7 @@ export function CitizenRegisterPage() {
                 required
                 style={styles.input}
                 placeholder="your.email@example.com"
+                autoComplete="email"
               />
               {fieldErrors.email && (
                 <span style={styles.fieldError}>{fieldErrors.email}</span>
@@ -235,6 +239,7 @@ export function CitizenRegisterPage() {
                 required
                 style={styles.input}
                 placeholder="At least 8 characters"
+                autoComplete="new-password"
               />
               {fieldErrors.password && (
                 <span style={styles.fieldError}>{fieldErrors.password}</span>
@@ -253,6 +258,7 @@ export function CitizenRegisterPage() {
                 required
                 style={styles.input}
                 placeholder="Re-enter your password"
+                autoComplete="new-password"
               />
               {fieldErrors.confirmPassword && (
                 <span style={styles.fieldError}>{fieldErrors.confirmPassword}</span>
@@ -270,6 +276,7 @@ export function CitizenRegisterPage() {
                 onChange={(e) => setPhone(e.target.value)}
                 style={styles.input}
                 placeholder="+27123456789"
+                autoComplete="tel"
               />
               <small style={styles.helperText}>Format: +27XXXXXXXXX</small>
             </div>
@@ -326,7 +333,10 @@ const styles = {
     justifyContent: 'center',
     position: 'relative' as const,
     overflow: 'hidden',
-    padding: 'var(--space-lg) 0',
+    paddingTop: '100px',
+    paddingBottom: 'var(--space-lg)',
+    paddingLeft: 0,
+    paddingRight: 0,
   } as React.CSSProperties,
   card: {
     width: '100%',
@@ -423,6 +433,7 @@ const styles = {
     textAlign: 'center' as const,
     textDecoration: 'none',
     display: 'block',
+    opacity: 1,
   } as React.CSSProperties,
   buttonDisabled: {
     backgroundColor: 'var(--surface-higher)',

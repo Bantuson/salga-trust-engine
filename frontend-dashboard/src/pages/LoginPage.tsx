@@ -47,6 +47,7 @@ export function LoginPage() {
         opacity: 0,
         duration: 0.6,
         ease: 'power2.out',
+        clearProps: 'opacity,transform',
       });
       // Card slides up with bounce
       tl.from(cardRef.current, {
@@ -54,6 +55,7 @@ export function LoginPage() {
         opacity: 0,
         duration: 0.8,
         ease: 'back.out(1.7)',
+        clearProps: 'opacity,transform',
       }, '-=0.2');
       // Form fields stagger in
       tl.from(
@@ -63,6 +65,7 @@ export function LoginPage() {
           opacity: 0,
           duration: 0.4,
           stagger: 0.1,
+          clearProps: 'opacity,transform',
         },
         '-=0.3'
       );
@@ -184,6 +187,7 @@ export function LoginPage() {
                 required
                 style={styles.input}
                 placeholder="user@municipality.gov.za"
+                autoComplete="email"
               />
             </div>
 
@@ -197,6 +201,7 @@ export function LoginPage() {
                 required
                 style={styles.input}
                 placeholder="Enter your password"
+                autoComplete="current-password"
               />
             </div>
 
@@ -242,6 +247,7 @@ export function LoginPage() {
                 required
                 style={styles.input}
                 placeholder="+27123456789"
+                autoComplete="tel"
               />
               <small style={styles.helperText}>Format: +27XXXXXXXXX</small>
             </div>
@@ -285,6 +291,7 @@ export function LoginPage() {
                 pattern="[0-9]{6}"
                 style={styles.input}
                 placeholder="123456"
+                autoComplete="one-time-code"
               />
             </div>
 
@@ -491,6 +498,7 @@ const styles = {
     fontWeight: '600',
     cursor: 'pointer',
     transition: 'all 0.2s',
+    opacity: 1,
   } as React.CSSProperties,
   buttonDisabled: {
     backgroundColor: 'var(--surface-higher)',
