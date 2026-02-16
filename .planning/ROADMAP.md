@@ -177,11 +177,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
-| 6.6. Playwright MCP Automated Testing | 0/8 | In Progress | - |
+| 6.6. Playwright MCP Automated Testing | 8/8 | ✓ Complete | 2026-02-16 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-16 (Phase 6.6 gap closure — 2 plans added for UAT UI/UX fixes)*
+*Last updated: 2026-02-16 (Phase 6.6 complete — all 8 plans executed and verified)*
 
 ### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
