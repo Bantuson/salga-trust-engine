@@ -93,7 +93,16 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
   }
 
   if (!metrics) {
-    return null;
+    return (
+      <div style={styles.container}>
+        {['Open Tickets', 'Resolved', 'SLA Compliance', 'SLA Breaches'].map((title) => (
+          <GlassCard key={title} variant="default" style={{ border: '1px solid rgba(255, 255, 255, 0.25)' }}>
+            <div style={styles.cardTitle}>{title}</div>
+            <div style={{ ...styles.cardValue, color: 'var(--text-muted)' }}>--</div>
+          </GlassCard>
+        ))}
+      </div>
+    );
   }
 
   // Determine SLA compliance color based on percentage
@@ -168,10 +177,11 @@ const styles = {
   cardTitle: {
     fontSize: '0.875rem',
     fontWeight: '500',
-    color: 'var(--text-secondary)',
+    color: 'var(--text-primary)',
     marginBottom: 'var(--space-md)',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.05em',
+    textShadow: '0 1px 2px rgba(0, 0, 0, 0.15)',
   } as React.CSSProperties,
   cardValue: {
     fontSize: '2.5rem',

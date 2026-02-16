@@ -62,11 +62,14 @@ code {
   border: 1px solid var(--glow-teal-border);
 }
 
+/* Dashboard stat card contrast enhancement */
 .animated-card {
   transition: var(--transition-base);
-  background: var(--surface-elevated);
-  border: 1px solid var(--border-subtle);
-  border-radius: var(--radius-md);
+  background: rgba(255, 255, 255, 0.30);
+  border: 1px solid rgba(255, 255, 255, 0.25);
+  border-radius: var(--radius-lg);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   padding: var(--space-lg);
 }
 
