@@ -113,8 +113,8 @@ async function getAuthenticatedPage(
   const page = await context.newPage();
 
   try {
-    // Navigate to login page
-    await page.goto(getLoginUrl(profile.role));
+    // Navigate to login page (extended timeout and lenient wait for dev server under parallel load)
+    await page.goto(getLoginUrl(profile.role), { timeout: 90000, waitUntil: 'domcontentloaded' });
 
     // Wait for GSAP form entrance animation to complete
     const emailInput = page.locator('input[id="email"]');
@@ -143,6 +143,34 @@ async function getAuthenticatedPage(
 }
 
 /**
+ * Helper: Teardown page and its context cleanly.
+ * Closes the page first (stops GSAP/Lenis), then closes the owning context.
+ * Also closes the original setup context if different.
+ */
+async function teardownPage(page: Page, setupContext: BrowserContext) {
+  const pageContext = page.context();
+  try {
+    await page.close();
+  } catch {
+    // Page may already be closed
+  }
+  try {
+    await pageContext.close();
+  } catch {
+    // Context may already be closed
+  }
+  // If getAuthenticatedPage created a new context (cached auth path),
+  // the setupContext is different and also needs closing
+  if (pageContext !== setupContext) {
+    try {
+      await setupContext.close();
+    } catch {
+      // Context may already be closed
+    }
+  }
+}
+
+/**
  * Extend Playwright test with auth fixtures
  */
 export const test = base.extend<AuthFixtures>({
@@ -151,35 +179,35 @@ export const test = base.extend<AuthFixtures>({
     const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenNew);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   citizenReturningPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenReturning);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   citizenGbvPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenGbv);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   citizenMultiPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenMulti);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   citizenTrackingPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5174' });
     const page = await getAuthenticatedPage(context, citizenTracking);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   // Municipal fixtures (dashboard on port 5173)
@@ -187,42 +215,42 @@ export const test = base.extend<AuthFixtures>({
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, admin);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   managerPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, manager);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   managerPretoriaPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, managerPretoria);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   fieldWorkerPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, fieldWorker);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   sapsLiaisonPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, sapsLiaison);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 
   wardCouncillorPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, wardCouncillor);
     await use(page);
-    await context.close();
+    await teardownPage(page, context);
   },
 });
 

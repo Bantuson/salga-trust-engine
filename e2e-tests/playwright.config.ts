@@ -20,8 +20,8 @@ export default defineConfig({
   /* Retry on CI only */
   retries: process.env.CI ? 2 : 0,
 
-  /* Opt out of parallel tests on CI */
-  workers: process.env.CI ? 2 : 4,
+  /* Limit parallel workers to reduce Vite dev-server contention */
+  workers: process.env.CI ? 2 : 2,
 
   /* Global test timeout - increase for GSAP animations */
   timeout: 60000, // 60s per test

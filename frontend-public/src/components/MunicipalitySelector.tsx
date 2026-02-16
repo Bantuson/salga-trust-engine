@@ -19,7 +19,7 @@ export function MunicipalitySelector({ selectedId, onChange }: MunicipalitySelec
         display: 'block',
         marginBottom: '8px',
         fontWeight: '500',
-        color: '#374151'
+        color: 'var(--text-primary)'
       }}>
         Filter by Municipality:
       </label>
@@ -31,12 +31,13 @@ export function MunicipalitySelector({ selectedId, onChange }: MunicipalitySelec
         style={{
           padding: '8px 12px',
           fontSize: '14px',
-          border: '1px solid #d1d5db',
+          border: '1px solid var(--glass-border)',
           borderRadius: '6px',
-          backgroundColor: 'white',
-          color: '#374151',
+          backgroundColor: 'var(--glass-white-frost)',
+          color: 'var(--text-primary)',
           cursor: 'pointer',
           minWidth: '250px',
+          backdropFilter: 'blur(10px)',
         }}
       >
         <option value="">All Municipalities</option>
@@ -46,7 +47,7 @@ export function MunicipalitySelector({ selectedId, onChange }: MunicipalitySelec
           </option>
         ))}
       </select>
-      {isLoading && <span style={{ marginLeft: '12px', color: '#6b7280' }}>Loading...</span>}
+      {isLoading && <span style={{ marginLeft: '12px', color: 'var(--text-secondary)' }}>Loading...</span>}
     </div>
   );
 }

@@ -17,6 +17,8 @@ eggs/
 lib/
 lib64/
 !shared/lib/
+!frontend-public/src/lib/
+!frontend-dashboard/src/lib/
 parts/
 sdist/
 var/
@@ -77,13 +79,21 @@ Thumbs.db
 *.sqlite
 node_modules
 
-# Playwright screenshots / audit artifacts
+# Playwright screenshots / test artifacts
+test-screenshots/
+.playwright-mcp/
 *.jpeg
 audit-*.png
 post-fix-*.png
 Screenshot*.png
 *-output.txt
 nul
+
+# Design reference images
+background+pink-border.png
+glass-morphism-*.png
+landing?page?design*.png
+design-references/
 
 # TypeScript build info
 *.tsbuildinfo

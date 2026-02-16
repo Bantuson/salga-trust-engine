@@ -5,6 +5,9 @@ interface PaginationProps {
 }
 
 export function Pagination({ page, pageCount, onPageChange }: PaginationProps) {
+  const isFirstPage = page === 0;
+  const isLastPage = page >= pageCount - 1 || pageCount === 0;
+
   return (
     <div style={{
       display: 'flex',
@@ -12,40 +15,40 @@ export function Pagination({ page, pageCount, onPageChange }: PaginationProps) {
       alignItems: 'center',
       gap: '1rem',
       padding: '1rem',
-      borderTop: '1px solid #e5e7eb'
+      borderTop: '1px solid var(--glass-border)'
     }}>
       <button
         onClick={() => onPageChange(page - 1)}
-        disabled={page === 0}
+        disabled={isFirstPage}
         style={{
           padding: '0.5rem 1rem',
-          backgroundColor: page === 0 ? '#e5e7eb' : '#3b82f6',
-          color: page === 0 ? '#9ca3af' : 'white',
+          backgroundColor: isFirstPage ? 'var(--surface-elevated)' : 'var(--color-teal)',
+          color: isFirstPage ? 'var(--text-muted)' : 'white',
           border: 'none',
           borderRadius: '4px',
           fontSize: '0.875rem',
-          cursor: page === 0 ? 'not-allowed' : 'pointer',
+          cursor: isFirstPage ? 'not-allowed' : 'pointer',
           fontWeight: '500'
         }}
       >
         Previous
       </button>
 
-      <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+      <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
         Page {page + 1} of {Math.max(pageCount, 1)}
       </span>
 
       <button
         onClick={() => onPageChange(page + 1)}
-        disabled={page >= pageCount - 1 || pageCount === 0}
+        disabled={isLastPage}
         style={{
           padding: '0.5rem 1rem',
-          backgroundColor: (page >= pageCount - 1 || pageCount === 0) ? '#e5e7eb' : '#3b82f6',
-          color: (page >= pageCount - 1 || pageCount === 0) ? '#9ca3af' : 'white',
+          backgroundColor: isLastPage ? 'var(--surface-elevated)' : 'var(--color-teal)',
+          color: isLastPage ? 'var(--text-muted)' : 'white',
           border: 'none',
           borderRadius: '4px',
           fontSize: '0.875rem',
-          cursor: (page >= pageCount - 1 || pageCount === 0) ? 'not-allowed' : 'pointer',
+          cursor: isLastPage ? 'not-allowed' : 'pointer',
           fontWeight: '500'
         }}
       >

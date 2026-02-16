@@ -44,14 +44,14 @@ const styles = {
   } as React.CSSProperties,
   statusText: {
     fontWeight: '500',
-    color: '#111827',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   error: {
     color: '#ef4444',
     fontSize: '0.75rem',
   } as React.CSSProperties,
   timestamp: {
-    color: '#6b7280',
+    color: 'var(--text-secondary)',
     fontSize: '0.75rem',
   } as React.CSSProperties,
 };

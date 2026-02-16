@@ -205,7 +205,7 @@ Plans:
   4. Municipality admin can request access, get approval, and gain access to onboard team
   5. Edge cases are considered and accounted for
   6. Security is maintained at OWASP level for all endpoints, user authorization and access restrictions, rate limiting and other security/adversarial tests pass
-**Plans:** 5 plans
+**Plans:** 6 plans
 
 Plans:
 - [ ] 06.6-01-PLAN.md -- Playwright infrastructure: config, profiles, page objects, auth fixtures, test data generators
@@ -213,6 +213,7 @@ Plans:
 - [ ] 06.6-03-PLAN.md -- Municipal dashboard E2E tests: access request, onboarding, RBAC, ticket management
 - [ ] 06.6-04-PLAN.md -- Security tests: OWASP auth, tenant isolation, GBV privacy firewall, input validation
 - [ ] 06.6-05-PLAN.md -- Integration tests: cross-dashboard report-to-resolution, data persistence verification
+- [ ] 06.6-06-PLAN.md -- Run full suite, diagnose failures, fix selectors/timing/app bugs, iterate to 100% green
 
 ### Phase 06.4: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (INSERTED)
 

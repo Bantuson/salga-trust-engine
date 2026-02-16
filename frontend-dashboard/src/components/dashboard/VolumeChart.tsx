@@ -36,11 +36,20 @@ export function VolumeChart({ data, isLoading }: VolumeChartProps) {
       <h3 style={styles.title}>Ticket Volume by Category</h3>
       <ResponsiveContainer width="100%" height={300}>
         <BarChart data={data} margin={{ top: 20, right: 30, left: 20, bottom: 5 }}>
-          <CartesianGrid strokeDasharray="3 3" />
-          <XAxis dataKey="category" />
-          <YAxis />
-          <Tooltip />
-          <Legend />
+          <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.15)" />
+          <XAxis dataKey="category" tick={{ fill: 'var(--text-secondary)' }} />
+          <YAxis tick={{ fill: 'var(--text-secondary)' }} />
+          <Tooltip
+            contentStyle={{
+              backgroundColor: 'rgba(163, 72, 102, 0.95)',
+              border: '1px solid var(--glass-border)',
+              borderRadius: '6px',
+              color: 'var(--text-primary)',
+            }}
+            labelStyle={{ color: 'var(--text-primary)' }}
+            itemStyle={{ color: 'var(--text-secondary)' }}
+          />
+          <Legend wrapperStyle={{ color: 'var(--text-secondary)' }} />
           <Bar dataKey="open" fill="#f59e0b" name="Open" />
           <Bar dataKey="resolved" fill="#10b981" name="Resolved" />
         </BarChart>
@@ -51,20 +60,21 @@ export function VolumeChart({ data, isLoading }: VolumeChartProps) {
 
 const styles = {
   container: {
-    backgroundColor: '#ffffff',
+    background: 'var(--chart-bg)',
+    backdropFilter: 'blur(10px)',
     padding: '1.5rem',
     borderRadius: '8px',
-    border: '1px solid #e5e7eb',
+    border: '1px solid var(--glass-border)',
   } as React.CSSProperties,
   title: {
     fontSize: '1.125rem',
     fontWeight: '600',
     marginBottom: '1rem',
-    color: '#111827',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   loading: {
     textAlign: 'center' as const,
     padding: '4rem',
-    color: '#6b7280',
+    color: 'var(--text-secondary)',
   } as React.CSSProperties,
 };

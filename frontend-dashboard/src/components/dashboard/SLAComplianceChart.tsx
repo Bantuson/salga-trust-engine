@@ -57,7 +57,7 @@ export function SLAComplianceChart({ data, isLoading }: SLAComplianceChartProps)
             label={false}
           >
             <Cell fill={color} />
-            <Cell fill="#e5e7eb" />
+            <Cell fill="rgba(255,255,255,0.15)" />
           </Pie>
         </PieChart>
       </ResponsiveContainer>
@@ -73,22 +73,23 @@ export function SLAComplianceChart({ data, isLoading }: SLAComplianceChartProps)
 
 const styles = {
   container: {
-    backgroundColor: '#ffffff',
+    background: 'var(--chart-bg)',
+    backdropFilter: 'blur(10px)',
     padding: '1.5rem',
     borderRadius: '8px',
-    border: '1px solid #e5e7eb',
+    border: '1px solid var(--glass-border)',
     position: 'relative' as const,
   } as React.CSSProperties,
   title: {
     fontSize: '1.125rem',
     fontWeight: '600',
     marginBottom: '1rem',
-    color: '#111827',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   loading: {
     textAlign: 'center' as const,
     padding: '4rem',
-    color: '#6b7280',
+    color: 'var(--text-secondary)',
   } as React.CSSProperties,
   centerText: {
     textAlign: 'center' as const,
@@ -100,7 +101,7 @@ const styles = {
   } as React.CSSProperties,
   breakdown: {
     fontSize: '0.875rem',
-    color: '#6b7280',
+    color: 'var(--text-secondary)',
     marginTop: '0.5rem',
   } as React.CSSProperties,
 };

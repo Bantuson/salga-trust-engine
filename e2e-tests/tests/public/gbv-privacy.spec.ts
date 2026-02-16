@@ -19,6 +19,27 @@ import { test, expect } from '../../fixtures/auth';
 
 const MUNICIPAL_BASE = 'http://localhost:5173';
 const PUBLIC_BASE = 'http://localhost:5174';
+const BACKEND_URL = 'http://localhost:8000';
+
+/**
+ * Check if the FastAPI backend is reachable.
+ * Returns true if any HTTP response is received, false on connection error.
+ * Cached after first call to avoid repeated network checks.
+ */
+let _backendAvailable: boolean | null = null;
+async function isBackendAvailable(): Promise<boolean> {
+  if (_backendAvailable !== null) return _backendAvailable;
+  try {
+    const controller = new AbortController();
+    const timeout = setTimeout(() => controller.abort(), 3000);
+    await fetch(`${BACKEND_URL}/`, { signal: controller.signal });
+    clearTimeout(timeout);
+    _backendAvailable = true;
+  } catch {
+    _backendAvailable = false;
+  }
+  return _backendAvailable;
+}
 
 let gbvTrackingNumber: string | null = null;
 
@@ -486,29 +507,16 @@ test.describe.serial('GBV Privacy Firewall', () => {
         return;
       }
 
-      // Municipal dashboard tickets page on port 5173
-      await sapsLiaisonPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
-
-      // Wait for ticket data to load — the page fetches from the FastAPI backend
-      // (GET /api/v1/tickets). If the backend is not running, the page will show
-      // an error state or "No tickets found" instead of ticket data.
-      await sapsLiaisonPage.waitForTimeout(5000);
-
-      // Check if the backend is reachable by examining page state
-      const pageContent = await sapsLiaisonPage.content();
-      const hasError = pageContent.toLowerCase().includes('failed to load') ||
-        pageContent.toLowerCase().includes('network error') ||
-        pageContent.toLowerCase().includes('econnrefused');
-      const hasEmptyState = pageContent.includes('No tickets found');
-      const hasLoadingSkeleton = await sapsLiaisonPage.locator('.react-loading-skeleton').first().isVisible().catch(() => false);
-
-      if (hasError || hasEmptyState || hasLoadingSkeleton) {
-        // Backend is not running — ticket data cannot be fetched.
-        // This is expected in the Supabase-only E2E environment.
-        console.log('[GBV Positive Test] Backend not reachable — cannot verify SAPS ticket visibility (skip)');
+      // Direct backend connectivity check — the ticket list fetches from FastAPI
+      // (GET /api/v1/tickets). If the backend isn't running, skip immediately.
+      const backendUp = await isBackendAvailable();
+      if (!backendUp) {
         test.skip(true, 'Requires FastAPI backend (localhost:8000) — not available in Supabase-only E2E environment');
         return;
       }
+
+      // Municipal dashboard tickets page on port 5173
+      await sapsLiaisonPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
 
       // Backend is running — verify GBV tracking number is visible to SAPS liaison
       const trackingLocator = sapsLiaisonPage.locator(`text=${gbvTrackingNumber}`);
@@ -523,26 +531,18 @@ test.describe.serial('GBV Privacy Firewall', () => {
         return;
       }
 
+      // Direct backend connectivity check — the ticket list fetches from FastAPI.
+      const backendUp = await isBackendAvailable();
+      if (!backendUp) {
+        test.skip(true, 'Requires FastAPI backend (localhost:8000) — not available in Supabase-only E2E environment');
+        return;
+      }
+
       // Municipal dashboard tickets page on port 5173
       await adminPage.goto(`${MUNICIPAL_BASE}/tickets`, { waitUntil: 'domcontentloaded' });
       await adminPage.waitForTimeout(5000);
 
       const pageContent = await adminPage.content();
-
-      // Check if the backend is reachable by examining page state
-      const hasError = pageContent.toLowerCase().includes('failed to load') ||
-        pageContent.toLowerCase().includes('network error') ||
-        pageContent.toLowerCase().includes('econnrefused');
-      const hasEmptyState = pageContent.includes('No tickets found');
-      const hasLoadingSkeleton = await adminPage.locator('.react-loading-skeleton').first().isVisible().catch(() => false);
-
-      if (hasError || hasEmptyState || hasLoadingSkeleton) {
-        // Backend is not running — ticket data cannot be fetched.
-        // This is expected in the Supabase-only E2E environment.
-        console.log('[GBV Positive Test] Backend not reachable — cannot verify admin ticket visibility (skip)');
-        test.skip(true, 'Requires FastAPI backend (localhost:8000) — not available in Supabase-only E2E environment');
-        return;
-      }
 
       // Backend is running — verify tracking number IS visible for admin
       expect(pageContent).toContain(gbvTrackingNumber);
@@ -559,25 +559,19 @@ test.describe.serial('GBV Privacy Firewall', () => {
         return;
       }
 
+      // Direct backend connectivity check — the profile page fetches reports
+      // from the FastAPI backend (GET /api/v1/reports/my).
+      const backendUp = await isBackendAvailable();
+      if (!backendUp) {
+        test.skip(true, 'Requires FastAPI backend (localhost:8000) — not available in Supabase-only E2E environment');
+        return;
+      }
+
       // Citizen profile is on the public portal (port 5174)
       await citizenGbvPage.goto(`${PUBLIC_BASE}/profile`, { waitUntil: 'domcontentloaded' });
       await citizenGbvPage.waitForTimeout(5000);
 
       const pageContent = await citizenGbvPage.content();
-
-      // Check if the backend is reachable — the profile page fetches reports
-      // from the FastAPI backend (GET /api/v1/reports/my). If the backend is
-      // not running, the page will show loading skeletons or an error.
-      const hasLoadingSkeleton = await citizenGbvPage.locator('.react-loading-skeleton').first().isVisible().catch(() => false);
-      const hasError = pageContent.toLowerCase().includes('could not load') ||
-        pageContent.toLowerCase().includes('failed to') ||
-        pageContent.toLowerCase().includes('network error');
-
-      if (hasLoadingSkeleton || hasError) {
-        console.log('[GBV Citizen Test] Backend not reachable — cannot verify citizen report visibility (skip)');
-        test.skip(true, 'Requires FastAPI backend (localhost:8000) — not available in Supabase-only E2E environment');
-        return;
-      }
 
       // Backend is running — verify GBV report shows limited fields only
       // Should show: tracking number, status

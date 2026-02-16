@@ -145,7 +145,7 @@ export function TicketTable({
         cell: (info) => {
           const address = info.getValue() as string | null;
           return (
-            <span style={{ fontSize: '0.875rem', color: '#6b7280' }}>
+            <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>
               {address || '-'}
             </span>
           );
@@ -214,16 +214,16 @@ export function TicketTable({
 
   if (tickets.length === 0) {
     return (
-      <div style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+      <div style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-secondary)' }}>
         No tickets found
       </div>
     );
   }
 
   return (
-    <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '4px' }}>
+    <div style={{ overflowX: 'auto', border: '1px solid var(--glass-border)', borderRadius: '4px' }}>
       <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-        <thead style={{ backgroundColor: '#f9fafb' }}>
+        <thead style={{ backgroundColor: 'var(--surface-elevated)' }}>
           {table.getHeaderGroups().map((headerGroup) => (
             <tr key={headerGroup.id}>
               {headerGroup.headers.map((header) => (
@@ -236,10 +236,10 @@ export function TicketTable({
                     fontSize: '0.75rem',
                     fontWeight: '600',
                     textTransform: 'uppercase',
-                    color: '#6b7280',
+                    color: 'var(--text-secondary)',
                     cursor: header.column.getCanSort() ? 'pointer' : 'default',
                     userSelect: 'none',
-                    borderBottom: '1px solid #e5e7eb',
+                    borderBottom: '1px solid var(--glass-border)',
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
@@ -260,10 +260,10 @@ export function TicketTable({
             <tr
               key={row.id}
               style={{
-                borderBottom: '1px solid #e5e7eb',
+                borderBottom: '1px solid var(--glass-border)',
               }}
-              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#f9fafb')}
-              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'white')}
+              onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-elevated)')}
+              onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
               {row.getVisibleCells().map((cell) => (
                 <td
@@ -271,7 +271,7 @@ export function TicketTable({
                   style={{
                     padding: '0.75rem 1rem',
                     fontSize: '0.875rem',
-                    color: '#111827',
+                    color: 'var(--text-primary)',
                   }}
                 >
                   {flexRender(cell.column.columnDef.cell, cell.getContext())}

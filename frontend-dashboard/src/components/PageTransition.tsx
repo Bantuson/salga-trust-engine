@@ -2,7 +2,7 @@
  * Page Transition Component
  * GSAP color overlay sweep on route changes
  * Per user decision: NOT using Barba.js (conflicts with React SPAs)
- * Gradient: coral -> navy
+ * Gradient: gold -> pink/rose
  */
 
 import { useRef, useEffect, useState } from 'react';
@@ -55,7 +55,7 @@ export function PageTransition({ routeKey, children }: PageTransitionProps) {
           position: 'fixed',
           inset: 0,
           zIndex: 9999,
-          background: 'linear-gradient(135deg, var(--color-coral), var(--color-navy))',
+          background: 'linear-gradient(135deg, var(--color-accent), var(--color-primary))',
           transformOrigin: 'left',
           transform: 'scaleX(0)',
           pointerEvents: 'none',

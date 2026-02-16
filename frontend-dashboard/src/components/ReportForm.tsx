@@ -239,10 +239,13 @@ export function ReportForm() {
             zIndex: 1000,
           }}>
             <div style={{
-              backgroundColor: 'white',
+              backgroundColor: 'rgba(163, 72, 102, 0.95)',
+              backdropFilter: 'blur(10px)',
+              border: '1px solid var(--glass-border)',
               padding: '24px',
               borderRadius: '8px',
               maxWidth: '500px',
+              color: 'var(--text-primary)',
             }}>
               <h3>GBV Report Consent</h3>
               <p>

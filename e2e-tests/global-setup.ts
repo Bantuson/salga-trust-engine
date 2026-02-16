@@ -9,6 +9,7 @@
  */
 
 import * as dotenv from 'dotenv';
+import * as fs from 'fs';
 import { fileURLToPath } from 'url';
 import { dirname, join } from 'path';
 import { supabaseAdmin } from './fixtures/supabase-test-client.js';
@@ -36,6 +37,19 @@ async function globalSetup() {
   console.log('\n🔧 Running global setup...\n');
 
   try {
+    // 0. Clear stale auth cache to force fresh logins
+    // Previous teardown deletes test users, so cached tokens become invalid
+    const authDir = join(__dirname, '.auth');
+    if (fs.existsSync(authDir)) {
+      const files = fs.readdirSync(authDir);
+      for (const file of files) {
+        if (file.endsWith('.json')) {
+          fs.unlinkSync(join(authDir, file));
+        }
+      }
+      console.log(`🗑️  Cleared ${files.length} cached auth files`);
+    }
+
     // 1. Create test municipalities
     console.log('📍 Creating test municipalities...');
     for (const muni of TEST_MUNICIPALITIES) {

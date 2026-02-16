@@ -11,6 +11,7 @@
 import { useState, useRef } from 'react';
 import { Link } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
+import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -102,9 +103,9 @@ export function RegisterPage() {
         {/* Skyline background layers */}
         <div className="auth-skyline-bg" />
         <div className="auth-skyline-overlay" />
-        <div className="auth-skyline-frame" />
 
-        <div ref={cardRef} className="glass" style={styles.card}>
+        <div ref={cardRef}>
+        <GlassCard style={styles.card}>
           <div style={styles.logoSection}>
             <h1 style={styles.title}>SALGA Trust Engine</h1>
             <p style={styles.tagline}>Municipal Dashboard</p>
@@ -133,6 +134,7 @@ export function RegisterPage() {
               Go to Sign In
             </Link>
           </div>
+        </GlassCard>
         </div>
       </div>
     );
@@ -146,7 +148,8 @@ export function RegisterPage() {
       <div className="auth-skyline-frame" />
 
       {/* Glassmorphism Registration Card */}
-      <div ref={cardRef} className="glass" style={styles.card}>
+      <div ref={cardRef}>
+      <GlassCard style={styles.card}>
         <div style={styles.logoSection}>
           <h1 style={styles.title}>SALGA Trust Engine</h1>
           <p style={styles.tagline}>Create Municipal Account</p>
@@ -234,6 +237,7 @@ export function RegisterPage() {
             </Link>
           </form>
         </div>
+      </GlassCard>
       </div>
     </div>
   );

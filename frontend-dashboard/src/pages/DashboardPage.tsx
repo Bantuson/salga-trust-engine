@@ -171,7 +171,7 @@ const styles = {
   title: {
     fontSize: '1.875rem',
     fontWeight: '700',
-    color: '#111827',
+    color: 'var(--text-primary)',
   } as React.CSSProperties,
   chartsGrid: {
     display: 'grid',
@@ -184,7 +184,7 @@ const styles = {
     textAlign: 'center' as const,
   } as React.CSSProperties,
   navLink: {
-    color: '#3b82f6',
+    color: 'var(--color-teal)',
     textDecoration: 'none',
     fontSize: '1rem',
     fontWeight: '500',
