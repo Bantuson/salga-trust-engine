@@ -22,13 +22,13 @@ export function HeroSection() {
 
     const tl = gsap.timeline();
     tl.from(headlineRef.current, {
-      y: 80, opacity: 0, duration: 1.2, ease: 'power3.out'
+      y: 80, opacity: 0, duration: 1.2, ease: 'power3.out', clearProps: 'opacity,transform'
     })
     .from(subtitleRef.current, {
-      y: 40, opacity: 0, duration: 0.8, ease: 'power2.out'
+      y: 40, opacity: 0, duration: 0.8, ease: 'power2.out', clearProps: 'opacity,transform'
     }, '-=0.5')
     .from(ctaRef.current, {
-      y: 30, opacity: 0, duration: 0.6, ease: 'power2.out'
+      y: 30, opacity: 0, duration: 0.6, ease: 'power2.out', clearProps: 'opacity,transform'
     }, '-=0.3');
   }, { scope: sectionRef, dependencies: [reducedMotion] });
 

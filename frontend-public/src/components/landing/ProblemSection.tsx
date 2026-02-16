@@ -26,10 +26,12 @@ export function ProblemSection() {
         duration: 0.9,
         delay: index * 0.15, // Stagger delay between lines
         ease: 'power3.out',
+        clearProps: 'opacity,transform',
         scrollTrigger: {
           trigger: line,
           start: 'top 85%',
-          toggleActions: 'play none none reverse',
+          toggleActions: 'play none none none',
+          once: true,
         },
       });
     });

@@ -26,6 +26,7 @@ export function DashboardCTA() {
         y: 0,
         duration: 1,
         ease: 'power3.out',
+        clearProps: 'opacity,transform',
         scrollTrigger: {
           trigger: sectionRef.current,
           start: 'top 80%',
@@ -46,8 +47,8 @@ export function DashboardCTA() {
             Explore real-time performance data, service delivery metrics, and transparency statistics
             for municipalities across South Africa.
           </p>
-          <Link to="/dashboard" className="hero-cta" style={{ marginTop: 'var(--space-xl)' }}>
-            <span className="text-coral">View Dashboard</span>
+          <Link to="/dashboard" className="preview-cta-link" style={{ marginTop: 'var(--space-xl)' }}>
+            <span className="preview-cta-button">View Dashboard</span>
           </Link>
         </div>
       </GlassCard>
