@@ -228,18 +228,25 @@ body {
   visibility: visible;
 }
 
-/* Ensure feature cards become visible even if GSAP fails to execute */
-@supports (animation: none) {
-  .feature-card[style*="visibility: hidden"] {
-    animation: feature-card-fallback 0s 2s forwards;
+/* Mobile safety net: ensure feature cards are always visible on small viewports
+   even if GSAP ScrollTrigger fails to fire (viewport too short to reach trigger) */
+@media (max-width: 768px) {
+  .feature-card {
+    opacity: 1 !important;
+    visibility: visible !important;
+    transform: none !important;
   }
 }
 
+/* Desktop fallback: if GSAP hasn't animated after 3s, force-show cards */
 @keyframes feature-card-fallback {
   to {
     visibility: visible !important;
     opacity: 1 !important;
   }
+}
+.feature-card {
+  animation: feature-card-fallback 0s 3s forwards;
 }
 
 .feature-card:hover {

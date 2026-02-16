@@ -13,9 +13,12 @@ export function FeaturesSection() {
 
   useGSAP(() => {
     const cards = sectionRef.current?.querySelectorAll('.feature-card');
+    if (!cards || cards.length === 0) return;
 
-    if (reducedMotion || !cards || cards.length === 0) {
-      gsap.set(cards, { opacity: 1, y: 0, rotateX: 0 });
+    // On reduced motion OR mobile viewports, show cards immediately without ScrollTrigger
+    const isMobile = window.innerWidth <= 768;
+    if (reducedMotion || isMobile) {
+      gsap.set(cards, { opacity: 1, visibility: 'visible', y: 0, rotateX: 0 });
       return;
     }
 
