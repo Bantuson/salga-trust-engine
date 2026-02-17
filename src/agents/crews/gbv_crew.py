@@ -3,7 +3,7 @@
 This module implements the GBV crisis support crew with:
 - Trauma-informed prompts in 3 languages
 - Memory disabled (prevents cross-session data leakage)
-- Max 8 iterations (shorter than municipal - avoid over-questioning victims)
+- Max 3 iterations (YAML-defined; minimal questioning for crisis context)
 - Automatic SAPS notification on ticket creation
 - Session clearing after ticket creation (data minimization)
 
@@ -16,8 +16,10 @@ Key security measures per research:
 import asyncio
 import json
 import re
+from pathlib import Path
 from typing import Any
 
+import yaml
 from crewai import Agent, Crew, Process, Task
 
 from src.agents.llm import get_deepseek_llm
@@ -43,6 +45,11 @@ class GBVCrew:
         self.language = language if language in ["en", "zu", "af"] else "en"
         self.llm = llm or get_deepseek_llm()
 
+        # Load YAML configs (same pattern as MunicipalCrew)
+        config_dir = Path(__file__).parent.parent / "config"
+        with open(config_dir / "agents.yaml", "r", encoding="utf-8") as f:
+            self.agents_config = yaml.safe_load(f)
+
     def create_crew(
         self,
         message: str,
@@ -59,16 +66,26 @@ class GBVCrew:
         Returns:
             Configured Crew with memory disabled
         """
+        # Get agent config from YAML and inject language
+        agent_config = self.agents_config["gbv_agent"]
+        role = agent_config["role"]
+        goal = agent_config["goal"].format(language=self.language)
+        yaml_backstory = agent_config["backstory"]
+
+        # Combine: YAML base identity + language-specific operational prompt
+        language_prompt = GBV_INTAKE_PROMPTS.get(self.language, GBV_INTAKE_PROMPTS["en"])
+        backstory = yaml_backstory + "\n\n" + language_prompt
+
         # Create crisis support agent with trauma-informed prompt
         agent = Agent(
-            role="Crisis Support Specialist",
-            goal=f"Safely capture GBV report details in {self.language} and arrange help",
-            backstory=GBV_INTAKE_PROMPTS[self.language],
+            role=role,
+            goal=goal,
+            backstory=backstory,
             tools=[create_municipal_ticket, notify_saps],
             llm=self.llm,
-            allow_delegation=False,
-            max_iter=8,  # Shorter than municipal (10) - don't over-question victims
-            verbose=False
+            allow_delegation=agent_config.get("allow_delegation", False),
+            max_iter=agent_config.get("max_iter", 3),
+            verbose=agent_config.get("verbose", False),
         )
 
         # Create intake task — NO output_pydantic so agent MUST call tools

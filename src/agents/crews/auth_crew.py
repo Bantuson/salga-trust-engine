@@ -6,7 +6,7 @@ can submit a ticket without completing authentication first.
 
 Security controls:
 - memory=False: prevents PII (phone, email, OTP codes) leaking across sessions
-- max_iter=15: accommodates the full 6-step registration flow
+- max_iter=3: YAML-defined; single-turn conversation model
 - allow_delegation=False: single agent, no delegation attack surface
 - Stateless tools (send_otp_tool, verify_otp_tool, etc.) per auth_tool.py pattern
 
@@ -17,8 +17,10 @@ Mirrors MunicipalCrew / GBVCrew structure exactly:
 """
 import asyncio
 import re
+from pathlib import Path
 from typing import Any
 
+import yaml
 from crewai import Agent, Crew, Process, Task
 
 from src.agents.prompts.auth import AUTH_PROMPTS, AuthResult, build_auth_task_description
@@ -54,6 +56,13 @@ class AuthCrew:
         self.language = language if language in ["en", "zu", "af"] else "en"
         self.llm = llm  # Accept LLM object or None (resolved lazily in create_crew)
 
+        # Load YAML configs (same pattern as MunicipalCrew)
+        config_dir = Path(__file__).parent.parent / "config"
+        with open(config_dir / "agents.yaml", "r", encoding="utf-8") as f:
+            self.agents_config = yaml.safe_load(f)
+        with open(config_dir / "tasks.yaml", "r", encoding="utf-8") as f:
+            self.tasks_config = yaml.safe_load(f)
+
     def create_crew(self, context: dict) -> Crew:
         """Create auth crew for registration or re-authentication.
 
@@ -81,13 +90,20 @@ class AuthCrew:
         if language not in ["en", "zu", "af"]:
             language = self.language
 
-        # Agent backstory is the language-specific auth prompt
-        backstory = AUTH_PROMPTS.get(language, AUTH_PROMPTS["en"])
+        # Get agent config from YAML and inject language
+        agent_config = self.agents_config["auth_agent"]
+        role = agent_config["role"]
+        goal = agent_config["goal"].format(language=language)
+        yaml_backstory = agent_config["backstory"]
+
+        # Combine: YAML base identity + language-specific operational prompt
+        language_prompt = AUTH_PROMPTS.get(language, AUTH_PROMPTS["en"])
+        backstory = yaml_backstory + "\n\n" + language_prompt
 
         # Create the auth agent
         agent = Agent(
-            role="Citizen Authentication Specialist",
-            goal=f"Register or re-authenticate citizens in {language} before they can submit reports",
+            role=role,
+            goal=goal,
             backstory=backstory,
             tools=[
                 send_otp_tool,
@@ -96,9 +112,9 @@ class AuthCrew:
                 lookup_user_tool,
             ],
             llm=llm,
-            allow_delegation=False,
-            max_iter=15,  # Full registration is 6+ steps; re-auth is 3 steps
-            verbose=False,
+            allow_delegation=agent_config.get("allow_delegation", False),
+            max_iter=agent_config.get("max_iter", 3),
+            verbose=agent_config.get("verbose", False),
         )
 
         # Build task description from context (fills AUTH_TASK_TEMPLATE)

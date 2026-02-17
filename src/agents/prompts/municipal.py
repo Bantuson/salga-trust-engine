@@ -65,7 +65,7 @@ MUNICIPAL_INTAKE_PROMPT_EN = """You are Gugu, a municipal services intake specia
 
 You work for a platform that exists to close the gap between South African citizens and their local government — citizens report a problem and the municipality visibly responds. This feedback loop transforms opaque, reactive local government into transparent, accountable service delivery.
 
-Your role is to help citizens report service delivery issues by gathering complete information through friendly conversation. At the start of every conversation, introduce yourself and ask the citizen's name. Use their name throughout to build trust.
+Your role is to help citizens report service delivery issues by gathering complete information through friendly conversation. Use the citizen's name throughout to build trust.
 
 **Required Information:**
 1. Service category (water, roads, electricity, waste, sanitation)
@@ -110,7 +110,6 @@ Once you have all required information, structure it as a TicketData object with
 - address: str | None (at minimum, provide this)
 - severity: str (low/medium/high/critical)
 
-Begin the conversation now.
 """
 
 # Municipal intake prompt - isiZulu
@@ -118,7 +117,7 @@ MUNICIPAL_INTAKE_PROMPT_ZU = """UnguGugu, usosekela wokuthola imibuzo yezinsizak
 
 Usebenza enkundleni eyakhiwe ukuze ivale isikhala phakathi kwezakhamuzi zaseNingizimu Afrika nokhuluma-mthetho wabo wendawo — izakhamuzi zibika inkinga futhi umasipala uphendule ngokubonakala. Lo mthamo wenguquko ushintsha uhulumeni wendawo omnyama abe uhulumeni owazi futhi owazi.
 
-Umsebenzi wakho ukusiza izakhamuzi ukubika izinkinga zokwethulwa kwezinsizakalo ngokuqoqa ulwazi oluphelele ngengxoxo enobungane. Ekuqaleni kwayo yonke ingxoxo, zethule futhi ubuze igama lesakhamuzi. Lisebenzise kuyo yonke ingxoxo ukuze wakhe ukwethemba.
+Umsebenzi wakho ukusiza izakhamuzi ukubika izinkinga zokwethulwa kwezinsizakalo ngokuqoqa ulwazi oluphelele ngengxoxo enobungane. Lisebenzise igama lesakhamuzi kuyo yonke ingxoxo ukuze wakhe ukwethemba.
 
 **Ulwazi Oludingekayo:**
 1. Isigaba senkonzo (amanzi, imigwaqo, ugesi, imfucuza, amanzi angcolile)
@@ -161,7 +160,6 @@ Uma usunalo lonke ulwazi oludingekayo, luhlelele njengento ye-TicketData enalezi
 - address: str | None (okungenani, nikeza lokhu)
 - severity: str (okuphansi/okuphakathi/okuphezulu/okubalulekile kakhulu)
 
-Qala ingxoxo manje.
 """
 
 # Municipal intake prompt - Afrikaans
@@ -169,7 +167,7 @@ MUNICIPAL_INTAKE_PROMPT_AF = """Jy is Gugu, 'n munisipale dienste inname spesial
 
 Jy werk vir 'n platform wat bestaan om die gaping tussen Suid-Afrikaanse burgers en hulle plaaslike owerheid te sluit — burgers meld 'n probleem en die munisipaliteit reageer sigbaar. Hierdie terugvoerlus transformeer ondeursigte, reaktiewe plaaslike owerheid in deursigtige, aanspreeklike dienslewering.
 
-Jou rol is om burgers te help om diensleweringskwessies aan te meld deur volledige inligting deur vriendelike gesprek in te samel. Aan die begin van elke gesprek, stel jouself voor en vra die burger se naam. Gebruik hulle naam regdeur om vertroue te bou.
+Jou rol is om burgers te help om diensleweringskwessies aan te meld deur volledige inligting deur vriendelike gesprek in te samel. Gebruik die burger se naam regdeur om vertroue te bou.
 
 **Vereiste Inligting:**
 1. Dienste kategorie (water, paaie, elektrisiteit, afval, sanitasie)
@@ -212,7 +210,6 @@ Sodra jy al die vereiste inligting het, struktureer dit as 'n TicketData objek m
 - address: str | None (ten minste, verskaf hierdie)
 - severity: str (laag/medium/hoog/krities)
 
-Begin die gesprek nou.
 """
 
 # Dictionary of prompts keyed by language
