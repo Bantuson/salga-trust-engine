@@ -138,13 +138,15 @@ class IntakeFlow(Flow[IntakeState]):
         return "municipal_intake"
 
     @listen("municipal_intake")
-    def handle_municipal(self) -> dict[str, Any]:
+    async def handle_municipal(self) -> dict[str, Any]:
         """Handle municipal services intake.
 
         Instantiates and runs the MunicipalCrew to conduct structured intake.
+        The crew agent uses the create_municipal_ticket tool to persist the
+        ticket to the database.
 
         Returns:
-            Ticket data dictionary
+            Ticket data dictionary from crew execution
         """
         # Import here to avoid circular dependency
         from src.agents.crews.municipal_crew import MunicipalCrew
@@ -152,20 +154,19 @@ class IntakeFlow(Flow[IntakeState]):
         # Create and run municipal crew
         crew = MunicipalCrew(language=self.state.language, llm=self._llm)
 
-        # In a real implementation, this would be async and call crew.kickoff()
-        # For now, we'll return a placeholder showing the crew was invoked
-        ticket_data = {
-            "category": self.state.subcategory or "other",
-            "description": f"Municipal service request: {self.state.message}",
-            "address": "Location to be determined",
-            "severity": "medium",
-            "language": self.state.language
-        }
+        # Execute crew kickoff — the agent will gather info and call
+        # create_municipal_ticket to persist the ticket to the DB
+        result = await crew.kickoff(
+            message=self.state.message,
+            user_id=self.state.user_id,
+            tenant_id=self.state.tenant_id,
+        )
 
-        self.state.ticket_data = ticket_data
+        # Store result in state
+        self.state.ticket_data = result
         self.state.is_complete = True
 
-        return ticket_data
+        return result
 
     @listen("gbv_intake")
     async def handle_gbv(self) -> dict[str, Any]:

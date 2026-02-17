@@ -3,19 +3,37 @@ municipal_intake_task:
     Conduct intake for a municipal service report from a citizen.
     The citizen's message: {message}
     Language: {language}
-    Municipality: {tenant_id}
+    Municipality (tenant_id): {tenant_id}
+    User ID: {user_id}
 
-    Gather the following information through conversation:
+    Gather the following information from the citizen's message:
     1. Service category (water, roads, electricity, waste, sanitation)
     2. Exact location (address or landmarks)
     3. Detailed description of the issue
     4. Severity assessment (low, medium, high, critical)
 
-    If the citizen has provided enough information, create the ticket.
-    If information is missing, ask clarifying questions.
+    MANDATORY: You MUST call the create_municipal_ticket tool to persist the ticket
+    to the database. This is the ONLY way tickets are created. Do NOT just return
+    data — you MUST invoke the tool. Your task is NOT complete until the tool has
+    been called and returned a tracking number.
+
+    Tool parameters (all required):
+    - category: one of water, roads, electricity, waste, sanitation, other
+    - description: detailed description (minimum 20 characters)
+    - user_id: {user_id}
+    - tenant_id: {tenant_id}
+    - language: {language}
+    - severity: low, medium, high, or critical
+    - address: the location described by the citizen
+
+    If the citizen's message contains enough information to determine category,
+    location, description, and severity, call the tool immediately.
+    If critical information is missing, ask ONE clarifying question.
   expected_output: >
-    A complete municipal service ticket with all required fields filled in.
-    Return the ticket tracking number to the citizen.
+    The JSON result returned by the create_municipal_ticket tool, which contains
+    the tracking_number (format TKT-YYYYMMDD-XXXXXX), ticket id, status, category,
+    and severity. Include a brief confirmation message for the citizen with their
+    tracking number.
 
 auth_task:
   description: >
