@@ -168,6 +168,10 @@ REMEMBER:
 
             raw = str(result)
 
+            # Extract clean message from "Final Answer:" if present
+            final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
+            clean_message = final.group(1).strip() if final else raw
+
             # Try to extract tracking number from agent's final answer
             tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
 
@@ -178,7 +182,8 @@ REMEMBER:
                     ticket_dict = json.loads(json_match.group())
                     # Force GBV category as safety check
                     ticket_dict["category"] = "gbv"
-                    ticket_dict["message"] = raw
+                    ticket_dict["message"] = clean_message
+                    ticket_dict["raw_output"] = raw  # Keep raw for debug
                     return ticket_dict
                 except json.JSONDecodeError:
                     pass
@@ -187,11 +192,15 @@ REMEMBER:
                 return {
                     "tracking_number": tracking_match.group(),
                     "category": "gbv",
-                    "message": raw,
+                    "message": clean_message,
+                    "raw_output": raw,  # Keep raw for debug
                 }
 
-            # Fallback: return raw result
-            return {"category": "gbv", "message": raw}
+            # Fallback: return cleaned result
+            return {"category": "gbv", "message": clean_message, "raw_output": raw}
 
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "message": "I'm here to help. If you are in immediate danger, call 10111 or the GBV Command Centre at 0800 150 150.",
+            }

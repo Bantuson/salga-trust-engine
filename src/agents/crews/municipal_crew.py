@@ -145,6 +145,10 @@ class MunicipalCrew:
 
             raw = str(result)
 
+            # Extract clean message from "Final Answer:" if present
+            final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
+            clean_message = final.group(1).strip() if final else raw
+
             # Try to extract tracking number from agent's final answer
             tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
 
@@ -153,7 +157,8 @@ class MunicipalCrew:
             if json_match:
                 try:
                     ticket_dict = json.loads(json_match.group())
-                    ticket_dict["message"] = raw
+                    ticket_dict["message"] = clean_message
+                    ticket_dict["raw_output"] = raw  # Keep raw for debug
                     return ticket_dict
                 except json.JSONDecodeError:
                     pass
@@ -161,11 +166,15 @@ class MunicipalCrew:
             if tracking_match:
                 return {
                     "tracking_number": tracking_match.group(),
-                    "message": raw,
+                    "message": clean_message,
+                    "raw_output": raw,  # Keep raw for debug
                 }
 
-            # Fallback: return raw result (agent may not have called tool)
-            return {"message": raw}
+            # Fallback: return cleaned result (agent may not have called tool)
+            return {"message": clean_message, "raw_output": raw}
 
         except Exception as e:
-            return {"error": str(e)}
+            return {
+                "error": str(e),
+                "message": "I'm Gugu from SALGA Trust Engine. Sorry, something went wrong — could you describe your issue again?",
+            }
