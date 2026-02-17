@@ -9,12 +9,12 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 6.6 of 6.6 (Playwright MCP Automated Dashboard Testing)
-Plan: 9 of 9 in current phase
-Status: COMPLETE — All 9 plans executed, all UAT gap closures complete
-Last activity: 2026-02-16 — Phase 6.6 Plan 09 complete: CTA button coral backgrounds, mobile feature card visibility, Citizen Portal heading fix
+Phase: 6.7 of 6.7 (Municipal Intake Agent Testing — DeepSeek LLM, Streamlit, Auth Agent)
+Plan: 1 of 7 in current phase
+Status: IN PROGRESS — Plan 01 complete: DeepSeek config, phone detection, auth tools
+Last activity: 2026-02-17 — Phase 6.7 Plan 01 complete: foundation layer (config, LLM factory, phone detection, auth tools)
 
-Progress: [██████████] 100% (9/9 plans)
+Progress: [█░░░░░░░░░] 14% (1/7 plans)
 
 ## Performance Metrics
 
@@ -117,6 +117,7 @@ Progress: [██████████] 100% (9/9 plans)
 | Phase 06.6 P08 | 921 | 4 tasks | 9 files |
 | Phase 06.6 P07 | 1033 | 4 tasks | 9 files |
 | Phase 06.6 P09 | 480 | 4 tasks | 4 files |
+| 06.7-01 | 12.9m (776s) | 2 | 4 |
 
 ## Accumulated Context
 
@@ -352,6 +353,11 @@ Recent decisions affecting current work:
 - [Phase 06.5]: Dashboard title uses gradient text matching hero style (text-coral class)
 - [Phase 06.5]: Login tagline changes based on source page for context-aware UX
 - [Phase 06.5]: Profile routing replaces my-reports routing (with redirect for backwards compatibility)
+- [Phase 06.7-01]: LLM factory in separate llm.py module (not config.py) to prevent circular imports
+- [Phase 06.7-01]: Auth tools are stateless (no class/instance state) to prevent PII persistence between agent calls
+- [Phase 06.7-01]: Phone detection is pure code logic (no LLM) per locked decision — deterministic WhatsAppSession lookup
+- [Phase 06.7-01]: Auth tools return string messages for LLM consumption (not complex objects)
+- [Phase 06.7-01]: lookup_user_tool iterates list_users() to find by phone/email — Supabase Admin SDK lacks direct phone/email filter
 - [Phase 06.6-05]: Integration tests use multiple authenticated browser contexts within same test to verify cross-dashboard flows
 - [Phase 06.6-05]: Faker library for unique test data generation (descriptions, addresses, emails, phone numbers)
 - [Phase 06.6-05]: GBV firewall validated across full integration path (citizen submission → manager cannot see)
@@ -390,10 +396,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-16 (Phase 6.6 complete)
-Stopped at: Completed 06.6-08-PLAN.md — UAT UI/UX fixes covering glass readability, retry logic, report form styling, transparency dashboard contrast, auth token handling
+Last session: 2026-02-17 (Phase 6.7 Plan 01 complete)
+Stopped at: Completed 06.7-01-PLAN.md — foundation layer: DeepSeek config, LLM factory, phone detection service, auth tools
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-16*
+*Last updated: 2026-02-17*
