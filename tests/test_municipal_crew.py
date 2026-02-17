@@ -44,7 +44,7 @@ def test_municipal_crew_initialization_english():
     crew = MunicipalCrew(language="en")
 
     assert crew.language == "en"
-    assert crew.llm_model == "gpt-4o"
+    assert crew.llm is not None
     assert crew.agents_config is not None
     assert crew.tasks_config is not None
 
@@ -70,11 +70,13 @@ def test_municipal_crew_initialization_invalid_language():
     assert crew.language == "en"  # Should fall back to English
 
 
-def test_municipal_crew_custom_llm_model():
-    """Test MunicipalCrew with custom LLM model."""
-    crew = MunicipalCrew(language="en", llm_model="gpt-4-turbo")
+def test_municipal_crew_custom_llm_object():
+    """Test MunicipalCrew with custom LLM object."""
+    from unittest.mock import MagicMock
+    mock_llm = MagicMock()
+    crew = MunicipalCrew(language="en", llm=mock_llm)
 
-    assert crew.llm_model == "gpt-4-turbo"
+    assert crew.llm is mock_llm
 
 
 def test_create_crew_structure():
