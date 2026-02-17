@@ -1,6 +1,6 @@
 """Application configuration using Pydantic Settings."""
 import warnings
-from pydantic import Field, field_validator, model_validator
+from pydantic import AliasChoices, Field, field_validator, model_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -13,8 +13,16 @@ class Settings(BaseSettings):
 
     # Supabase
     SUPABASE_URL: str = Field(default="", description="Supabase project URL")
-    SUPABASE_ANON_KEY: str = Field(default="", description="Supabase anon/public key")
-    SUPABASE_SERVICE_ROLE_KEY: str = Field(default="", description="Supabase service role key (server-side only)")
+    SUPABASE_ANON_KEY: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPABASE_ANON_KEY", "SUPABASE_PUBLISHABLE_KEY"),
+        description="Supabase anon/public key (also read from SUPABASE_PUBLISHABLE_KEY)",
+    )
+    SUPABASE_SERVICE_ROLE_KEY: str = Field(
+        default="",
+        validation_alias=AliasChoices("SUPABASE_SERVICE_ROLE_KEY", "SUPABASE_SECRET_KEY"),
+        description="Supabase service role key — server-side only (also read from SUPABASE_SECRET_KEY)",
+    )
     SUPABASE_JWT_SECRET: str = Field(default="", description="Supabase JWT secret for token verification")
     SUPABASE_DB_URL: str = Field(default="", description="Supabase direct PostgreSQL connection string")
     SUPABASE_DB_URL_POOLER: str = Field(default="", description="Supabase transaction pooler connection string (for Celery)")
