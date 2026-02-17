@@ -193,9 +193,19 @@ def _lookup_user_impl(phone_or_email: str) -> str:
         is_phone = phone_or_email.startswith("+")
         matched = None
         for user in users:
-            if is_phone and getattr(user, "phone", None) == phone_or_email:
-                matched = user
-                break
+            if is_phone:
+                # Supabase stores phone numbers WITHOUT the leading "+" prefix
+                # (e.g. "+27821001001" is stored as "27821001001").
+                # Normalize both sides so the comparison always succeeds regardless
+                # of which representation the caller passes in.
+                stored_phone = getattr(user, "phone", None) or ""
+                # Strip leading "+" from stored value (defensive — some providers keep it)
+                stored_normalized = stored_phone.lstrip("+")
+                # Strip leading "+" from the lookup value
+                lookup_normalized = phone_or_email.lstrip("+")
+                if stored_normalized == lookup_normalized:
+                    matched = user
+                    break
             elif not is_phone and getattr(user, "email", None) == phone_or_email:
                 matched = user
                 break

@@ -69,6 +69,17 @@ ALWAYS:
 # Instruction fragment for new users (full registration)
 _NEW_USER_INSTRUCTION = """The citizen does NOT have an account yet. Run the full dual-path registration flow:
 
+RESUME CHECK (do this FIRST, before anything else):
+- Read the "Conversation history" section above carefully.
+- If it is "(none)" or empty: start at STEP 1 — this is a fresh conversation.
+- If it is NOT empty: determine which step the citizen has already completed and
+  CONTINUE from the NEXT step. Do NOT greet them again or re-ask questions they
+  have already answered. For example:
+    * History shows they chose "phone" → skip STEP 1, go directly to STEP 2a
+    * History shows they provided their phone → proceed to send OTP (STEP 2a cont.)
+    * History shows OTP is verified → proceed to collect name + email
+    * History shows name + email collected → proceed to STEP 3 (proof of residence)
+
 STEP 1 — Ask: "Would you like to register with your phone number or email address?"
 STEP 2a (phone path): Confirm their phone → send OTP via SMS → collect OTP → confirm their name + email
 STEP 2b (email path): Collect email → send OTP via email → collect OTP → confirm their name + phone
