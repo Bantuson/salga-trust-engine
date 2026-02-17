@@ -29,7 +29,7 @@ from streamlit_dashboard.components.sidebar import render_sidebar
 
 st.set_page_config(
     page_title="SALGA Intake Agent Tester",
-    page_icon="🏛",
+    page_icon=":classical_building:",
     layout="wide",
 )
 
