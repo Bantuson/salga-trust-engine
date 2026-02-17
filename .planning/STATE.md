@@ -5,23 +5,23 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.8 in progress — Plans 01 and 03 complete (Gugu persona + response sanitization); next: email OTP fix (magic links to 6-digit codes)
+**Current focus:** Phase 6.8 in progress — Plans 01, 03, and 04 complete (Gugu persona + response sanitization + identity hardening); next: email OTP fix (magic links to 6-digit codes)
 
 ## Current Position
 
 Phase: 6.8 of 6.8 (Gugu Persona & Email OTP Fix)
-Plan: 2 of 3 in current phase
-Status: IN PROGRESS — Plan 03 complete: sanitize_reply() utility, warm Gugu fallbacks, crew kickoff sanitization
-Last activity: 2026-02-17 — Phase 6.8 Plan 03 complete: Response sanitization across crew_server and all three crews
+Plan: 3 of 3 in current phase
+Status: IN PROGRESS — Plan 04 complete: CRITICAL IDENTITY anchors, greeting-first gate, language preference persistence
+Last activity: 2026-02-17 — Phase 6.8 Plan 04 complete: Auth agent identity hardening and language lock
 
-Progress: [██████░░░░] 67% (2/3 plans)
+Progress: [█████████░] 90% (3/3 plans)
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 51
-- Average duration: 18.1 minutes
-- Total execution time: 15.8 hours
+- Total plans completed: 52
+- Average duration: 18.0 minutes
+- Total execution time: 15.9 hours
 
 **By Phase:**
 
@@ -40,8 +40,8 @@ Progress: [██████░░░░] 67% (2/3 plans)
 | 06.5 | 3 | 14.9m | 5.0m |
 
 **Recent Trend:**
-- Last 5 plans: 3.2m, 10.6m, 10.6m, 4.8m, 10.1m
-- Trend: Phase 06.5 complete - public dashboard header scroll, animations, feature cards, mobile refinements
+- Last 5 plans: 10.6m, 4.8m, 10.1m, 7m, 6.7m
+- Trend: Phase 06.8 in progress - Gugu persona, response sanitization, identity hardening
 
 *Updated after each plan completion*
 
@@ -123,6 +123,7 @@ Progress: [██████░░░░] 67% (2/3 plans)
 | 06.7-04 | 20.3m (1217s) | 1 | 1 |
 | 06.8-01 | 7m (436s) | 2 | 3 |
 | 06.8-03 | 7m (408s) | 2 | 4 |
+| 06.8-04 | 6.7m (400s) | 2 | 2 |
 | Phase 06.8 P05 | 140 | 1 tasks | 1 files |
 
 ## Accumulated Context
@@ -401,6 +402,10 @@ Recent decisions affecting current work:
 - [Phase 06.8-03]: Two-layer defense-in-depth sanitization: crews strip Final Answer prefix, crew_server.py sanitize_reply() does full artifact stripping
 - [Phase 06.8-03]: GBV error fallback always includes emergency numbers (10111, 0800 150 150) at both crew and server layers
 - [Phase 06.8-03]: raw_output field in crew return dicts enables Streamlit debug without exposing artifacts to citizens
+- [Phase 06.8-04]: CRITICAL IDENTITY sections placed at the VERY TOP of each auth prompt as first-priority LLM instruction — identity anchor must precede all other content
+- [Phase 06.8-04]: GREETING FIRST block inserted between RESUME CHECK and STEP 1 in _NEW_USER_INSTRUCTION — preserves step numbering while adding warm greeting gate
+- [Phase 06.8-04]: Language preference stored as system role turn with lang_pref: prefix — zero schema changes, uses existing ConversationState turn storage
+- [Phase 06.8-04]: Priority chain: explicit preference in current message > stored preference from history > auto-detected > request hint
 - [Phase 06.8]: 06.8-05: Use {{ .Token }} only (not {{ .ConfirmationURL }}) in email template — eliminates magic link, shows 6-digit OTP code as plain styled text
 - [Phase 06.8]: 06.8-05: HTML email template uses inline CSS only (no <style> blocks) + table layout + bgcolor attrs for Outlook/Gmail/Apple Mail compatibility
 
@@ -431,4 +436,4 @@ Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-17 (06.7-04)*
+*Last updated: 2026-02-17 (06.8-04)*
