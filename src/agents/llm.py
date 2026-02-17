@@ -16,7 +16,7 @@ def get_deepseek_llm() -> LLM:
         crewai.LLM configured for DeepSeek V3.2 chat model
     """
     return LLM(
-        model="deepseek/deepseek-chat",
+        model="openai/deepseek-chat",
         base_url=settings.DEEPSEEK_BASE_URL,
         api_key=settings.DEEPSEEK_API_KEY,
         temperature=0.7,

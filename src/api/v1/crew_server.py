@@ -398,10 +398,32 @@ async def chat(
             session_status = "expired"
         else:
             session_status = "active"
+
+        # For active/expired overrides, look up real user UUID by phone
+        # (the ticket FK requires a UUID, not a phone string)
+        # Uses Supabase PostgREST — same working connection as auth tools
+        resolved_user_id: str | None = None
+        resolved_municipality_id: str | None = None
+        if request.session_override in ("active", "expired"):
+            try:
+                from src.core.supabase import get_supabase_admin
+                sb = get_supabase_admin()
+                if sb:
+                    normalized = phone.lstrip("+")
+                    result = sb.table("users").select("id, municipality_id").eq(
+                        "phone", normalized
+                    ).limit(1).execute()
+                    if result.data and len(result.data) > 0:
+                        resolved_user_id = result.data[0]["id"]
+                        resolved_municipality_id = result.data[0]["municipality_id"]
+            except Exception:
+                pass  # Fall back to phone if lookup fails
+
         detection_result = {
             "user_exists": request.session_override != "new",
             "session_status": session_status,
-            "user_id": phone,  # Use phone as user_id for test mode
+            "user_id": resolved_user_id or phone,
+            "municipality_id": resolved_municipality_id,
         }
     else:
         # Production mode: real database lookup
@@ -479,7 +501,11 @@ async def chat(
             flow._state = IntakeState(
                 message=request.message,
                 user_id=detection_result.get("user_id") or phone,
-                tenant_id=request.municipality_id or conv_state.tenant_id,
+                tenant_id=(
+                    request.municipality_id
+                    or detection_result.get("municipality_id")
+                    or conv_state.tenant_id
+                ),
                 session_id=session_id,
                 language=request.language,
             )
@@ -490,10 +516,19 @@ async def chat(
 
             # Extract reply from flow state
             ticket_data = flow.state.ticket_data or {}
-            reply = ticket_data.get(
-                "message",
-                ticket_data.get("description", "Your report has been received.")
-            )
+
+            # If the tool was called, ticket_data has tracking_number + message
+            tracking = ticket_data.get("tracking_number")
+            if tracking:
+                reply = ticket_data.get(
+                    "message",
+                    f"Your report has been logged. Tracking number: {tracking}"
+                )
+            else:
+                reply = ticket_data.get(
+                    "message",
+                    ticket_data.get("description", "Your report has been received.")
+                )
 
             # Adjust agent name if GBV was detected
             if flow.state.category == "gbv":

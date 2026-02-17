@@ -13,6 +13,9 @@ Key security measures per research:
 - is_sensitive=True on all GBV tickets
 - Emergency numbers always provided
 """
+import asyncio
+import json
+import re
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
@@ -21,7 +24,6 @@ from src.agents.llm import get_deepseek_llm
 from src.agents.prompts.gbv import GBV_INTAKE_PROMPTS
 from src.agents.tools.saps_tool import notify_saps
 from src.agents.tools.ticket_tool import create_municipal_ticket
-from src.schemas.ticket import TicketData
 
 
 class GBVCrew:
@@ -69,11 +71,13 @@ class GBVCrew:
             verbose=False
         )
 
-        # Create intake task with Pydantic output
+        # Create intake task — NO output_pydantic so agent MUST call tools
         task = Task(
             description=f"""Conduct trauma-informed GBV intake in {self.language}.
 
 Initial message: {message}
+User ID: {user_id}
+Tenant ID (municipality): {tenant_id}
 
 COLLECT MINIMUM REQUIRED INFORMATION:
 1. Type of incident (physical/sexual/verbal/threat/other)
@@ -82,10 +86,26 @@ COLLECT MINIMUM REQUIRED INFORMATION:
 4. Whether in immediate danger
 5. Whether children are involved
 
-After gathering information:
-1. Create ticket with category="gbv", is_sensitive=True
-2. Notify SAPS with ticket details
-3. Provide tracking number and emergency contacts to victim
+After gathering information, you MUST do these steps IN ORDER:
+
+STEP 1: Call create_municipal_ticket with these EXACT parameters:
+  - category: "gbv"
+  - description: detailed description (minimum 20 characters)
+  - user_id: {user_id}
+  - tenant_id: {tenant_id}
+  - language: {self.language}
+  - severity: "critical" (all GBV reports are critical)
+  - address: the location for help (general area only)
+
+STEP 2: After the ticket is created, call notify_saps with:
+  - ticket_id: the id from Step 1 result
+  - tracking_number: the tracking_number from Step 1 result
+  - incident_type: the type of GBV incident
+  - location: general area only (protect victim privacy)
+  - is_immediate_danger: true/false
+  - tenant_id: {tenant_id}
+
+STEP 3: Return the tracking number and emergency contacts to the victim.
 
 REMEMBER:
 - Be empathetic and non-judgmental
@@ -93,9 +113,12 @@ REMEMBER:
 - Always provide emergency numbers (10111, 0800 150 150)
 - Reassure victim that help is being arranged
 """,
-            expected_output="Ticket created with SAPS notification. Provide tracking number and emergency contact info.",
+            expected_output=(
+                "The JSON result from create_municipal_ticket (with tracking_number), "
+                "followed by SAPS notification confirmation. Include the tracking number "
+                "and emergency contacts (10111, 0800 150 150) in the response."
+            ),
             agent=agent,
-            output_pydantic=TicketData
         )
 
         # Create crew with memory DISABLED (critical for privacy)
@@ -117,6 +140,9 @@ REMEMBER:
     ) -> dict[str, Any]:
         """Run the GBV intake crew.
 
+        Wraps the synchronous crew.kickoff() in a thread pool executor
+        so it does not block the FastAPI event loop.
+
         Args:
             message: Citizen's message
             user_id: User UUID
@@ -128,29 +154,44 @@ REMEMBER:
         try:
             crew = self.create_crew(message, user_id, tenant_id)
 
-            # Execute crew
-            result = crew.kickoff(inputs={
-                "message": message,
-                "language": self.language,
-                "tenant_id": tenant_id,
-                "user_id": user_id
-            })
+            # Run synchronous crew.kickoff() in thread pool (non-blocking)
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                None,
+                lambda: crew.kickoff(inputs={
+                    "message": message,
+                    "language": self.language,
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
+                })
+            )
 
-            # Extract Pydantic result if available
-            if hasattr(result, "pydantic") and result.pydantic:
-                ticket_data = result.pydantic
+            raw = str(result)
 
-                # Verify security requirements
-                if ticket_data.category != "gbv":
-                    ticket_data.category = "gbv"  # Force GBV category
+            # Try to extract tracking number from agent's final answer
+            tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
 
-                # Ensure is_sensitive flag (should be set by ticket_tool)
-                # This is a safety check in case ticket_tool logic changes
+            # Try to parse JSON from the raw output (tool result embedded)
+            json_match = re.search(r"\{[^{}]*\"tracking_number\"[^{}]*\}", raw)
+            if json_match:
+                try:
+                    ticket_dict = json.loads(json_match.group())
+                    # Force GBV category as safety check
+                    ticket_dict["category"] = "gbv"
+                    ticket_dict["message"] = raw
+                    return ticket_dict
+                except json.JSONDecodeError:
+                    pass
 
-                return ticket_data.model_dump()
+            if tracking_match:
+                return {
+                    "tracking_number": tracking_match.group(),
+                    "category": "gbv",
+                    "message": raw,
+                }
 
             # Fallback: return raw result
-            return {"result": str(result)}
+            return {"category": "gbv", "message": raw}
 
         except Exception as e:
             return {"error": str(e)}

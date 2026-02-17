@@ -54,15 +54,21 @@ CITIZEN CONTEXT:
 - User exists in system: {user_exists}
 - Session status: {session_status}
 - User ID (if exists): {user_id}
-- Conversation history:
+
+CONVERSATION SO FAR (most recent message is LAST):
 {conversation_history}
+
+IMPORTANT: The LAST "User:" line above is what the citizen JUST said. You MUST respond
+to that message directly. Do NOT repeat questions they have already answered.
 
 YOUR TASK:
 {task_instruction}
 
 ALWAYS:
+- Respond to the citizen's LATEST message (the last "User:" line in the conversation)
 - Respond in {language}
 - Be conversational, not like a form
+- Use your tools (lookup_user_tool, send_otp_tool, etc.) when the conversation reaches the right step
 - Return a structured AuthResult when authentication completes or fails definitively
 """
 

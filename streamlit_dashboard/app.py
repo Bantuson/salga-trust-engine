@@ -15,6 +15,11 @@ Environment variables (optional):
     CREW_SERVER_API_KEY  — X-API-Key for auth (empty = dev mode, no auth)
 """
 import os
+import sys
+from pathlib import Path
+
+# Add project root to sys.path so streamlit_dashboard is importable as a package
+sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import streamlit as st
 

@@ -14,7 +14,6 @@ from crewai import Agent, Crew, Process, Task
 from src.agents.llm import get_deepseek_llm
 from src.agents.prompts.municipal import MUNICIPAL_INTAKE_PROMPTS
 from src.agents.tools.ticket_tool import create_municipal_ticket
-from src.schemas.ticket import TicketData
 
 
 class MunicipalCrew:
@@ -82,16 +81,18 @@ class MunicipalCrew:
         description = task_config["description"].format(
             message=message,
             language=self.language,
-            tenant_id=tenant_id
+            tenant_id=tenant_id,
+            user_id=user_id,
         )
         expected_output = task_config["expected_output"]
 
-        # Create task
+        # Create task — NO output_pydantic so the agent MUST call the tool
+        # (output_pydantic=TicketData let the agent fill fields directly,
+        # bypassing create_municipal_ticket and skipping DB persistence)
         task = Task(
             description=description,
             expected_output=expected_output,
             agent=agent,
-            output_pydantic=TicketData
         )
 
         # Create crew
@@ -112,33 +113,59 @@ class MunicipalCrew:
     ) -> dict[str, Any]:
         """Run the municipal intake crew.
 
+        Wraps the synchronous crew.kickoff() in a thread pool executor
+        so it does not block the FastAPI event loop. Same pattern as AuthCrew.
+
         Args:
             message: Citizen's message
             user_id: User UUID
             tenant_id: Municipality tenant UUID
 
         Returns:
-            Dictionary with ticket data or error
+            Dictionary with ticket data and message, or error
         """
+        import asyncio
+        import json
+        import re
+
         try:
             crew = self.create_crew(message, user_id, tenant_id)
 
-            # In production, this would execute the crew
-            # For now, return a placeholder showing crew configuration
-            result = crew.kickoff(inputs={
-                "message": message,
-                "language": self.language,
-                "tenant_id": tenant_id,
-                "user_id": user_id
-            })
+            # Run synchronous crew.kickoff() in thread pool (non-blocking)
+            loop = asyncio.get_event_loop()
+            result = await loop.run_in_executor(
+                None,
+                lambda: crew.kickoff(inputs={
+                    "message": message,
+                    "language": self.language,
+                    "tenant_id": tenant_id,
+                    "user_id": user_id,
+                })
+            )
 
-            # Extract Pydantic result if available
-            if hasattr(result, "pydantic") and result.pydantic:
-                ticket_data = result.pydantic
-                return ticket_data.model_dump()
+            raw = str(result)
 
-            # Fallback: return raw result
-            return {"result": str(result)}
+            # Try to extract tracking number from agent's final answer
+            tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
+
+            # Try to parse JSON from the raw output (tool result embedded)
+            json_match = re.search(r"\{[^{}]*\"tracking_number\"[^{}]*\}", raw)
+            if json_match:
+                try:
+                    ticket_dict = json.loads(json_match.group())
+                    ticket_dict["message"] = raw
+                    return ticket_dict
+                except json.JSONDecodeError:
+                    pass
+
+            if tracking_match:
+                return {
+                    "tracking_number": tracking_match.group(),
+                    "message": raw,
+                }
+
+            # Fallback: return raw result (agent may not have called tool)
+            return {"message": raw}
 
         except Exception as e:
             return {"error": str(e)}
