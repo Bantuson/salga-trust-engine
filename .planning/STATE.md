@@ -123,6 +123,7 @@ Progress: [██████░░░░] 67% (2/3 plans)
 | 06.7-04 | 20.3m (1217s) | 1 | 1 |
 | 06.8-01 | 7m (436s) | 2 | 3 |
 | 06.8-03 | 7m (408s) | 2 | 4 |
+| Phase 06.8 P05 | 140 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -400,6 +401,8 @@ Recent decisions affecting current work:
 - [Phase 06.8-03]: Two-layer defense-in-depth sanitization: crews strip Final Answer prefix, crew_server.py sanitize_reply() does full artifact stripping
 - [Phase 06.8-03]: GBV error fallback always includes emergency numbers (10111, 0800 150 150) at both crew and server layers
 - [Phase 06.8-03]: raw_output field in crew return dicts enables Streamlit debug without exposing artifacts to citizens
+- [Phase 06.8]: 06.8-05: Use {{ .Token }} only (not {{ .ConfirmationURL }}) in email template — eliminates magic link, shows 6-digit OTP code as plain styled text
+- [Phase 06.8]: 06.8-05: HTML email template uses inline CSS only (no <style> blocks) + table layout + bgcolor attrs for Outlook/Gmail/Apple Mail compatibility
 
 ### Pending Todos
 
@@ -422,8 +425,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 6.8 Plan 03 complete)
-Stopped at: Completed 06.8-03-PLAN.md — Response sanitization: sanitize_reply() utility, warm Gugu fallbacks, crew kickoff cleanup
+Last session: 2026-02-17 (Phase 6.8 Plan 05 in progress)
+Stopped at: 06.8-05 Task 2 (checkpoint:human-action) — template created at templates/email/otp-verification.html, awaiting paste into Supabase Dashboard -> Authentication -> Email Templates -> Magic Link
 Resume file: None
 
 ---
