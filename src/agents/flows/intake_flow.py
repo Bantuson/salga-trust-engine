@@ -10,6 +10,7 @@ from typing import Any
 from crewai.flow.flow import Flow, listen, router, start
 
 from src.agents.flows.state import IntakeState
+from src.agents.llm import get_deepseek_llm
 from src.agents.prompts.municipal import CATEGORY_CLASSIFICATION_PROMPT
 from src.core.conversation import ConversationManager
 from src.core.language import language_detector
@@ -25,16 +26,16 @@ class IntakeFlow(Flow[IntakeState]):
     4. Handle crew execution and return result
     """
 
-    def __init__(self, redis_url: str, llm_model: str = "gpt-4o"):
+    def __init__(self, redis_url: str, llm=None):
         """Initialize intake flow.
 
         Args:
             redis_url: Redis connection URL for conversation state
-            llm_model: LLM model identifier (default: gpt-4o)
+            llm: crewai.LLM object. Defaults to DeepSeek V3.2 via get_deepseek_llm().
         """
         super().__init__()
         self._conversation_manager = ConversationManager(redis_url)
-        self._llm_model = llm_model
+        self._llm = llm or get_deepseek_llm()
 
     @start()
     def receive_message(self) -> str:
@@ -149,7 +150,7 @@ class IntakeFlow(Flow[IntakeState]):
         from src.agents.crews.municipal_crew import MunicipalCrew
 
         # Create and run municipal crew
-        crew = MunicipalCrew(language=self.state.language, llm_model=self._llm_model)
+        crew = MunicipalCrew(language=self.state.language, llm=self._llm)
 
         # In a real implementation, this would be async and call crew.kickoff()
         # For now, we'll return a placeholder showing the crew was invoked
@@ -181,7 +182,7 @@ class IntakeFlow(Flow[IntakeState]):
         from src.agents.crews.gbv_crew import GBVCrew
 
         # Create and run GBV crew with detected language
-        crew = GBVCrew(language=self.state.language, llm_model=self._llm_model)
+        crew = GBVCrew(language=self.state.language, llm=self._llm)
 
         # Execute crew kickoff
         result = await crew.kickoff(
