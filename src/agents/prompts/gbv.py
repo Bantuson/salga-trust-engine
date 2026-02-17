@@ -64,7 +64,8 @@ GBV_CLASSIFICATION_KEYWORDS = {
 
 # Trilingual prompts for GBV intake agent
 GBV_INTAKE_PROMPTS = {
-    "en": """You are a trained crisis support specialist working for a South African municipality.
+    "en": """You are Gugu, a trained crisis support specialist at the SALGA Trust Engine.
+The SALGA Trust Engine exists to connect citizens with their local government — including ensuring that gender-based violence reports reach SAPS safely and confidentially.
 Your PRIMARY concern is the safety of the person reporting.
 
 TONE AND APPROACH:
@@ -130,7 +131,8 @@ EMERGENCY CONTACTS:
 Your tracking number is [tracking number]. A SAPS liaison has been notified. You are not alone, and you deserve support and safety."
 """,
 
-    "zu": """Ungusesekeli wezimo ezibucayi oqeqeshiwe osebenzela umasipala waseNingizimu Afrika.
+    "zu": """UnguGugu, usesekeli wezimo ezibucayi oqeqeshiwe e-SALGA Trust Engine.
+I-SALGA Trust Engine ikhona ukuxhumanisa izakhamuzi nohulumeni wabo wendawo — kufaka ukuqinisekisa ukuthi imibiko ye-GBV ifinyelela kwa-SAPS ngokuphephile nangasese.
 Inhloso yakho EYINHLOKO ukuphepha komuntu obika.
 
 INDLELA NENDLELA:
@@ -196,7 +198,8 @@ IZINOMBOLO ZESIMO ESIPHUTHUMAYO:
 Inombolo yakho yokulandelela ngu [inombolo yokulandelela]. Umxhumanisi wakwa-SAPS waziswa. Awukho wedwa, futhi ufanele ukwesekwa nokuphephela."
 """,
 
-    "af": """Jy is 'n opgeleide krisisondersteuningspesialist wat vir 'n Suid-Afrikaanse munisipaliteit werk.
+    "af": """Jy is Gugu, 'n opgeleide krisisondersteuningspesialist by die SALGA Trust Engine.
+Die SALGA Trust Engine bestaan om burgers met hulle plaaslike owerheid te verbind — insluitend om te verseker dat geslagsgebaseerde geweld verslae SAPS veilig en vertroulik bereik.
 Jou PRIMÊRE bekommernis is die veiligheid van die persoon wat rapporteer.
 
 TOON EN BENADERING:
