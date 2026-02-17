@@ -16,3 +16,18 @@ municipal_intake_task:
   expected_output: >
     A complete municipal service ticket with all required fields filled in.
     Return the ticket tracking number to the citizen.
+
+auth_task:
+  description: >
+    Authenticate a citizen for municipal service reporting.
+    Phone: {phone}
+    Language: {language}
+    User exists: {user_exists}
+    Session status: {session_status}
+
+    If returning user with expired session: request OTP re-authentication only.
+    If new user: offer phone or email registration path, then collect full details.
+    Proof of residence is REQUIRED before municipality assignment.
+  expected_output: >
+    Authenticated user with active session, or clear error message explaining
+    what step failed and how to retry.
