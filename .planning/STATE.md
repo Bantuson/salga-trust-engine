@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.6 complete — Playwright E2E testing with comprehensive 6-round fix of all test infrastructure, selectors, and data alignment
+**Current focus:** Phase 6.8 in progress — Gugu persona applied to all agent backstory prompts; next: email OTP fix (magic links to 6-digit codes)
 
 ## Current Position
 
-Phase: 6.7 of 6.7 (Municipal Intake Agent Testing — DeepSeek LLM, Streamlit, Auth Agent)
-Plan: 4 of 7 in current phase
-Status: IN PROGRESS — Plan 04 complete: standalone crew server with /chat, /session/reset, /health endpoints
-Last activity: 2026-02-17 — Phase 6.7 Plan 04 complete: crew server — FastAPI on localhost:8001, phone detection routing, X-API-Key security, GBV debug redaction
+Phase: 6.8 of 6.8 (Gugu Persona & Email OTP Fix)
+Plan: 1 of 3 in current phase
+Status: IN PROGRESS — Plan 01 complete: Gugu persona applied to all 9 agent backstory strings (auth, municipal, GBV) in EN/ZU/AF
+Last activity: 2026-02-17 — Phase 6.8 Plan 01 complete: Gugu persona in auth/municipal/GBV agent prompts
 
-Progress: [████░░░░░░] 57% (4/7 plans)
+Progress: [███░░░░░░░] 33% (1/3 plans)
 
 ## Performance Metrics
 
@@ -121,6 +121,7 @@ Progress: [████░░░░░░] 57% (4/7 plans)
 | 06.7-03 | 12.7m (761s) | 2 | 5 |
 | Phase 06.7 P02 | 741 | 2 tasks | 4 files |
 | 06.7-04 | 20.3m (1217s) | 1 | 1 |
+| 06.8-01 | 7m (436s) | 2 | 3 |
 
 ## Accumulated Context
 
@@ -392,6 +393,9 @@ Recent decisions affecting current work:
 - [Phase 06.7-04]: OPENAI_API_KEY dummy set at module level before CrewAI imports to prevent LiteLLM validation errors
 - [Phase 06.7]: Synchronous httpx (not async) for Streamlit compatibility — Streamlit execution model is synchronous
 - [Phase 06.7]: page_icon uses Streamlit shortcode (:classical_building:) not emoji — avoids Windows cp1252 encoding issue
+- [Phase 06.8-01]: GBV agent gets Gugu identity (name + SALGA Trust Engine) only — no chatty intro, no name-asking, preserves trauma-informed protocol (patient safety boundary)
+- [Phase 06.8-01]: Auth and municipal agents get full Gugu persona: warm intro, name-asking, platform mission context, citizen name usage in examples
+- [Phase 06.8-01]: Afrikaans and isiZulu Gugu persona written to match existing language register (not literal translation)
 
 ### Pending Todos
 
@@ -406,6 +410,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.5 inserted after Phase 6.4: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (URGENT)
 - Phase 6.6 inserted after Phase 6.5: Playwright MCP automated dashboard testing — E2E tests, 10 role profiles, multi-tenant isolation, OWASP security (URGENT)
 - Phase 6.7 inserted after Phase 6.6: Municipal intake agent testing — DeepSeek LLM, Streamlit chat dashboard, auth agent, phone detection, API-first security (URGENT)
+- Phase 6.8 inserted after Phase 6.7: Agent personality enhancement (Gugu persona with feminine warmth, ask citizen names, platform context) & email OTP fix (magic links → 6-digit codes, evaluate SMS via Twilio Verify) (URGENT)
 
 ### Blockers/Concerns
 
@@ -413,8 +418,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 6.7 Plan 04 complete)
-Stopped at: Completed 06.7-04-PLAN.md — standalone crew server: FastAPI crew_app on localhost:8001 with phone detection routing, X-API-Key security, GBV debug redaction
+Last session: 2026-02-17 (Phase 6.8 Plan 01 complete)
+Stopped at: Completed 06.8-01-PLAN.md — Gugu persona applied to all 9 agent backstory strings (auth, municipal, GBV) in EN/ZU/AF
 Resume file: None
 
 ---
