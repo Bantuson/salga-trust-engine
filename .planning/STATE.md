@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.7 of 6.7 (Municipal Intake Agent Testing — DeepSeek LLM, Streamlit, Auth Agent)
-Plan: 1 of 7 in current phase
-Status: IN PROGRESS — Plan 01 complete: DeepSeek config, phone detection, auth tools
-Last activity: 2026-02-17 — Phase 6.7 Plan 01 complete: foundation layer (config, LLM factory, phone detection, auth tools)
+Plan: 3 of 7 in current phase
+Status: IN PROGRESS — Plan 03 complete: MunicipalCrew, GBVCrew, IntakeFlow wired to DeepSeek LLM objects
+Last activity: 2026-02-17 — Phase 6.7 Plan 03 complete: crew LLM wiring — all crews default to DeepSeek V3.2
 
-Progress: [█░░░░░░░░░] 14% (1/7 plans)
+Progress: [███░░░░░░░] 43% (3/7 plans)
 
 ## Performance Metrics
 
@@ -118,6 +118,8 @@ Progress: [█░░░░░░░░░] 14% (1/7 plans)
 | Phase 06.6 P07 | 1033 | 4 tasks | 9 files |
 | Phase 06.6 P09 | 480 | 4 tasks | 4 files |
 | 06.7-01 | 12.9m (776s) | 2 | 4 |
+| 06.7-03 | 12.7m (761s) | 2 | 5 |
+| Phase 06.7 P02 | 741 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -353,6 +355,8 @@ Recent decisions affecting current work:
 - [Phase 06.5]: Dashboard title uses gradient text matching hero style (text-coral class)
 - [Phase 06.5]: Login tagline changes based on source page for context-aware UX
 - [Phase 06.5]: Profile routing replaces my-reports routing (with redirect for backwards compatibility)
+- [Phase 06.7-03]: Crews accept llm=None (not llm_model: str) — crewai.LLM objects support base_url for DeepSeek; string model names do not
+- [Phase 06.7-03]: Default to get_deepseek_llm() at construction time — all crews default to DeepSeek V3.2 without explicit config
 - [Phase 06.7-01]: LLM factory in separate llm.py module (not config.py) to prevent circular imports
 - [Phase 06.7-01]: Auth tools are stateless (no class/instance state) to prevent PII persistence between agent calls
 - [Phase 06.7-01]: Phone detection is pure code logic (no LLM) per locked decision — deterministic WhatsAppSession lookup
@@ -375,6 +379,9 @@ Recent decisions affecting current work:
 - [Phase 06.6]: GSAP clearProps on all animations prevents elements remaining at opacity: 0
 - [Phase 06.6]: Landing CTAs changed from gradient-on-transparent to solid gold background for WCAG AA visibility
 - [Phase 06.6]: CSS @keyframes fallback for feature cards ensures visibility after 2s if GSAP fails
+- [Phase 06.7]: AuthCrew accepts llm=None and resolves get_deepseek_llm() lazily inside create_crew() to prevent circular imports during testing
+- [Phase 06.7]: memory=False on AuthCrew Crew — auth handles PII (phone, email, OTP codes), same rationale as GBVCrew
+- [Phase 06.7]: max_iter=15 for AuthCrew vs 8 for GBVCrew — full registration is 6+ steps requiring more turns
 
 ### Pending Todos
 
@@ -396,8 +403,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 6.7 Plan 01 complete)
-Stopped at: Completed 06.7-01-PLAN.md — foundation layer: DeepSeek config, LLM factory, phone detection service, auth tools
+Last session: 2026-02-17 (Phase 6.7 Plan 03 complete)
+Stopped at: Completed 06.7-03-PLAN.md — crew LLM wiring: MunicipalCrew, GBVCrew, IntakeFlow switched to DeepSeek LLM objects
 Resume file: None
 
 ---
