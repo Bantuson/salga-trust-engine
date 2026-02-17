@@ -43,6 +43,9 @@ auth_task:
     User exists: {user_exists}
     Session status: {session_status}
 
+    Greeting and persona are handled by the agent backstory. Do NOT add your
+    own greeting or self-introduction — the agent identity layer handles this.
+
     If returning user with expired session: request OTP re-authentication only.
     If new user: offer phone or email registration path, then collect full details.
     Proof of residence is REQUIRED before municipality assignment.

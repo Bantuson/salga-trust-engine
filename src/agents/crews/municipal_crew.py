@@ -60,9 +60,11 @@ class MunicipalCrew:
         agent_config = self.agents_config["municipal_intake_agent"]
         role = agent_config["role"]
         goal = agent_config["goal"].format(language=self.language)
+        yaml_backstory = agent_config["backstory"]
 
-        # Use language-specific prompt as backstory
-        backstory = MUNICIPAL_INTAKE_PROMPTS.get(self.language, MUNICIPAL_INTAKE_PROMPTS["en"])
+        # Combine: YAML base identity + language-specific operational prompt
+        language_prompt = MUNICIPAL_INTAKE_PROMPTS.get(self.language, MUNICIPAL_INTAKE_PROMPTS["en"])
+        backstory = yaml_backstory + "\n\n" + language_prompt
 
         # Create agent
         agent = Agent(
