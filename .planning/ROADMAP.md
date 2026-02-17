@@ -183,6 +183,19 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-16 (Phase 6.6 complete — all 8 plans executed and verified)*
 
+### Phase 06.7: Municipal intake agent testing — DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
+
+**Goal:** Build an end-to-end testable municipal intake agent system powered by DeepSeek V3.2 LLM via CrewAI. Includes: auth agent with dual registration flow, deterministic phone detection, API-first crew server endpoints, and Streamlit chat dashboard for manual multi-turn testing.
+**Depends on:** Phase 6
+**Plans:** 5 plans
+
+Plans:
+- [ ] 06.7-01-PLAN.md -- DeepSeek LLM config, phone detection service, and auth tools
+- [ ] 06.7-02-PLAN.md -- Auth crew with trilingual prompts and YAML config
+- [ ] 06.7-03-PLAN.md -- Update existing crews and IntakeFlow to use DeepSeek LLM objects
+- [ ] 06.7-04-PLAN.md -- Standalone crew server with /chat, /session/reset, /health endpoints
+- [ ] 06.7-05-PLAN.md -- Streamlit test dashboard with WhatsApp-style chat and debug panel
+
 ### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
 **Goal:** Fix header/navbar scroll persistence (should hide on scroll), fix scroll-to-top on navigation, improve scroll animation looping and inverse behavior, standardize card styling (white gloss → pink gloss), fix mobile layout spacing and backgrounds, customize login card titles per context, polish request access page styling, fix dashboard hero text and stats card colors.
