@@ -16,6 +16,7 @@ Mirrors MunicipalCrew / GBVCrew structure exactly:
 - async kickoff(context) -> dict
 """
 import asyncio
+import re
 from typing import Any
 
 from crewai import Agent, Crew, Process, Task
@@ -158,13 +159,24 @@ class AuthCrew:
             # Extract Pydantic result if available
             if hasattr(result, "pydantic") and result.pydantic:
                 auth_result: AuthResult = result.pydantic
-                return auth_result.model_dump()
+                result_dict = auth_result.model_dump()
+                # Strip "Final Answer:" prefix if LLM included it in the message field
+                msg = result_dict.get("message", "")
+                if msg and "Final Answer:" in msg:
+                    msg = msg.split("Final Answer:", 1)[-1].strip()
+                    result_dict["message"] = msg
+                return result_dict
 
             # Fallback: return raw result string wrapped in a dict
+            raw = str(result)
+            # Try to extract just the final answer portion
+            final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
+            message = final.group(1).strip() if final else raw
             return {
                 "authenticated": False,
                 "session_status": "failed",
-                "message": str(result),
+                "message": message,
+                "raw_output": raw,  # Keep raw for debug
                 "error": None,
             }
 
