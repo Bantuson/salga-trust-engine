@@ -17,6 +17,7 @@ from typing import Any
 
 from crewai import Agent, Crew, Process, Task
 
+from src.agents.llm import get_deepseek_llm
 from src.agents.prompts.gbv import GBV_INTAKE_PROMPTS
 from src.agents.tools.saps_tool import notify_saps
 from src.agents.tools.ticket_tool import create_municipal_ticket
@@ -30,15 +31,15 @@ class GBVCrew:
     minimal questioning, and automatic SAPS notification.
     """
 
-    def __init__(self, language: str = "en", llm_model: str = "gpt-4o"):
+    def __init__(self, language: str = "en", llm=None):
         """Initialize GBV crew.
 
         Args:
             language: Language code (en/zu/af)
-            llm_model: LLM model identifier
+            llm: crewai.LLM object. Defaults to DeepSeek V3.2 via get_deepseek_llm().
         """
         self.language = language if language in ["en", "zu", "af"] else "en"
-        self.llm_model = llm_model
+        self.llm = llm or get_deepseek_llm()
 
     def create_crew(
         self,
@@ -62,7 +63,7 @@ class GBVCrew:
             goal=f"Safely capture GBV report details in {self.language} and arrange help",
             backstory=GBV_INTAKE_PROMPTS[self.language],
             tools=[create_municipal_ticket, notify_saps],
-            llm=self.llm_model,
+            llm=self.llm,
             allow_delegation=False,
             max_iter=8,  # Shorter than municipal (10) - don't over-question victims
             verbose=False

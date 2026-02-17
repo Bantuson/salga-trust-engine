@@ -11,6 +11,7 @@ from typing import Any
 import yaml
 from crewai import Agent, Crew, Process, Task
 
+from src.agents.llm import get_deepseek_llm
 from src.agents.prompts.municipal import MUNICIPAL_INTAKE_PROMPTS
 from src.agents.tools.ticket_tool import create_municipal_ticket
 from src.schemas.ticket import TicketData
@@ -23,15 +24,15 @@ class MunicipalCrew:
     prompts to guide citizens through reporting municipal service issues.
     """
 
-    def __init__(self, language: str = "en", llm_model: str = "gpt-4o"):
+    def __init__(self, language: str = "en", llm=None):
         """Initialize municipal crew.
 
         Args:
             language: Language code (en/zu/af)
-            llm_model: LLM model identifier
+            llm: crewai.LLM object. Defaults to DeepSeek V3.2 via get_deepseek_llm().
         """
         self.language = language if language in ["en", "zu", "af"] else "en"
-        self.llm_model = llm_model
+        self.llm = llm or get_deepseek_llm()
 
         # Load YAML configs
         config_dir = Path(__file__).parent.parent / "config"
@@ -70,7 +71,7 @@ class MunicipalCrew:
             goal=goal,
             backstory=backstory,
             tools=[create_municipal_ticket],
-            llm=self.llm_model,
+            llm=self.llm,
             allow_delegation=agent_config.get("allow_delegation", False),
             max_iter=agent_config.get("max_iter", 10),
             verbose=agent_config.get("verbose", False)

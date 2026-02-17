@@ -27,7 +27,7 @@ class TestGBVCrewInstantiation:
 
     def test_gbv_crew_creates_with_memory_disabled(self):
         """Verify memory=False on created Crew (prevents cross-session leakage)."""
-        crew_instance = GBVCrew(language="en", llm_model="gpt-4o")
+        crew_instance = GBVCrew(language="en", llm=None)
 
         # Create crew (need to provide required args)
         crew = crew_instance.create_crew(
@@ -41,7 +41,7 @@ class TestGBVCrewInstantiation:
 
     def test_gbv_crew_agent_has_correct_tools(self):
         """Verify agent has create_municipal_ticket and notify_saps tools."""
-        crew_instance = GBVCrew(language="en", llm_model="gpt-4o")
+        crew_instance = GBVCrew(language="en", llm=None)
 
         crew = crew_instance.create_crew(
             message="Test message",
@@ -59,7 +59,7 @@ class TestGBVCrewInstantiation:
 
     def test_gbv_crew_agent_max_iter_is_8(self):
         """Verify max_iter=8 (shorter than municipal) to avoid over-questioning."""
-        crew_instance = GBVCrew(language="en", llm_model="gpt-4o")
+        crew_instance = GBVCrew(language="en", llm=None)
 
         crew = crew_instance.create_crew(
             message="Test message",
@@ -72,7 +72,7 @@ class TestGBVCrewInstantiation:
 
     def test_gbv_crew_defaults_to_english_for_invalid_language(self):
         """Verify invalid language codes fall back to English."""
-        crew_instance = GBVCrew(language="invalid", llm_model="gpt-4o")
+        crew_instance = GBVCrew(language="invalid", llm=None)
         assert crew_instance.language == "en"
 
 
@@ -207,7 +207,7 @@ class TestGBVRoutingInFlow:
     async def test_gbv_message_routes_to_gbv_intake(self):
         """Verify GBV keywords trigger gbv_intake routing."""
         # Create flow with mock redis
-        flow = IntakeFlow(redis_url="redis://localhost:6379", llm_model="gpt-4o")
+        flow = IntakeFlow(redis_url="redis://localhost:6379")
 
         # Set state with GBV message
         flow.state.message = "My husband hits me"
@@ -228,7 +228,7 @@ class TestGBVRoutingInFlow:
     @pytest.mark.asyncio
     async def test_handle_gbv_is_called_not_handle_municipal(self):
         """Verify GBV routing calls handle_gbv, not handle_municipal."""
-        flow = IntakeFlow(redis_url="redis://localhost:6379", llm_model="gpt-4o")
+        flow = IntakeFlow(redis_url="redis://localhost:6379")
 
         # Set GBV message
         flow.state.message = "domestic violence"
@@ -248,7 +248,7 @@ class TestSessionClearing:
     @pytest.mark.asyncio
     async def test_clear_session_called_with_is_gbv_true(self):
         """Verify clear_session is called with is_gbv=True after GBV ticket."""
-        flow = IntakeFlow(redis_url="redis://localhost:6379", llm_model="gpt-4o")
+        flow = IntakeFlow(redis_url="redis://localhost:6379")
 
         # Mock conversation manager
         flow._conversation_manager = AsyncMock()
