@@ -10,11 +10,11 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 ## Current Position
 
 Phase: 6.7 of 6.7 (Municipal Intake Agent Testing — DeepSeek LLM, Streamlit, Auth Agent)
-Plan: 3 of 7 in current phase
-Status: IN PROGRESS — Plan 03 complete: MunicipalCrew, GBVCrew, IntakeFlow wired to DeepSeek LLM objects
-Last activity: 2026-02-17 — Phase 6.7 Plan 03 complete: crew LLM wiring — all crews default to DeepSeek V3.2
+Plan: 4 of 7 in current phase
+Status: IN PROGRESS — Plan 04 complete: standalone crew server with /chat, /session/reset, /health endpoints
+Last activity: 2026-02-17 — Phase 6.7 Plan 04 complete: crew server — FastAPI on localhost:8001, phone detection routing, X-API-Key security, GBV debug redaction
 
-Progress: [███░░░░░░░] 43% (3/7 plans)
+Progress: [████░░░░░░] 57% (4/7 plans)
 
 ## Performance Metrics
 
@@ -120,6 +120,7 @@ Progress: [███░░░░░░░] 43% (3/7 plans)
 | 06.7-01 | 12.9m (776s) | 2 | 4 |
 | 06.7-03 | 12.7m (761s) | 2 | 5 |
 | Phase 06.7 P02 | 741 | 2 tasks | 4 files |
+| 06.7-04 | 20.3m (1217s) | 1 | 1 |
 
 ## Accumulated Context
 
@@ -382,6 +383,13 @@ Recent decisions affecting current work:
 - [Phase 06.7]: AuthCrew accepts llm=None and resolves get_deepseek_llm() lazily inside create_crew() to prevent circular imports during testing
 - [Phase 06.7]: memory=False on AuthCrew Crew — auth handles PII (phone, email, OTP codes), same rationale as GBVCrew
 - [Phase 06.7]: max_iter=15 for AuthCrew vs 8 for GBVCrew — full registration is 6+ steps requiring more turns
+- [Phase 06.7-04]: Crew server is a separate FastAPI app (crew_app) not a router on main.py — keeps CrewAI lifecycle isolated from production API
+- [Phase 06.7-04]: CREW_SERVER_API_KEY empty = dev mode (skip X-API-Key validation) for easy local development
+- [Phase 06.7-04]: session_override='new' maps to session_status='none' for test mode clarity
+- [Phase 06.7-04]: Phone used as both user_id and session_id in Redis keys for crew server simplicity
+- [Phase 06.7-04]: Database unavailable during phone detection falls open (treat as new user) — correct for local dev
+- [Phase 06.7-04]: GBV debug output redacted to metadata-only (agent_name, turn_count, session_status) per Pitfall 6
+- [Phase 06.7-04]: OPENAI_API_KEY dummy set at module level before CrewAI imports to prevent LiteLLM validation errors
 
 ### Pending Todos
 
@@ -403,10 +411,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 6.7 Plan 03 complete)
-Stopped at: Completed 06.7-03-PLAN.md — crew LLM wiring: MunicipalCrew, GBVCrew, IntakeFlow switched to DeepSeek LLM objects
+Last session: 2026-02-17 (Phase 6.7 Plan 04 complete)
+Stopped at: Completed 06.7-04-PLAN.md — standalone crew server: FastAPI crew_app on localhost:8001 with phone detection routing, X-API-Key security, GBV debug redaction
 Resume file: None
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-17*
+*Last updated: 2026-02-17 (06.7-04)*
