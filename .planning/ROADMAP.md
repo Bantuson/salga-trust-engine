@@ -181,7 +181,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-16 (Phase 6.6 complete — all 8 plans executed and verified)*
+*Last updated: 2026-02-17 (Phase 6.8 gap closure plans 04-05 added)*
 
 ### Phase 06.7: Municipal intake agent testing — DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
 
@@ -201,11 +201,14 @@ Plans:
 **Goal:** Enhance all agent personas with "Gugu" identity (feminine warmth, ask citizen names, platform context in backstory, trilingual personality). Fix Supabase Auth email OTP sending magic links instead of 6-digit codes. Evaluate SMS OTP via Twilio Verify integration.
 **Depends on:** Phase 6.7
 **Requirements:** AI-05, AI-06, AI-07
-**Plans:** 2 plans
+**Plans:** 5 plans
 
 Plans:
-- [ ] 06.8-01-PLAN.md -- Gugu persona enhancement across auth, municipal, and GBV agent backstory prompts (9 language variants)
+- [x] 06.8-01-PLAN.md -- Gugu persona enhancement across auth, municipal, and GBV agent backstory prompts (9 language variants)
 - [ ] 06.8-02-PLAN.md -- Language auto-detection in crew server and Supabase email OTP template fix + SMS OTP evaluation
+- [x] 06.8-03-PLAN.md -- Response sanitization: strip LLM artifacts, Pydantic output models, warm Gugu-voiced error fallbacks
+- [ ] 06.8-04-PLAN.md -- Fix Gugu identity confusion, greeting-first flow, and language lock in auth prompts (gap closure)
+- [ ] 06.8-05-PLAN.md -- Branded email OTP template with 6-digit code display (gap closure)
 
 ### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
