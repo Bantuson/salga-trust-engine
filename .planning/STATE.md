@@ -382,6 +382,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.4 inserted after Phase 6: Dashboard landing pages, public hero polish, and citizen auth architecture on public portal (URGENT)
 - Phase 6.5 inserted after Phase 6.4: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (URGENT)
 - Phase 6.6 inserted after Phase 6.5: Playwright MCP automated dashboard testing — E2E tests, 10 role profiles, multi-tenant isolation, OWASP security (URGENT)
+- Phase 6.7 inserted after Phase 6.6: Municipal intake agent testing — DeepSeek LLM, Streamlit chat dashboard, auth agent, phone detection, API-first security (URGENT)
 
 ### Blockers/Concerns
 
