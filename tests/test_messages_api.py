@@ -24,7 +24,13 @@ class MockIntakeFlow:
     """Mock IntakeFlow for testing."""
 
     def __init__(self, redis_url: str, llm_model: str = "gpt-4o"):
-        self.state = None
+        # Mirror the real Flow backing attribute so that production code
+        # using flow._state = IntakeState(...) is visible via flow.state.
+        self._state = None
+
+    @property
+    def state(self):
+        return self._state
 
     def kickoff(self):
         """Mock kickoff."""

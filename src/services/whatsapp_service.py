@@ -278,7 +278,9 @@ class WhatsAppService:
 
             # Initialize flow
             flow = IntakeFlow(redis_url=self._redis_url, llm_model="gpt-4o")
-            flow.state = intake_state
+            # Flow.state is a read-only @property backed by flow._state.
+            # CrewAI 1.8.1 provides no public setter, so we assign directly.
+            flow._state = intake_state
 
             # Step 6: Run flow (kickoff)
             try:

@@ -84,7 +84,9 @@ async def submit_report(
             )
 
             flow = IntakeFlow(redis_url=settings.REDIS_URL, llm_model="gpt-4o")
-            flow.state = intake_state
+            # Flow.state is a read-only @property backed by flow._state.
+            # CrewAI 1.8.1 provides no public setter, so we assign directly.
+            flow._state = intake_state
 
             # Run classification (receive_message -> classify_message)
             flow.receive_message()

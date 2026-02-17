@@ -49,7 +49,56 @@ from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
 
 from src.core.config import settings
-from src.core.conversation import ConversationManager
+from src.core.conversation import ConversationManager, ConversationState
+
+
+# ---------------------------------------------------------------------------
+# In-memory conversation manager (fallback when Redis is unavailable)
+# ---------------------------------------------------------------------------
+
+class InMemoryConversationManager:
+    """Drop-in replacement for ConversationManager that uses a dict.
+
+    Used when Redis is not available (local dev/testing).
+    Implements the same async interface as ConversationManager.
+    """
+
+    def __init__(self) -> None:
+        self._store: dict[str, ConversationState] = {}
+
+    def _key(self, user_id: str, session_id: str, is_gbv: bool = False) -> str:
+        prefix = "gbv:" if is_gbv else "muni:"
+        return f"{prefix}{user_id}:{session_id}"
+
+    async def get_state(self, user_id: str, session_id: str, is_gbv: bool = False) -> ConversationState | None:
+        return self._store.get(self._key(user_id, session_id, is_gbv))
+
+    async def create_session(
+        self, user_id: str, session_id: str, tenant_id: str, language: str, is_gbv: bool = False,
+    ) -> ConversationState:
+        import time
+        state = ConversationState(
+            user_id=user_id, session_id=session_id, tenant_id=tenant_id,
+            language=language, turns=[], created_at=time.time(),
+        )
+        self._store[self._key(user_id, session_id, is_gbv)] = state
+        return state
+
+    async def append_turn(
+        self, user_id: str, session_id: str, role: str, content: str, is_gbv: bool = False,
+    ) -> ConversationState:
+        import time
+        key = self._key(user_id, session_id, is_gbv)
+        state = self._store.get(key)
+        if state is None:
+            raise ValueError(f"No session for key {key}")
+        if len(state.turns) >= state.max_turns:
+            raise ValueError("Max turns exceeded")
+        state.turns.append({"role": role, "content": content, "timestamp": time.time()})
+        return state
+
+    async def clear_session(self, user_id: str, session_id: str, is_gbv: bool = False) -> None:
+        self._store.pop(self._key(user_id, session_id, is_gbv), None)
 
 
 # ---------------------------------------------------------------------------
@@ -128,18 +177,32 @@ crew_app = FastAPI(
 # Conversation manager (Redis-backed, shared across requests)
 # ---------------------------------------------------------------------------
 
-_conversation_manager: ConversationManager | None = None
+_conversation_manager: ConversationManager | InMemoryConversationManager | None = None
 
 
-def _get_conversation_manager() -> ConversationManager:
+def _get_conversation_manager() -> ConversationManager | InMemoryConversationManager:
     """Lazy-initialise the shared ConversationManager.
 
+    Tries Redis first; falls back to in-memory dict if Redis is unavailable.
+    In-memory mode is logged once and is suitable for local testing.
+
     Returns:
-        Module-level ConversationManager connected to Redis.
+        ConversationManager (Redis) or InMemoryConversationManager (dict).
     """
     global _conversation_manager
     if _conversation_manager is None:
-        _conversation_manager = ConversationManager(settings.REDIS_URL)
+        try:
+            import redis as sync_redis
+            r = sync_redis.Redis.from_url(settings.REDIS_URL, socket_connect_timeout=2)
+            r.ping()
+            r.close()
+            _conversation_manager = ConversationManager(settings.REDIS_URL)
+        except Exception:
+            import logging
+            logging.getLogger(__name__).warning(
+                "Redis unavailable — using in-memory conversation state (testing mode)"
+            )
+            _conversation_manager = InMemoryConversationManager()
     return _conversation_manager
 
 
@@ -327,13 +390,18 @@ async def chat(
     # Step 1: Determine session status
     # ------------------------------------------------------------------
 
-    if request.session_override in ("expired", "new"):
+    if request.session_override in ("expired", "new", "active"):
         # Test mode: use the provided override directly
-        session_status = "none" if request.session_override == "new" else "expired"
+        if request.session_override == "new":
+            session_status = "none"
+        elif request.session_override == "expired":
+            session_status = "expired"
+        else:
+            session_status = "active"
         detection_result = {
             "user_exists": request.session_override != "new",
             "session_status": session_status,
-            "user_id": None,
+            "user_id": phone,  # Use phone as user_id for test mode
         }
     else:
         # Production mode: real database lookup
@@ -380,7 +448,13 @@ async def chat(
             is_gbv=False,
         )
 
-    conversation_history = _format_history(conv_state.turns)
+    # Include the CURRENT user message in history so the agent can see it.
+    # (Turns are only persisted to the store in Step 4, after the crew runs.
+    #  Without this, the crew never sees what the user just typed.)
+    history_turns = list(conv_state.turns) + [
+        {"role": "user", "content": request.message}
+    ]
+    conversation_history = _format_history(history_turns)
 
     # ------------------------------------------------------------------
     # Step 3: Route to agent
@@ -399,7 +473,10 @@ async def chat(
             from src.agents.flows.state import IntakeState
 
             flow = IntakeFlow(redis_url=settings.REDIS_URL)
-            flow.state = IntakeState(
+            # Flow.state is a read-only @property backed by flow._state.
+            # CrewAI 1.8.1 provides no public setter, so we assign the
+            # private backing attribute directly.
+            flow._state = IntakeState(
                 message=request.message,
                 user_id=detection_result.get("user_id") or phone,
                 tenant_id=request.municipality_id or conv_state.tenant_id,
