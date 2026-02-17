@@ -417,6 +417,52 @@ def _get_fallback(agent_name: str, language: str) -> str:
 
 
 # ---------------------------------------------------------------------------
+# Language preference detection from citizen messages
+# ---------------------------------------------------------------------------
+
+_LANGUAGE_PREFERENCE_PATTERNS = {
+    "en": [
+        r"\benglish\b",
+        r"\bin english\b",
+        r"\bi prefer english\b",
+        r"\bi want english\b",
+    ],
+    "zu": [
+        r"\bisizulu\b",
+        r"\bzulu\b",
+        r"\bngesi(?:zulu|Zulu)\b",
+        r"\bngithanda isizulu\b",
+    ],
+    "af": [
+        r"\bafrikaans\b",
+        r"\bin afrikaans\b",
+        r"\bek verkies afrikaans\b",
+    ],
+}
+
+
+def _detect_language_preference(message: str) -> str | None:
+    """Check if the citizen explicitly states a language preference.
+
+    Scans the message for keywords like "English", "isiZulu", "Afrikaans"
+    that indicate an explicit language choice (as opposed to auto-detection
+    from the language of the text itself).
+
+    Args:
+        message: The citizen's message text.
+
+    Returns:
+        Language code ("en", "zu", "af") if explicit preference found, else None.
+    """
+    lower = message.lower()
+    for lang_code, patterns in _LANGUAGE_PREFERENCE_PATTERNS.items():
+        for pattern in patterns:
+            if re.search(pattern, lower):
+                return lang_code
+    return None
+
+
+# ---------------------------------------------------------------------------
 # Endpoints
 # ---------------------------------------------------------------------------
 
@@ -583,6 +629,15 @@ async def chat(
     )
 
     # ------------------------------------------------------------------
+    # Step 1.6: Language preference persistence
+    # ------------------------------------------------------------------
+    # If the citizen explicitly states a language preference (e.g. "English",
+    # "isiZulu", "Afrikaans"), lock to that language for all future turns.
+    # If a preference was stored in a previous turn, override auto-detection.
+
+    explicit_pref = _detect_language_preference(request.message)
+
+    # ------------------------------------------------------------------
     # Step 2: Load / create conversation history
     # ------------------------------------------------------------------
 
@@ -603,6 +658,21 @@ async def chat(
             language=detected_language,
             is_gbv=False,
         )
+
+    # Check for stored language preference from a previous turn
+    stored_pref = None
+    if conv_state and conv_state.turns:
+        for turn in reversed(conv_state.turns):
+            if turn.get("role") == "system" and turn.get("content", "").startswith("lang_pref:"):
+                stored_pref = turn["content"].split(":", 1)[1].strip()
+                break
+
+    # Priority: explicit preference in THIS message > stored preference > auto-detected
+    if explicit_pref:
+        detected_language = explicit_pref
+    elif stored_pref:
+        detected_language = stored_pref
+    # else: keep the auto-detected value from Step 1.5
 
     # Include the CURRENT user message in history so the agent can see it.
     # (Turns are only persisted to the store in Step 4, after the crew runs.
@@ -733,6 +803,19 @@ async def chat(
     # ------------------------------------------------------------------
 
     try:
+        # Store language preference if citizen explicitly chose one this turn
+        if explicit_pref:
+            try:
+                await manager.append_turn(
+                    user_id=phone,
+                    session_id=session_id,
+                    role="system",
+                    content=f"lang_pref:{explicit_pref}",
+                    is_gbv=is_gbv,
+                )
+            except ValueError:
+                pass  # Max turns — preference still used for this turn
+
         # Save the user message turn
         await manager.append_turn(
             user_id=phone,
@@ -775,6 +858,7 @@ async def chat(
             "phone": phone,
             "language": request.language,
             "detected_language": detected_language,
+            "language_preference": explicit_pref or stored_pref,
             "municipality_id": request.municipality_id,
             "agent_result": agent_result,
             "raw_reply": raw_reply,
