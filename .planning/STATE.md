@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.8 in progress — Gugu persona applied to all agent backstory prompts; next: email OTP fix (magic links to 6-digit codes)
+**Current focus:** Phase 6.8 in progress — Plans 01 and 03 complete (Gugu persona + response sanitization); next: email OTP fix (magic links to 6-digit codes)
 
 ## Current Position
 
 Phase: 6.8 of 6.8 (Gugu Persona & Email OTP Fix)
-Plan: 1 of 3 in current phase
-Status: IN PROGRESS — Plan 01 complete: Gugu persona applied to all 9 agent backstory strings (auth, municipal, GBV) in EN/ZU/AF
-Last activity: 2026-02-17 — Phase 6.8 Plan 01 complete: Gugu persona in auth/municipal/GBV agent prompts
+Plan: 2 of 3 in current phase
+Status: IN PROGRESS — Plan 03 complete: sanitize_reply() utility, warm Gugu fallbacks, crew kickoff sanitization
+Last activity: 2026-02-17 — Phase 6.8 Plan 03 complete: Response sanitization across crew_server and all three crews
 
-Progress: [███░░░░░░░] 33% (1/3 plans)
+Progress: [██████░░░░] 67% (2/3 plans)
 
 ## Performance Metrics
 
@@ -122,6 +122,7 @@ Progress: [███░░░░░░░] 33% (1/3 plans)
 | Phase 06.7 P02 | 741 | 2 tasks | 4 files |
 | 06.7-04 | 20.3m (1217s) | 1 | 1 |
 | 06.8-01 | 7m (436s) | 2 | 3 |
+| 06.8-03 | 7m (408s) | 2 | 4 |
 
 ## Accumulated Context
 
@@ -396,6 +397,9 @@ Recent decisions affecting current work:
 - [Phase 06.8-01]: GBV agent gets Gugu identity (name + SALGA Trust Engine) only — no chatty intro, no name-asking, preserves trauma-informed protocol (patient safety boundary)
 - [Phase 06.8-01]: Auth and municipal agents get full Gugu persona: warm intro, name-asking, platform mission context, citizen name usage in examples
 - [Phase 06.8-01]: Afrikaans and isiZulu Gugu persona written to match existing language register (not literal translation)
+- [Phase 06.8-03]: Two-layer defense-in-depth sanitization: crews strip Final Answer prefix, crew_server.py sanitize_reply() does full artifact stripping
+- [Phase 06.8-03]: GBV error fallback always includes emergency numbers (10111, 0800 150 150) at both crew and server layers
+- [Phase 06.8-03]: raw_output field in crew return dicts enables Streamlit debug without exposing artifacts to citizens
 
 ### Pending Todos
 
@@ -418,8 +422,8 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-17 (Phase 6.8 Plan 01 complete)
-Stopped at: Completed 06.8-01-PLAN.md — Gugu persona applied to all 9 agent backstory strings (auth, municipal, GBV) in EN/ZU/AF
+Last session: 2026-02-17 (Phase 6.8 Plan 03 complete)
+Stopped at: Completed 06.8-03-PLAN.md — Response sanitization: sanitize_reply() utility, warm Gugu fallbacks, crew kickoff cleanup
 Resume file: None
 
 ---
