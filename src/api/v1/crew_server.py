@@ -34,6 +34,7 @@ Multi-turn state:
 """
 import asyncio
 import os
+import re
 
 # CrewAI/LiteLLM requires OPENAI_API_KEY during import validation.
 # Set a dummy value if not already configured. This MUST happen before
@@ -292,6 +293,127 @@ def _format_history(turns: list[dict]) -> str:
         lines.append(f"{role}: {content}")
 
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# Response sanitization — hide LLM internals from citizens
+# ---------------------------------------------------------------------------
+
+# Patterns that indicate LLM reasoning artifacts (not citizen-facing text)
+_LLM_ARTIFACT_PATTERNS = [
+    r"^Thought:.*$",          # CrewAI verbose reasoning
+    r"^Action:.*$",           # CrewAI tool call declarations
+    r"^Action Input:.*$",     # CrewAI tool input
+    r"^Observation:.*$",      # CrewAI tool output markers
+    r"^I need to .*$",        # LLM self-talk
+    r"^Let me .*$",           # LLM self-talk
+    r"^I'll .*call.*$",       # LLM tool-calling narration
+    r"^I should .*$",         # LLM planning
+    r"^Now I .*$",            # LLM sequencing
+    r"^Based on the (?:tool|function) (?:result|output).*$",  # Tool result narration
+    r"^The (?:tool|function) returned.*$",
+    r"^Final Answer:?\s*",    # CrewAI final answer marker (strip prefix, keep content after it)
+]
+
+# Warm fallbacks when sanitization leaves nothing usable
+_FALLBACK_REPLIES = {
+    "auth_agent": {
+        "en": "I'm Gugu from SALGA Trust Engine. I'm having a moment \u2014 could you please repeat that?",
+        "zu": "NginguGugu we-SALGA Trust Engine. Ngicela uphinde \u2014 angizwanga kahle.",
+        "af": "Ek is Gugu van SALGA Trust Engine. Ek het 'n oomblik \u2014 kan jy asseblief herhaal?",
+    },
+    "municipal_intake": {
+        "en": "I'm Gugu from SALGA Trust Engine. Sorry, I didn't quite catch that \u2014 could you describe your issue again?",
+        "zu": "NginguGugu we-SALGA Trust Engine. Ngiyaxolisa, angizwanga kahle \u2014 ungachaza inkinga yakho futhi?",
+        "af": "Ek is Gugu van SALGA Trust Engine. Jammer, ek het dit nie gevang nie \u2014 kan jy jou probleem weer beskryf?",
+    },
+    "gbv_intake": {
+        "en": "I'm here to help you. If you are in immediate danger, please call 10111 or the GBV Command Centre at 0800 150 150. Can you tell me what happened?",
+        "zu": "Ngilapha ukukusiza. Uma usengozini, shayela i-10111 noma i-GBV Command Centre ku-0800 150 150. Ungangitshela ukuthi kwenzekeni?",
+        "af": "Ek is hier om jou te help. As jy in onmiddellike gevaar is, skakel 10111 of die GBV Command Centre by 0800 150 150. Kan jy my vertel wat gebeur het?",
+    },
+    "error": {
+        "en": "I'm Gugu from SALGA Trust Engine. Something went wrong on my side \u2014 please try again in a moment.",
+        "zu": "NginguGugu we-SALGA Trust Engine. Kunenkinga ngasohlangothini lwami \u2014 ngicela uzame futhi ngemva kwesikhashana.",
+        "af": "Ek is Gugu van SALGA Trust Engine. Iets het verkeerd gegaan aan my kant \u2014 probeer asseblief weer oor 'n oomblik.",
+    },
+}
+
+
+def sanitize_reply(
+    raw: str,
+    agent_name: str = "auth_agent",
+    language: str = "en",
+) -> str:
+    """Strip LLM reasoning artifacts from agent output for citizen display.
+
+    Removes CrewAI verbose markers (Thought/Action/Observation), LLM self-talk,
+    embedded JSON blobs, and tool result narration. Returns only the clean,
+    citizen-facing message text.
+
+    If sanitization strips everything (empty result), returns a warm Gugu-voiced
+    fallback appropriate to the agent type and language.
+
+    Args:
+        raw: Raw agent output string (may contain LLM artifacts).
+        agent_name: Agent type for fallback selection ("auth_agent", "municipal_intake", "gbv_intake").
+        language: Language code for fallback ("en", "zu", "af").
+
+    Returns:
+        Clean, citizen-facing reply text.
+    """
+    if not raw or not raw.strip():
+        return _get_fallback(agent_name, language)
+
+    text = raw.strip()
+
+    # 1. If "Final Answer:" marker exists, take everything AFTER it
+    final_match = re.search(r"Final Answer:?\s*(.+)", text, re.DOTALL | re.IGNORECASE)
+    if final_match:
+        text = final_match.group(1).strip()
+
+    # 2. Remove JSON blobs (tool call results embedded in text)
+    text = re.sub(r'\{[^{}]*"(?:tracking_number|error|id|status)"[^{}]*\}', '', text)
+
+    # 3. Remove LLM artifact lines
+    lines = text.split("\n")
+    clean_lines = []
+    for line in lines:
+        stripped = line.strip()
+        if not stripped:
+            continue
+        # Skip lines matching artifact patterns
+        skip = False
+        for pattern in _LLM_ARTIFACT_PATTERNS:
+            if re.match(pattern, stripped, re.IGNORECASE):
+                # Special case: "Final Answer:" prefix — keep content after it
+                if pattern == r"^Final Answer:?\s*":
+                    stripped = re.sub(r"^Final Answer:?\s*", "", stripped, flags=re.IGNORECASE)
+                    if stripped:
+                        clean_lines.append(stripped)
+                skip = True
+                break
+        if not skip:
+            clean_lines.append(line)
+
+    text = "\n".join(clean_lines).strip()
+
+    # 4. Remove any remaining raw Python exception traces
+    text = re.sub(r"Traceback \(most recent call last\):.*?(?=\n\n|\Z)", "", text, flags=re.DOTALL)
+    text = re.sub(r"(?:Error|Exception):.*?(?=\n\n|\Z)", "", text, flags=re.DOTALL)
+
+    # 5. If nothing useful remains, use warm fallback
+    if not text or len(text) < 10:
+        return _get_fallback(agent_name, language)
+
+    return text.strip()
+
+
+def _get_fallback(agent_name: str, language: str) -> str:
+    """Get a warm Gugu-voiced fallback message for the given agent and language."""
+    lang = language if language in ("en", "zu", "af") else "en"
+    agent = agent_name if agent_name in _FALLBACK_REPLIES else "error"
+    return _FALLBACK_REPLIES[agent][lang]
 
 
 # ---------------------------------------------------------------------------
@@ -584,13 +706,8 @@ async def chat(
     except Exception as e:
         # Fail fast on DeepSeek API errors — no retry, no fallback model
         error_str = str(e)
-        if any(
-            keyword in error_str.lower()
-            for keyword in ("deepseek", "api", "litellm", "openai", "timeout", "connection", "rate limit")
-        ):
-            reply = "DeepSeek API unavailable, please retry"
-        else:
-            reply = "An unexpected error occurred. Please try again."
+        error_lang = detected_language if "detected_language" in dir() else request.language
+        reply = _get_fallback("error", error_lang)
 
         return ChatResponse(
             reply=reply,
@@ -603,6 +720,13 @@ async def chat(
                 "session_status": session_status,
             },
         )
+
+    # ------------------------------------------------------------------
+    # Step 3.5: Sanitize reply — strip LLM artifacts for citizen-facing output
+    # ------------------------------------------------------------------
+    # Raw output is preserved in agent_result for Streamlit debug inspection.
+    raw_reply = reply
+    reply = sanitize_reply(reply, agent_name=agent_name, language=detected_language)
 
     # ------------------------------------------------------------------
     # Step 4: Save turn to conversation history
@@ -653,6 +777,7 @@ async def chat(
             "detected_language": detected_language,
             "municipality_id": request.municipality_id,
             "agent_result": agent_result,
+            "raw_reply": raw_reply,
             "detection": {
                 "user_exists": detection_result.get("user_exists"),
                 "session_status": detection_result.get("session_status"),
