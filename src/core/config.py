@@ -59,6 +59,23 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY_CURRENT: str = Field(default="", description="Current Fernet encryption key")
     ENCRYPTION_KEY_PREVIOUS: str = Field(default="", description="Previous Fernet key for rotation")
 
+    # DeepSeek LLM
+    DEEPSEEK_API_KEY: str = Field(default="", description="DeepSeek API key for LLM")
+    DEEPSEEK_BASE_URL: str = Field(
+        default="https://api.deepseek.com/v1",
+        description="DeepSeek API base URL (OpenAI-compatible)"
+    )
+
+    # Crew Server
+    CREW_SERVER_URL: str = Field(
+        default="http://localhost:8001",
+        description="URL of the crew server for Streamlit to connect to"
+    )
+    CREW_SERVER_API_KEY: str = Field(
+        default="",
+        description="API key for crew server authentication (dev tool security)"
+    )
+
     # Twilio
     TWILIO_ACCOUNT_SID: str = Field(default="", description="Twilio account SID")
     TWILIO_AUTH_TOKEN: str = Field(default="", description="Twilio auth token")
