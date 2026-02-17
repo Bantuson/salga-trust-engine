@@ -50,6 +50,7 @@ from sqlalchemy.orm import Session
 
 from src.core.config import settings
 from src.core.conversation import ConversationManager, ConversationState
+from src.core.language import language_detector
 
 
 # ---------------------------------------------------------------------------
@@ -449,6 +450,17 @@ async def chat(
             session_status = "none"
 
     # ------------------------------------------------------------------
+    # Step 1.5: Auto-detect language from citizen's message
+    # ------------------------------------------------------------------
+    # Override the static dashboard language hint with detected language.
+    # Falls back to request.language if text is too short (<20 chars)
+    # or detection confidence is below threshold (0.7).
+    detected_language = language_detector.detect(
+        request.message,
+        fallback=request.language,
+    )
+
+    # ------------------------------------------------------------------
     # Step 2: Load / create conversation history
     # ------------------------------------------------------------------
 
@@ -466,7 +478,7 @@ async def chat(
             user_id=phone,
             session_id=session_id,
             tenant_id=tenant_id,
-            language=request.language,
+            language=detected_language,
             is_gbv=False,
         )
 
@@ -507,7 +519,7 @@ async def chat(
                     or conv_state.tenant_id
                 ),
                 session_id=session_id,
-                language=request.language,
+                language=detected_language,
             )
 
             # Run the flow (synchronous kickoff in executor)
@@ -549,10 +561,10 @@ async def chat(
 
             from src.agents.crews.auth_crew import AuthCrew
 
-            auth_crew = AuthCrew(language=request.language)
+            auth_crew = AuthCrew(language=detected_language)
             auth_context = {
                 "phone": phone,
-                "language": request.language,
+                "language": detected_language,
                 "user_exists": detection_result.get("user_exists", False),
                 "session_status": session_status,
                 "user_id": detection_result.get("user_id"),
@@ -638,6 +650,7 @@ async def chat(
             "session_status": session_status,
             "phone": phone,
             "language": request.language,
+            "detected_language": detected_language,
             "municipality_id": request.municipality_id,
             "agent_result": agent_result,
             "detection": {
