@@ -390,6 +390,8 @@ Recent decisions affecting current work:
 - [Phase 06.7-04]: Database unavailable during phone detection falls open (treat as new user) — correct for local dev
 - [Phase 06.7-04]: GBV debug output redacted to metadata-only (agent_name, turn_count, session_status) per Pitfall 6
 - [Phase 06.7-04]: OPENAI_API_KEY dummy set at module level before CrewAI imports to prevent LiteLLM validation errors
+- [Phase 06.7]: Synchronous httpx (not async) for Streamlit compatibility — Streamlit execution model is synchronous
+- [Phase 06.7]: page_icon uses Streamlit shortcode (:classical_building:) not emoji — avoids Windows cp1252 encoding issue
 
 ### Pending Todos
 
