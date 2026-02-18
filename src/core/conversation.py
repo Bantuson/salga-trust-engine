@@ -22,6 +22,11 @@ class ConversationState(BaseModel):
 
     Tracks user context, language, category, conversation history, and
     partially collected ticket data as the agent gathers information.
+
+    Phase 6.9 additions (multi-agent manager routing):
+    - pending_intent: stores classified intent before auth handoff
+    - pre_auth_message: original citizen message that triggered auth
+    - routing_phase: tracks which handler owns the session for short-circuit
     """
 
     user_id: str
@@ -33,6 +38,21 @@ class ConversationState(BaseModel):
     collected_data: dict[str, Any] = {}  # Partial ticket data as it's gathered
     created_at: float
     max_turns: int = 20  # Safety limit per research (prevent infinite loops)
+
+    # --- Phase 6.9: Cross-turn routing state for manager architecture ---
+    pending_intent: str | None = None
+    """Classified intent before auth handoff: 'municipal_report' | 'gbv_report' | 'ticket_status'.
+    Cleared after routing to specialist. Allows direct specialist routing after auth
+    without citizen repeating their request."""
+
+    pre_auth_message: str | None = None
+    """The original citizen message that triggered the auth handoff.
+    Restored after auth completes so the specialist receives the original context."""
+
+    routing_phase: str = "manager"
+    """Tracks which handler owns the session:
+    'manager' | 'auth' | 'municipal' | 'gbv' | 'ticket_status'.
+    Used by crew_server.py to short-circuit manager re-entry for active specialist sessions."""
 
 
 class ConversationManager:
