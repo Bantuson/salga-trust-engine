@@ -12,6 +12,13 @@ class IntakeState(BaseModel):
 
     Tracks conversation metadata, routing decisions, and collected ticket data
     across multiple turns until intake is complete.
+
+    Phase 6.9 additions:
+    - session_status: auth state passed to ManagerCrew for demand-driven auth
+    - user_exists: whether the citizen has a Supabase account
+    - pending_intent: saved intent that survives auth handoff
+    - conversation_history: formatted history injected into ManagerCrew
+    - phone: citizen phone number for session lookup
     """
 
     message_id: str = Field(default="", description="Unique message identifier")
@@ -32,6 +39,28 @@ class IntakeState(BaseModel):
     is_complete: bool = Field(default=False, description="Whether intake is complete")
     error: str | None = Field(default=None, description="Error message if any")
 
+    # --- Phase 6.9: Manager routing context fields ---
+    session_status: str = Field(
+        default="none",
+        description="Auth session status: none/active/expired"
+    )
+    user_exists: bool = Field(
+        default=False,
+        description="Whether user exists in database"
+    )
+    pending_intent: str | None = Field(
+        default=None,
+        description="Saved intent before auth handoff"
+    )
+    conversation_history: str = Field(
+        default="(none)",
+        description="Formatted conversation history"
+    )
+    phone: str = Field(
+        default="",
+        description="Citizen phone number"
+    )
+
     class Config:
         """Pydantic config."""
         json_schema_extra = {
@@ -46,6 +75,11 @@ class IntakeState(BaseModel):
                 "subcategory": "water",
                 "routing_confidence": 0.95,
                 "turn_count": 1,
-                "is_complete": False
+                "is_complete": False,
+                "session_status": "active",
+                "user_exists": True,
+                "pending_intent": None,
+                "conversation_history": "(none)",
+                "phone": "+27821234567",
             }
         }
