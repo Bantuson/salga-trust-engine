@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.9 in progress — Plan 03 complete: IntakeFlow and crew_server integration layer — all messages now route through ManagerCrew
+**Current focus:** Phase 6.9 COMPLETE — Plan 04 complete: Full test suite for ManagerCrew architecture, updated existing crew tests, 4 Streamlit sidebar presets
 
 ## Current Position
 
 Phase: 6.9 of 6.9 (Multi-Agent Manager Refactor)
-Plan: 3 of 4 in current phase
-Status: IN PROGRESS — Plan 03 complete: IntakeFlow + crew_server integration layer (ManagerCrew routing, specialist short-circuit, routing_phase persistence)
-Last activity: 2026-02-18 — Phase 6.9 Plan 03 complete: Integration layer wired
+Plan: 4 of 4 in current phase
+Status: COMPLETE — All 4 plans delivered: TicketStatusCrew, ManagerCrew hierarchical routing, IntakeFlow + crew_server integration, full test suite
+Last activity: 2026-02-18 — Phase 6.9 Plan 04 complete: Test suite green, sidebar presets added
 
-Progress: [██████░░░░] 75% (3/4 plans)
+Progress: [██████████] 100% (4/4 plans)
 
 ## Performance Metrics
 
@@ -128,6 +128,7 @@ Progress: [██████░░░░] 75% (3/4 plans)
 | Phase 06.9 P01 | 2299 | 2 tasks | 6 files |
 | Phase 06.9 P02 | 1193 | 2 tasks | 2 files |
 | Phase 06.9 P3 | 2038 | 2 tasks | 3 files |
+| Phase 06.9 P04 | 1800 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -423,6 +424,8 @@ Recent decisions affecting current work:
 - [Phase 06.9]: crew_server.py SHORT-CIRCUIT: routing_phase != manager routes directly to specialist crew via _SPECIALIST_MAP with importlib lazy loading
 - [Phase 06.9]: pending_intent read from conv_state and passed in manager_context — survives auth handoffs without citizen repeating their request
 - [Phase 06.9]: ticket_status fallback messages added to _FALLBACK_REPLIES in all 3 languages (EN/ZU/AF)
+- [Phase 06.9]: Patch src.agents.crews.manager_crew.ManagerCrew not src.agents.flows.intake_flow.ManagerCrew — ManagerCrew is imported inside receive_and_route() function body, not at module level
+- [Phase 06.9]: ticket_tool validation returns dict error not raise ValueError — _create_ticket_impl uses Supabase pattern, returns {'error': ...} for LLM agent consumption (not exception-based)
 
 ### Pending Todos
 
@@ -446,10 +449,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18 (Phase 6.9 Plan 03 complete)
-Stopped at: Completed 06.9-03-PLAN.md — IntakeFlow and crew_server integration layer
-Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-04-PLAN.md
+Last session: 2026-02-18 (Phase 6.9 COMPLETE — all 4 plans done)
+Stopped at: Completed 06.9-04-PLAN.md — Test suite update for ManagerCrew architecture, Phase 6.9 COMPLETE
+Resume file: (none — Phase 6.9 complete, next phase TBD)
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-18 (06.9 context)*
+*Last updated: 2026-02-18 (06.9 complete)*
