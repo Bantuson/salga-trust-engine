@@ -1,3 +1,38 @@
+gbv_intake_task:
+  description: >
+    Support a citizen reporting a gender-based violence or abuse incident.
+    The citizen's message: {message}
+    Language: {language}
+    User ID: {user_id}
+    Tenant ID (municipality): {tenant_id}
+
+    TRAUMA-INFORMED PROTOCOL — follow strictly:
+    1. SAFETY FIRST: Ask "Are you safe right now?" if not already confirmed.
+    2. VALIDATE: Acknowledge their bravery. "I'm sorry this is happening to you."
+    3. COLLECT ONLY ESSENTIALS: incident type, general location (area, not exact address),
+       danger level (are they still in danger?), do they need SAPS response immediately?
+    4. DO NOT over-question. Maximum 3-4 questions total.
+    5. CALL create_municipal_ticket tool with category="gbv" to create the report.
+       Set is_sensitive=True behavior is automatic for gbv category.
+    6. CALL notify_saps tool to log the incident for SAPS (internal log in v1).
+
+    Tool parameters for create_municipal_ticket:
+    - category: "gbv" (ALWAYS use this value)
+    - description: brief summary of the incident (NO victim identifying details)
+    - user_id: {user_id}
+    - tenant_id: {tenant_id}
+    - language: {language}
+    - severity: "critical" if immediate danger, "high" otherwise
+    - address: general area only (NOT exact home address)
+
+    Emergency numbers to share at any point if citizen is in danger:
+    - SAPS: 10111
+    - GBV Command Centre: 0800 150 150
+  expected_output: >
+    A trauma-informed response confirming the report has been logged with a
+    tracking number, and emergency contact information. Include the SAPS number
+    (10111) and GBV Helpline (0800 150 150) in every response.
+
 municipal_intake_task:
   description: >
     Conduct intake for a municipal service report from a citizen.
@@ -52,3 +87,83 @@ auth_task:
   expected_output: >
     Authenticated user with active session, or clear error message explaining
     what step failed and how to retry.
+
+manager_task:
+  description: >
+    Handle this citizen message as the first-contact manager.
+
+    Message: {message}
+    Phone: {phone}
+    Language: {language}
+    Session status: {session_status}
+    User exists: {user_exists}
+    User ID: {user_id}
+    Conversation history: {conversation_history}
+    Pending intent (if returning from auth): {pending_intent}
+
+    STEP 1 — GREET (new sessions only):
+    If this is a new session (no conversation history), greet the citizen warmly
+    as Gugu. Introduce yourself and ask how you can help. Do NOT skip greeting
+    for first contact.
+
+    STEP 2 — CLASSIFY INTENT:
+    Classify the citizen's message into one of these intents:
+    - greeting: Simple greeting or pleasantry (no action needed)
+    - off_topic: Unrelated to municipal services (handle directly, politely redirect)
+    - municipal_report: Wants to report a service delivery issue (water, roads, electricity, waste, sanitation)
+    - gbv_report: Reporting gender-based violence or abuse (crisis context)
+    - ticket_status: Wants to check status of an existing report
+
+    STEP 3 — AUTH CHECK:
+    - greeting and off_topic: NO authentication required. Handle directly.
+    - municipal_report, gbv_report, ticket_status: REQUIRES active session.
+      If session_status is NOT "active", delegate to "Citizen Authentication Specialist" FIRST.
+
+    STEP 4 — DELEGATE to the appropriate specialist:
+    - Authentication needed: delegate to "Citizen Authentication Specialist"
+      Pass: full message context, phone, language, user_exists, session_status.
+    - Municipal report (authenticated): delegate to "Municipal Services Intake Specialist"
+      Pass: the citizen's message, user_id, tenant_id, language.
+    - GBV report (authenticated): delegate to "Crisis Support Specialist"
+      Pass: the citizen's message, user_id, language.
+    - Ticket status (authenticated): delegate to "Ticket Status Specialist"
+      Pass: user_id, language, tracking_number (if mentioned), conversation_history.
+
+    IMPORTANT: When delegating, pass the FULL context including conversation history
+    and the original citizen message. The specialist needs this to respond correctly.
+
+    If pending_intent is set (citizen returning from auth), route directly to the
+    appropriate specialist without re-classifying — the intent was already determined.
+  expected_output: >
+    The specialist's response to the citizen, or Gugu's own greeting/redirect response.
+
+ticket_status_task:
+  description: >
+    Help this citizen check the status of their existing reports.
+
+    User ID: {user_id}
+    Language: {language}
+    Tracking number (if provided): {tracking_number}
+    Conversation history: {conversation_history}
+
+    INSTRUCTIONS:
+    1. Use the lookup_ticket tool with user_id (MANDATORY) to retrieve tickets.
+       If a tracking_number is provided, pass it to filter results.
+       If no tracking_number, retrieve all recent tickets (tool returns up to 10).
+
+    2. Present results clearly:
+       - Show the most recent ticket FIRST.
+       - For each ticket, show: tracking number, category, status, address (if available),
+         date reported, and whether it has been responded to or escalated.
+       - If multiple tickets: show the first, then say
+         "You have X more open reports. Would you like to see them all?"
+       - GBV / sensitive tickets: show ONLY status and emergency numbers
+         (SAPS 10111 | GBV Helpline 0800 150 150). No other details.
+
+    3. If no tickets found:
+       - Guide citizen to double-check their tracking number.
+       - Suggest they use the format TKT-YYYYMMDD-XXXXXX.
+
+    4. Offer next steps: report a new issue, or ask about a specific ticket.
+  expected_output: >
+    Ticket status information presented clearly to the citizen with next steps.
