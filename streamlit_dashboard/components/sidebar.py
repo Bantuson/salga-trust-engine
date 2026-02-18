@@ -112,6 +112,74 @@ def render_sidebar() -> None:
                 ]
                 st.rerun()
 
+        # ── Manager flow presets (Phase 6.9) ──────────────────────────────
+
+        st.caption("Manager routing scenarios (Phase 6.9):")
+
+        col3, col4 = st.columns(2)
+
+        with col3:
+            if st.button(
+                "Ticket Status",
+                use_container_width=True,
+                help="Tests ticket status lookup via manager routing. Requires active session.",
+            ):
+                st.session_state.session_override = "active"
+                st.session_state.messages = [
+                    {
+                        "role": "user",
+                        "content": "I want to check on my water leak report",
+                    }
+                ]
+                st.rerun()
+
+        with col4:
+            if st.button(
+                "Greeting",
+                use_container_width=True,
+                help="Tests manager greeting for generic hello. Uses new user session.",
+            ):
+                st.session_state.session_override = "new"
+                st.session_state.messages = [
+                    {
+                        "role": "user",
+                        "content": "Hi",
+                    }
+                ]
+                st.rerun()
+
+        col5, col6 = st.columns(2)
+
+        with col5:
+            if st.button(
+                "Off-topic",
+                use_container_width=True,
+                help="Tests manager off-topic warm redirect. Active session.",
+            ):
+                st.session_state.session_override = "active"
+                st.session_state.messages = [
+                    {
+                        "role": "user",
+                        "content": "What is the weather today?",
+                    }
+                ]
+                st.rerun()
+
+        with col6:
+            if st.button(
+                "Intent+Auth",
+                use_container_width=True,
+                help="Tests pending_intent preservation through auth. New user session.",
+            ):
+                st.session_state.session_override = "new"
+                st.session_state.messages = [
+                    {
+                        "role": "user",
+                        "content": "I need to report a water leak on Main Street",
+                    }
+                ]
+                st.rerun()
+
         st.divider()
 
         # ------------------------------------------------------------------

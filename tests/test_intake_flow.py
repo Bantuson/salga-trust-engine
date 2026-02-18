@@ -1,9 +1,18 @@
 """Unit tests for IntakeFlow message routing and orchestration.
 
-Tests language detection, category classification, and routing logic
-with mocked LLM calls.
+Tests cover:
+- IntakeState initialization and serialization
+- Language detection in receive_and_route()
+- ManagerCrew delegation via receive_and_route()
+- Context dict construction passed to ManagerCrew
+- State updated from manager result
+
+Phase 6.9 architecture note:
+    classify_message() and route_to_crew() were removed in Phase 6.9.
+    All routing now goes through ManagerCrew.kickoff() via receive_and_route().
+    Tests for the removed keyword-classification chain are no longer valid.
 """
-from unittest.mock import MagicMock, patch
+from unittest.mock import AsyncMock, MagicMock, patch
 
 import pytest
 
@@ -25,8 +34,14 @@ def sample_state():
         user_id="user_456",
         tenant_id="tenant_789",
         session_id="session_abc",
-        message="There is a water pipe burst on Main Street"
+        message="There is a water pipe burst on Main Street",
+        phone="+27821234567",
+        session_status="active",
+        user_exists=True,
     )
+
+
+# ── IntakeState model tests ────────────────────────────────────────────────────
 
 
 def test_intake_state_initialization():
@@ -55,6 +70,18 @@ def test_intake_state_initialization():
     assert state.error is None
 
 
+def test_intake_state_phase_69_fields():
+    """Test Phase 6.9 ManagerCrew context fields default correctly."""
+    state = IntakeState()
+
+    # Phase 6.9 fields
+    assert state.session_status == "none"
+    assert state.user_exists is False
+    assert state.pending_intent is None
+    assert state.conversation_history == "(none)"
+    assert state.phone == ""
+
+
 def test_intake_state_serialization():
     """Test IntakeState JSON serialization/deserialization."""
     state = IntakeState(
@@ -65,7 +92,10 @@ def test_intake_state_serialization():
         message="Test message",
         language="zu",
         category="municipal",
-        subcategory="water"
+        subcategory="water",
+        session_status="active",
+        user_exists=True,
+        phone="+27821234567",
     )
 
     # Serialize to JSON
@@ -78,336 +108,213 @@ def test_intake_state_serialization():
     assert restored_state.language == "zu"
     assert restored_state.category == "municipal"
     assert restored_state.subcategory == "water"
+    assert restored_state.session_status == "active"
+    assert restored_state.user_exists is True
+    assert restored_state.phone == "+27821234567"
+
+
+# ── IntakeFlow receive_and_route() tests ──────────────────────────────────────
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-def test_intake_flow_receive_message(mock_lang_detector, mock_redis_url, sample_state):
-    """Test receive_message detects language and updates state."""
-    # Mock language detector
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_detects_language(
+    mock_get_llm, mock_lang_detector, mock_redis_url, sample_state
+):
+    """receive_and_route() calls language_detector.detect before routing."""
     mock_lang_detector.detect.return_value = "en"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
 
-    # Create flow with initial state
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    # Use the internal _state to set initial state for testing
-    flow._state = sample_state
+    # Mock ManagerCrew to avoid real API calls
+    mock_manager_result = {"message": "Hello! I'm Gugu.", "routing": "greeting"}
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value=mock_manager_result)
 
-    # Call receive_message
-    language = flow.receive_message()
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = sample_state
+        result = await flow.receive_and_route()
 
-    # Verify
-    assert language == "en"
-    assert flow.state.language == "en"
-    assert flow.state.turn_count == 1
+    # Language detector was called with the message
     mock_lang_detector.detect.assert_called_once_with(
         "There is a water pipe burst on Main Street",
         fallback="en"
     )
+    assert result is not None
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-def test_intake_flow_detect_zulu(mock_lang_detector, mock_redis_url):
-    """Test language detection for isiZulu message."""
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_detects_zulu(
+    mock_get_llm, mock_lang_detector, mock_redis_url
+):
+    """receive_and_route() uses detected language for ManagerCrew init."""
     mock_lang_detector.detect.return_value = "zu"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
 
     state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Amanzi ayaphuma emgwaqeni"
+        message="Amanzi ayaphuma emgwaqeni",
+        session_status="active",
+        user_exists=True,
     )
 
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
+    mock_manager_result = {"message": "Sawubona!"}
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value=mock_manager_result)
 
-    language = flow.receive_message()
+    with patch("src.agents.crews.manager_crew.ManagerCrew") as MockManagerCrew:
+        MockManagerCrew.return_value = mock_manager
 
-    assert language == "zu"
-    assert flow.state.language == "zu"
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = state
+        await flow.receive_and_route()
+
+        # ManagerCrew was instantiated with the detected language
+        MockManagerCrew.assert_called_once()
+        call_kwargs = MockManagerCrew.call_args
+        assert call_kwargs[1]["language"] == "zu" or call_kwargs[0][0] == "zu"
 
 
-def test_classify_message_municipal_water(mock_redis_url):
-    """Test classification of municipal water issue."""
+@patch("src.agents.flows.intake_flow.language_detector")
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_passes_full_context_to_manager(
+    mock_get_llm, mock_lang_detector, mock_redis_url
+):
+    """receive_and_route() builds correct context dict for ManagerCrew.kickoff()."""
+    mock_lang_detector.detect.return_value = "en"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
+
     state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Water pipe burst on Main Street"
+        message="I want to check my water leak report",
+        user_id="user-uuid-123",
+        tenant_id="tenant-abc",
+        phone="+27821234567",
+        session_status="active",
+        user_exists=True,
+        pending_intent="ticket_status",
+        conversation_history="Citizen: Hi\nGugu: Hello!",
     )
 
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
+    mock_manager_result = {"message": "Your report TKT-20260218-ABC123 is open."}
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value=mock_manager_result)
 
-    category = flow.classify_message()
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = state
+        await flow.receive_and_route()
 
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.subcategory == "water"
-    assert flow.state.routing_confidence >= 0.8
+    # Verify kickoff was called with the expected context
+    mock_manager.kickoff.assert_called_once()
+    context_passed = mock_manager.kickoff.call_args[0][0]
 
-
-def test_classify_message_municipal_roads(mock_redis_url):
-    """Test classification of municipal roads issue."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Pothole on Jan Smuts Avenue"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.subcategory == "roads"
+    assert context_passed["message"] == "I want to check my water leak report"
+    assert context_passed["user_id"] == "user-uuid-123"
+    assert context_passed["language"] == "en"
+    assert context_passed["phone"] == "+27821234567"
+    assert context_passed["session_status"] == "active"
+    assert context_passed["conversation_history"] == "Citizen: Hi\nGugu: Hello!"
+    assert context_passed["pending_intent"] == "ticket_status"
 
 
-def test_classify_message_municipal_electricity(mock_redis_url):
-    """Test classification of municipal electricity issue."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Streetlight broken on corner"
-    )
+@patch("src.agents.flows.intake_flow.language_detector")
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_stores_result_in_state(
+    mock_get_llm, mock_lang_detector, mock_redis_url, sample_state
+):
+    """receive_and_route() stores ManagerCrew result in state.ticket_data."""
+    mock_lang_detector.detect.return_value = "en"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
 
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
+    expected_result = {
+        "message": "Your report has been submitted. Tracking: TKT-20260218-A1B2C3",
+        "tracking_number": "TKT-20260218-A1B2C3",
+        "routing": "municipal_report",
+    }
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value=expected_result)
 
-    category = flow.classify_message()
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = sample_state
+        result = await flow.receive_and_route()
 
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.subcategory == "electricity"
-
-
-def test_classify_message_municipal_waste(mock_redis_url):
-    """Test classification of municipal waste issue."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Trash not collected this week"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.subcategory == "waste"
-
-
-def test_classify_message_municipal_sanitation(mock_redis_url):
-    """Test classification of municipal sanitation issue."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Sewage overflow in the street"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.subcategory == "sanitation"
-
-
-def test_classify_message_gbv_english(mock_redis_url):
-    """Test classification of GBV report in English."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="My husband hits me"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "gbv"
-    assert flow.state.category == "gbv"
-    assert flow.state.subcategory is None
-    assert flow.state.routing_confidence >= 0.8
-
-
-def test_classify_message_gbv_zulu(mock_redis_url):
-    """Test classification of GBV report in isiZulu."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Umyeni wami uyangihlukumeza"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "gbv"
-    assert flow.state.category == "gbv"
-    assert flow.state.subcategory is None
-
-
-def test_classify_message_gbv_afrikaans(mock_redis_url):
-    """Test classification of GBV report in Afrikaans."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Huishoudelike geweld"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "gbv"
-    assert flow.state.category == "gbv"
-
-
-def test_classify_message_default_municipal(mock_redis_url):
-    """Test default classification to municipal for unclear messages."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="I need help with something"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    category = flow.classify_message()
-
-    assert category == "municipal"
-    assert flow.state.category == "municipal"
-    assert flow.state.routing_confidence < 0.6  # Low confidence
-
-
-def test_route_to_crew_municipal(mock_redis_url):
-    """Test routing to municipal crew."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Water leak",
-        category="municipal"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    route = flow.route_to_crew()
-
-    assert route == "municipal_intake"
-
-
-def test_route_to_crew_gbv(mock_redis_url):
-    """Test routing to GBV crew."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Domestic violence",
-        category="gbv"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    route = flow.route_to_crew()
-
-    assert route == "gbv_intake"
-
-
-def test_handle_municipal(mock_redis_url):
-    """Test municipal intake handler."""
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="Water pipe burst",
-        language="en",
-        category="municipal",
-        subcategory="water"
-    )
-
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
-
-    result = flow.handle_municipal()
-
-    assert isinstance(result, dict)
-    assert "category" in result
-    assert "description" in result
-    assert flow.state.ticket_data is not None
+    # State must be updated
+    assert flow.state.ticket_data == expected_result
     assert flow.state.is_complete is True
+    assert result == expected_result
 
 
-@pytest.mark.asyncio
-async def test_handle_gbv(mock_redis_url):
-    """Test GBV intake handler with GBVCrew."""
-    from unittest.mock import AsyncMock, patch
+@patch("src.agents.flows.intake_flow.language_detector")
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_increments_turn_count(
+    mock_get_llm, mock_lang_detector, mock_redis_url
+):
+    """receive_and_route() increments state.turn_count on each call."""
+    mock_lang_detector.detect.return_value = "en"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
 
-    state = IntakeState(
-        message_id="msg_1",
-        user_id="user_1",
-        tenant_id="tenant_1",
-        session_id="session_1",
-        message="GBV report - domestic violence",
-        category="gbv"
-    )
+    state = IntakeState(message="Hi", turn_count=3)
 
-    flow = IntakeFlow(redis_url=mock_redis_url)
-    flow._state = state
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value={"message": "Hello!"})
 
-    # Mock GBVCrew.kickoff to return success
-    with patch('src.agents.crews.gbv_crew.GBVCrew.kickoff', new_callable=AsyncMock) as mock_kickoff:
-        mock_kickoff.return_value = {
-            "tracking_number": "TKT-20260209-ABC123",
-            "category": "gbv",
-            "severity": "high"
-        }
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = state
+        await flow.receive_and_route()
 
-        # Mock conversation manager clear_session
-        flow._conversation_manager.clear_session = AsyncMock()
+    assert flow.state.turn_count == 4
 
-        result = await flow.handle_gbv()
 
-        assert isinstance(result, dict)
-        assert "tracking_number" in result
-        assert result["category"] == "gbv"
-        assert flow.state.is_complete is True
+@patch("src.agents.flows.intake_flow.language_detector")
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_pending_intent_none_becomes_none_string(
+    mock_get_llm, mock_lang_detector, mock_redis_url
+):
+    """receive_and_route() passes 'none' string when pending_intent is None."""
+    mock_lang_detector.detect.return_value = "en"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
 
-        # Verify session was cleared
-        flow._conversation_manager.clear_session.assert_called_once_with(
-            user_id="user_1",
-            session_id="session_1",
-            is_gbv=True
-        )
+    state = IntakeState(message="Hello", pending_intent=None)
+
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value={"message": "Hi!"})
+
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = state
+        await flow.receive_and_route()
+
+    context_passed = mock_manager.kickoff.call_args[0][0]
+    # None pending_intent becomes "none" string (avoids KeyError in format())
+    assert context_passed["pending_intent"] == "none"
+
+
+@patch("src.agents.flows.intake_flow.language_detector")
+@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+async def test_receive_and_route_sets_state_language_from_detected(
+    mock_get_llm, mock_lang_detector, mock_redis_url
+):
+    """receive_and_route() updates state.language from detected language."""
+    mock_lang_detector.detect.return_value = "af"
+    mock_llm = MagicMock()
+    mock_get_llm.return_value = mock_llm
+
+    state = IntakeState(message="Water lek op Hoofstraat", language="en")  # starts as en
+
+    mock_manager = MagicMock()
+    mock_manager.kickoff = AsyncMock(return_value={"message": "Hallo!"})
+
+    with patch("src.agents.crews.manager_crew.ManagerCrew", return_value=mock_manager):
+        flow = IntakeFlow(redis_url=mock_redis_url)
+        flow._state = state
+        await flow.receive_and_route()
+
+    assert flow.state.language == "af"
