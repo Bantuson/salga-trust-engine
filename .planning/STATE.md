@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.9 in progress — Plan 01 complete: Foundational components for manager architecture (ConversationState routing fields, ticket_lookup_tool, TicketStatusCrew, YAML config)
+**Current focus:** Phase 6.9 in progress — Plan 02 complete: ManagerCrew with Process.hierarchical, Gugu persona manager agent, 4 specialist agent coworkers, LLM-based routing
 
 ## Current Position
 
 Phase: 6.9 of 6.9 (Multi-Agent Manager Refactor)
-Plan: 1 of 4 in current phase
-Status: IN PROGRESS — Plan 01 complete: ConversationState routing fields, ticket_lookup_tool, TicketStatusCrew, manager+ticket_status YAML configs
-Last activity: 2026-02-18 — Phase 6.9 Plan 01 complete: Foundational components for manager architecture
+Plan: 2 of 4 in current phase
+Status: IN PROGRESS — Plan 02 complete: ManagerCrew (Process.hierarchical), all 5 crews exported from src.agents.crews
+Last activity: 2026-02-18 — Phase 6.9 Plan 02 complete: ManagerCrew routing engine
 
-Progress: [██░░░░░░░░] 25% (1/4 plans)
+Progress: [████░░░░░░] 50% (2/4 plans)
 
 ## Performance Metrics
 
@@ -126,6 +126,7 @@ Progress: [██░░░░░░░░] 25% (1/4 plans)
 | 06.8-04 | 6.7m (400s) | 2 | 2 |
 | Phase 06.8 P05 | 140 | 1 tasks | 1 files |
 | Phase 06.9 P01 | 2299 | 2 tasks | 6 files |
+| Phase 06.9 P02 | 1193 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -413,6 +414,10 @@ Recent decisions affecting current work:
 - [Phase 06.9]: lookup_ticket asserts user_id truthy — defense-in-depth since admin client bypasses Supabase RLS
 - [Phase 06.9]: manager_agent allow_delegation=true — required for CrewAI hierarchical process delegation
 - [Phase 06.9]: gbv_intake_task auto-fixed in tasks.yaml — was missing, causing GBVCrew.create_crew() to KeyError
+- [Phase 06.9]: ManagerCrew does NOT inherit BaseCrew — hierarchical mode is architecturally different from sequential specialist crews
+- [Phase 06.9]: manager_agent tools=[] (CRITICAL) — CrewAI raises exceptions if manager has tools in hierarchical mode
+- [Phase 06.9]: Both manager_agent and manager_llm set on Crew — prevents LiteLLM OpenAI fallback during delegation
+- [Phase 06.9]: Task context uses empty string defaults for optional fields to prevent KeyError in format()
 
 ### Pending Todos
 
@@ -436,9 +441,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18 (Phase 6.9 Plan 01 complete)
-Stopped at: Completed 06.9-01-PLAN.md — foundational manager components
-Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-02-PLAN.md
+Last session: 2026-02-18 (Phase 6.9 Plan 02 complete)
+Stopped at: Completed 06.9-02-PLAN.md — ManagerCrew routing engine
+Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-03-PLAN.md
 
 ---
 *State initialized: 2026-02-09*
