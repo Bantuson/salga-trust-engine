@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.8 in progress — Plans 01, 03, and 04 complete (Gugu persona + response sanitization + identity hardening); next: email OTP fix (magic links to 6-digit codes)
+**Current focus:** Phase 6.9 in progress — Plan 01 complete: Foundational components for manager architecture (ConversationState routing fields, ticket_lookup_tool, TicketStatusCrew, YAML config)
 
 ## Current Position
 
-Phase: 6.8 of 6.8 (Gugu Persona & Email OTP Fix)
-Plan: 3 of 3 in current phase
-Status: IN PROGRESS — Plan 04 complete: CRITICAL IDENTITY anchors, greeting-first gate, language preference persistence
-Last activity: 2026-02-17 — Phase 6.8 Plan 04 complete: Auth agent identity hardening and language lock
+Phase: 6.9 of 6.9 (Multi-Agent Manager Refactor)
+Plan: 1 of 4 in current phase
+Status: IN PROGRESS — Plan 01 complete: ConversationState routing fields, ticket_lookup_tool, TicketStatusCrew, manager+ticket_status YAML configs
+Last activity: 2026-02-18 — Phase 6.9 Plan 01 complete: Foundational components for manager architecture
 
-Progress: [█████████░] 90% (3/3 plans)
+Progress: [██░░░░░░░░] 25% (1/4 plans)
 
 ## Performance Metrics
 
@@ -125,6 +125,7 @@ Progress: [█████████░] 90% (3/3 plans)
 | 06.8-03 | 7m (408s) | 2 | 4 |
 | 06.8-04 | 6.7m (400s) | 2 | 2 |
 | Phase 06.8 P05 | 140 | 1 tasks | 1 files |
+| Phase 06.9 P01 | 2299 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -408,6 +409,10 @@ Recent decisions affecting current work:
 - [Phase 06.8-04]: Priority chain: explicit preference in current message > stored preference from history > auto-detected > request hint
 - [Phase 06.8]: 06.8-05: Use {{ .Token }} only (not {{ .ConfirmationURL }}) in email template — eliminates magic link, shows 6-digit OTP code as plain styled text
 - [Phase 06.8]: 06.8-05: HTML email template uses inline CSS only (no <style> blocks) + table layout + bgcolor attrs for Outlook/Gmail/Apple Mail compatibility
+- [Phase 06.9]: routing_phase defaults to 'manager' — all existing sessions remain manager-owned without migration
+- [Phase 06.9]: lookup_ticket asserts user_id truthy — defense-in-depth since admin client bypasses Supabase RLS
+- [Phase 06.9]: manager_agent allow_delegation=true — required for CrewAI hierarchical process delegation
+- [Phase 06.9]: gbv_intake_task auto-fixed in tasks.yaml — was missing, causing GBVCrew.create_crew() to KeyError
 
 ### Pending Todos
 
@@ -431,9 +436,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18 (Phase 6.9 context gathered)
-Stopped at: Phase 6.9 context gathered — ready for /gsd:plan-phase 6.9
-Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-CONTEXT.md
+Last session: 2026-02-18 (Phase 6.9 Plan 01 complete)
+Stopped at: Completed 06.9-01-PLAN.md — foundational manager components
+Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-02-PLAN.md
 
 ---
 *State initialized: 2026-02-09*
