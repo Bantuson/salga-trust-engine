@@ -181,7 +181,20 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-17 (Phase 6.8 gap closure plans 04-05 added)*
+*Last updated: 2026-02-18 (Phase 6.9 planned — 4 plans in 4 waves)*
+
+### Phase 06.9: Multi-Agent Manager Refactor — CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
+
+**Goal:** Replace keyword-based IntakeFlow router and imperative crew_server.py routing logic with a CrewAI hierarchical manager agent. Manager handles first contact, classifies intent via LLM, delegates to specialist agents (auth, municipal intake, GBV, ticket status). Add new ticket status agent for citizens to check on existing reports.
+**Depends on:** Phase 6.8
+**Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
+**Plans:** 4 plans
+
+Plans:
+- [ ] 06.9-01-PLAN.md -- ConversationState extension, ticket_lookup_tool, TicketStatusCrew, YAML config for all agents/tasks
+- [ ] 06.9-02-PLAN.md -- ManagerCrew with Process.hierarchical, Gugu manager agent, specialist delegation
+- [ ] 06.9-03-PLAN.md -- IntakeFlow and crew_server.py refactor to route through ManagerCrew
+- [ ] 06.9-04-PLAN.md -- Unit tests for ManagerCrew/TicketStatusCrew, update existing tests, Streamlit presets
 
 ### Phase 06.7: Municipal intake agent testing — DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
 
