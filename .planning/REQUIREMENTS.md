@@ -24,7 +24,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **AI-02**: Manager agent analyzes message content and routes to appropriate specialist agent by category
 - [ ] **AI-03**: Specialist agent for municipal services (water, roads, electricity, waste, sanitation) handles report capture and ticket creation
 - [ ] **AI-04**: Specialist agent for GBV/domestic violence/abuse handles sensitive report capture with enhanced privacy
-- [ ] **AI-05**: Each specialist agent conducts structured conversational intake to gather required information
+- [x] **AI-05**: Each specialist agent conducts structured conversational intake to gather required information
 - [ ] **AI-06**: Agents support English, isiZulu, and Afrikaans (detect language, respond in kind)
 - [ ] **AI-07**: All agent interactions have guardrails preventing inappropriate responses or data leakage
 
@@ -141,7 +141,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-02 | Phase 2 | Pending |
 | AI-03 | Phase 2 | Pending |
 | AI-04 | Phase 2 | Pending |
-| AI-05 | Phase 2 | Pending |
+| AI-05 | Phase 2 | Complete |
 | AI-06 | Phase 2 | Pending |
 | AI-07 | Phase 2 | Pending |
 | RPT-01 | Phase 3 | Pending |
