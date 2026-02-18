@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.9 in progress — Plan 02 complete: ManagerCrew with Process.hierarchical, Gugu persona manager agent, 4 specialist agent coworkers, LLM-based routing
+**Current focus:** Phase 6.9 in progress — Plan 03 complete: IntakeFlow and crew_server integration layer — all messages now route through ManagerCrew
 
 ## Current Position
 
 Phase: 6.9 of 6.9 (Multi-Agent Manager Refactor)
-Plan: 2 of 4 in current phase
-Status: IN PROGRESS — Plan 02 complete: ManagerCrew (Process.hierarchical), all 5 crews exported from src.agents.crews
-Last activity: 2026-02-18 — Phase 6.9 Plan 02 complete: ManagerCrew routing engine
+Plan: 3 of 4 in current phase
+Status: IN PROGRESS — Plan 03 complete: IntakeFlow + crew_server integration layer (ManagerCrew routing, specialist short-circuit, routing_phase persistence)
+Last activity: 2026-02-18 — Phase 6.9 Plan 03 complete: Integration layer wired
 
-Progress: [████░░░░░░] 50% (2/4 plans)
+Progress: [██████░░░░] 75% (3/4 plans)
 
 ## Performance Metrics
 
@@ -127,6 +127,7 @@ Progress: [████░░░░░░] 50% (2/4 plans)
 | Phase 06.8 P05 | 140 | 1 tasks | 1 files |
 | Phase 06.9 P01 | 2299 | 2 tasks | 6 files |
 | Phase 06.9 P02 | 1193 | 2 tasks | 2 files |
+| Phase 06.9 P3 | 2038 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -418,6 +419,10 @@ Recent decisions affecting current work:
 - [Phase 06.9]: manager_agent tools=[] (CRITICAL) — CrewAI raises exceptions if manager has tools in hierarchical mode
 - [Phase 06.9]: Both manager_agent and manager_llm set on Crew — prevents LiteLLM OpenAI fallback during delegation
 - [Phase 06.9]: Task context uses empty string defaults for optional fields to prevent KeyError in format()
+- [Phase 06.9]: routing_phase persisted via explicit save_state() before append_turn() because Redis re-fetches state, losing local mutations
+- [Phase 06.9]: crew_server.py SHORT-CIRCUIT: routing_phase != manager routes directly to specialist crew via _SPECIALIST_MAP with importlib lazy loading
+- [Phase 06.9]: pending_intent read from conv_state and passed in manager_context — survives auth handoffs without citizen repeating their request
+- [Phase 06.9]: ticket_status fallback messages added to _FALLBACK_REPLIES in all 3 languages (EN/ZU/AF)
 
 ### Pending Todos
 
@@ -441,9 +446,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18 (Phase 6.9 Plan 02 complete)
-Stopped at: Completed 06.9-02-PLAN.md — ManagerCrew routing engine
-Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-03-PLAN.md
+Last session: 2026-02-18 (Phase 6.9 Plan 03 complete)
+Stopped at: Completed 06.9-03-PLAN.md — IntakeFlow and crew_server integration layer
+Resume file: .planning/phases/06.9-multi-agent-manager-refactor-crewai-hierarchical-routing-with-manager-agent-greeting-task-auth-routing-municipal-tickets-agent/06.9-04-PLAN.md
 
 ---
 *State initialized: 2026-02-09*

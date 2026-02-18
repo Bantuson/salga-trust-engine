@@ -188,7 +188,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 **Goal:** Replace keyword-based IntakeFlow router and imperative crew_server.py routing logic with a CrewAI hierarchical manager agent. Manager handles first contact, classifies intent via LLM, delegates to specialist agents (auth, municipal intake, GBV, ticket status). Add new ticket status agent for citizens to check on existing reports.
 **Depends on:** Phase 6.8
 **Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
-**Plans:** 4 plans
+**Plans:** 3/4 plans executed
 
 Plans:
 - [ ] 06.9-01-PLAN.md -- ConversationState extension, ticket_lookup_tool, TicketStatusCrew, YAML config for all agents/tasks
