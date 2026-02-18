@@ -1,17 +1,19 @@
 """CrewAI Flow for message routing and orchestration.
 
 This module implements the main intake flow that receives citizen messages,
-detects language, classifies category, and routes to the appropriate specialist
-crew (municipal or GBV).
+detects language, and delegates all routing and classification to ManagerCrew.
+
+Phase 6.9 refactor: keyword-based classify_message/route_to_crew chain has
+been replaced by a single @start() method that calls ManagerCrew.kickoff().
+ManagerCrew handles intent classification, auth checks, and specialist
+delegation internally via Process.hierarchical.
 """
-import json
 from typing import Any
 
-from crewai.flow.flow import Flow, listen, router, start
+from crewai.flow.flow import Flow, start
 
 from src.agents.flows.state import IntakeState
 from src.agents.llm import get_deepseek_llm
-from src.agents.prompts.municipal import CATEGORY_CLASSIFICATION_PROMPT
 from src.core.conversation import ConversationManager
 from src.core.language import language_detector
 
@@ -19,11 +21,11 @@ from src.core.language import language_detector
 class IntakeFlow(Flow[IntakeState]):
     """Main intake flow for message routing and orchestration.
 
-    Uses CrewAI Flow decorators to orchestrate the intake process:
-    1. Receive message and detect language
-    2. Classify message into category/subcategory
-    3. Route to appropriate specialist crew
-    4. Handle crew execution and return result
+    Single entry point: detect language, delegate to ManagerCrew.
+
+    ManagerCrew (Process.hierarchical) handles all intent classification,
+    auth gate checking, and specialist delegation internally. This replaces
+    the old keyword-based classify_message + route_to_crew chain.
     """
 
     def __init__(self, redis_url: str, llm=None):
@@ -38,177 +40,41 @@ class IntakeFlow(Flow[IntakeState]):
         self._llm = llm or get_deepseek_llm()
 
     @start()
-    def receive_message(self) -> str:
-        """Receive message and detect language.
+    async def receive_and_route(self) -> dict:
+        """Single entry point: detect language, run ManagerCrew.
 
-        This is the entry point for the flow. Detects the language of the
-        incoming message and updates state accordingly.
+        Replaces the keyword classification chain with LLM-based manager
+        routing. The ManagerCrew handles intent classification, auth checks,
+        and specialist delegation internally via Process.hierarchical.
 
         Returns:
-            Detected language code (en/zu/af)
+            Result dict from ManagerCrew with "message" and routing metadata.
         """
-        # Detect language using lingua-py
+        # Detect language using lingua-py (preserved from old flow)
         detected_language = language_detector.detect(
-            self.state.message,
-            fallback="en"
+            self.state.message, fallback="en"
         )
-
-        # Update state
         self.state.language = detected_language
         self.state.turn_count += 1
 
-        return detected_language
+        # Build context for ManagerCrew
+        from src.agents.crews.manager_crew import ManagerCrew
 
-    @listen(receive_message)
-    def classify_message(self) -> str:
-        """Classify message into category and subcategory.
-
-        Uses LLM with classification prompt to determine whether this is
-        a municipal services issue or GBV report.
-
-        Returns:
-            Category string ("municipal" or "gbv")
-        """
-        # For now, use simple keyword-based classification
-        # In production, this would call an LLM API
-        # This prevents requiring OpenAI API keys for unit tests
-
-        message_lower = self.state.message.lower()
-
-        # GBV keywords (English, isiZulu, Afrikaans)
-        gbv_keywords = [
-            "abuse", "violence", "domestic", "assault", "rape", "gbv",
-            "ukungihlukumeza", "udlame", "dlame", "geweld", "huishoudelik",
-            "mishandel", "verkrag", "hits me", "beats me", "uyangihlukumeza",
-            "uyangibetha", "slaan my"
-        ]
-
-        # Municipal keywords
-        municipal_keywords = [
-            "water", "pipe", "leak", "amanzi", "pothole", "road", "umgwaqo",
-            "slaggate", "pad", "electricity", "power", "ugesi", "krag",
-            "streetlight", "trash", "waste", "garbage", "imfucuza", "afval",
-            "vullis", "sewage", "drainage", "sanitation", "amanzi angcolile",
-            "riool"
-        ]
-
-        # Check for GBV keywords first (priority)
-        if any(keyword in message_lower for keyword in gbv_keywords):
-            self.state.category = "gbv"
-            self.state.subcategory = None
-            self.state.routing_confidence = 0.9
-            return "gbv"
-
-        # Check for municipal keywords
-        if any(keyword in message_lower for keyword in municipal_keywords):
-            self.state.category = "municipal"
-
-            # Determine subcategory
-            if any(word in message_lower for word in ["water", "amanzi", "pipe", "leak"]):
-                self.state.subcategory = "water"
-            elif any(word in message_lower for word in ["road", "pothole", "umgwaqo", "slaggate", "pad"]):
-                self.state.subcategory = "roads"
-            elif any(word in message_lower for word in ["electricity", "power", "ugesi", "krag", "streetlight"]):
-                self.state.subcategory = "electricity"
-            elif any(word in message_lower for word in ["trash", "waste", "garbage", "imfucuza", "afval", "vullis"]):
-                self.state.subcategory = "waste"
-            elif any(word in message_lower for word in ["sewage", "drainage", "sanitation", "amanzi angcolile", "riool"]):
-                self.state.subcategory = "sanitation"
-            else:
-                self.state.subcategory = "other"
-
-            self.state.routing_confidence = 0.85
-            return "municipal"
-
-        # Default to municipal if uncertain (safe default)
-        self.state.category = "municipal"
-        self.state.subcategory = "other"
-        self.state.routing_confidence = 0.5
-        return "municipal"
-
-    @router(classify_message)
-    def route_to_crew(self) -> str:
-        """Route message to appropriate crew based on category.
-
-        Returns:
-            Routing destination ("municipal_intake" or "gbv_intake")
-        """
-        if self.state.category == "gbv":
-            return "gbv_intake"
-        return "municipal_intake"
-
-    @listen("municipal_intake")
-    async def handle_municipal(self) -> dict[str, Any]:
-        """Handle municipal services intake.
-
-        Instantiates and runs the MunicipalCrew to conduct structured intake.
-        The crew agent uses the create_municipal_ticket tool to persist the
-        ticket to the database.
-
-        Returns:
-            Ticket data dictionary from crew execution
-        """
-        # Import here to avoid circular dependency
-        from src.agents.crews.municipal_crew import MunicipalCrew
-
-        # Create and run municipal crew
-        crew = MunicipalCrew(language=self.state.language, llm=self._llm)
-
-        # Execute crew kickoff — the agent will gather info and call
-        # create_municipal_ticket to persist the ticket to the DB
-        result = await crew.kickoff(
-            message=self.state.message,
-            user_id=self.state.user_id,
-            tenant_id=self.state.tenant_id,
-        )
+        manager_crew = ManagerCrew(language=detected_language, llm=self._llm)
+        result = await manager_crew.kickoff({
+            "message": self.state.message,
+            "user_id": self.state.user_id,
+            "tenant_id": self.state.tenant_id,
+            "language": detected_language,
+            "phone": self.state.phone,
+            "session_status": self.state.session_status,
+            "user_exists": str(self.state.user_exists),
+            "conversation_history": self.state.conversation_history,
+            "pending_intent": self.state.pending_intent or "none",
+        })
 
         # Store result in state
         self.state.ticket_data = result
-        self.state.is_complete = True
-
-        return result
-
-    @listen("gbv_intake")
-    async def handle_gbv(self) -> dict[str, Any]:
-        """Handle GBV intake with enhanced privacy controls.
-
-        Instantiates and runs the GBVCrew to conduct trauma-informed intake.
-        After successful ticket creation, clears the GBV session from Redis
-        for data minimization.
-
-        Returns:
-            Ticket data dictionary with SAPS notification status
-        """
-        # Import here to avoid circular dependency
-        from src.agents.crews.gbv_crew import GBVCrew
-
-        # Create and run GBV crew with detected language
-        crew = GBVCrew(language=self.state.language, llm=self._llm)
-
-        # Execute crew kickoff
-        result = await crew.kickoff(
-            message=self.state.message,
-            user_id=self.state.user_id,
-            tenant_id=self.state.tenant_id
-        )
-
-        # Store result in state
-        self.state.ticket_data = result
-
-        # If ticket creation successful, clear GBV session from Redis
-        # This implements data minimization per research Pitfall 3
-        if "error" not in result and self.state.session_id:
-            try:
-                await self._conversation_manager.clear_session(
-                    user_id=self.state.user_id,
-                    session_id=self.state.session_id,
-                    is_gbv=True  # Use GBV namespace
-                )
-            except Exception as e:
-                # Log but don't fail - ticket already created
-                # In production, this would use structured logging
-                pass
-
         self.state.is_complete = True
 
         return result
