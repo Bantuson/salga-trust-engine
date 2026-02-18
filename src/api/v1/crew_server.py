@@ -19,10 +19,10 @@ Security:
     If CREW_SERVER_API_KEY is empty, validation is skipped (dev mode).
     Server binds to localhost only (127.0.0.1) when started directly.
 
-Phone routing:
-    session_status == "active"  -> IntakeFlow (existing intake pipeline)
-    session_status == "expired" -> AuthCrew (OTP re-authentication)
-    session_status == "none"    -> AuthCrew (full registration)
+Phone routing (Phase 6.9 manager architecture):
+    All messages route through ManagerCrew (LLM-based classification).
+    Short-circuit: if routing_phase in ConversationState is an active specialist
+    (not "manager"), route directly to that specialist without re-classifying.
 
 GBV safety:
     Debug output for GBV scenarios NEVER includes conversation content.
@@ -331,6 +331,11 @@ _FALLBACK_REPLIES = {
         "en": "I'm here to help you. If you are in immediate danger, please call 10111 or the GBV Command Centre at 0800 150 150. Can you tell me what happened?",
         "zu": "Ngilapha ukukusiza. Uma usengozini, shayela i-10111 noma i-GBV Command Centre ku-0800 150 150. Ungangitshela ukuthi kwenzekeni?",
         "af": "Ek is hier om jou te help. As jy in onmiddellike gevaar is, skakel 10111 of die GBV Command Centre by 0800 150 150. Kan jy my vertel wat gebeur het?",
+    },
+    "ticket_status": {
+        "en": "I'm Gugu from SALGA Trust Engine. I couldn't look up your report right now. Please try again in a moment.",
+        "zu": "NginguGugu we-SALGA Trust Engine. Angikwazanga ukubheka umbiko wakho manje. Ngicela uzame futhi ngemva kwesikhashana.",
+        "af": "Ek is Gugu van SALGA Trust Engine. Ek kon nie jou verslag nou opsoek nie. Probeer asseblief weer oor 'n oomblik.",
     },
     "error": {
         "en": "I'm Gugu from SALGA Trust Engine. Something went wrong on my side \u2014 please try again in a moment.",
@@ -683,95 +688,87 @@ async def chat(
     conversation_history = _format_history(history_turns)
 
     # ------------------------------------------------------------------
-    # Step 3: Route to agent
+    # Step 3: Route through ManagerCrew (with specialist short-circuit)
     # ------------------------------------------------------------------
 
-    agent_name: str
+    agent_name: str = "manager"
     reply: str
     agent_result: dict[str, Any] = {}
 
     try:
-        if session_status == "active":
-            # Active session -> IntakeFlow
-            agent_name = "municipal_intake"
+        # Check if there's an active specialist session to resume
+        routing_phase = getattr(conv_state, 'routing_phase', 'manager')
 
-            from src.agents.flows.intake_flow import IntakeFlow
-            from src.agents.flows.state import IntakeState
+        # Build context dict (shared by both short-circuit and manager paths)
+        manager_context = {
+            "message": request.message,
+            "user_id": detection_result.get("user_id") or phone,
+            "tenant_id": (
+                request.municipality_id
+                or detection_result.get("municipality_id")
+                or conv_state.tenant_id
+            ),
+            "language": detected_language,
+            "phone": phone,
+            "session_status": session_status,
+            "user_exists": str(detection_result.get("user_exists", False)),
+            "conversation_history": conversation_history,
+            "pending_intent": getattr(conv_state, 'pending_intent', None) or "none",
+        }
 
-            flow = IntakeFlow(redis_url=settings.REDIS_URL)
-            # Flow.state is a read-only @property backed by flow._state.
-            # CrewAI 1.8.1 provides no public setter, so we assign the
-            # private backing attribute directly.
-            flow._state = IntakeState(
-                message=request.message,
-                user_id=detection_result.get("user_id") or phone,
-                tenant_id=(
-                    request.municipality_id
-                    or detection_result.get("municipality_id")
-                    or conv_state.tenant_id
-                ),
-                session_id=session_id,
-                language=detected_language,
-            )
-
-            # Run the flow (synchronous kickoff in executor)
-            loop = asyncio.get_event_loop()
-            flow_result = await loop.run_in_executor(None, flow.kickoff)
-
-            # Extract reply from flow state
-            ticket_data = flow.state.ticket_data or {}
-
-            # If the tool was called, ticket_data has tracking_number + message
-            tracking = ticket_data.get("tracking_number")
-            if tracking:
-                reply = ticket_data.get(
-                    "message",
-                    f"Your report has been logged. Tracking number: {tracking}"
-                )
+        # --- SHORT-CIRCUIT: active specialist session ---
+        # Per locked decision: specialist keeps control until task completes
+        # OR citizen interrupts. If routing_phase is not "manager", route
+        # directly to the owning specialist crew (skip manager re-entry).
+        if routing_phase != "manager":
+            # Map routing_phase values to specialist crews
+            _SPECIALIST_MAP = {
+                "auth": ("src.agents.crews.auth_crew", "AuthCrew"),
+                "municipal": ("src.agents.crews.municipal_crew", "MunicipalCrew"),
+                "gbv": ("src.agents.crews.gbv_crew", "GBVCrew"),
+                "ticket_status": ("src.agents.crews.ticket_status_crew", "TicketStatusCrew"),
+            }
+            spec = _SPECIALIST_MAP.get(routing_phase)
+            if spec:
+                import importlib
+                mod = importlib.import_module(spec[0])
+                CrewClass = getattr(mod, spec[1])
+                specialist_crew = CrewClass(language=detected_language)
+                agent_result = await specialist_crew.kickoff(manager_context)
+                reply = agent_result.get("message", "")
+                agent_name = agent_result.get("agent", routing_phase)
             else:
-                reply = ticket_data.get(
-                    "message",
-                    ticket_data.get("description", "Your report has been received.")
-                )
+                # Unknown routing_phase — fall through to manager
+                routing_phase = "manager"
 
-            # Adjust agent name if GBV was detected
-            if flow.state.category == "gbv":
-                agent_name = "gbv_intake"
-                is_gbv = True
+        # --- MANAGER PATH: no active specialist, classify via LLM ---
+        if routing_phase == "manager":
+            from src.agents.crews.manager_crew import ManagerCrew
+            manager_crew = ManagerCrew(language=detected_language)
+            agent_result = await manager_crew.kickoff(manager_context)
 
-            agent_result = {
-                "category": flow.state.category,
-                "subcategory": flow.state.subcategory,
-                "routing_confidence": flow.state.routing_confidence,
-                "is_complete": flow.state.is_complete,
-                "ticket_data": ticket_data,
-            }
+            reply = agent_result.get("message", "")
+            agent_name = agent_result.get("agent", "manager")
 
-        else:
-            # New or expired session -> AuthCrew
-            agent_name = "auth_agent"
+        # Check for GBV routing
+        is_gbv = "gbv" in agent_name.lower() or agent_result.get("category") == "gbv"
 
-            from src.agents.crews.auth_crew import AuthCrew
-
-            auth_crew = AuthCrew(language=detected_language)
-            auth_context = {
-                "phone": phone,
-                "language": detected_language,
-                "user_exists": detection_result.get("user_exists", False),
-                "session_status": session_status,
-                "user_id": detection_result.get("user_id"),
-                "conversation_history": conversation_history,
-                "municipality_id": request.municipality_id,
-            }
-
-            auth_result = await auth_crew.kickoff(auth_context)
-
-            reply = auth_result.get(
-                "message",
-                "Welcome! To submit a report, I'll need to verify your identity."
-            )
-            agent_result = auth_result
-            session_status = auth_result.get("session_status", session_status)
+        # --- PERSIST routing_phase back to ConversationState ---
+        # Without this, routing_phase in Redis would always be "manager"
+        # and the short-circuit above would never trigger on subsequent turns.
+        new_routing_phase = agent_result.get("routing_phase", "manager")
+        conv_state.routing_phase = new_routing_phase
+        # Explicitly persist routing_phase to the store now.
+        # ConversationManager.append_turn() re-fetches from Redis so we must
+        # save BEFORE Step 4 or the updated field would be lost.
+        # InMemoryConversationManager holds a direct object reference so the
+        # assignment above already updated the stored state; save_state is a
+        # no-op overhead in that case but harmless.
+        if hasattr(manager, 'save_state'):
+            try:
+                await manager.save_state(conv_state, is_gbv=is_gbv)
+            except Exception:
+                pass  # Best-effort; Step 4 append_turn will persist turns anyway
 
     except Exception as e:
         # Fail fast on DeepSeek API errors — no retry, no fallback model
@@ -855,6 +852,7 @@ async def chat(
             "agent_name": agent_name,
             "turn_count": turn_count,
             "session_status": session_status,
+            "routing_phase": getattr(conv_state, 'routing_phase', 'manager'),
             "phone": phone,
             "language": request.language,
             "detected_language": detected_language,
