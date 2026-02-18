@@ -195,7 +195,7 @@ class ManagerCrew:
             manager_llm=self.llm,  # BOTH manager_agent and manager_llm — prevent OpenAI fallback
             process=Process.hierarchical,
             memory=False,
-            verbose=False,
+            verbose=True,  # Enabled for testing — confirms specialist tool invocations
         )
         return crew
 
