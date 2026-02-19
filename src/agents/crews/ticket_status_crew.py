@@ -1,7 +1,7 @@
 """TicketStatusCrew — citizen ticket status lookup specialist."""
 from typing import Any
 
-from src.agents.crews.base_crew import BaseCrew
+from src.agents.crews.base_crew import AgentResponse, BaseCrew, _repair_from_raw
 from src.agents.tools.ticket_lookup_tool import lookup_ticket
 
 # Trilingual language prompts for the ticket status specialist
@@ -51,6 +51,12 @@ TOON: Warm, behulpsaam, empaties oor onopgeloste kwessies. Erken frustrasie vir 
 }
 
 
+class TicketStatusResponse(AgentResponse):
+    """Structured output from TicketStatusCrew."""
+    action_taken: str = "status_lookup"  # "status_lookup" | "no_tickets" | "details_shown"
+    tickets_found: int = 0
+
+
 class TicketStatusCrew(BaseCrew):
     """Ticket status lookup specialist. memory=False — no PII in memory."""
 
@@ -62,6 +68,9 @@ class TicketStatusCrew(BaseCrew):
     def get_language_prompt(self, language: str) -> str:
         return TICKET_STATUS_PROMPTS.get(language, TICKET_STATUS_PROMPTS["en"])
 
+    def build_task_kwargs(self, context: dict) -> dict:
+        return {"output_pydantic": TicketStatusResponse}
+
     def build_kickoff_inputs(self, context: dict) -> dict:
         """Pass user_id, language, conversation_history, and optional tracking_number."""
         return {
@@ -72,10 +81,16 @@ class TicketStatusCrew(BaseCrew):
         }
 
     def parse_result(self, result) -> dict[str, Any]:
-        """Extract ticket lookup data from crew output."""
-        base = super().parse_result(result)
-        base["agent"] = "ticket_status"
-        return base
+        if hasattr(result, "pydantic") and result.pydantic is not None:
+            model_dict = result.pydantic.model_dump()
+            model_dict["raw_output"] = str(result)
+            model_dict["agent"] = "ticket_status"
+            return model_dict
+        raw = str(result)
+        fallback = "I'm Gugu from SALGA Trust Engine. I couldn't find that report right now. Please check your tracking number or try again."
+        repaired = _repair_from_raw(raw, TicketStatusResponse, fallback, language=self.language)
+        repaired["agent"] = "ticket_status"
+        return repaired
 
     def get_error_response(self, error: Exception) -> dict[str, Any]:
         return {

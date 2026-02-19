@@ -1,182 +1,42 @@
-"""Municipal services intake crew for structured ticket gathering.
-
-This module implements the specialist crew that conducts conversational intake
-for municipal service requests, gathering all required information before
-creating a ticket.
-"""
-import os
-from pathlib import Path
+"""MunicipalCrew — municipal service ticket intake."""
 from typing import Any
 
-import yaml
-from crewai import Agent, Crew, Process, Task
-
-from src.agents.llm import get_deepseek_llm
+from src.agents.crews.base_crew import AgentResponse, BaseCrew, _repair_from_raw
 from src.agents.prompts.municipal import MUNICIPAL_INTAKE_PROMPTS
 from src.agents.tools.ticket_tool import create_municipal_ticket
 
 
-class MunicipalCrew:
-    """Municipal services intake crew with trilingual support.
+class MunicipalResponse(AgentResponse):
+    """Structured output from MunicipalCrew."""
+    action_taken: str = "intake"  # "intake_started" | "ticket_created" | "clarifying"
 
-    This crew consists of a single intake agent that uses language-specific
-    prompts to guide citizens through reporting municipal service issues.
-    """
 
-    def __init__(self, language: str = "en", llm=None):
-        """Initialize municipal crew.
+class MunicipalCrew(BaseCrew):
+    """Municipal services intake crew. memory=False for consistency."""
 
-        Args:
-            language: Language code (en/zu/af)
-            llm: crewai.LLM object. Defaults to DeepSeek V3.2 via get_deepseek_llm().
-        """
-        self.language = language if language in ["en", "zu", "af"] else "en"
-        self.llm = llm or get_deepseek_llm()
+    agent_key = "municipal_intake_agent"
+    task_key = "municipal_intake_task"
+    tools = [create_municipal_ticket]
+    memory_enabled = False  # FIX: was unset (defaulted True), now explicit
 
-        # Load YAML configs
-        config_dir = Path(__file__).parent.parent / "config"
-        with open(config_dir / "agents.yaml", "r", encoding="utf-8") as f:
-            self.agents_config = yaml.safe_load(f)
-        with open(config_dir / "tasks.yaml", "r", encoding="utf-8") as f:
-            self.tasks_config = yaml.safe_load(f)
+    def get_language_prompt(self, language: str) -> str:
+        return MUNICIPAL_INTAKE_PROMPTS.get(language, MUNICIPAL_INTAKE_PROMPTS["en"])
 
-    def create_crew(
-        self,
-        message: str,
-        user_id: str,
-        tenant_id: str
-    ) -> Crew:
-        """Create crew for municipal intake.
+    def build_task_kwargs(self, context: dict) -> dict:
+        return {"output_pydantic": MunicipalResponse}
 
-        Args:
-            message: Citizen's initial message
-            user_id: User UUID
-            tenant_id: Municipality tenant UUID
+    def parse_result(self, result) -> dict[str, Any]:
+        if hasattr(result, "pydantic") and result.pydantic is not None:
+            model_dict = result.pydantic.model_dump()
+            model_dict["raw_output"] = str(result)
+            return model_dict
+        # Repair from raw output
+        raw = str(result)
+        fallback = "I'm Gugu from SALGA Trust Engine. Sorry, I didn't quite catch that -- could you describe your issue again?"
+        return _repair_from_raw(raw, MunicipalResponse, fallback, language=self.language)
 
-        Returns:
-            Configured Crew ready to run
-        """
-        # Get agent config and inject language
-        agent_config = self.agents_config["municipal_intake_agent"]
-        role = agent_config["role"]
-        goal = agent_config["goal"].format(language=self.language)
-        yaml_backstory = agent_config["backstory"]
-
-        # Combine: YAML base identity + language-specific operational prompt
-        language_prompt = MUNICIPAL_INTAKE_PROMPTS.get(self.language, MUNICIPAL_INTAKE_PROMPTS["en"])
-        backstory = yaml_backstory + "\n\n" + language_prompt
-
-        # Create agent
-        agent = Agent(
-            role=role,
-            goal=goal,
-            backstory=backstory,
-            tools=[create_municipal_ticket],
-            llm=self.llm,
-            allow_delegation=agent_config.get("allow_delegation", False),
-            max_iter=agent_config.get("max_iter", 10),
-            verbose=agent_config.get("verbose", False)
-        )
-
-        # Get task config and inject variables
-        task_config = self.tasks_config["municipal_intake_task"]
-        description = task_config["description"].format(
-            message=message,
-            language=self.language,
-            tenant_id=tenant_id,
-            user_id=user_id,
-        )
-        expected_output = task_config["expected_output"]
-
-        # Create task — NO output_pydantic so the agent MUST call the tool
-        # (output_pydantic=TicketData let the agent fill fields directly,
-        # bypassing create_municipal_ticket and skipping DB persistence)
-        task = Task(
-            description=description,
-            expected_output=expected_output,
-            agent=agent,
-        )
-
-        # Create crew
-        crew = Crew(
-            agents=[agent],
-            tasks=[task],
-            process=Process.sequential,
-            verbose=False
-        )
-
-        return crew
-
-    async def kickoff(
-        self,
-        message: str,
-        user_id: str,
-        tenant_id: str
-    ) -> dict[str, Any]:
-        """Run the municipal intake crew.
-
-        Wraps the synchronous crew.kickoff() in a thread pool executor
-        so it does not block the FastAPI event loop. Same pattern as AuthCrew.
-
-        Args:
-            message: Citizen's message
-            user_id: User UUID
-            tenant_id: Municipality tenant UUID
-
-        Returns:
-            Dictionary with ticket data and message, or error
-        """
-        import asyncio
-        import json
-        import re
-
-        try:
-            crew = self.create_crew(message, user_id, tenant_id)
-
-            # Run synchronous crew.kickoff() in thread pool (non-blocking)
-            loop = asyncio.get_event_loop()
-            result = await loop.run_in_executor(
-                None,
-                lambda: crew.kickoff(inputs={
-                    "message": message,
-                    "language": self.language,
-                    "tenant_id": tenant_id,
-                    "user_id": user_id,
-                })
-            )
-
-            raw = str(result)
-
-            # Extract clean message from "Final Answer:" if present
-            final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
-            clean_message = final.group(1).strip() if final else raw
-
-            # Try to extract tracking number from agent's final answer
-            tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
-
-            # Try to parse JSON from the raw output (tool result embedded)
-            json_match = re.search(r"\{[^{}]*\"tracking_number\"[^{}]*\}", raw)
-            if json_match:
-                try:
-                    ticket_dict = json.loads(json_match.group())
-                    ticket_dict["message"] = clean_message
-                    ticket_dict["raw_output"] = raw  # Keep raw for debug
-                    return ticket_dict
-                except json.JSONDecodeError:
-                    pass
-
-            if tracking_match:
-                return {
-                    "tracking_number": tracking_match.group(),
-                    "message": clean_message,
-                    "raw_output": raw,  # Keep raw for debug
-                }
-
-            # Fallback: return cleaned result (agent may not have called tool)
-            return {"message": clean_message, "raw_output": raw}
-
-        except Exception as e:
-            return {
-                "error": str(e),
-                "message": "I'm Gugu from SALGA Trust Engine. Sorry, something went wrong — could you describe your issue again?",
-            }
+    def get_error_response(self, error):
+        return {
+            "error": str(error),
+            "message": "I'm Gugu from SALGA Trust Engine. Sorry, something went wrong — could you describe your issue again?",
+        }
