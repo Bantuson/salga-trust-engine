@@ -12,16 +12,53 @@ SECURITY:
 
 Pattern: _impl() function + @tool wrapper (same as ticket_tool.py and saps_tool.py).
 """
+import logging
+import time
+from collections import defaultdict
+
 from crewai.tools import tool
 
 from src.core.supabase import get_supabase_admin
+
+logger = logging.getLogger("auth_tools")
+
+# Track failures per tool for repeated failure detection (per locked decision)
+_tool_failure_counts: dict[str, list[float]] = defaultdict(list)
+
+
+def _log_tool_failure(tool_name: str, error: str, user_identifier: str) -> None:
+    """Log tool failure with context. Flag if 3+ failures in 5 minutes (locked decision).
+
+    Args:
+        tool_name: Name of the failed tool
+        error: Error message string
+        user_identifier: Partial user identifier (truncated for POPIA)
+    """
+    now = time.time()
+    # Prune failures older than 5 minutes
+    _tool_failure_counts[tool_name] = [
+        t for t in _tool_failure_counts[tool_name] if now - t < 300
+    ]
+    _tool_failure_counts[tool_name].append(now)
+
+    count = len(_tool_failure_counts[tool_name])
+    log_data = {
+        "tool": tool_name,
+        "error": error,
+        "user": user_identifier[:8] + "..." if len(user_identifier) > 8 else user_identifier,
+        "failure_count_5min": count,
+    }
+    if count >= 3:
+        logger.critical("URGENT: Repeated tool failures -- %s", log_data)
+    else:
+        logger.error("Tool failure -- %s", log_data)
 
 
 # ---------------------------------------------------------------------------
 # send_otp_tool
 # ---------------------------------------------------------------------------
 
-def _send_otp_impl(phone_or_email: str, channel: str = "sms") -> str:
+def _send_otp_impl(phone_or_email: str, channel: str = "sms", is_returning_user: bool = False) -> str:
     """Send OTP via SMS (phone) or email for passwordless sign-in.
 
     Wraps supabase.auth.sign_in_with_otp(). Use when a new or returning
@@ -30,6 +67,7 @@ def _send_otp_impl(phone_or_email: str, channel: str = "sms") -> str:
     Args:
         phone_or_email: E.164 phone number (e.g. +27831234567) or email address
         channel: Delivery channel — "sms" for phone or "email" for email OTP
+        is_returning_user: If True, sets should_create_user=False (prevents duplicate account creation)
 
     Returns:
         Success or error message string for LLM consumption
@@ -40,12 +78,19 @@ def _send_otp_impl(phone_or_email: str, channel: str = "sms") -> str:
 
     try:
         if channel == "sms" or phone_or_email.startswith("+"):
-            client.auth.sign_in_with_otp({"phone": phone_or_email})
+            otp_options: dict = {"phone": phone_or_email}
+            if is_returning_user:
+                otp_options["options"] = {"should_create_user": False}
+            client.auth.sign_in_with_otp(otp_options)
             return f"OTP sent via SMS to {phone_or_email}. Ask the user for the 6-digit code."
         else:
-            client.auth.sign_in_with_otp({"email": phone_or_email})
+            otp_options = {"email": phone_or_email}
+            if is_returning_user:
+                otp_options["options"] = {"should_create_user": False}
+            client.auth.sign_in_with_otp(otp_options)
             return f"OTP sent via email to {phone_or_email}. Ask the user for the 6-digit code."
     except Exception as e:
+        _log_tool_failure("send_otp_tool", str(e), phone_or_email)
         return f"Error sending OTP: {str(e)}"
 
 
@@ -93,6 +138,7 @@ def _verify_otp_impl(phone_or_email: str, otp_code: str, otp_type: str = "sms") 
         return "OTP verification failed: invalid or expired code. Ask the user to try again."
 
     except Exception as e:
+        _log_tool_failure("verify_otp_tool", str(e), phone_or_email)
         return f"Error verifying OTP: {str(e)}"
 
 
@@ -158,6 +204,7 @@ def _create_supabase_user_impl(
         return "User creation failed: no user returned from Supabase."
 
     except Exception as e:
+        _log_tool_failure("create_supabase_user_tool", str(e), phone_or_email)
         return f"Error creating user: {str(e)}"
 
 
@@ -217,6 +264,7 @@ def _lookup_user_impl(phone_or_email: str) -> str:
         return f"User found. User ID: {matched.id}, role: {role}"
 
     except Exception as e:
+        _log_tool_failure("lookup_user_tool", str(e), phone_or_email)
         return f"Error looking up user: {str(e)}"
 
 
