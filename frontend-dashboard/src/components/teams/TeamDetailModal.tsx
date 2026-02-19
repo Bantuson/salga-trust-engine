@@ -8,6 +8,7 @@
  * - Body scroll lock while open
  * - Click overlay to close
  * - Tab bar with teal bottom border for active tab
+ * - z-index 1000 (BulkInviteDialog uses 1100, ConfirmDialogs use 1200)
  */
 
 import { useEffect, useState } from 'react';
@@ -22,10 +23,13 @@ type Tab = 'members' | 'invitations' | 'activity';
 interface TeamDetailModalProps {
   team: Team;
   onClose: () => void;
+  /** Current user's role — forwarded to MembersTab for admin-gated actions */
+  currentUserRole?: string;
 }
 
-export function TeamDetailModal({ team, onClose }: TeamDetailModalProps) {
+export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: TeamDetailModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('members');
+  const [membersRefreshKey, setMembersRefreshKey] = useState(0);
   const categoryConfig = getCategoryConfig(team.category);
 
   // Body scroll lock while modal is open (per Pitfall 2)
@@ -51,6 +55,11 @@ export function TeamDetailModal({ team, onClose }: TeamDetailModalProps) {
     { key: 'invitations', label: 'Pending Invitations' },
     { key: 'activity', label: 'Activity' },
   ];
+
+  /** Refresh members when an invitation is sent from within the modal */
+  const handleMembersRefresh = () => {
+    setMembersRefreshKey((k) => k + 1);
+  };
 
   return (
     <div
@@ -131,8 +140,16 @@ export function TeamDetailModal({ team, onClose }: TeamDetailModalProps) {
 
         {/* Tab content */}
         <div style={styles.tabContent}>
-          {activeTab === 'members' && <MembersTab teamId={team.id} />}
-          {activeTab === 'invitations' && <InvitationsTab teamId={team.id} />}
+          {activeTab === 'members' && (
+            <MembersTab
+              key={membersRefreshKey}
+              teamId={team.id}
+              currentUserRole={currentUserRole}
+            />
+          )}
+          {activeTab === 'invitations' && (
+            <InvitationsTab teamId={team.id} />
+          )}
           {activeTab === 'activity' && <ActivityTab teamId={team.id} team={team} />}
         </div>
       </div>
@@ -147,6 +164,7 @@ const styles = {
     background: 'rgba(0, 0, 0, 0.5)',
     backdropFilter: 'blur(4px)',
     WebkitBackdropFilter: 'blur(4px)',
+    // z-index 1000: BulkInviteDialog (1100) and ConfirmDialogs (1200) layer above
     zIndex: 1000,
     display: 'flex',
     alignItems: 'center',
