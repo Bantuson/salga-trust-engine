@@ -362,3 +362,19 @@ Plans:
 - [x] 06.1-07-PLAN.md -- Test suite update, regression verification, GBV firewall check, final verification
 - [x] 06.1-08-PLAN.md -- Shared design system + municipal dashboard premium UI (dark mode, GSAP transitions, branded login with 3D globe)
 - [x] 06.1-09-PLAN.md -- Public dashboard premium UI + scroll storytelling landing page with interactive 3D SA globe
+
+### Phase 06.1.1: Teams Analytics and Settings pages UI full implementations with user roles municipal multi-tenancy new roles new teams user journeys design consistency (INSERTED)
+
+**Goal:** Replace "Coming Soon" placeholders for Teams, Analytics, and Settings pages in the municipal dashboard with full implementations. Create missing backend APIs (Teams CRUD, SLA config, audit logs, analytics time-series). All three pages respect existing RBAC roles, municipal multi-tenancy, and match the glassmorphic design system.
+**Depends on:** Phase 6.1
+**Requirements:** OPS-01, OPS-02, OPS-03, OPS-04, SEC-04
+**Plans:** 7 plans
+
+Plans:
+- [ ] 06.1.1-01-PLAN.md -- Backend APIs: Teams CRUD, Settings/SLA CRUD, audit logs listing, analytics time-series params
+- [ ] 06.1.1-02-PLAN.md -- Frontend shared infrastructure: TypeScript types, API service functions, category/permission constants, SparkLine component
+- [ ] 06.1.1-03-PLAN.md -- Teams page: card grid, team creation, detail modal with tabs (Members/Invitations/Activity)
+- [ ] 06.1.1-04-PLAN.md -- Teams member management: quick invite, bulk invite, role preview, permission matrix
+- [ ] 06.1.1-05-PLAN.md -- Analytics page: KPI stat cards with sparklines, time range controls, team leaderboard, category comparison
+- [ ] 06.1.1-06-PLAN.md -- Settings page: anchor nav, municipality profile, SLA targets, notifications, branding, data export, audit log viewer
+- [ ] 06.1.1-07-PLAN.md -- App.tsx wiring + build verification + visual checkpoint
