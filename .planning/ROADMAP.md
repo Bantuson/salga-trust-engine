@@ -204,8 +204,8 @@ Plans:
 **Plans:** 4 plans
 
 Plans:
-- [ ] 06.9.1-01-PLAN.md -- System prompt hardening: tool hard-blocks, universal guardrails, per-crew strictness in prompts and YAML
-- [ ] 06.9.1-02-PLAN.md -- Pydantic output models for all crews, repair strategy in base_crew, auth OTP tool fixes
+- [x] 06.9.1-01-PLAN.md -- System prompt hardening: tool hard-blocks, universal guardrails, per-crew strictness in prompts and YAML
+- [x] 06.9.1-02-PLAN.md -- Pydantic output models for all crews, repair strategy in base_crew, auth OTP tool fixes
 - [ ] 06.9.1-03-PLAN.md -- Code-level delegation filtering in sanitize_reply() and ManagerCrew.parse_result()
 - [ ] 06.9.1-04-PLAN.md -- Unit and integration tests for sanitization, Pydantic validation, and auth tool fixes
 
