@@ -23,6 +23,7 @@ class TeamInvitation(TenantAwareModel):
     - pending: Invitation sent, not yet accepted
     - accepted: User registered and joined the team
     - expired: Invitation expired (7 days default)
+    - removed: Member removed from team by admin/manager
     """
 
     __tablename__ = "team_invitations"
@@ -30,6 +31,13 @@ class TeamInvitation(TenantAwareModel):
     municipality_id: Mapped[UUID] = mapped_column(
         ForeignKey("municipalities.id"),
         nullable=False,
+        index=True
+    )
+    # Optional team assignment — nullable for backward compatibility with
+    # municipality-level invitations created before team-scoped invitations
+    team_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("teams.id"),
+        nullable=True,
         index=True
     )
     email: Mapped[str] = mapped_column(String(200), nullable=False)
