@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.9 COMPLETE — Plan 04 complete: Full test suite for ManagerCrew architecture, updated existing crew tests, 4 Streamlit sidebar presets
+**Current focus:** Phase 6.9.1 IN PROGRESS — Plans 01 and 02 complete: System prompt hardening (guardrails, tool hard-blocks) + Pydantic structured output models, shared repair strategy, auth OTP tool fixes
 
 ## Current Position
 
-Phase: 6.9 of 6.9 (Multi-Agent Manager Refactor)
-Plan: 4 of 4 in current phase
-Status: COMPLETE — All 4 plans delivered: TicketStatusCrew, ManagerCrew hierarchical routing, IntakeFlow + crew_server integration, full test suite
-Last activity: 2026-02-18 — Phase 6.9 Plan 04 complete: Test suite green, sidebar presets added
+Phase: 6.9.1 of 6.9.1 (Fix Agent Output Formatting, Pydantic Models, Auth OTP Tool Failures, System Prompt Engineering)
+Plan: 2 of 4 in current phase
+Status: IN PROGRESS — Plans 01-02 delivered: Universal guardrails + Pydantic structured output models + auth tool fixes
+Last activity: 2026-02-19 — Phase 6.9.1 Plan 02 complete: Pydantic models on all 4 specialist crews, _repair_from_raw strategy, auth failure logging
 
-Progress: [██████████] 100% (4/4 plans)
+Progress: [█████░░░░░] 50% (2/4 plans)
 
 ## Performance Metrics
 
@@ -129,6 +129,8 @@ Progress: [██████████] 100% (4/4 plans)
 | Phase 06.9 P02 | 1193 | 2 tasks | 2 files |
 | Phase 06.9 P3 | 2038 | 2 tasks | 3 files |
 | Phase 06.9 P04 | 1800 | 2 tasks | 6 files |
+| Phase 06.9.1 P02 | 477 | 2 tasks | 7 files |
+| 06.9.1-01 | 8.9m (535s) | 2 | 5 |
 
 ## Accumulated Context
 
@@ -426,6 +428,16 @@ Recent decisions affecting current work:
 - [Phase 06.9]: ticket_status fallback messages added to _FALLBACK_REPLIES in all 3 languages (EN/ZU/AF)
 - [Phase 06.9]: Patch src.agents.crews.manager_crew.ManagerCrew not src.agents.flows.intake_flow.ManagerCrew — ManagerCrew is imported inside receive_and_route() function body, not at module level
 - [Phase 06.9]: ticket_tool validation returns dict error not raise ValueError — _create_ticket_impl uses Supabase pattern, returns {'error': ...} for LLM agent consumption (not exception-based)
+- [Phase 06.9.1]: output_pydantic only on sequential specialist crews (NOT ManagerCrew) — hierarchical Process breaks with output_pydantic on manager task
+- [Phase 06.9.1]: _repair_from_raw is module-level function in base_crew.py (not method) — prevents circular imports when specialist crews import it
+- [Phase 06.9.1]: GBVResponse.requires_followup=True default — GBV always requires follow-up by trauma protocol design
+- [Phase 06.9.1]: AgentResponse.message field_validator strips Final Answer: prefix as defense-in-depth alongside crew_server sanitize_reply()
+- [Phase 06.9.1-01]: Guardrails appended as named constants (_AUTH_TOOL_HARD_BLOCK_EN/ZU/AF) rather than inline — enables isolated testing and future updates
+- [Phase 06.9.1-01]: ZU and AF rule sections use native language equivalents for section headers — maintains language register consistency
+- [Phase 06.9.1-01]: GBV prompts refactored from inline dict literal to named variables — required to append response rules cleanly
+- [Phase 06.9.1-01]: Manager task STEP 3 and STEP 4 both cleaned of delegation agent names — prevents role narration leakage through task description
+- [Phase 06.9.1]: send_otp_tool is_returning_user=False default — backward compatible, prevents duplicate Supabase account creation for returning users
+- [Phase 06.9.1]: _tool_failure_counts module-level dict with 5-min sliding window, CRITICAL log at 3+ failures — POPIA-safe (truncates user ID to 8 chars)
 
 ### Pending Todos
 
@@ -450,9 +462,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Phase 6.9.1 context gathered)
-Stopped at: Phase 6.9.1 context gathered — ready for planning
-Resume file: .planning/phases/06.9.1-fix-agent-output-formatting-pydantic-models-auth-otp-tool-failures-and-system-prompt-engineering/06.9.1-CONTEXT.md
+Last session: 2026-02-19 (Phase 6.9.1 Plan 01 complete — prompt hardening)
+Stopped at: Completed 06.9.1-01-PLAN.md — All 5 agent backstories + YAML configs hardened with universal guardrails
+Resume file: .planning/phases/06.9.1-fix-agent-output-formatting-pydantic-models-auth-otp-tool-failures-and-system-prompt-engineering/06.9.1-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
