@@ -35,6 +35,23 @@ from src.agents.tools.ticket_lookup_tool import lookup_ticket
 from src.agents.tools.ticket_tool import create_municipal_ticket
 
 
+# Patterns that indicate internal delegation text (never citizen-facing)
+_DELEGATION_PATTERNS = [
+    re.compile(r"^As the .{0,50} Manager", re.IGNORECASE),
+    re.compile(r"^As the .{0,50} Specialist", re.IGNORECASE),
+    re.compile(r"^Here is the (?:complete|correct).*procedure", re.IGNORECASE),
+    re.compile(r"^For you,? Gugu", re.IGNORECASE),
+    re.compile(r"^Dear Gugu", re.IGNORECASE),
+    re.compile(r"^I am (?:now )?delegating", re.IGNORECASE),
+    re.compile(r"^(?:Routing|Delegating) to", re.IGNORECASE),
+    re.compile(r"^The manager has", re.IGNORECASE),
+    re.compile(r"^Step \d+[:\.]", re.IGNORECASE),
+    re.compile(r"^Procedure for", re.IGNORECASE),
+    re.compile(r"^I have been assigned", re.IGNORECASE),
+    re.compile(r"^(?:My|The) task is to", re.IGNORECASE),
+]
+
+
 class ManagerCrew:
     """Manager crew that handles all first-contact citizen routing.
 
@@ -195,7 +212,7 @@ class ManagerCrew:
             manager_llm=self.llm,  # BOTH manager_agent and manager_llm — prevent OpenAI fallback
             process=Process.hierarchical,
             memory=False,
-            verbose=True,  # Enabled for testing — confirms specialist tool invocations
+            verbose=False,  # Changed from True — production mode (was testing mode)
         )
         return crew
 
@@ -232,8 +249,9 @@ class ManagerCrew:
     def parse_result(self, result) -> dict[str, Any]:
         """Extract clean citizen-facing message from CrewAI result.
 
-        Searches for "Final Answer:" marker and strips CrewAI artifacts.
-        If a ticket tracking number is found in the output, includes it.
+        Strips "Final Answer:" prefix, delegation narration lines, and
+        CrewAI artifacts. If delegation filtering removes everything,
+        returns a warm Gugu fallback.
 
         Args:
             result: CrewAI CrewOutput object.
@@ -242,16 +260,37 @@ class ManagerCrew:
             Dict with "message", "raw_output", and optional "tracking_number".
         """
         raw = str(result)
-        # Strip "Final Answer:" prefix (artifact from CrewAI chain-of-thought)
+
+        # Strip "Final Answer:" prefix
         final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
-        clean_message = final.group(1).strip() if final else raw
+        text = final.group(1).strip() if final else raw
+
+        # Filter out delegation lines
+        lines = text.split("\n")
+        clean_lines = []
+        for line in lines:
+            stripped = line.strip()
+            if not stripped:
+                continue
+            is_delegation = any(p.match(stripped) for p in _DELEGATION_PATTERNS)
+            if not is_delegation:
+                clean_lines.append(line)
+
+        clean_message = "\n".join(clean_lines).strip()
+
+        # If filtering removed everything, use warm fallback
+        if not clean_message or len(clean_message) < 10:
+            clean_message = (
+                "I'm Gugu from SALGA Trust Engine. Something went wrong on my side "
+                "-- please try again in a moment."
+            )
 
         result_dict: dict[str, Any] = {
             "message": clean_message,
             "raw_output": raw,
         }
 
-        # Include tracking number if present in output
+        # Include tracking number if present
         tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
         if tracking_match:
             result_dict["tracking_number"] = tracking_match.group()
