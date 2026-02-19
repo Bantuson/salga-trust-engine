@@ -181,7 +181,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-19 (Phase 6.9.1 planned -- 4 plans in 3 waves)*
+*Last updated: 2026-02-19 (Phase 6.9.1 COMPLETE -- all 4 plans executed, 79 tests added)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
@@ -207,7 +207,7 @@ Plans:
 - [x] 06.9.1-01-PLAN.md -- System prompt hardening: tool hard-blocks, universal guardrails, per-crew strictness in prompts and YAML
 - [x] 06.9.1-02-PLAN.md -- Pydantic output models for all crews, repair strategy in base_crew, auth OTP tool fixes
 - [x] 06.9.1-03-PLAN.md -- Code-level delegation filtering in sanitize_reply() and ManagerCrew.parse_result()
-- [ ] 06.9.1-04-PLAN.md -- Unit and integration tests for sanitization, Pydantic validation, and auth tool fixes
+- [x] 06.9.1-04-PLAN.md -- Unit and integration tests for sanitization, Pydantic validation, and auth tool fixes
 
 ### Phase 06.7: Municipal intake agent testing -- DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
 
