@@ -16,6 +16,8 @@ import { OnboardingWizardPage } from './pages/OnboardingWizardPage';
 import { DashboardPage } from './pages/DashboardPage';
 import { TicketListPage } from './pages/TicketListPage';
 import { TeamsPage } from './pages/TeamsPage';
+import { AnalyticsPage } from './pages/AnalyticsPage';
+import { SettingsPage } from './pages/SettingsPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
@@ -74,8 +76,8 @@ function AppRoutes() {
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
         <Route path="/municipalities" element={<DashboardLayout><div style={styles.placeholder}>Municipalities (Coming Soon)</div></DashboardLayout>} />
         <Route path="/teams" element={<DashboardLayout><TeamsPage /></DashboardLayout>} />
-        <Route path="/analytics" element={<DashboardLayout><div style={styles.placeholder}>Analytics (Coming Soon)</div></DashboardLayout>} />
-        <Route path="/settings" element={<DashboardLayout><div style={styles.placeholder}>Settings (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
+        <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
         <Route path="/system" element={<DashboardLayout><div style={styles.placeholder}>System (Coming Soon)</div></DashboardLayout>} />
         <Route path="/reports" element={<DashboardLayout><div style={styles.placeholder}>Reports (Coming Soon)</div></DashboardLayout>} />
         <Route path="*" element={<Navigate to="/" replace />} />
