@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.9.1 IN PROGRESS — Plans 01 and 02 complete: System prompt hardening (guardrails, tool hard-blocks) + Pydantic structured output models, shared repair strategy, auth OTP tool fixes
+**Current focus:** Phase 6.9.1 IN PROGRESS — Plans 01-03 complete: System prompt hardening + Pydantic structured output models + delegation text filtering + GBV emergency number safety + Pydantic validation layer
 
 ## Current Position
 
 Phase: 6.9.1 of 6.9.1 (Fix Agent Output Formatting, Pydantic Models, Auth OTP Tool Failures, System Prompt Engineering)
-Plan: 2 of 4 in current phase
-Status: IN PROGRESS — Plans 01-02 delivered: Universal guardrails + Pydantic structured output models + auth tool fixes
-Last activity: 2026-02-19 — Phase 6.9.1 Plan 02 complete: Pydantic models on all 4 specialist crews, _repair_from_raw strategy, auth failure logging
+Plan: 3 of 4 in current phase
+Status: IN PROGRESS — Plans 01-03 delivered: Universal guardrails + Pydantic structured output models + auth tool fixes + three-layer delegation defense
+Last activity: 2026-02-19 — Phase 6.9.1 Plan 03 complete: _DELEGATION_ARTIFACT_PATTERNS, _validate_crew_output(), GBV emergency number safety, ManagerCrew.parse_result() delegation filter, verbose=False
 
-Progress: [█████░░░░░] 50% (2/4 plans)
+Progress: [███████░░░] 75% (3/4 plans)
 
 ## Performance Metrics
 
@@ -131,6 +131,7 @@ Progress: [█████░░░░░] 50% (2/4 plans)
 | Phase 06.9 P04 | 1800 | 2 tasks | 6 files |
 | Phase 06.9.1 P02 | 477 | 2 tasks | 7 files |
 | 06.9.1-01 | 8.9m (535s) | 2 | 5 |
+| 06.9.1-03 | 5.4m (321s) | 2 | 2 |
 
 ## Accumulated Context
 
@@ -438,6 +439,10 @@ Recent decisions affecting current work:
 - [Phase 06.9.1-01]: Manager task STEP 3 and STEP 4 both cleaned of delegation agent names — prevents role narration leakage through task description
 - [Phase 06.9.1]: send_otp_tool is_returning_user=False default — backward compatible, prevents duplicate Supabase account creation for returning users
 - [Phase 06.9.1]: _tool_failure_counts module-level dict with 5-min sliding window, CRITICAL log at 3+ failures — POPIA-safe (truncates user ID to 8 chars)
+- [Phase 06.9.1-03]: Three-layer delegation defense: prompt hardening (Plan 01) + ManagerCrew.parse_result() line filter (Plan 03) + crew_server sanitize_reply() line filter (Plan 03)
+- [Phase 06.9.1-03]: GBV emergency number re-injection in sanitize_reply() — if 10111 or 0800 150 150 absent from gbv_intake response, re-appended unconditionally
+- [Phase 06.9.1-03]: _validate_crew_output() as Step 3.25 in chat() — extraction layer between crew kickoff and sanitize_reply(), rescues citizen content from delegation-polluted messages
+- [Phase 06.9.1-03]: ManagerCrew verbose=False — production mode, was verbose=True for testing
 
 ### Pending Todos
 
@@ -462,9 +467,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Phase 6.9.1 Plan 01 complete — prompt hardening)
-Stopped at: Completed 06.9.1-01-PLAN.md — All 5 agent backstories + YAML configs hardened with universal guardrails
-Resume file: .planning/phases/06.9.1-fix-agent-output-formatting-pydantic-models-auth-otp-tool-failures-and-system-prompt-engineering/06.9.1-01-SUMMARY.md
+Last session: 2026-02-19 (Phase 6.9.1 Plan 03 complete — delegation text filtering and Pydantic validation layer)
+Stopped at: Completed 06.9.1-03-PLAN.md — Three-layer delegation defense: ManagerCrew.parse_result() filter + crew_server sanitize_reply() + _validate_crew_output() + GBV emergency safety
+Resume file: .planning/phases/06.9.1-fix-agent-output-formatting-pydantic-models-auth-otp-tool-failures-and-system-prompt-engineering/06.9.1-03-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
