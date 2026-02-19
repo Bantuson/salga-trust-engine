@@ -50,10 +50,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Municipal Operations
 
-- [ ] **OPS-01**: Municipal manager can view, filter, search, and assign tickets via web dashboard
+- [x] **OPS-01**: Municipal manager can view, filter, search, and assign tickets via web dashboard
 - [ ] **OPS-02**: Municipal manager can export issue data to Excel/CSV
 - [ ] **OPS-03**: Ward councillor can view dashboard filtered to issues in their ward
-- [ ] **OPS-04**: Dashboard shows real-time ticket volumes, SLA compliance, and team workload
+- [x] **OPS-04**: Dashboard shows real-time ticket volumes, SLA compliance, and team workload
 
 ### Public Transparency
 
@@ -68,7 +68,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SEC-01**: All data encrypted at rest and in transit (TLS 1.3, AES-256)
 - [ ] **SEC-02**: POPIA consent captured at registration with clear data processing purpose
 - [ ] **SEC-03**: User can request access to their data and request deletion (POPIA rights)
-- [ ] **SEC-04**: Role-based access control (citizen, field worker, manager, admin, SAPS liaison)
+- [x] **SEC-04**: Role-based access control (citizen, field worker, manager, admin, SAPS liaison)
 - [ ] **SEC-05**: GBV data accessible only to authorized SAPS liaison and system admin (firewall-isolated)
 - [ ] **SEC-06**: API rate limiting and abuse prevention on all public endpoints
 - [ ] **SEC-07**: Comprehensive audit logging on all data access and modifications
@@ -158,10 +158,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TKT-03 | Phase 4 | Pending |
 | TKT-04 | Phase 4 | Pending |
 | TKT-05 | Phase 4 | Pending |
-| OPS-01 | Phase 5 | Pending |
+| OPS-01 | Phase 5 | Complete |
 | OPS-02 | Phase 5 | Pending |
 | OPS-03 | Phase 5 | Pending |
-| OPS-04 | Phase 5 | Pending |
+| OPS-04 | Phase 5 | Complete |
 | TRNS-01 | Phase 6 | Pending |
 | TRNS-02 | Phase 6 | Pending |
 | TRNS-03 | Phase 6 | Pending |
@@ -170,7 +170,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-01 | Phase 1 | Pending |
 | SEC-02 | Phase 1 | Pending |
 | SEC-03 | Phase 1 | Pending |
-| SEC-04 | Phase 1 | Pending |
+| SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 4 | Pending |
 | SEC-06 | Phase 1 | Pending |
 | SEC-07 | Phase 1 | Pending |
