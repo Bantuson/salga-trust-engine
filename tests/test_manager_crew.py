@@ -253,11 +253,13 @@ class TestManagerCrewTaskContent:
             manager.agents_config["ticket_status_agent"]["role"],
         ]
 
-        # At least 2 specialist roles should be mentioned in the task description
-        # (tasks.yaml delegates by role name)
-        roles_found = sum(1 for role in specialist_roles if role in task_description)
-        assert roles_found >= 2, (
-            f"Expected specialist roles in task description. Found {roles_found}/4. "
+        # Phase 6.9.1: Manager task no longer lists specialist roles explicitly
+        # (delegation narration removed to prevent leaking to citizens).
+        # Instead verify the task has routing categories for intent classification.
+        routing_keywords = ["authentication", "municipal", "gbv", "ticket", "greeting"]
+        keywords_found = sum(1 for kw in routing_keywords if kw in task_description.lower())
+        assert keywords_found >= 2, (
+            f"Expected routing categories in task description. Found {keywords_found}/5. "
             f"Task description: {task_description[:300]}"
         )
 

@@ -108,17 +108,22 @@ class TestGBVPrompts:
         assert "0800 150 150" in af_prompt
 
     def test_no_prompt_asks_for_perpetrator_identification(self):
-        """Verify no prompt requests perpetrator name or identification."""
-        sensitive_terms = ["perpetrator name", "who hurt you", "name of the person"]
+        """Verify no prompt requests perpetrator name or identification.
+
+        Note: 'who hurt you' may appear in safety assessment context
+        ('is the person who hurt you still nearby?') which is acceptable.
+        We check for explicit perpetrator identification requests.
+        """
+        # These are direct perpetrator identification requests (never acceptable)
+        sensitive_terms = ["perpetrator name", "name of the person", "identify the perpetrator"]
 
         for lang, prompt in GBV_INTAKE_PROMPTS.items():
             prompt_lower = prompt.lower()
             for term in sensitive_terms:
-                # We expect prompts to explicitly say NOT to ask for this
-                # Check that if "name" appears, it's in a "DO NOT ask" context
-                if "name" in prompt_lower:
-                    # Should be in context of "DO NOT ask"
-                    assert "do not ask" in prompt_lower or "never ask" in prompt_lower
+                assert term not in prompt_lower, (
+                    f"GBV prompt ({lang}) should not ask for perpetrator identification. "
+                    f"Found: '{term}'"
+                )
 
     def test_prompts_are_trauma_informed(self):
         """Verify prompts use trauma-informed language."""

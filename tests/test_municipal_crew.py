@@ -161,7 +161,9 @@ def test_create_crew_task_has_no_pydantic_output():
     })
 
     task = crew.tasks[0]
-    assert task.output_pydantic is None
+    # Phase 6.9.1: MunicipalCrew now uses Pydantic structured output
+    from src.agents.crews.municipal_crew import MunicipalResponse
+    assert task.output_pydantic is MunicipalResponse
 
 
 def test_ticket_tool_validates_category():
