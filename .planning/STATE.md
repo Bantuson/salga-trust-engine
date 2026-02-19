@@ -137,6 +137,7 @@ Progress: [██████░░░░] 86% (6/7 plans)
 | Phase 06.1.1 P01 | 538 | 2 tasks | 10 files |
 | Phase 06.1.1 P03 | 385 | 2 tasks | 9 files |
 | Phase 06.1.1 P06 | 471 | 2 tasks | 12 files |
+| Phase 06.1.1 P05 | 542 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -466,6 +467,9 @@ Recent decisions affecting current work:
 - [Phase 06.1.1]: GBV excluded from SLA targets per SEC-05 (SAPS-managed tickets)
 - [Phase 06.1.1]: Notifications and TeamDefaults use localStorage with TODO for future backend endpoint
 - [Phase 06.1.1]: SettingsPage sticky anchor nav uses IntersectionObserver for active section tracking
+- [Phase 06.1.1-05]: animate() returns JSAnimation (not AnimationInstance) in animejs v4 — type import corrected
+- [Phase 06.1.1-05]: makeTrend() generates synthetic 7-point sparkline data with direction bias until backend provides time-series
+- [Phase 06.1.1-05]: Ward councillor wardId uses getTenantId() as placeholder — proper ward_id will be in JWT when backend adds it
 
 ### Pending Todos
 
