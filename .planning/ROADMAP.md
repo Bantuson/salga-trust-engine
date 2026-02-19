@@ -178,10 +178,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
 | 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
+| 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-19 (Phase 6.9.1 COMPLETE -- all 4 plans executed, 79 tests added)*
+*Last updated: 2026-02-19 (Phase 6.9.1 verified PASSED — 22/22 must-haves, 79 tests)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
@@ -201,7 +202,7 @@ Plans:
 **Goal:** Fix agent behavior quality across all crews: eliminate internal reasoning leakage to citizens, add Pydantic structured output models for all crews, fix auth OTP tool execution failures, and re-engineer system prompts against CrewAI best practices.
 **Depends on:** Phase 6.9
 **Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
-**Plans:** 4 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [x] 06.9.1-01-PLAN.md -- System prompt hardening: tool hard-blocks, universal guardrails, per-crew strictness in prompts and YAML
