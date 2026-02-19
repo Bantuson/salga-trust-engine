@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.1.1 Plan 03 COMPLETE — Teams page with card grid, inline creation form, glassmorphic detail modal with Members/Invitations/Activity tabs
+**Current focus:** Phase 6.1.1 Plan 06 COMPLETE — Settings page with 8 role-gated sections, sticky anchor nav, per-section saves, audit log viewer
 
 ## Current Position
 
 Phase: 6.1.1 of 6.1.1 (Teams, Analytics and Settings Pages UI — full implementations with user roles, multi-tenancy)
-Plan: 3 of 7 in current phase
-Status: IN PROGRESS — Plan 03 delivered: TeamsPage, useTeams hook, TeamCard, TeamCreateCard, TeamDetailModal + 3 tabs
-Last activity: 2026-02-19 — Phase 6.1.1 Plan 03 complete: Teams page with card grid + inline creation + glassmorphic modal
+Plan: 6 of 7 in current phase
+Status: IN PROGRESS — Plan 06 delivered: SettingsPage (8 sections), SettingsSection wrapper, useSettings hook, all section components
+Last activity: 2026-02-19 — Phase 6.1.1 Plan 06 complete: Settings page with anchor nav + role gating + per-section saves
 
-Progress: [███░░░░░░░] 43% (3/7 plans)
+Progress: [██████░░░░] 86% (6/7 plans)
 
 ## Performance Metrics
 
@@ -136,6 +136,7 @@ Progress: [███░░░░░░░] 43% (3/7 plans)
 | Phase 06.1.1 P02 | 305 | 2 tasks | 7 files |
 | Phase 06.1.1 P01 | 538 | 2 tasks | 10 files |
 | Phase 06.1.1 P03 | 385 | 2 tasks | 9 files |
+| Phase 06.1.1 P06 | 471 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -462,6 +463,9 @@ Recent decisions affecting current work:
 - [Phase 06.1.1]: useTeams hook uses local state (not Zustand) — anti-pattern guidance prevents polluting the dashboard store
 - [Phase 06.1.1]: TeamCreateCard manager dropdown is placeholder-only at creation time — managers assigned separately after team members join
 - [Phase 06.1.1]: ActivityTab is informational only — no dedicated backend endpoint for team activity; derives events from team.created_at
+- [Phase 06.1.1]: GBV excluded from SLA targets per SEC-05 (SAPS-managed tickets)
+- [Phase 06.1.1]: Notifications and TeamDefaults use localStorage with TODO for future backend endpoint
+- [Phase 06.1.1]: SettingsPage sticky anchor nav uses IntersectionObserver for active section tracking
 
 ### Pending Todos
 
@@ -487,9 +491,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Phase 06.1.1 Plan 03 complete — Teams page with card grid + glassmorphic modal)
-Stopped at: Completed 06.1.1-03-PLAN.md
-Resume file: .planning/phases/06.1.1-teams-analytics-and-settings-pages-ui-full-implementations-with-user-roles-municipal-multi-tenancy-new-roles-new-teams-user-journeys-design-consistency/06.1.1-03-SUMMARY.md
+Last session: 2026-02-19 (Phase 06.1.1 Plan 06 complete — Settings page with 8 role-gated sections + anchor nav)
+Stopped at: Completed 06.1.1-06-PLAN.md
+Resume file: .planning/phases/06.1.1-teams-analytics-and-settings-pages-ui-full-implementations-with-user-roles-municipal-multi-tenancy-new-roles-new-teams-user-journeys-design-consistency/06.1.1-06-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
