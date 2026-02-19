@@ -315,6 +315,22 @@ _LLM_ARTIFACT_PATTERNS = [
     r"^Final Answer:?\s*",    # CrewAI final answer marker (strip prefix, keep content after it)
 ]
 
+# Patterns indicating internal agent delegation text (never citizen-facing)
+_DELEGATION_ARTIFACT_PATTERNS = [
+    r"^As the .{0,50} Manager.*$",             # Role narration: "As the Municipal Services Manager..."
+    r"^As the .{0,50} Specialist.*$",           # Role narration: "As the auth specialist..."
+    r"^Here is the (?:complete|correct).*procedure.*$",  # Delegation instructions
+    r"^For you,? Gugu.*$",                      # Misidentified citizen as agent
+    r"^Dear Gugu.*$",                           # Same
+    r"^Procedure for (?:Gugu|the specialist).*$",  # Internal routing
+    r"^I am (?:now )?delegating.*$",            # Delegation narration
+    r"^(?:Routing|Delegating) to.*$",           # Internal routing
+    r"^The manager has.*$",                     # Manager reference leaked
+    r"^I have been assigned.*$",                # Assignment narration
+    r"^(?:My|The) task is to.*$",               # Task narration
+    r"^According to (?:my|the) (?:instructions|assignment).*$",  # Instructions narration
+]
+
 # Warm fallbacks when sanitization leaves nothing usable
 _FALLBACK_REPLIES = {
     "auth_agent": {
@@ -380,16 +396,16 @@ def sanitize_reply(
     # 2. Remove JSON blobs (tool call results embedded in text)
     text = re.sub(r'\{[^{}]*"(?:tracking_number|error|id|status)"[^{}]*\}', '', text)
 
-    # 3. Remove LLM artifact lines
+    # 3. Remove LLM artifact lines and delegation artifact lines
     lines = text.split("\n")
     clean_lines = []
     for line in lines:
         stripped = line.strip()
         if not stripped:
             continue
-        # Skip lines matching artifact patterns
+        # Skip lines matching artifact patterns (both LLM artifacts and delegation artifacts)
         skip = False
-        for pattern in _LLM_ARTIFACT_PATTERNS:
+        for pattern in _LLM_ARTIFACT_PATTERNS + _DELEGATION_ARTIFACT_PATTERNS:
             if re.match(pattern, stripped, re.IGNORECASE):
                 # Special case: "Final Answer:" prefix — keep content after it
                 if pattern == r"^Final Answer:?\s*":
@@ -411,7 +427,13 @@ def sanitize_reply(
     if not text or len(text) < 10:
         return _get_fallback(agent_name, language)
 
-    return text.strip()
+    text = text.strip()
+
+    # 6. GBV safety: if agent is GBV and emergency numbers were stripped, re-add them
+    if agent_name in ("gbv_intake", "gbv") and "10111" not in text and "0800 150 150" not in text:
+        text = text.rstrip() + "\n\nIf you are in immediate danger, call SAPS: 10111 | GBV Helpline: 0800 150 150"
+
+    return text
 
 
 def _get_fallback(agent_name: str, language: str) -> str:
@@ -419,6 +441,55 @@ def _get_fallback(agent_name: str, language: str) -> str:
     lang = language if language in ("en", "zu", "af") else "en"
     agent = agent_name if agent_name in _FALLBACK_REPLIES else "error"
     return _FALLBACK_REPLIES[agent][lang]
+
+
+def _validate_crew_output(agent_result: dict, agent_name: str, language: str) -> str:
+    """Validate crew output has a clean message field.
+
+    Extracts the message from agent_result. If it looks like it contains
+    delegation text or internal reasoning, attempts to extract the useful
+    part. Falls back to a warm Gugu message if nothing usable.
+
+    Args:
+        agent_result: Dict returned from crew.kickoff() / parse_result()
+        agent_name: Agent identifier for fallback selection
+        language: Language code for fallback
+
+    Returns:
+        Clean message string ready for sanitize_reply()
+    """
+    message = agent_result.get("message", "")
+    if not message or len(message.strip()) < 5:
+        return _get_fallback(agent_name, language)
+
+    # Quick check: if message starts with delegation text, try to extract useful part.
+    # (This catches cases where parse_result passed through unsanitized delegation text.)
+    for pattern in _DELEGATION_ARTIFACT_PATTERNS:
+        if re.match(pattern, message.strip(), re.IGNORECASE):
+            # Try to find actual citizen-facing content after the delegation text
+            lines = message.strip().split("\n")
+            citizen_lines = []
+            past_delegation = False
+            for line in lines:
+                stripped = line.strip()
+                if not stripped:
+                    continue
+                is_delegation = any(
+                    re.match(p, stripped, re.IGNORECASE)
+                    for p in _DELEGATION_ARTIFACT_PATTERNS + _LLM_ARTIFACT_PATTERNS
+                )
+                if not is_delegation:
+                    past_delegation = True
+                    citizen_lines.append(line)
+                elif past_delegation:
+                    # Delegation text AFTER citizen text — stop
+                    break
+
+            if citizen_lines:
+                return "\n".join(citizen_lines).strip()
+            return _get_fallback(agent_name, language)
+
+    return message
 
 
 # ---------------------------------------------------------------------------
@@ -735,7 +806,6 @@ async def chat(
                 CrewClass = getattr(mod, spec[1])
                 specialist_crew = CrewClass(language=detected_language)
                 agent_result = await specialist_crew.kickoff(manager_context)
-                reply = agent_result.get("message", "")
                 agent_name = agent_result.get("agent", routing_phase)
             else:
                 # Unknown routing_phase — fall through to manager
@@ -747,7 +817,6 @@ async def chat(
             manager_crew = ManagerCrew(language=detected_language)
             agent_result = await manager_crew.kickoff(manager_context)
 
-            reply = agent_result.get("message", "")
             agent_name = agent_result.get("agent", "manager")
 
         # Check for GBV routing
@@ -789,10 +858,21 @@ async def chat(
         )
 
     # ------------------------------------------------------------------
+    # Step 3.25: Validate crew output — extract clean message before sanitization
+    # ------------------------------------------------------------------
+    # _validate_crew_output() pulls the message from agent_result and attempts
+    # to extract citizen-facing content if delegation text is found at the start.
+    # This is the second layer of the three-layer defense-in-depth:
+    #   Layer 1: ManagerCrew.parse_result() filters delegation patterns
+    #   Layer 2: _validate_crew_output() catches any delegation that leaked through
+    #   Layer 3: sanitize_reply() does final artifact cleanup for citizen display
+    reply = _validate_crew_output(agent_result, agent_name, detected_language)
+
+    # ------------------------------------------------------------------
     # Step 3.5: Sanitize reply — strip LLM artifacts for citizen-facing output
     # ------------------------------------------------------------------
     # Raw output is preserved in agent_result for Streamlit debug inspection.
-    raw_reply = reply
+    raw_reply = agent_result.get("raw_output", reply)
     reply = sanitize_reply(reply, agent_name=agent_name, language=detected_language)
 
     # ------------------------------------------------------------------
