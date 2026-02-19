@@ -29,9 +29,10 @@ gbv_intake_task:
     - SAPS: 10111
     - GBV Command Centre: 0800 150 150
   expected_output: >
-    A trauma-informed response confirming the report has been logged with a
-    tracking number, and emergency contact information. Include the SAPS number
-    (10111) and GBV Helpline (0800 150 150) in every response.
+    A GBVResponse JSON with fields: message (str), language (str),
+    action_taken (str), requires_followup (bool), tracking_number (str|null).
+    The message MUST include emergency numbers (10111, 0800 150 150).
+    No internal reasoning or role narration — clean citizen-facing text only.
 
 municipal_intake_task:
   description: >
@@ -65,10 +66,10 @@ municipal_intake_task:
     location, description, and severity, call the tool immediately.
     If critical information is missing, ask ONE clarifying question.
   expected_output: >
-    The JSON result returned by the create_municipal_ticket tool, which contains
-    the tracking_number (format TKT-YYYYMMDD-XXXXXX), ticket id, status, category,
-    and severity. Include a brief confirmation message for the citizen with their
-    tracking number.
+    A MunicipalResponse JSON with fields: message (str), language (str),
+    action_taken (str), requires_followup (bool), tracking_number (str|null).
+    The message must be clean citizen-facing text confirming the ticket with its
+    tracking number. No internal reasoning, no role narration.
 
 auth_task:
   description: >
@@ -85,8 +86,9 @@ auth_task:
     If new user: offer phone or email registration path, then collect full details.
     Proof of residence is REQUIRED before municipality assignment.
   expected_output: >
-    Authenticated user with active session, or clear error message explaining
-    what step failed and how to retry.
+    An AuthResult JSON with fields: authenticated (bool), session_status (str),
+    message (str), user_id (str|null), error (str|null).
+    The message field must be clean citizen-facing text with no internal reasoning.
 
 manager_task:
   description: >
@@ -127,25 +129,18 @@ manager_task:
     STEP 3 — AUTH CHECK:
     - greeting and off_topic: NO authentication required. Handle directly.
     - municipal_report, gbv_report, ticket_status: REQUIRES active session.
-      If session_status is NOT "active", delegate to "Citizen Authentication Specialist" FIRST.
+      If session_status is NOT "active", route to authentication first.
 
-    STEP 4 — DELEGATE to the appropriate specialist:
-    - Authentication needed: delegate to "Citizen Authentication Specialist"
-      Pass: full message context, phone, language, user_exists, session_status.
-    - Municipal report (authenticated): delegate to "Municipal Services Intake Specialist"
-      Pass: the citizen's message, user_id, tenant_id, language.
-    - GBV report (authenticated): delegate to "Crisis Support Specialist"
-      Pass: the citizen's message, user_id, language.
-    - Ticket status (authenticated): delegate to "Ticket Status Specialist"
-      Pass: user_id, language, tracking_number (if mentioned), conversation_history.
-
-    IMPORTANT: When delegating, pass the FULL context including conversation history
-    and the original citizen message. The specialist needs this to respond correctly.
+    STEP 4 — ROUTE to the appropriate specialist:
+    Route the citizen's request to the appropriate specialist. The specialist will
+    handle the interaction from here. Do NOT describe the routing process to the citizen.
 
     If pending_intent is set (citizen returning from auth), route directly to the
     appropriate specialist without re-classifying — the intent was already determined.
   expected_output: >
-    The specialist's response to the citizen, or Gugu's own greeting/redirect response.
+    A clean, citizen-facing response. If delegation occurred, return ONLY the
+    specialist's response — no routing narration, no delegation description,
+    no internal steps. The citizen should not know routing happened.
 
 ticket_status_task:
   description: >
@@ -176,4 +171,7 @@ ticket_status_task:
 
     4. Offer next steps: report a new issue, or ask about a specific ticket.
   expected_output: >
-    Ticket status information presented clearly to the citizen with next steps.
+    A TicketStatusResponse JSON with fields: message (str), language (str),
+    action_taken (str), requires_followup (bool), tickets_found (int).
+    The message must be plain-language ticket information with no internal
+    reasoning or role narration.
