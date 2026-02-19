@@ -69,6 +69,7 @@ async def create_invitation(
     invitation = TeamInvitation(
         tenant_id=tenant_id,
         municipality_id=municipality_id,
+        team_id=invitation_data.team_id,
         email=invitation_data.email,
         role=invitation_data.role.value,
         invited_by=current_user.id,
@@ -128,6 +129,7 @@ async def create_bulk_invitations(
         invitation = TeamInvitation(
             tenant_id=tenant_id,
             municipality_id=municipality_id,
+            team_id=invitation_data.team_id,
             email=invitation_data.email,
             role=invitation_data.role.value,
             invited_by=current_user.id,

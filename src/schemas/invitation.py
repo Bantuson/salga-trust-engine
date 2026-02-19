@@ -24,6 +24,7 @@ class TeamInvitationCreate(BaseModel):
     """Schema for creating a single team invitation."""
     email: EmailStr
     role: InvitationRole
+    team_id: UUID | None = None
 
 
 class TeamInvitationBulkCreate(BaseModel):
@@ -35,6 +36,7 @@ class TeamInvitationResponse(BaseModel):
     """Schema for team invitation response."""
     id: UUID
     municipality_id: UUID
+    team_id: UUID | None = None
     email: str
     role: str
     invited_by: UUID
