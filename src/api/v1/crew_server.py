@@ -827,6 +827,19 @@ async def chat(
         # and the short-circuit above would never trigger on subsequent turns.
         new_routing_phase = agent_result.get("routing_phase", "manager")
         conv_state.routing_phase = new_routing_phase
+
+        # --- PERSIST pending_intent when routing to auth ---
+        # When the manager routes to auth (citizen needs to register/re-auth
+        # before submitting a report), save the citizen's original message so
+        # it can be replayed after auth completes. Only save messages that look
+        # like a real service request (not short greetings or "yes"/"no").
+        if (
+            new_routing_phase == "auth"
+            and routing_phase == "manager"  # Only on first routing (not re-entry)
+            and len(request.message.strip()) > 20
+            and not conv_state.pending_intent  # Don't overwrite existing intent
+        ):
+            conv_state.pending_intent = request.message
         # Explicitly persist routing_phase to the store now.
         # ConversationManager.append_turn() re-fetches from Redis so we must
         # save BEFORE Step 4 or the updated field would be lost.
