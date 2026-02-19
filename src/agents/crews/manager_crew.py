@@ -128,7 +128,7 @@ class ManagerCrew:
             tools=[send_otp_tool, verify_otp_tool, create_supabase_user_tool, lookup_user_tool],
             llm=self.llm,
             allow_delegation=False,  # Specialists MUST NOT delegate further
-            max_iter=auth_config.get("max_iter", 3),
+            max_iter=10,  # Override YAML default (3) — auth needs multiple tool calls (send_otp + verify_otp + create_user)
             verbose=False,
         )
 
@@ -147,7 +147,7 @@ class ManagerCrew:
             tools=[create_municipal_ticket],
             llm=self.llm,
             allow_delegation=False,
-            max_iter=municipal_config.get("max_iter", 3),
+            max_iter=5,  # Override YAML default (3) — municipal needs info gathering + ticket creation
             verbose=False,
         )
 
@@ -253,11 +253,17 @@ class ManagerCrew:
         CrewAI artifacts. If delegation filtering removes everything,
         returns a warm Gugu fallback.
 
+        Also detects which specialist was engaged from raw output content
+        patterns and returns routing_phase + agent for crew_server.py to
+        persist on ConversationState (enabling specialist short-circuit
+        on subsequent turns).
+
         Args:
             result: CrewAI CrewOutput object.
 
         Returns:
-            Dict with "message", "raw_output", and optional "tracking_number".
+            Dict with "message", "raw_output", "routing_phase", "agent",
+            and optional "tracking_number".
         """
         raw = str(result)
 
@@ -295,7 +301,90 @@ class ManagerCrew:
         if tracking_match:
             result_dict["tracking_number"] = tracking_match.group()
 
+        # --- Detect routing_phase and agent from raw output ---
+        # CrewAI hierarchical mode delegates to specialists. We detect which
+        # specialist was engaged by scanning the raw output for content patterns.
+        # This allows crew_server.py to persist routing_phase on ConversationState
+        # so subsequent turns short-circuit directly to the active specialist.
+        routing_phase, agent = self._detect_routing(raw)
+        result_dict["routing_phase"] = routing_phase
+        result_dict["agent"] = agent
+
         return result_dict
+
+    @staticmethod
+    def _detect_routing(raw: str) -> tuple[str, str]:
+        """Detect which specialist was engaged from raw CrewAI output.
+
+        Scans for delegation markers and content patterns to determine
+        which specialist handled (or should handle) the citizen's request.
+
+        Args:
+            raw: Raw string output from CrewAI crew.kickoff().
+
+        Returns:
+            Tuple of (routing_phase, agent_name). Both default to "manager"
+            if no specialist engagement is detected (e.g. greeting handled
+            by manager directly).
+        """
+        raw_lower = raw.lower()
+
+        # --- Auth indicators ---
+        _AUTH_SIGNALS = [
+            "otp", "verify", "verification", "6-digit", "six-digit",
+            "register", "authentication", "send_otp", "verify_otp",
+            "confirm your phone", "confirm your email",
+            "create_supabase_user", "lookup_user",
+            "citizen authentication specialist",
+        ]
+        auth_score = sum(1 for s in _AUTH_SIGNALS if s in raw_lower)
+
+        # --- Municipal indicators ---
+        _MUNICIPAL_SIGNALS = [
+            "tkt-", "tracking number", "ticket", "report logged",
+            "create_municipal_ticket", "municipal services intake",
+            "pothole", "water", "electricity", "sewage", "refuse",
+            "municipal services intake specialist",
+        ]
+        municipal_score = sum(1 for s in _MUNICIPAL_SIGNALS if s in raw_lower)
+
+        # --- GBV indicators ---
+        _GBV_SIGNALS = [
+            "10111", "0800 150 150", "gbv", "gender-based violence",
+            "violence", "abuse", "crisis support specialist",
+            "notify_saps", "safe right now",
+        ]
+        gbv_score = sum(1 for s in _GBV_SIGNALS if s in raw_lower)
+
+        # --- Ticket status indicators ---
+        _TICKET_STATUS_SIGNALS = [
+            "ticket status", "report status", "lookup_ticket",
+            "ticket status specialist", "check the status",
+            "status of your", "status of the",
+        ]
+        ticket_score = sum(1 for s in _TICKET_STATUS_SIGNALS if s in raw_lower)
+
+        # Pick highest score, minimum threshold of 2 to avoid false positives
+        scores = {
+            "auth": auth_score,
+            "municipal": municipal_score,
+            "gbv": gbv_score,
+            "ticket_status": ticket_score,
+        }
+        best = max(scores, key=scores.get)
+        best_score = scores[best]
+
+        if best_score < 2:
+            # Not enough signal to determine specialist — stay with manager
+            return ("manager", "manager")
+
+        _AGENT_NAMES = {
+            "auth": "auth_agent",
+            "municipal": "municipal_intake",
+            "gbv": "gbv_intake",
+            "ticket_status": "ticket_status",
+        }
+        return (best, _AGENT_NAMES[best])
 
     def get_error_response(self, error: Exception) -> dict[str, Any]:
         """Return a warm Gugu error message on any unhandled exception.
