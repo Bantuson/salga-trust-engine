@@ -181,9 +181,9 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-18 (Phase 6.9 planned — 4 plans in 4 waves)*
+*Last updated: 2026-02-19 (Phase 6.9.1 planned -- 4 plans in 3 waves)*
 
-### Phase 06.9: Multi-Agent Manager Refactor — CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
+### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
 **Goal:** Replace keyword-based IntakeFlow router and imperative crew_server.py routing logic with a CrewAI hierarchical manager agent. Manager handles first contact, classifies intent via LLM, delegates to specialist agents (auth, municipal intake, GBV, ticket status). Add new ticket status agent for citizens to check on existing reports.
 **Depends on:** Phase 6.8
@@ -196,7 +196,20 @@ Plans:
 - [ ] 06.9-03-PLAN.md -- IntakeFlow and crew_server.py refactor to route through ManagerCrew
 - [ ] 06.9-04-PLAN.md -- Unit tests for ManagerCrew/TicketStatusCrew, update existing tests, Streamlit presets
 
-### Phase 06.7: Municipal intake agent testing — DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
+### Phase 06.9.1: Fix agent output formatting Pydantic models auth OTP tool failures and system prompt engineering (INSERTED)
+
+**Goal:** Fix agent behavior quality across all crews: eliminate internal reasoning leakage to citizens, add Pydantic structured output models for all crews, fix auth OTP tool execution failures, and re-engineer system prompts against CrewAI best practices.
+**Depends on:** Phase 6.9
+**Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
+**Plans:** 4 plans
+
+Plans:
+- [ ] 06.9.1-01-PLAN.md -- System prompt hardening: tool hard-blocks, universal guardrails, per-crew strictness in prompts and YAML
+- [ ] 06.9.1-02-PLAN.md -- Pydantic output models for all crews, repair strategy in base_crew, auth OTP tool fixes
+- [ ] 06.9.1-03-PLAN.md -- Code-level delegation filtering in sanitize_reply() and ManagerCrew.parse_result()
+- [ ] 06.9.1-04-PLAN.md -- Unit and integration tests for sanitization, Pydantic validation, and auth tool fixes
+
+### Phase 06.7: Municipal intake agent testing -- DeepSeek LLM Streamlit chat dashboard auth agent phone detection API-first security (INSERTED)
 
 **Goal:** Build an end-to-end testable municipal intake agent system powered by DeepSeek V3.2 LLM via CrewAI. Includes: auth agent with dual registration flow, deterministic phone detection, API-first crew server endpoints, and Streamlit chat dashboard for manual multi-turn testing.
 **Depends on:** Phase 6
@@ -223,9 +236,9 @@ Plans:
 - [ ] 06.8-04-PLAN.md -- Fix Gugu identity confusion, greeting-first flow, and language lock in auth prompts (gap closure)
 - [ ] 06.8-05-PLAN.md -- Branded email OTP template with 6-digit code display (gap closure)
 
-### Phase 06.5: Public dashboard UI refinements — scroll behavior, card styling, mobile fixes, login customization (INSERTED)
+### Phase 06.5: Public dashboard UI refinements -- scroll behavior, card styling, mobile fixes, login customization (INSERTED)
 
-**Goal:** Fix header/navbar scroll persistence (should hide on scroll), fix scroll-to-top on navigation, improve scroll animation looping and inverse behavior, standardize card styling (white gloss → pink gloss), fix mobile layout spacing and backgrounds, customize login card titles per context, polish request access page styling, fix dashboard hero text and stats card colors.
+**Goal:** Fix header/navbar scroll persistence (should hide on scroll), fix scroll-to-top on navigation, improve scroll animation looping and inverse behavior, standardize card styling (white gloss -> pink gloss), fix mobile layout spacing and backgrounds, customize login card titles per context, polish request access page styling, fix dashboard hero text and stats card colors.
 **Depends on:** Phase 6.4
 **Plans:** 3 plans
 
@@ -275,7 +288,7 @@ Plans:
 
 ### Phase 06.3: Complete UI redesign with Johannesburg skyline background glassmorphic cards pink rose theme and proper design system for both dashboards (INSERTED)
 
-**Goal:** Complete visual identity overhaul for both dashboards: replace navy dark mode with pink/rose (#cd5e81) dominant background, use the Johannesburg skyline photograph as hero imagery, refine glassmorphic card system for the new color palette, remove 3D globe and Ndebele patterns, and ensure both apps share an identical theme. All existing page structure and functionality stays — this is a re-skin, not a restructure.
+**Goal:** Complete visual identity overhaul for both dashboards: replace navy dark mode with pink/rose (#cd5e81) dominant background, use the Johannesburg skyline photograph as hero imagery, refine glassmorphic card system for the new color palette, remove 3D globe and Ndebele patterns, and ensure both apps share an identical theme. All existing page structure and functionality stays -- this is a re-skin, not a restructure.
 **Depends on:** Phase 6.2
 **Plans:** 6 plans
 
