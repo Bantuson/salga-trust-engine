@@ -442,6 +442,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.7 inserted after Phase 6.6: Municipal intake agent testing — DeepSeek LLM, Streamlit chat dashboard, auth agent, phone detection, API-first security (URGENT)
 - Phase 6.8 inserted after Phase 6.7: Agent personality enhancement (Gugu persona with feminine warmth, ask citizen names, platform context) & email OTP fix (magic links → 6-digit codes, evaluate SMS via Twilio Verify) (URGENT)
 - Phase 6.9 inserted after Phase 6.8: Multi-Agent Manager Refactor — CrewAI hierarchical routing with manager agent, greeting task, auth routing, municipal_tickets_agent for status updates (URGENT)
+- Phase 6.9.1 inserted after Phase 6.9: Fix agent output formatting Pydantic models auth OTP tool failures and system prompt engineering (URGENT)
 
 ### Blockers/Concerns
 
@@ -449,10 +450,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-18 (Phase 6.9 COMPLETE — all 4 plans done)
-Stopped at: Completed 06.9-04-PLAN.md — Test suite update for ManagerCrew architecture, Phase 6.9 COMPLETE
-Resume file: (none — Phase 6.9 complete, next phase TBD)
+Last session: 2026-02-19 (Phase 6.9.1 context gathered)
+Stopped at: Phase 6.9.1 context gathered — ready for planning
+Resume file: .planning/phases/06.9.1-fix-agent-output-formatting-pydantic-models-auth-otp-tool-failures-and-system-prompt-engineering/06.9.1-CONTEXT.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-18 (06.9 complete)*
+*Last updated: 2026-02-19 (06.9.1 context gathered)*
