@@ -8,6 +8,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from src.api.v1 import (
     access_requests,
+    audit_logs,
     auth,
     citizen,
     consent,
@@ -21,6 +22,8 @@ from src.api.v1 import (
     onboarding,
     public,
     reports,
+    settings as settings_api,
+    teams,
     tickets,
     uploads,
     users,
@@ -116,3 +119,8 @@ app.include_router(access_requests.router, prefix="/api/v1")
 app.include_router(onboarding.router, prefix="/api/v1")
 app.include_router(invitations.router, prefix="/api/v1")
 app.include_router(citizen.router, prefix="/api/v1")
+
+# Phase 6.1.1 routers: Teams CRUD, Settings (SLA + municipality profile), Audit logs
+app.include_router(teams.router, prefix="/api/v1")
+app.include_router(settings_api.router, prefix="/api/v1")
+app.include_router(audit_logs.router, prefix="/api/v1")
