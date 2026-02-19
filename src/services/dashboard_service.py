@@ -27,7 +27,12 @@ class DashboardService:
     """
 
     async def get_metrics(
-        self, municipality_id: UUID, db: AsyncSession, ward_id: str | None = None
+        self,
+        municipality_id: UUID,
+        db: AsyncSession,
+        ward_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> dict:
         """Get aggregated dashboard metrics.
 
@@ -35,6 +40,8 @@ class DashboardService:
             municipality_id: Municipality (tenant) ID
             db: Database session
             ward_id: Optional ward filter (interim: address ILIKE match)
+            start_date: Optional start of date range (filter by created_at)
+            end_date: Optional end of date range (filter by created_at)
 
         Returns:
             dict with keys:
@@ -53,6 +60,12 @@ class DashboardService:
         # Ward filtering (interim: address ILIKE)
         if ward_id:
             base_conditions.append(Ticket.address.ilike(f"%{ward_id}%"))
+
+        # Date range filtering
+        if start_date:
+            base_conditions.append(Ticket.created_at >= start_date)
+        if end_date:
+            base_conditions.append(Ticket.created_at <= end_date)
 
         # Total open tickets (open/in_progress/escalated)
         open_statuses = ["open", "in_progress", "escalated"]
@@ -156,7 +169,12 @@ class DashboardService:
         }
 
     async def get_volume_by_category(
-        self, municipality_id: UUID, db: AsyncSession, ward_id: str | None = None
+        self,
+        municipality_id: UUID,
+        db: AsyncSession,
+        ward_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> list[dict]:
         """Get ticket counts grouped by category.
 
@@ -164,6 +182,8 @@ class DashboardService:
             municipality_id: Municipality (tenant) ID
             db: Database session
             ward_id: Optional ward filter
+            start_date: Optional start of date range (filter by created_at)
+            end_date: Optional end of date range (filter by created_at)
 
         Returns:
             list of: {"category": str, "open": int, "resolved": int}
@@ -177,6 +197,11 @@ class DashboardService:
 
         if ward_id:
             base_conditions.append(Ticket.address.ilike(f"%{ward_id}%"))
+
+        if start_date:
+            base_conditions.append(Ticket.created_at >= start_date)
+        if end_date:
+            base_conditions.append(Ticket.created_at <= end_date)
 
         # Group by category with open/resolved counts
         open_statuses = ["open", "in_progress", "escalated"]
@@ -207,7 +232,12 @@ class DashboardService:
         ]
 
     async def get_sla_compliance(
-        self, municipality_id: UUID, db: AsyncSession, ward_id: str | None = None
+        self,
+        municipality_id: UUID,
+        db: AsyncSession,
+        ward_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> dict:
         """Get SLA compliance breakdown.
 
@@ -215,6 +245,8 @@ class DashboardService:
             municipality_id: Municipality (tenant) ID
             db: Database session
             ward_id: Optional ward filter
+            start_date: Optional start of date range (filter by created_at)
+            end_date: Optional end of date range (filter by created_at)
 
         Returns:
             {
@@ -232,6 +264,11 @@ class DashboardService:
 
         if ward_id:
             base_conditions.append(Ticket.address.ilike(f"%{ward_id}%"))
+
+        if start_date:
+            base_conditions.append(Ticket.created_at >= start_date)
+        if end_date:
+            base_conditions.append(Ticket.created_at <= end_date)
 
         now = datetime.now(timezone.utc)
 
@@ -295,7 +332,12 @@ class DashboardService:
         }
 
     async def get_team_workload(
-        self, municipality_id: UUID, db: AsyncSession, ward_id: str | None = None
+        self,
+        municipality_id: UUID,
+        db: AsyncSession,
+        ward_id: str | None = None,
+        start_date: datetime | None = None,
+        end_date: datetime | None = None,
     ) -> list[dict]:
         """Get ticket counts per team.
 
@@ -303,6 +345,8 @@ class DashboardService:
             municipality_id: Municipality (tenant) ID
             db: Database session
             ward_id: Optional ward filter
+            start_date: Optional start of date range (filter by created_at)
+            end_date: Optional end of date range (filter by created_at)
 
         Returns:
             list of: {"team_id": str, "team_name": str, "open_count": int, "total_count": int}
@@ -316,6 +360,11 @@ class DashboardService:
 
         if ward_id:
             base_conditions.append(Ticket.address.ilike(f"%{ward_id}%"))
+
+        if start_date:
+            base_conditions.append(Ticket.created_at >= start_date)
+        if end_date:
+            base_conditions.append(Ticket.created_at <= end_date)
 
         # Join Ticket with Team and group by team
         open_statuses = ["open", "in_progress", "escalated"]
