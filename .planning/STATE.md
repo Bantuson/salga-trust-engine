@@ -134,6 +134,7 @@ Progress: [██░░░░░░░░] 29% (2/7 plans)
 | 06.9.1-03 | 5.4m (321s) | 2 | 2 |
 | 06.9.1-04 | 21.2m (1270s) | 2 | 2 |
 | Phase 06.1.1 P02 | 305 | 2 tasks | 7 files |
+| Phase 06.1.1 P01 | 538 | 2 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -452,6 +453,11 @@ Recent decisions affecting current work:
 - [Phase 06.1.1]: SparkLine uses random gradient ID suffix to prevent SVG ID conflicts with multiple instances on same page
 - [Phase 06.1.1]: CATEGORY_CONFIG getCategoryConfig() fallback to 'other' prevents crashes for unknown categories
 - [Phase 06.1.1]: Permission matrix is UI-only (Settings grid display); actual enforcement remains in RLS policies + FastAPI guards
+- [Phase 06.1.1]: settings as settings_api alias in main.py to avoid conflict with src.core.config.settings
+- [Phase 06.1.1]: TeamInvitation.team_id nullable=True for backward compatibility with existing municipality-level invitations
+- [Phase 06.1.1]: SAPS teams excluded from GET /teams list endpoint (SEC-05 boundary enforcement)
+- [Phase 06.1.1]: SLA 'default' category URL parameter maps to NULL in database (normalization at API layer)
+- [Phase 06.1.1]: Dashboard date range uses created_at filtering on Ticket for time-series analysis
 
 ### Pending Todos
 
