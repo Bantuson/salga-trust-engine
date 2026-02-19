@@ -7,6 +7,9 @@
 import axios, { AxiosError } from 'axios';
 import { supabase } from '../lib/supabase';
 import type { TicketFilters, PaginatedTicketResponse, DashboardMetrics, CategoryVolume, SLACompliance, TeamWorkload } from '../types/dashboard';
+import type { Team, TeamCreate, TeamMember, TeamInvitation, InvitationCreate, BulkInvitationCreate } from '../types/teams';
+import type { AnalyticsData } from '../types/analytics';
+import type { SLAConfig, MunicipalityProfile, PaginatedAuditLogs } from '../types/settings';
 
 // API base URL from environment or default to localhost
 const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000/api/v1';
@@ -229,4 +232,279 @@ export async function exportTicketsExcel(filters: TicketFilters): Promise<Blob> 
     responseType: 'blob',
   });
   return response.data;
+}
+
+// ---------------------------------------------------------------------------
+// Teams API
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch all teams for the current municipality.
+ */
+export async function fetchTeams(): Promise<Team[]> {
+  try {
+    const response = await api.get('/teams');
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch teams');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create a new team.
+ */
+export async function createTeam(data: TeamCreate): Promise<Team> {
+  try {
+    const response = await api.post('/teams', data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to create team');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch a single team by ID.
+ */
+export async function fetchTeamDetail(teamId: string): Promise<Team> {
+  try {
+    const response = await api.get(`/teams/${teamId}`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch team');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update a team (partial update).
+ */
+export async function updateTeam(teamId: string, data: Partial<TeamCreate>): Promise<Team> {
+  try {
+    const response = await api.patch(`/teams/${teamId}`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to update team');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch all members of a team.
+ */
+export async function fetchTeamMembers(teamId: string): Promise<TeamMember[]> {
+  try {
+    const response = await api.get(`/teams/${teamId}/members`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch team members');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Remove a member from a team (by invitation ID).
+ */
+export async function removeTeamMember(teamId: string, invitationId: string): Promise<void> {
+  try {
+    await api.delete(`/teams/${teamId}/members/${invitationId}`);
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to remove team member');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch all pending/active invitations for a team.
+ */
+export async function fetchTeamInvitations(teamId: string): Promise<TeamInvitation[]> {
+  try {
+    const response = await api.get(`/teams/${teamId}/invitations`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch team invitations');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create a single invitation (for a team or municipality-wide).
+ */
+export async function createInvitation(data: InvitationCreate): Promise<TeamInvitation> {
+  try {
+    const response = await api.post('/invitations/', data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to create invitation');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create multiple invitations in bulk (for onboarding wizard).
+ */
+export async function createBulkInvitations(data: BulkInvitationCreate): Promise<TeamInvitation[]> {
+  try {
+    const response = await api.post('/invitations/bulk', data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to create bulk invitations');
+    }
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Settings / SLA API
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch all SLA configurations for the current municipality.
+ */
+export async function fetchSLAConfigs(): Promise<SLAConfig[]> {
+  try {
+    const response = await api.get('/settings/sla');
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch SLA configs');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update SLA configuration for a specific category.
+ */
+export async function updateSLAConfig(
+  category: string,
+  data: { response_hours: number; resolution_hours: number; warning_threshold_pct: number }
+): Promise<SLAConfig> {
+  try {
+    const response = await api.put(`/settings/sla/${category}`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to update SLA config');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch current municipality profile.
+ */
+export async function fetchMunicipalityProfile(): Promise<MunicipalityProfile> {
+  try {
+    const response = await api.get('/settings/municipality');
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch municipality profile');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update municipality profile (partial update).
+ */
+export async function updateMunicipalityProfile(
+  data: Partial<MunicipalityProfile>
+): Promise<MunicipalityProfile> {
+  try {
+    const response = await api.put('/settings/municipality', data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to update municipality profile');
+    }
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Audit Logs API
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch paginated audit logs with optional filters.
+ */
+export async function fetchAuditLogs(params: {
+  page?: number;
+  page_size?: number;
+  table_name?: string;
+  operation?: string;
+}): Promise<PaginatedAuditLogs> {
+  try {
+    const response = await api.get('/audit-logs', { params });
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch audit logs');
+    }
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Analytics API (extended)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch combined analytics data for a date range.
+ *
+ * Calls all 4 dashboard endpoints in parallel and merges results
+ * into a single AnalyticsData object for the Analytics page.
+ */
+export async function fetchAnalyticsData(
+  startDate: string,
+  endDate: string,
+  wardId?: string
+): Promise<AnalyticsData> {
+  const baseParams = new URLSearchParams();
+  baseParams.set('start_date', startDate);
+  baseParams.set('end_date', endDate);
+  if (wardId) baseParams.set('ward_id', wardId);
+
+  const qs = `?${baseParams}`;
+
+  try {
+    const [metricsRes, volumeRes, slaRes, workloadRes] = await Promise.all([
+      api.get(`/dashboard/metrics${qs}`),
+      api.get(`/dashboard/volume${qs}`),
+      api.get(`/dashboard/sla${qs}`),
+      api.get(`/dashboard/workload${qs}`),
+    ]);
+
+    return {
+      metrics: metricsRes.data as AnalyticsData['metrics'],
+      volume: volumeRes.data as AnalyticsData['volume'],
+      sla: slaRes.data as AnalyticsData['sla'],
+      workload: workloadRes.data as AnalyticsData['workload'],
+    };
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch analytics data');
+    }
+    throw error;
+  }
 }
