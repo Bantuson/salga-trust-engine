@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.1.1 Plan 06 COMPLETE — Settings page with 8 role-gated sections, sticky anchor nav, per-section saves, audit log viewer
+**Current focus:** Phase 6.1.1 Plan 04 COMPLETE — Member management components: QuickInviteForm, BulkInviteDialog, RoleAssignPreview, PermissionMatrix
 
 ## Current Position
 
@@ -138,6 +138,7 @@ Progress: [██████░░░░] 86% (6/7 plans)
 | Phase 06.1.1 P03 | 385 | 2 tasks | 9 files |
 | Phase 06.1.1 P06 | 471 | 2 tasks | 12 files |
 | Phase 06.1.1 P05 | 542 | 2 tasks | 7 files |
+| 06.1.1-04 | 6.0m (361s) | 2 | 6 |
 
 ## Accumulated Context
 
@@ -470,6 +471,12 @@ Recent decisions affecting current work:
 - [Phase 06.1.1-05]: animate() returns JSAnimation (not AnimationInstance) in animejs v4 — type import corrected
 - [Phase 06.1.1-05]: makeTrend() generates synthetic 7-point sparkline data with direction bias until backend provides time-series
 - [Phase 06.1.1-05]: Ward councillor wardId uses getTenantId() as placeholder — proper ward_id will be in JWT when backend adds it
+- [Phase 06.1.1-04]: RoleAssignPreview uses amber rgba(255,213,79,0.08) tint to draw attention before role confirmation
+- [Phase 06.1.1-04]: CSS grid (not HTML table) for PermissionMatrix gives full styling control and horizontal scroll
+- [Phase 06.1.1-04]: Custom ConfirmDialog component replaces window.confirm for remove/deactivate member actions
+- [Phase 06.1.1-04]: currentUserRole prop forwarded through TeamDetailModal to MembersTab for admin-only Deactivate visibility
+- [Phase 06.1.1-04]: z-index layering: TeamDetailModal 1000, BulkInviteDialog 1100, ConfirmDialogs 1200
+- [Phase 06.1.1-04]: Deactivate account is a display stub with TODO for backend endpoint (removes from local state only)
 
 ### Pending Todos
 
@@ -495,9 +502,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Phase 06.1.1 Plan 06 complete — Settings page with 8 role-gated sections + anchor nav)
-Stopped at: Completed 06.1.1-06-PLAN.md
-Resume file: .planning/phases/06.1.1-teams-analytics-and-settings-pages-ui-full-implementations-with-user-roles-municipal-multi-tenancy-new-roles-new-teams-user-journeys-design-consistency/06.1.1-06-SUMMARY.md
+Last session: 2026-02-19 (Phase 06.1.1 Plan 04 complete — QuickInviteForm, BulkInviteDialog, RoleAssignPreview, PermissionMatrix)
+Stopped at: Completed 06.1.1-04-PLAN.md
+Resume file: .planning/phases/06.1.1-teams-analytics-and-settings-pages-ui-full-implementations-with-user-roles-municipal-multi-tenancy-new-roles-new-teams-user-journeys-design-consistency/06.1.1-04-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*

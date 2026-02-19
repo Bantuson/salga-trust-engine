@@ -138,7 +138,7 @@ Plans:
   4. GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
   5. Three to five pilot municipalities are onboarded with active citizen reporting and visible municipal responses
   6. Full test suite passes across all 6 phases with >=80% coverage; no regressions
-**Plans:** 3 plans
+**Plans:** 3/3 plans complete
 
 Plans:
 - [x] 06-01-PLAN.md -- Public metrics backend: cross-tenant aggregation service and unauthenticated API endpoints
@@ -173,7 +173,7 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 3. Citizen Reporting Channels | 7/7 | ✓ Complete | 2026-02-10 |
 | 4. Ticket Management & Routing | 5/5 | ✓ Complete | 2026-02-10 |
 | 5. Municipal Operations Dashboard | 5/5 | ✓ Complete | 2026-02-10 |
-| 6. Public Transparency & Rollout | 3/3 | ✓ Complete | 2026-02-10 |
+| 6. Public Transparency & Rollout | 3/3 | Complete   | 2026-02-19 |
 | 6.1. Supabase & Dashboard Separation | 9/9 | ✓ Complete | 2026-02-11 |
 | 6.4. Dashboard Landing & Citizen Auth | 7/7 | ✓ Complete | 2026-02-13 |
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
