@@ -100,8 +100,8 @@ def test_create_crew_structure():
 
     # Verify agent configuration
     agent = crew.agents[0]
-    assert agent.role == "Municipal Services Intake Specialist"
-    assert "en" in agent.goal or "english" in agent.goal.lower()
+    assert agent.role.strip() == "Municipal Service Intake Specialist"
+    assert "municipal" in agent.goal.lower() or "ticket" in agent.goal.lower()
     assert len(agent.tools) == 1
     assert agent.tools[0].name == "create_municipal_ticket"
 
@@ -334,5 +334,5 @@ def test_yaml_configs_valid():
         tasks_config = yaml.safe_load(f)
 
     assert tasks_config is not None
-    assert "municipal_intake_task" in tasks_config
-    assert "description" in tasks_config["municipal_intake_task"]
+    assert "handle_municipal_report" in tasks_config
+    assert "description" in tasks_config["handle_municipal_report"]

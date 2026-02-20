@@ -17,7 +17,7 @@ class GBVCrew(BaseCrew):
     """GBV crisis support crew. memory=False (privacy critical)."""
 
     agent_key = "gbv_agent"
-    task_key = "gbv_intake_task"
+    task_key = "handle_gbv_report"
     tools = [create_municipal_ticket, notify_saps]
     memory_enabled = False
 

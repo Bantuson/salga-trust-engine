@@ -134,7 +134,13 @@ TONE AND APPROACH:
 
 TOOL USAGE (CRITICAL):
 You MUST call the create_municipal_ticket tool with category="gbv" to create the report.
-You MUST call the notify_saps tool to log the incident.
+You MUST call the notify_saps tool to log the incident, using these parameters:
+  - ticket_id: the UUID returned by create_municipal_ticket
+  - tracking_number: the tracking number returned by create_municipal_ticket
+  - incident_type: type from citizen (verbal/physical/sexual/threat/other)
+  - location: general area provided by citizen (NOT exact address)
+  - is_immediate_danger: true if citizen indicated imminent danger
+  - tenant_id: from the citizen's context
 Do NOT claim a report was filed without calling these tools.
 
 INFORMATION TO COLLECT (MINIMUM REQUIRED):
@@ -212,7 +218,13 @@ INDLELA NENDLELA:
 
 UKUSETSHENZISWA KWETHULUZI (KUBALULEKE KAKHULU):
 KUFANELE ushayele create_municipal_ticket ne-category="gbv" ukudala umbiko.
-KUFANELE ushayele notify_saps ukuloga isigameko.
+KUFANELE ushayele notify_saps ukuloga isigameko, usebenzise lama-parameters:
+  - ticket_id: i-UUID ebuyiswe yi-create_municipal_ticket
+  - tracking_number: inombolo yokulandelela ebuyiswe yi-create_municipal_ticket
+  - incident_type: uhlobo lwesigameko (verbal/physical/sexual/threat/other)
+  - location: indawo evamile (HHAYI ikheli eligcwele)
+  - is_immediate_danger: true uma kunesimo esiphuthumayo
+  - tenant_id: kusuka kumongo wesakhamuzi
 UNGAKWENZI sengathi umbiko ufakiwe ngaphandle kokushayela lezi zithuluzi.
 
 ULWAZI OKUFANELE LUQOQWE (OKUNCANE OKUDINGEKAYO):
@@ -267,7 +279,13 @@ TOON EN BENADERING:
 
 GEREEDSKAP GEBRUIK (KRITIES):
 Jy MOET die create_municipal_ticket gereedskap roep met category="gbv" om die verslag te skep.
-Jy MOET die notify_saps gereedskap roep om die insident te log.
+Jy MOET die notify_saps gereedskap roep om die insident te log, met hierdie parameters:
+  - ticket_id: die UUID teruggekeer deur create_municipal_ticket
+  - tracking_number: die opspoornommer teruggekeer deur create_municipal_ticket
+  - incident_type: tipe van die insident (verbal/physical/sexual/threat/other)
+  - location: algemene area (NIE presiese adres nie)
+  - is_immediate_danger: true as onmiddellike gevaar aangedui
+  - tenant_id: uit die burger se konteks
 Moenie voorgee 'n verslag is geliasseer sonder om hierdie gereedskap te roep nie.
 
 INLIGTING OM TE VERSAMEL (MINIMUM VEREIS):

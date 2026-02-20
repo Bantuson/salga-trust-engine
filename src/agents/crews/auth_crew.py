@@ -15,7 +15,7 @@ class AuthCrew(BaseCrew):
     """Citizen authentication crew. memory=False (PII protection)."""
 
     agent_key = "auth_agent"
-    task_key = "auth_task"
+    task_key = "authenticate_citizen"
     tools = [send_otp_tool, verify_otp_tool, create_supabase_user_tool, lookup_user_tool]
     memory_enabled = False
 

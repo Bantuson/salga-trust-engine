@@ -155,12 +155,14 @@ def _create_supabase_user_impl(
     tenant_id: str,
     preferred_language: str = "en",
     residence_verified: bool = False,
+    secondary_contact: str = "",
+    address: str = "",
 ) -> str:
     """Create a new Supabase Auth user with citizen role and metadata.
 
     Wraps supabase.auth.admin.create_user(). Sets app_metadata for RBAC
     (role=citizen, tenant_id) and user_metadata for profile (full_name,
-    residence_verified, preferred_language).
+    residence_verified, preferred_language, secondary_contact, address).
 
     Args:
         phone_or_email: E.164 phone number or email address (used as identifier)
@@ -168,6 +170,8 @@ def _create_supabase_user_impl(
         tenant_id: UUID of the municipality the citizen belongs to
         preferred_language: Language preference — "en", "zu", or "af" (default: "en")
         residence_verified: Whether proof of residence has been verified (default: False)
+        secondary_contact: Secondary email or phone number (default: "")
+        address: Residential address from proof of residence (default: "")
 
     Returns:
         New user UUID on success, or error message string on failure
@@ -177,16 +181,22 @@ def _create_supabase_user_impl(
         return "Error: Supabase admin client not configured. Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
 
     try:
+        user_metadata: dict = {
+            "full_name": full_name,
+            "residence_verified": residence_verified,
+            "preferred_language": preferred_language,
+        }
+        if secondary_contact:
+            user_metadata["secondary_contact"] = secondary_contact
+        if address:
+            user_metadata["address"] = address
+
         user_data: dict = {
             "app_metadata": {
                 "role": "citizen",
                 "tenant_id": tenant_id,
             },
-            "user_metadata": {
-                "full_name": full_name,
-                "residence_verified": residence_verified,
-                "preferred_language": preferred_language,
-            },
+            "user_metadata": user_metadata,
             "email_confirm": True,
         }
 

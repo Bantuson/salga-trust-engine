@@ -81,8 +81,8 @@ class TestTicketStatusCrewInstantiation:
         mock_llm = MagicMock()
         crew = TicketStatusCrew(language="en", llm=mock_llm)
 
-        assert crew.agent_key == "ticket_status_agent"
-        assert crew.task_key == "ticket_status_task"
+        assert crew.agent_key == "ticket_status_specialist"
+        assert crew.task_key == "lookup_ticket_status"
         assert crew.memory_enabled is False
 
     def test_ticket_status_crew_has_lookup_tool(self):
