@@ -29,7 +29,9 @@ interface TeamDetailModalProps {
 
 export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: TeamDetailModalProps) {
   const [activeTab, setActiveTab] = useState<Tab>('members');
-  const [membersRefreshKey, setMembersRefreshKey] = useState(0);
+  // membersRefreshKey forces MembersTab remount when incremented
+  // (e.g. after invitation actions that change team membership)
+  const [membersRefreshKey] = useState(0);
   const categoryConfig = getCategoryConfig(team.category);
 
   // Body scroll lock while modal is open (per Pitfall 2)
@@ -55,11 +57,6 @@ export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: 
     { key: 'invitations', label: 'Pending Invitations' },
     { key: 'activity', label: 'Activity' },
   ];
-
-  /** Refresh members when an invitation is sent from within the modal */
-  const handleMembersRefresh = () => {
-    setMembersRefreshKey((k) => k + 1);
-  };
 
   return (
     <div

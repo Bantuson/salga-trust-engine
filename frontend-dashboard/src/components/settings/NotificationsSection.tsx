@@ -5,7 +5,7 @@
  * TODO: Wire to backend notification preferences endpoint when available.
  */
 
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { SettingsSection } from './SettingsSection';
 
 interface NotificationPrefs {
