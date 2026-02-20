@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 6.1.1 Plan 04 COMPLETE — Member management components: QuickInviteForm, BulkInviteDialog, RoleAssignPreview, PermissionMatrix
+**Current focus:** Phase 06.9.2 Plan 03 COMPLETE — CI/CD pipeline, Ruff linter, Render staging Blueprint
 
 ## Current Position
 
-Phase: 6.1.1 of 6.1.1 (Teams, Analytics and Settings Pages UI — full implementations with user roles, multi-tenancy)
-Plan: 6 of 7 in current phase
-Status: IN PROGRESS — Plan 06 delivered: SettingsPage (8 sections), SettingsSection wrapper, useSettings hook, all section components
-Last activity: 2026-02-19 — Phase 6.1.1 Plan 06 complete: Settings page with anchor nav + role gating + per-section saves
+Phase: 06.9.2 of 06.9.2 (System-wide Integration Validation — full security audit, API completeness, CI/CD, Render staging)
+Plan: 3 of 5 in current phase
+Status: IN PROGRESS — Plan 03 delivered: .ruff.toml, .github/workflows/ci.yml, render.yaml — code quality + CI/CD + staging
+Last activity: 2026-02-20 — Phase 06.9.2 Plan 03 complete: Ruff linter + GitHub Actions CI + Render Blueprint
 
-Progress: [██████░░░░] 86% (6/7 plans)
+Progress: [███░░░░░░░] 60% (3/5 plans)
 
 ## Performance Metrics
 
@@ -139,6 +139,7 @@ Progress: [██████░░░░] 86% (6/7 plans)
 | Phase 06.1.1 P06 | 471 | 2 tasks | 12 files |
 | Phase 06.1.1 P05 | 542 | 2 tasks | 7 files |
 | 06.1.1-04 | 6.0m (361s) | 2 | 6 |
+| Phase 06.9.2 P03 | 403 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -477,6 +478,9 @@ Recent decisions affecting current work:
 - [Phase 06.1.1-04]: currentUserRole prop forwarded through TeamDetailModal to MembersTab for admin-only Deactivate visibility
 - [Phase 06.1.1-04]: z-index layering: TeamDetailModal 1000, BulkInviteDialog 1100, ConfirmDialogs 1200
 - [Phase 06.1.1-04]: Deactivate account is a display stub with TODO for backend endpoint (removes from local state only)
+- [Phase 06.9.2-03]: Ruff selected as single linter/formatter tool covering security (bandit), isort, pyflakes, pyupgrade, bugbear
+- [Phase 06.9.2-03]: Render starter plan for all 4 services — crew server deployed as separate web service (needs HTTP health check)
+- [Phase 06.9.2-03]: CI lint job gates test job (needs: lint) and uses sqlite+aiosqlite (USES_SQLITE_TESTS=1) — no PostgreSQL needed in CI
 
 ### Pending Todos
 
@@ -495,6 +499,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.9 inserted after Phase 6.8: Multi-Agent Manager Refactor — CrewAI hierarchical routing with manager agent, greeting task, auth routing, municipal_tickets_agent for status updates (URGENT)
 - Phase 6.9.1 inserted after Phase 6.9: Fix agent output formatting Pydantic models auth OTP tool failures and system prompt engineering (URGENT)
 - Phase 6.1.1 inserted after Phase 6.1: Teams, Analytics and Settings pages UI — full implementations with user roles, municipal multi-tenancy, new roles/teams management, user journeys, design consistency (URGENT)
+- Phase 6.9.2 inserted after Phase 6.9.1: System-wide integration validation — full security audit, API completeness, 3-way communication (agents ↔ municipal ↔ public), code quality, CI/CD, Render staging deployment (URGENT)
 
 ### Blockers/Concerns
 
@@ -502,10 +507,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-19 (Phase 06.1.1 Plan 04 complete — QuickInviteForm, BulkInviteDialog, RoleAssignPreview, PermissionMatrix)
-Stopped at: Completed 06.1.1-04-PLAN.md
-Resume file: .planning/phases/06.1.1-teams-analytics-and-settings-pages-ui-full-implementations-with-user-roles-municipal-multi-tenancy-new-roles-new-teams-user-journeys-design-consistency/06.1.1-04-SUMMARY.md
+Last session: 2026-02-20 (Phase 06.9.2 Plan 03 complete — .ruff.toml, .github/workflows/ci.yml, render.yaml)
+Stopped at: Completed 06.9.2-03-PLAN.md
+Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-03-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-19 (06.1.1 Plan 03 complete — Teams page UI)*
+*Last updated: 2026-02-20 (06.9.2 Plan 03 complete — CI/CD pipeline, Ruff linter, Render Blueprint)*

@@ -11,6 +11,18 @@ REGISTER_RATE_LIMIT = "3/hour"  # User registrations
 API_DEFAULT_RATE_LIMIT = "60/minute"  # General API calls
 DATA_EXPORT_RATE_LIMIT = "5/hour"  # POPIA data exports (expensive)
 
+# Tiered rate limits for main app endpoints
+SENSITIVE_READ_RATE_LIMIT = "60/minute"   # GET endpoints: dashboard, tickets, teams, etc.
+SENSITIVE_WRITE_RATE_LIMIT = "30/minute"  # POST/PUT/PATCH/DELETE on sensitive data
+UPLOAD_RATE_LIMIT = "10/minute"           # File uploads (prevents abuse)
+VERIFICATION_RATE_LIMIT = "5/minute"      # OCR verification (expensive + sensitive)
+REPORT_RATE_LIMIT = "10/minute"           # Report submissions (citizen reports)
+PUBLIC_RATE_LIMIT = "120/minute"          # Unauthenticated public endpoints
+
+# Crew server rate limits
+CREW_CHAT_RATE_LIMIT = "20/minute"    # WhatsApp-style chat messages
+CREW_RESET_RATE_LIMIT = "10/minute"   # Session reset (less frequent)
+
 # Create limiter instance
 # In production: use Redis for distributed rate limiting
 # In development: use in-memory storage

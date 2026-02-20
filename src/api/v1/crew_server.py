@@ -18,6 +18,8 @@ Security:
     X-API-Key header validation (simple key check, not OAuth).
     If CREW_SERVER_API_KEY is empty, validation is skipped (dev mode).
     Server binds to localhost only (127.0.0.1) when started directly.
+    CORS configured to match main app security posture (ALLOWED_ORIGINS).
+    Rate limiting: chat 20/min, session/reset 10/min.
 
 Phone routing (Phase 6.9 manager architecture):
     All messages route through ManagerCrew (LLM-based classification).
@@ -45,13 +47,21 @@ import uuid
 from typing import Any
 
 from fastapi import FastAPI, Header, HTTPException, status
-from pydantic import BaseModel
+from fastapi.middleware.cors import CORSMiddleware
+from pydantic import BaseModel, field_validator
 from sqlalchemy import create_engine
 from sqlalchemy.orm import Session
+from starlette.requests import Request
 
 from src.core.config import settings
 from src.core.conversation import ConversationManager, ConversationState
 from src.core.language import language_detector
+from src.middleware.rate_limit import (
+    CREW_CHAT_RATE_LIMIT,
+    CREW_RESET_RATE_LIMIT,
+    limiter,
+    setup_rate_limiting,
+)
 
 
 # ---------------------------------------------------------------------------
@@ -125,6 +135,23 @@ class ChatRequest(BaseModel):
     session_override: str | None = None
     """Test-mode override: "expired" | "new" skips real DB detection."""
 
+    @field_validator("message")
+    @classmethod
+    def validate_message_length(cls, v: str) -> str:
+        """Ensure message does not exceed 2000 characters."""
+        if len(v) > 2000:
+            raise ValueError("Message must be under 2000 characters")
+        return v
+
+    @field_validator("phone")
+    @classmethod
+    def validate_phone(cls, v: str) -> str:
+        """Validate phone number has a sensible length."""
+        cleaned = v.strip()
+        if len(cleaned) < 7 or len(cleaned) > 20:
+            raise ValueError("Invalid phone number length")
+        return cleaned
+
 
 class ChatResponse(BaseModel):
     """Response body from the /chat endpoint."""
@@ -174,6 +201,18 @@ crew_app = FastAPI(
     ),
     version="1.0.0",
 )
+
+# CORS — matches main app security posture (explicit origins, no wildcard)
+crew_app.add_middleware(
+    CORSMiddleware,
+    allow_origins=settings.ALLOWED_ORIGINS,
+    allow_credentials=True,
+    allow_methods=["GET", "POST"],
+    allow_headers=["X-API-Key", "Content-Type"],
+)
+
+# Rate limiting (slowapi with Redis in production, in-memory in dev)
+setup_rate_limiting(crew_app)
 
 # ---------------------------------------------------------------------------
 # Conversation manager (Redis-backed, shared across requests)
@@ -559,7 +598,9 @@ async def health_check() -> HealthResponse:
 
 
 @crew_app.post("/api/v1/session/reset")
+@limiter.limit(CREW_RESET_RATE_LIMIT)
 async def reset_session(
+    http_request: Request,
     request: SessionResetRequest,
     x_api_key: str | None = Header(default=None),
 ) -> dict:
@@ -569,6 +610,7 @@ async def reset_session(
     GBV namespaces are cleared. Used for testing and conversation restart.
 
     Args:
+        http_request: Starlette Request object (required by slowapi rate limiter).
         request: SessionResetRequest with phone number.
         x_api_key: X-API-Key header for authentication.
 
@@ -595,7 +637,9 @@ async def reset_session(
 
 
 @crew_app.post("/api/v1/chat", response_model=ChatResponse)
+@limiter.limit(CREW_CHAT_RATE_LIMIT)
 async def chat(
+    http_request: Request,
     request: ChatRequest,
     x_api_key: str | None = Header(default=None),
 ) -> ChatResponse:
@@ -618,6 +662,7 @@ async def chat(
     decision (no retry, no fallback model).
 
     Args:
+        http_request: Starlette Request object (required by slowapi rate limiter).
         request: ChatRequest with phone, message, language, municipality_id,
                  session_override.
         x_api_key: X-API-Key header.

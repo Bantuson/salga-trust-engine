@@ -13,7 +13,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **PLAT-02**: User must create an account to submit reports (mandatory registration)
 - [ ] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
 - [ ] **PLAT-04**: System supports trilingual interface (English, isiZulu, Afrikaans)
-- [ ] **PLAT-05**: All API endpoints implement input/output validation with security guardrails
+- [x] **PLAT-05**: All API endpoints implement input/output validation with security guardrails
 - [ ] **PLAT-06**: System implements security firewalls between service endpoints (endpoint isolation)
 - [ ] **PLAT-07**: System is POPIA-compliant from day one (consent management, data minimization, right to access/delete)
 - [ ] **PLAT-08**: API-first architecture — all features accessible via documented REST API with tool-use design pattern
@@ -133,7 +133,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PLAT-02 | Phase 3 | Pending |
 | PLAT-03 | Phase 3 | Pending |
 | PLAT-04 | Phase 2 | Pending |
-| PLAT-05 | Phase 1 | Pending |
+| PLAT-05 | Phase 1 | Complete |
 | PLAT-06 | Phase 1 | Pending |
 | PLAT-07 | Phase 1 | Pending |
 | PLAT-08 | Phase 1 | Pending |
