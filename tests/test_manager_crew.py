@@ -72,10 +72,10 @@ class TestManagerCrewInstantiation:
         assert "auth_agent" in crew.agents_config
         assert "municipal_intake_agent" in crew.agents_config
         assert "gbv_agent" in crew.agents_config
-        assert "ticket_status_agent" in crew.agents_config
+        assert "ticket_status_specialist" in crew.agents_config
 
-        # tasks.yaml must have manager_task
-        assert "manager_task" in crew.tasks_config
+        # tasks.yaml must have route_citizen_message
+        assert "route_citizen_message" in crew.tasks_config
 
 
 class TestManagerCrewCreatesHierarchicalCrew:
@@ -184,7 +184,7 @@ class TestManagerCrewSpecialistRoles:
             manager.agents_config["auth_agent"]["role"],
             manager.agents_config["municipal_intake_agent"]["role"],
             manager.agents_config["gbv_agent"]["role"],
-            manager.agents_config["ticket_status_agent"]["role"],
+            manager.agents_config["ticket_status_specialist"]["role"],
         }
 
         assert actual_roles == expected_roles, (
@@ -250,7 +250,7 @@ class TestManagerCrewTaskContent:
             manager.agents_config["auth_agent"]["role"],
             manager.agents_config["municipal_intake_agent"]["role"],
             manager.agents_config["gbv_agent"]["role"],
-            manager.agents_config["ticket_status_agent"]["role"],
+            manager.agents_config["ticket_status_specialist"]["role"],
         ]
 
         # Phase 6.9.1: Manager task no longer lists specialist roles explicitly

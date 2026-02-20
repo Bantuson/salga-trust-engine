@@ -60,13 +60,24 @@ class TicketStatusResponse(AgentResponse):
 class TicketStatusCrew(BaseCrew):
     """Ticket status lookup specialist. memory=False — no PII in memory."""
 
-    agent_key = "ticket_status_agent"
-    task_key = "ticket_status_task"
+    agent_key = "ticket_status_specialist"
+    task_key = "lookup_ticket_status"
     tools = [lookup_ticket]
     memory_enabled = False  # No PII in memory
 
     def get_language_prompt(self, language: str) -> str:
         return TICKET_STATUS_PROMPTS.get(language, TICKET_STATUS_PROMPTS["en"])
+
+    def build_task_description(self, context: dict) -> str:
+        """Build task description with safe defaults for optional fields."""
+        task_config = self.tasks_config[self.task_key]
+        safe_context = {
+            "user_id": context.get("user_id", ""),
+            "language": context.get("language", self.language),
+            "tracking_number": context.get("tracking_number", ""),
+            "conversation_history": context.get("conversation_history", "(none)"),
+        }
+        return task_config["description"].format(**safe_context)
 
     def build_task_kwargs(self, context: dict) -> dict:
         return {"output_pydantic": TicketStatusResponse}

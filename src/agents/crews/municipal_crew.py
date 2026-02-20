@@ -15,7 +15,7 @@ class MunicipalCrew(BaseCrew):
     """Municipal services intake crew. memory=False for consistency."""
 
     agent_key = "municipal_intake_agent"
-    task_key = "municipal_intake_task"
+    task_key = "handle_municipal_report"
     tools = [create_municipal_ticket]
     memory_enabled = False  # FIX: was unset (defaulted True), now explicit
 

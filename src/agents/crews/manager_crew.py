@@ -171,7 +171,7 @@ class ManagerCrew:
         )
 
         # ── Ticket status specialist ──
-        ticket_config = self.agents_config["ticket_status_agent"]
+        ticket_config = self.agents_config["ticket_status_specialist"]
         ticket_status_agent = Agent(
             role=ticket_config["role"],
             goal=ticket_config["goal"].format(language=language),
@@ -184,7 +184,7 @@ class ManagerCrew:
         )
 
         # ── Manager task — routing logic ──
-        manager_task_config = self.tasks_config["manager_task"]
+        manager_task_config = self.tasks_config["route_citizen_message"]
         # Build safe context for format(): use empty strings for missing optional fields
         task_context = {
             "message": context.get("message", ""),
