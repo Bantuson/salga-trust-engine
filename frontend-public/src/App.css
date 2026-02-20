@@ -283,7 +283,7 @@ body {
 }
 
 .feature-icon {
-  color: var(--color-coral);
+  color: var(--color-accent-gold);
   margin-bottom: var(--space-md);
 }
 
@@ -617,9 +617,6 @@ body {
 }
 
 .user-name {
-  max-width: 120px;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -830,7 +827,7 @@ body {
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: var(--space-2xl) var(--space-lg);
+  padding: var(--space-xl) var(--space-lg);
   margin-bottom: var(--space-md);
   position: relative;
   z-index: 2;
@@ -971,6 +968,7 @@ body {
   font-weight: 700;
   color: #1a1a1a;
   margin-bottom: var(--space-xl);
+  text-align: center;
 }
 
 .about-content p {
@@ -1264,59 +1262,6 @@ body {
   }
 }
 
-/* ===== HEATMAP VIEWER ===== */
-
-/* Custom range slider styling */
-.heatmap-range-slider::-webkit-slider-thumb {
-  appearance: none;
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-teal);
-  cursor: pointer;
-  box-shadow: 0 0 10px rgba(0, 191, 165, 0.5);
-  transition: var(--transition-base);
-}
-
-.heatmap-range-slider::-webkit-slider-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(0, 191, 165, 0.7);
-}
-
-.heatmap-range-slider::-moz-range-thumb {
-  width: 18px;
-  height: 18px;
-  border-radius: 50%;
-  background: var(--color-teal);
-  cursor: pointer;
-  border: none;
-  box-shadow: 0 0 10px rgba(0, 191, 165, 0.5);
-  transition: var(--transition-base);
-}
-
-.heatmap-range-slider::-moz-range-thumb:hover {
-  transform: scale(1.2);
-  box-shadow: 0 0 15px rgba(0, 191, 165, 0.7);
-}
-
-/* Category pills hover effect */
-.category-pill:hover {
-  background: rgba(255, 255, 255, 0.1) !important;
-  border-color: var(--color-teal) !important;
-  color: var(--color-teal) !important;
-}
-
-.category-pill:active {
-  transform: scale(0.95);
-}
-
-/* Mobile: horizontally scrollable pills */
-@media (max-width: 767px) {
-  .category-pill {
-    flex-shrink: 0;
-  }
-}
-
 /* ===== MICRO-INTERACTIONS: BUTTONS ===== */
 button,
 .hero-cta,
@@ -1379,6 +1324,10 @@ select:focus,
 textarea:focus {
   border-color: var(--color-teal);
   box-shadow: 0 0 0 3px rgba(0, 191, 165, 0.1), 0 0 10px rgba(0, 191, 165, 0.2);
+}
+
+input::placeholder {
+  color: rgba(80, 80, 80, 0.7) !important;
 }
 
 input.error,

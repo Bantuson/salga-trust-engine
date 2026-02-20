@@ -30,6 +30,7 @@ export interface HeatmapPoint {
   lat: number;
   lng: number;
   intensity: number;
+  category?: string;
 }
 
 export interface SystemSummary {
@@ -64,4 +65,9 @@ export interface PublicHeatmapRow {
   lng: number;
   intensity: number;
   municipality_id: string;
+}
+
+export interface CategoryBreakdownData {
+  category: string;
+  count: number;
 }

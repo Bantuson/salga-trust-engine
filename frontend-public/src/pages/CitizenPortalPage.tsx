@@ -1,6 +1,6 @@
 /**
  * SALGA Trust Engine — Citizen Portal Page
- * Authenticated page for citizens to view their reports and personal analytics
+ * Tabbed page combining "My Reports" and "Personal Details"
  *
  * CRITICAL:
  * - Requires Supabase authentication
@@ -9,16 +9,18 @@
  * - Shows demo mode if no auth session (for UI testing)
  */
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import { Button } from '@shared/components/ui/Button';
 import { PersonalStats } from '../components/citizen/PersonalStats';
 import { MyReportsList } from '../components/citizen/MyReportsList';
+import { PersonalDetails } from '../components/citizen/PersonalDetails';
 import { useCitizenReports } from '../hooks/useCitizenReports';
 
 export const CitizenPortalPage: React.FC = () => {
   const { reports, stats, isLoading, isDemoMode } = useCitizenReports();
+  const [activeTab, setActiveTab] = useState<'reports' | 'details'>('reports');
 
   return (
     <div style={{
@@ -65,29 +67,57 @@ export const CitizenPortalPage: React.FC = () => {
           </div>
         )}
 
-        {/* Header */}
+        {/* Header — tabs left, button right */}
         <div style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
-          marginBottom: 'var(--spacing-xl)',
+          marginBottom: '48px',
           flexWrap: 'wrap',
           gap: 'var(--spacing-md)',
         }}>
-          <h1 style={{
-            fontSize: 'var(--text-4xl)',
-            fontWeight: 700,
-            color: 'var(--text-primary)',
-            margin: 0,
-            fontFamily: 'var(--font-display)',
-          }}>
-            My Reports
-          </h1>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+            <button
+              onClick={() => setActiveTab('reports')}
+              className="filter-tab"
+              style={{
+                padding: '8px 16px',
+                background: activeTab === 'reports' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
+                color: activeTab === 'reports' ? 'var(--color-teal)' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'var(--transition-base)',
+              }}
+            >
+              My Reports
+            </button>
+            <button
+              onClick={() => setActiveTab('details')}
+              className="filter-tab"
+              style={{
+                padding: '8px 16px',
+                background: activeTab === 'details' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
+                color: activeTab === 'details' ? 'var(--color-teal)' : 'var(--text-secondary)',
+                border: 'none',
+                borderRadius: 'var(--radius-sm)',
+                fontSize: 'var(--text-sm)',
+                fontWeight: 600,
+                cursor: 'pointer',
+                transition: 'var(--transition-base)',
+              }}
+            >
+              Personal Details
+            </button>
+          </div>
+
           <Link to="/report" style={{ textDecoration: 'none' }}>
-            <Button variant="primary" size="md">
+            <Button variant="primary" size="sm">
               <svg
-                width="20"
-                height="20"
+                width="16"
+                height="16"
                 viewBox="0 0 24 24"
                 fill="none"
                 stroke="currentColor"
@@ -103,13 +133,20 @@ export const CitizenPortalPage: React.FC = () => {
           </Link>
         </div>
 
-        {/* Personal Stats */}
-        <PersonalStats stats={stats} loading={isLoading} />
+        {/* Tab Content */}
+        {activeTab === 'reports' ? (
+          <>
+            {/* Personal Stats */}
+            <PersonalStats stats={stats} loading={isLoading} />
 
-        {/* Reports List */}
-        <div style={{ marginTop: 'var(--spacing-xl)' }}>
-          <MyReportsList reports={reports} loading={isLoading} />
-        </div>
+            {/* Reports List */}
+            <div style={{ marginTop: 'var(--spacing-xl)' }}>
+              <MyReportsList reports={reports} loading={isLoading} />
+            </div>
+          </>
+        ) : (
+          <PersonalDetails />
+        )}
       </div>
     </div>
   );

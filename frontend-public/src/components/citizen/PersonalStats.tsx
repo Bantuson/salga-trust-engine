@@ -5,7 +5,6 @@
 
 import React, { useEffect, useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
-import { Skeleton } from '@shared/components/ui/Skeleton';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import type { CitizenStats } from '../../hooks/useCitizenReports';
 import { animate } from 'animejs';
@@ -57,17 +56,15 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
 
   if (loading) {
     return (
-      <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 'var(--spacing-md)',
-        marginBottom: 'var(--spacing-lg)',
-      }}>
-        {[1, 2, 3].map((i) => (
-          <GlassCard key={i} variant="interactive" style={{ padding: 'var(--spacing-lg)' }}>
-            <Skeleton height={80} />
-          </GlassCard>
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px', gap: '12px' }}>
+        <div style={{
+          width: 32, height: 32,
+          border: '3px solid rgba(0,0,0,0.1)',
+          borderTopColor: 'var(--color-teal)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <p style={{ color: '#555', fontSize: '0.875rem' }}>Loading...</p>
       </div>
     );
   }

@@ -7,6 +7,7 @@
 
 import React, { useState } from 'react';
 import { SettingsSection } from './SettingsSection';
+import { GlassSelect } from './GlassSelect';
 import { CATEGORY_CONFIG } from '../../constants/categories';
 
 interface TeamDefaults {
@@ -74,20 +75,15 @@ export function TeamDefaultsSection() {
           <p style={styles.fieldDescription}>
             The SLA configuration applied to new teams by default. Team managers can override this.
           </p>
-          <select
+          <GlassSelect
             id="default-sla-category"
             value={defaults.default_sla_category}
-            onChange={(e) =>
-              setDefaults((prev) => ({ ...prev, default_sla_category: e.target.value }))
+            onChange={(val) =>
+              setDefaults((prev) => ({ ...prev, default_sla_category: val }))
             }
-            style={styles.select}
-          >
-            {CATEGORY_OPTIONS.map(({ value, label }) => (
-              <option key={value} value={value}>
-                {label}
-              </option>
-            ))}
-          </select>
+            options={CATEGORY_OPTIONS}
+            maxWidth="320px"
+          />
         </div>
 
         {/* Auto-assign manager */}
@@ -159,18 +155,6 @@ const styles: Record<string, React.CSSProperties> = {
     color: 'var(--text-muted)',
     margin: '0.25rem 0 0.5rem',
     lineHeight: 1.4,
-  },
-  select: {
-    padding: '0.625rem 0.875rem',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid var(--border-subtle)',
-    backgroundColor: 'var(--surface-elevated)',
-    color: 'var(--text-primary)',
-    fontSize: '0.9375rem',
-    fontFamily: 'var(--font-body)',
-    outline: 'none',
-    cursor: 'pointer',
-    maxWidth: '320px',
   },
   toggle: {
     flexShrink: 0,

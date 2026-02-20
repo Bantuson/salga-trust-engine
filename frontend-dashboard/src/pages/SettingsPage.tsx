@@ -135,13 +135,8 @@ export function SettingsPage() {
   );
 
   return (
-    <div style={styles.container}>
-      {/* Page header */}
-      <header style={styles.header}>
-        <h1 style={styles.title}>Settings</h1>
-      </header>
-
-      {/* Anchor navigation */}
+    <div>
+      {/* Anchor navigation — full width, flush at top */}
       <nav style={styles.anchorNav} aria-label="Settings sections">
         <div style={styles.navInner}>
           {isLoading
@@ -164,6 +159,7 @@ export function SettingsPage() {
       </nav>
 
       {/* Sections */}
+      <div style={styles.container}>
       <div style={styles.sections}>
         {isLoading ? (
           // Loading skeletons
@@ -211,6 +207,7 @@ export function SettingsPage() {
           </>
         )}
       </div>
+      </div>
     </div>
   );
 }
@@ -219,18 +216,7 @@ const styles: Record<string, React.CSSProperties> = {
   container: {
     maxWidth: '1400px',
     margin: '0 auto',
-    padding: '2rem',
-  },
-  header: {
-    marginBottom: 'var(--space-lg)',
-  },
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: 700,
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-display)',
-    textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
-    margin: 0,
+    padding: '0 2rem 2rem 2rem',
   },
   anchorNav: {
     position: 'sticky',
@@ -240,11 +226,12 @@ const styles: Record<string, React.CSSProperties> = {
     backdropFilter: 'blur(12px)',
     WebkitBackdropFilter: 'blur(12px)',
     borderBottom: '1px solid var(--glass-border)',
-    marginBottom: 'var(--space-2xl)',
-    marginLeft: '-2rem',
-    marginRight: '-2rem',
-    paddingLeft: '2rem',
-    paddingRight: '2rem',
+    marginTop: 'calc(-1 * var(--space-2xl))',
+    marginLeft: 'calc(-1 * var(--space-2xl))',
+    marginRight: 'calc(-1 * var(--space-2xl))',
+    paddingLeft: 'var(--space-2xl)',
+    paddingRight: 'var(--space-2xl)',
+    marginBottom: 'var(--space-lg)',
   },
   navInner: {
     display: 'flex',

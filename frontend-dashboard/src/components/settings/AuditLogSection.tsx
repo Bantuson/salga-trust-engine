@@ -10,6 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { SettingsSection } from './SettingsSection';
+import { GlassSelect } from './GlassSelect';
 import { fetchAuditLogs } from '../../services/api';
 import type { AuditLogEntry } from '../../types/settings';
 
@@ -101,33 +102,24 @@ export function AuditLogSection() {
     >
       {/* Filters */}
       <div style={styles.filters}>
-        <select
+        <GlassSelect
           value={filterTable}
-          onChange={(e) => setFilterTable(e.target.value)}
-          style={styles.filterSelect}
-          aria-label="Filter by table"
-        >
-          <option value="">All tables</option>
-          {TABLE_OPTIONS.filter(Boolean).map((t) => (
-            <option key={t} value={t}>
-              {t}
-            </option>
-          ))}
-        </select>
-
-        <select
+          onChange={setFilterTable}
+          ariaLabel="Filter by table"
+          options={[
+            { value: '', label: 'All tables' },
+            ...TABLE_OPTIONS.filter(Boolean).map((t) => ({ value: t, label: t })),
+          ]}
+        />
+        <GlassSelect
           value={filterOperation}
-          onChange={(e) => setFilterOperation(e.target.value)}
-          style={styles.filterSelect}
-          aria-label="Filter by operation"
-        >
-          <option value="">All operations</option>
-          {OPERATION_OPTIONS.filter(Boolean).map((op) => (
-            <option key={op} value={op}>
-              {op}
-            </option>
-          ))}
-        </select>
+          onChange={setFilterOperation}
+          ariaLabel="Filter by operation"
+          options={[
+            { value: '', label: 'All operations' },
+            ...OPERATION_OPTIONS.filter(Boolean).map((op) => ({ value: op, label: op })),
+          ]}
+        />
       </div>
 
       {/* Table */}
@@ -224,17 +216,6 @@ const styles: Record<string, React.CSSProperties> = {
     gap: 'var(--space-sm)',
     marginBottom: 'var(--space-md)',
     flexWrap: 'wrap',
-  },
-  filterSelect: {
-    padding: '0.5rem 0.75rem',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid var(--border-subtle)',
-    backgroundColor: 'var(--surface-elevated)',
-    color: 'var(--text-primary)',
-    fontSize: '0.875rem',
-    fontFamily: 'var(--font-body)',
-    outline: 'none',
-    cursor: 'pointer',
   },
   tableWrapper: {
     maxHeight: '400px',

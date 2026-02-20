@@ -403,7 +403,7 @@ textarea.error {
 .auth-skyline-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(205, 94, 129, 0.3);
+  background: rgba(0, 0, 0, 0.1);
   z-index: 0;
 }
 

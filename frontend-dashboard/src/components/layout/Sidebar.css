@@ -13,6 +13,8 @@
   height: 100vh;
   width: 64px;
   background: var(--surface-elevated);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border-right: 1px solid var(--border-subtle);
   display: flex;
   flex-direction: column;
@@ -63,7 +65,7 @@
 .sidebar-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(205, 94, 129, 0.8);
+  background: rgba(0, 0, 0, 0.6);
   backdrop-filter: blur(4px);
   z-index: 999;
   animation: fadeIn 0.2s ease;

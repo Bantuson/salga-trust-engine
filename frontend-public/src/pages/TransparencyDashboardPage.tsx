@@ -1,14 +1,12 @@
 import { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
-import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { MunicipalitySelector } from '../components/MunicipalitySelector';
-import { ResponseTimeChart } from '../components/ResponseTimeChart';
-import { ResolutionRateChart } from '../components/ResolutionRateChart';
-import { HeatmapViewer } from '../components/HeatmapViewer';
+import { ServicePerformanceStats } from '../components/ServicePerformanceStats';
 import {
   useSystemSummary,
   useResponseTimes,
-  useResolutionRates
+  useResolutionRates,
+  useCategoryBreakdown,
 } from '../hooks/usePublicStats';
 
 export function TransparencyDashboardPage() {
@@ -20,9 +18,20 @@ export function TransparencyDashboardPage() {
   // Load metrics based on selected municipality
   const { data: responseTimes, isLoading: isLoadingResponse } = useResponseTimes(selectedMunicipality || undefined);
   const { data: resolutionRates, isLoading: isLoadingResolution } = useResolutionRates(selectedMunicipality || undefined, 6);
+  const { data: categoryBreakdown, isLoading: isLoadingCategories } = useCategoryBreakdown(selectedMunicipality || undefined);
 
   return (
     <div className="transparency-dashboard-page">
+      {/* Dashboard Header */}
+      <div className="dashboard-header">
+        <div className="dashboard-header-content">
+          <h1 className="dashboard-title">Municipal Transparency Dashboard</h1>
+          <p className="dashboard-subtitle">
+            Real-time service delivery metrics across South African municipalities
+          </p>
+        </div>
+      </div>
+
       <div className="dashboard-content">
         {/* System Summary Cards */}
         <div className="dashboard-summary-grid">
@@ -49,34 +58,17 @@ export function TransparencyDashboardPage() {
           onChange={setSelectedMunicipality}
         />
 
-        {/* Charts Grid */}
-        <div className="dashboard-charts-grid">
-          {isLoadingResponse || isLoadingResolution ? (
-            <SkeletonTheme>
-              <GlassCard variant="default">
-                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
-                <Skeleton height={300} />
-              </GlassCard>
-              <GlassCard variant="default">
-                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
-                <Skeleton height={300} />
-              </GlassCard>
-              <GlassCard variant="default">
-                <Skeleton height={30} width="50%" style={{ marginBottom: '1rem' }} />
-                <Skeleton height={400} />
-              </GlassCard>
-            </SkeletonTheme>
-          ) : (
-            <>
-              <ResponseTimeChart data={responseTimes} isLoading={false} />
-              <ResolutionRateChart data={resolutionRates} isLoading={false} />
-              <HeatmapViewer municipalityId={selectedMunicipality || undefined} />
-            </>
-          )}
-        </div>
+        {/* Service Performance Stats */}
+        <ServicePerformanceStats
+          responseTimes={responseTimes}
+          resolutionRates={resolutionRates}
+          categoryBreakdown={categoryBreakdown}
+          selectedMunicipality={selectedMunicipality}
+          isLoading={isLoadingResponse || isLoadingResolution || isLoadingCategories}
+        />
 
         {/* Privacy Notice */}
-        <GlassCard variant="elevated">
+        <GlassCard variant="elevated" style={{ marginTop: '48px' }}>
           <div className="privacy-notice">
             <strong>Privacy Notice:</strong> GBV and sensitive report statistics are included in aggregate figures on this dashboard.
             However, all personal case data, victim identities, and individual report details are kept strictly
