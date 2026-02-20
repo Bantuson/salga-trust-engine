@@ -57,9 +57,9 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Public Transparency
 
-- [ ] **TRNS-01**: Public dashboard displays average response times per municipality
-- [ ] **TRNS-02**: Public dashboard displays resolution rates per municipality
-- [ ] **TRNS-03**: Public dashboard displays geographic heatmap of reported issues
+- [x] **TRNS-01**: Public dashboard displays average response times per municipality
+- [x] **TRNS-02**: Public dashboard displays resolution rates per municipality
+- [x] **TRNS-03**: Public dashboard displays geographic heatmap of reported issues
 - [ ] **TRNS-04**: Public dashboard is accessible without login (open to all citizens)
 - [ ] **TRNS-05**: GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
 
@@ -162,9 +162,9 @@ Which phases cover which requirements. Updated during roadmap creation.
 | OPS-02 | Phase 5 | Complete |
 | OPS-03 | Phase 5 | Complete |
 | OPS-04 | Phase 5 | Complete |
-| TRNS-01 | Phase 6 | Pending |
-| TRNS-02 | Phase 6 | Pending |
-| TRNS-03 | Phase 6 | Pending |
+| TRNS-01 | Phase 6 | Complete |
+| TRNS-02 | Phase 6 | Complete |
+| TRNS-03 | Phase 6 | Complete |
 | TRNS-04 | Phase 6 | Pending |
 | TRNS-05 | Phase 6 | Pending |
 | SEC-01 | Phase 1 | Pending |

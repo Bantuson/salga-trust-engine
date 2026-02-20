@@ -202,7 +202,7 @@ Plans:
 **Goal:** End-to-end system validation before production deployment. (1) API completeness: every endpoint tested, secured (auth + RBAC), and rate-limited — including CrewAI tool endpoints (crew_server). (2) Dashboard fetch fixes: investigate and fix failing fetches in both municipal and public dashboards. (3) Full security audit (OWASP, POPIA, SEC-05 GBV firewall). (4) 3-way communication validation: CrewAI WhatsApp agents create tickets → municipal dashboard receives for filing/status updates → analytics aggregate municipal stats → public dashboard transparency views. (5) Code quality checks. (6) CI/CD pipeline setup. (7) Render staging deployment with live Twilio WhatsApp credentials for final CrewAI integration test. Tests assess component behavior, failure points, and system design soundness — not overengineered.
 **Depends on:** Phase 6.9.1
 **Requirements:** SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, PLAT-01, PLAT-02, PLAT-03, PLAT-04, PLAT-05, AI-01, AI-02, AI-03, TKT-01, TKT-02, OPS-01, OPS-02, TRNS-01, TRNS-02, TRNS-03
-**Plans:** 5 plans
+**Plans:** 4/4 plans complete
 
 Plans:
 - [ ] 06.9.2-01-PLAN.md -- API security hardening: crew server CORS/rate-limiting/input-validation, endpoint-specific rate limits on all 71 endpoints
