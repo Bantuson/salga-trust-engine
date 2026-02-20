@@ -19,6 +19,7 @@ interface UseAnalyticsOptions {
 interface UseAnalyticsReturn {
   data: AnalyticsData | null;
   isLoading: boolean;
+  error: string | null;
   timeRange: TimeRange;
   setTimeRange: (range: TimeRange) => void;
   customStart: string;
@@ -65,15 +66,19 @@ export function useAnalytics({ wardId }: UseAnalyticsOptions = {}): UseAnalytics
   const [customEnd, setCustomEnd] = useState<string>('');
   const [data, setData] = useState<AnalyticsData | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
     setIsLoading(true);
+    setError(null);
     try {
       const { start, end } = getDateRange(timeRange, customStart, customEnd);
       const result = await fetchAnalyticsData(start, end, wardId);
       setData(result);
-    } catch (error) {
-      console.error('[useAnalytics] Failed to fetch analytics data:', error);
+    } catch (err) {
+      console.warn('[useAnalytics] Failed to fetch analytics data:', err);
+      const message = err instanceof Error ? err.message : 'Failed to load analytics data';
+      setError(message);
       setData(null);
     } finally {
       setIsLoading(false);
@@ -87,6 +92,7 @@ export function useAnalytics({ wardId }: UseAnalyticsOptions = {}): UseAnalytics
   return {
     data,
     isLoading,
+    error,
     timeRange,
     setTimeRange,
     customStart,

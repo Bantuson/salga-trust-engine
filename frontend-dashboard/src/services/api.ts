@@ -28,6 +28,74 @@ api.interceptors.request.use(async (config) => {
   return config;
 });
 
+// ---------------------------------------------------------------------------
+// 401 Response Interceptor — token refresh with request retry
+// ---------------------------------------------------------------------------
+// Track whether a refresh is already in progress to prevent concurrent refreshes
+let isRefreshing = false;
+// Queue of failed requests waiting for the new token
+let failedQueue: Array<{ resolve: (token: string) => void; reject: (err: unknown) => void }> = [];
+
+/**
+ * Flush the failed queue: resolve each with the new token or reject all on error.
+ */
+const processQueue = (error: unknown, token: string | null = null) => {
+  failedQueue.forEach((prom) => {
+    if (token) {
+      prom.resolve(token);
+    } else {
+      prom.reject(error);
+    }
+  });
+  failedQueue = [];
+};
+
+api.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config as typeof error.config & { _retry?: boolean };
+
+    // Handle 401 (Unauthorized) — attempt token refresh once
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      if (isRefreshing) {
+        // Another refresh is in flight — queue this request and wait
+        return new Promise<string>((resolve, reject) => {
+          failedQueue.push({ resolve, reject });
+        }).then((token) => {
+          originalRequest.headers.Authorization = `Bearer ${token}`;
+          return api(originalRequest);
+        });
+      }
+
+      originalRequest._retry = true;
+      isRefreshing = true;
+
+      try {
+        const { data: { session }, error: refreshError } = await supabase.auth.refreshSession();
+
+        if (refreshError || !session) {
+          // Session truly expired — flush queue with error and redirect to login
+          processQueue(refreshError ?? new Error('Session expired'), null);
+          window.location.href = '/login';
+          return Promise.reject(refreshError ?? new Error('Session expired'));
+        }
+
+        const newToken = session.access_token;
+        processQueue(null, newToken);
+        originalRequest.headers.Authorization = `Bearer ${newToken}`;
+        return api(originalRequest);
+      } catch (refreshErr) {
+        processQueue(refreshErr, null);
+        return Promise.reject(refreshErr);
+      } finally {
+        isRefreshing = false;
+      }
+    }
+
+    return Promise.reject(error);
+  }
+);
+
 /**
  * Request upload info for Supabase Storage.
  */

@@ -40,8 +40,6 @@ export function PermissionMatrix({
     onLabelChange?.(role, newLabel);
   };
 
-  const columnCount = ROLES.length + 1; // +1 for capability label column
-
   return (
     <div style={styles.scrollWrapper}>
       <div
