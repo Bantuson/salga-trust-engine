@@ -12,8 +12,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, VERIFICATION_RATE_LIMIT, limiter
 from src.models.media import MediaAttachment
 from src.models.user import User
 from src.schemas.media import PresignedUploadResponse
@@ -43,8 +45,10 @@ class UploadURLRequest(BaseModel):
 
 
 @router.post("/upload-url", response_model=PresignedUploadResponse)
+@limiter.limit(VERIFICATION_RATE_LIMIT)
 async def generate_upload_url(
-    request: UploadURLRequest,
+    request: Request,
+    upload_url_request: UploadURLRequest,
     current_user: User = Depends(get_current_user)
 ):
     """Generate presigned POST URL for proof of residence document upload.
@@ -55,7 +59,7 @@ async def generate_upload_url(
     of verification.
 
     Args:
-        request: Upload request with filename and content type
+        upload_url_request: Upload request with filename and content type
         current_user: Authenticated user
 
     Returns:
@@ -66,7 +70,7 @@ async def generate_upload_url(
     """
     # Validate content type
     allowed_types = ["image/jpeg", "image/png", "application/pdf"]
-    if request.content_type not in allowed_types:
+    if upload_url_request.content_type not in allowed_types:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
             detail=f"Content type must be one of: {', '.join(allowed_types)}"
@@ -83,8 +87,8 @@ async def generate_upload_url(
             tenant_id=str(current_user.tenant_id),
             user_id=str(current_user.id),
             file_id=file_id,
-            filename=request.filename,
-            content_type=request.content_type,
+            filename=upload_url_request.filename,
+            content_type=upload_url_request.content_type,
             max_size=5 * 1024 * 1024  # 5MB max for documents
         )
 
@@ -101,8 +105,10 @@ async def generate_upload_url(
 
 
 @router.post("/proof-of-residence", response_model=VerificationResult)
+@limiter.limit(VERIFICATION_RATE_LIMIT)
 async def verify_proof_of_residence(
-    request: UserVerificationRequest,
+    request: Request,
+    verification_request: UserVerificationRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -119,7 +125,7 @@ async def verify_proof_of_residence(
     8. Update user verification status and address
 
     Args:
-        request: Verification request with document_file_id
+        verification_request: Verification request with document_file_id
         current_user: Authenticated user
         db: Database session
 
@@ -140,7 +146,7 @@ async def verify_proof_of_residence(
     # Lookup MediaAttachment by file_id
     result = await db.execute(
         select(MediaAttachment).where(
-            MediaAttachment.file_id == request.document_file_id,
+            MediaAttachment.file_id == verification_request.document_file_id,
             MediaAttachment.tenant_id == current_user.tenant_id
         )
     )
@@ -204,7 +210,7 @@ async def verify_proof_of_residence(
     # Update user verification status
     current_user.verification_status = verification_result["status"]
     current_user.verified_address = ocr_data.address
-    current_user.verification_document_id = request.document_file_id
+    current_user.verification_document_id = verification_request.document_file_id
 
     if verification_result["status"] == "verified":
         current_user.verified_at = datetime.utcnow()
@@ -233,7 +239,9 @@ async def verify_proof_of_residence(
 
 
 @router.get("/status", response_model=UserVerificationResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_verification_status(
+    request: Request,
     current_user: User = Depends(get_current_user)
 ):
     """Get current user's verification status.

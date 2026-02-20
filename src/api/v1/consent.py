@@ -8,6 +8,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_active_user, get_db
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, SENSITIVE_WRITE_RATE_LIMIT, limiter
 from src.models.consent import ConsentRecord
 from src.models.user import User
 
@@ -44,7 +45,9 @@ class ConsentResponse(BaseModel):
 
 
 @router.get("/", response_model=list[ConsentResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_user_consents(
+    request: Request,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)
 ):
@@ -87,6 +90,7 @@ async def list_user_consents(
 
 
 @router.post("/", response_model=ConsentResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def create_consent(
     request: Request,
     consent_data: ConsentCreate,
@@ -143,7 +147,9 @@ async def create_consent(
 
 
 @router.post("/{consent_id}/withdraw", response_model=ConsentResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def withdraw_consent(
+    request: Request,
     consent_id: UUID,
     current_user: User = Depends(get_current_active_user),
     db: AsyncSession = Depends(get_db)

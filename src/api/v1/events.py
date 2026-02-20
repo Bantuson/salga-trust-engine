@@ -30,8 +30,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sse_starlette.sse import EventSourceResponse
+from starlette.requests import Request
 
 from src.api.deps import get_current_user
+from src.middleware.rate_limit import limiter
 from src.models.user import User, UserRole
 from src.services.event_broadcaster import EventBroadcaster
 
@@ -41,7 +43,9 @@ router = APIRouter(prefix="/dashboard", tags=["dashboard-events"])
 
 
 @router.get("/events", deprecated=True)
+@limiter.limit("30/minute")
 async def stream_dashboard_events(
+    request: Request,
     current_user: User = Depends(get_current_user),
     ward_id: str | None = Query(None, description="Ward filter for WARD_COUNCILLOR"),
 ):

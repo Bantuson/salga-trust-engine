@@ -19,8 +19,10 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, status
 from sqlalchemy import and_, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, limiter
 from src.models.assignment import TicketAssignment
 from src.models.team import Team
 from src.models.ticket import Ticket, TicketStatus
@@ -38,7 +40,9 @@ router = APIRouter(prefix="/citizen", tags=["citizen"])
 
 
 @router.get("/my-reports", response_model=CitizenMyReportsResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_my_reports(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.CITIZEN)),
     db: AsyncSession = Depends(get_db),
     status_filter: str | None = None,
@@ -177,7 +181,9 @@ async def get_my_reports(
 
 
 @router.get("/stats", response_model=CitizenStatsResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_citizen_stats(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.CITIZEN)),
     db: AsyncSession = Depends(get_db),
 ) -> CitizenStatsResponse:

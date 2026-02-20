@@ -8,8 +8,10 @@ from uuid import uuid4
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import UPLOAD_RATE_LIMIT, limiter
 from src.models.media import MediaAttachment
 from src.models.user import User
 from src.schemas.media import (
@@ -32,8 +34,10 @@ ALLOWED_CONTENT_TYPES = {
 
 
 @router.post("/presigned", response_model=PresignedUploadResponse)
+@limiter.limit(UPLOAD_RATE_LIMIT)
 async def generate_presigned_upload(
-    request: PresignedUploadRequest,
+    request: Request,
+    upload_request: PresignedUploadRequest,
     current_user: User = Depends(get_current_user),
 ) -> PresignedUploadResponse:
     """Generate Supabase Storage upload path for direct browser upload.
@@ -42,7 +46,7 @@ async def generate_presigned_upload(
     supabase.storage.from(bucket).upload(path, file)
 
     Args:
-        request: Upload request with filename, content_type, file_size, purpose
+        upload_request: Upload request with filename, content_type, file_size, purpose
         current_user: Authenticated user
 
     Returns:
@@ -53,18 +57,18 @@ async def generate_presigned_upload(
         HTTPException: 503 if Supabase Storage unavailable
     """
     # Validate content type
-    if request.content_type not in ALLOWED_CONTENT_TYPES:
+    if upload_request.content_type not in ALLOWED_CONTENT_TYPES:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"Content type '{request.content_type}' not allowed. Allowed types: {', '.join(ALLOWED_CONTENT_TYPES.keys())}"
+            detail=f"Content type '{upload_request.content_type}' not allowed. Allowed types: {', '.join(ALLOWED_CONTENT_TYPES.keys())}"
         )
 
     # Validate file size
-    max_size = ALLOWED_CONTENT_TYPES[request.content_type]
-    if request.file_size > max_size:
+    max_size = ALLOWED_CONTENT_TYPES[upload_request.content_type]
+    if upload_request.file_size > max_size:
         raise HTTPException(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail=f"File size {request.file_size} exceeds maximum {max_size} bytes for {request.content_type}"
+            detail=f"File size {upload_request.file_size} exceeds maximum {max_size} bytes for {upload_request.content_type}"
         )
 
     # Generate file_id
@@ -76,11 +80,11 @@ async def generate_presigned_upload(
     # Generate Supabase Storage upload path
     try:
         upload_info = storage_service.generate_upload_url(
-            purpose=request.purpose,
+            purpose=upload_request.purpose,
             tenant_id=str(current_user.tenant_id),
             file_id=file_id,
-            filename=request.filename,
-            content_type=request.content_type
+            filename=upload_request.filename,
+            content_type=upload_request.content_type
         )
     except StorageServiceError as e:
         raise HTTPException(
@@ -96,7 +100,9 @@ async def generate_presigned_upload(
 
 
 @router.post("/confirm", response_model=MediaAttachmentResponse)
+@limiter.limit(UPLOAD_RATE_LIMIT)
 async def confirm_upload(
+    request: Request,
     file_id: str,
     purpose: str,
     current_user: User = Depends(get_current_user),

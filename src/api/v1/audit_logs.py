@@ -15,8 +15,10 @@ from fastapi import APIRouter, Depends, Query
 from pydantic import BaseModel
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, limiter
 from src.models.audit_log import AuditLog
 from src.models.user import User, UserRole
 
@@ -53,7 +55,9 @@ class AuditLogListResponse(BaseModel):
 
 
 @router.get("/", response_model=AuditLogListResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_audit_logs(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
     page: int = Query(default=1, ge=1, description="Page number (1-based)"),

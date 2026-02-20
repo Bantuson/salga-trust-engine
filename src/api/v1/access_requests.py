@@ -17,8 +17,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.access_request import AccessRequest
 from src.models.user import User, UserRole
 from src.schemas.access_request import (
@@ -33,7 +39,9 @@ router = APIRouter(prefix="/access-requests", tags=["access-requests"])
 
 
 @router.post("/", response_model=AccessRequestResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def submit_access_request(
+    request: Request,
     request_data: AccessRequestCreate,
     db: AsyncSession = Depends(get_db),
 ) -> AccessRequest:
@@ -79,7 +87,9 @@ async def submit_access_request(
 
 
 @router.get("/", response_model=list[AccessRequestResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_access_requests(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
     status_filter: str | None = None,
@@ -120,7 +130,9 @@ async def list_access_requests(
 
 
 @router.patch("/{request_id}/review", response_model=AccessRequestResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def review_access_request(
+    request: Request,
     request_id: UUID,
     review_data: AccessRequestReview,
     current_user: User = Depends(require_role(UserRole.ADMIN)),

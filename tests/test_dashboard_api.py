@@ -12,9 +12,26 @@ import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
+from starlette.datastructures import Headers
+from starlette.requests import Request
+from starlette.types import Scope
+
 from src.models.user import User, UserRole
 
 pytestmark = pytest.mark.asyncio
+
+
+def make_mock_starlette_request():
+    """Create a minimal starlette Request for use with @limiter.limit() decorated endpoints."""
+    scope: Scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/test",
+        "headers": Headers(headers={}).raw,
+        "query_string": b"",
+        "client": ("127.0.0.1", 0),
+    }
+    return Request(scope=scope)
 
 
 def make_mock_user(role=UserRole.MANAGER, tenant_id=None):
@@ -56,7 +73,7 @@ class TestDashboardMetricsRBAC:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(current_user=mock_user, db=mock_db)
+            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert result["total_open"] == 10
@@ -82,7 +99,7 @@ class TestDashboardMetricsRBAC:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(current_user=mock_user, db=mock_db)
+            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert result["total_open"] == 5
@@ -107,7 +124,7 @@ class TestDashboardMetricsRBAC:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(current_user=mock_user, db=mock_db, ward_id="Ward 1")
+            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db, ward_id="Ward 1")
 
             # Assert
             assert result["total_open"] == 2
@@ -123,7 +140,7 @@ class TestDashboardMetricsRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await get_dashboard_metrics(current_user=mock_user, db=mock_db)
+            await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
         assert exc_info.value.status_code == 403
 
@@ -138,7 +155,7 @@ class TestDashboardMetricsRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await get_dashboard_metrics(current_user=mock_user, db=mock_db)
+            await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
         assert exc_info.value.status_code == 403
 
@@ -166,7 +183,7 @@ class TestDashboardEndpointResponses:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(current_user=mock_user, db=mock_db)
+            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert "total_open" in result
@@ -249,7 +266,7 @@ class TestDashboardEndpointResponses:
             from src.api.v1.dashboard import get_team_workload
 
             # Act
-            result = await get_team_workload(current_user=mock_user, db=mock_db)
+            result = await get_team_workload(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert isinstance(result, list)
@@ -284,7 +301,7 @@ class TestDashboardWardFiltering:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(current_user=mock_user, db=mock_db, ward_id=ward_id)
+            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db, ward_id=ward_id)
 
             # Assert
             mock_service.get_metrics.assert_called_once_with(

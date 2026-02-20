@@ -13,8 +13,10 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from fastapi.responses import StreamingResponse
 from sqlalchemy import desc, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import DATA_EXPORT_RATE_LIMIT, limiter
 from src.models.ticket import Ticket
 from src.models.user import User, UserRole
 
@@ -41,7 +43,9 @@ EXPORT_COLUMNS = [
 
 
 @router.get("/tickets/csv")
+@limiter.limit(DATA_EXPORT_RATE_LIMIT)
 async def export_tickets_csv(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     status_filter: str | None = Query(None, alias="status"),
@@ -98,7 +102,9 @@ async def export_tickets_csv(
 
 
 @router.get("/tickets/excel")
+@limiter.limit(DATA_EXPORT_RATE_LIMIT)
 async def export_tickets_excel(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     status_filter: str | None = Query(None, alias="status"),
