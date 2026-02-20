@@ -228,7 +228,9 @@ async def login(
 
 
 @router.post("/refresh", response_model=TokenResponse)
+@limiter.limit(AUTH_RATE_LIMIT)
 async def refresh_token(
+    request: Request,
     refresh_request: RefreshRequest,
     db: AsyncSession = Depends(get_db)
 ):

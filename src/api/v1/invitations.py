@@ -18,9 +18,15 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
 from src.core.tenant import get_tenant_context
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.team_invitation import TeamInvitation
 from src.models.user import User, UserRole
 from src.schemas.invitation import (
@@ -38,7 +44,9 @@ DEFAULT_EXPIRY_DAYS = 7
 
 
 @router.post("/", response_model=TeamInvitationResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def create_invitation(
+    request: Request,
     invitation_data: TeamInvitationCreate,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
@@ -92,7 +100,9 @@ async def create_invitation(
 
 
 @router.post("/bulk", response_model=list[TeamInvitationResponse], status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def create_bulk_invitations(
+    request: Request,
     bulk_data: TeamInvitationBulkCreate,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
@@ -156,7 +166,9 @@ async def create_bulk_invitations(
 
 
 @router.get("/", response_model=list[TeamInvitationResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_invitations(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
     status_filter: str | None = None,
@@ -194,7 +206,9 @@ async def list_invitations(
 
 
 @router.delete("/{invitation_id}", status_code=status.HTTP_204_NO_CONTENT)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def cancel_invitation(
+    request: Request,
     invitation_id: UUID,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),

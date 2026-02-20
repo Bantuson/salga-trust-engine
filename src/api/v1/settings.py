@@ -16,8 +16,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.municipality import Municipality
 from src.models.sla_config import SLAConfig
 from src.models.user import User, UserRole
@@ -73,7 +79,9 @@ class MunicipalityProfileUpdate(BaseModel):
 # --- Endpoints ---
 
 @router.get("/sla", response_model=list[SLAConfigResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_sla_configs(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ) -> list[SLAConfig]:
@@ -101,7 +109,9 @@ async def list_sla_configs(
 
 
 @router.put("/sla/{category}", response_model=SLAConfigResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def upsert_sla_config(
+    request: Request,
     category: str,
     sla_data: SLAConfigUpdate,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
@@ -168,7 +178,9 @@ async def upsert_sla_config(
 
 
 @router.get("/municipality", response_model=MunicipalityProfileResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_municipality_profile(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
 ) -> MunicipalityProfileResponse:
@@ -212,7 +224,9 @@ async def get_municipality_profile(
 
 
 @router.put("/municipality", response_model=MunicipalityProfileResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def update_municipality_profile(
+    request: Request,
     update_data: MunicipalityProfileUpdate,
     current_user: User = Depends(require_role(UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),

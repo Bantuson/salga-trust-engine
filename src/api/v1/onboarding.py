@@ -18,8 +18,14 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.dialects.postgresql import insert
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.onboarding_state import OnboardingState
 from src.models.user import User, UserRole
 from src.schemas.onboarding import (
@@ -37,7 +43,9 @@ VALID_STEPS = ["profile", "team", "wards", "sla", "complete"]
 
 
 @router.get("/state", response_model=OnboardingProgressResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_onboarding_state(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
 ) -> OnboardingProgressResponse:
@@ -91,7 +99,9 @@ async def get_onboarding_state(
 
 
 @router.put("/state/{step_id}", response_model=OnboardingStepResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def save_onboarding_step(
+    request: Request,
     step_id: str,
     step_data: OnboardingStepSave,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
@@ -171,7 +181,9 @@ async def save_onboarding_step(
 
 
 @router.post("/complete", status_code=status.HTTP_200_OK)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def complete_onboarding(
+    request: Request,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
 ) -> dict:

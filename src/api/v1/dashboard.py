@@ -14,8 +14,10 @@ from datetime import datetime, timezone
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, limiter
 from src.models.user import User, UserRole
 from src.services.dashboard_service import DashboardService
 
@@ -49,7 +51,9 @@ def _parse_date_param(date_str: str | None, param_name: str) -> datetime | None:
 
 
 @router.get("/metrics")
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_dashboard_metrics(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     ward_id: str | None = None,
@@ -102,7 +106,9 @@ async def get_dashboard_metrics(
 
 
 @router.get("/volume")
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_volume_by_category(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     ward_id: str | None = None,
@@ -148,7 +154,9 @@ async def get_volume_by_category(
 
 
 @router.get("/sla")
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_sla_compliance(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     ward_id: str | None = None,
@@ -195,7 +203,9 @@ async def get_sla_compliance(
 
 
 @router.get("/workload")
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_team_workload(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     ward_id: str | None = None,

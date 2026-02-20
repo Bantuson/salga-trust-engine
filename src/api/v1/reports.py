@@ -11,8 +11,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, desc
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import REPORT_RATE_LIMIT, SENSITIVE_READ_RATE_LIMIT, limiter
 from src.agents.flows.intake_flow import IntakeFlow
 from src.agents.flows.state import IntakeState
 from src.core.config import settings
@@ -29,8 +31,10 @@ router = APIRouter(prefix="/reports", tags=["reports"])
 
 
 @router.post("/submit", response_model=ReportSubmitResponse)
+@limiter.limit(REPORT_RATE_LIMIT)
 async def submit_report(
-    request: ReportSubmitRequest,
+    request: Request,
+    report: ReportSubmitRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> ReportSubmitResponse:
@@ -57,7 +61,7 @@ async def submit_report(
         HTTPException: 404 if media file_ids not found
     """
     # Step 1: Validate input through guardrails
-    input_result = await guardrails_engine.process_input(request.description)
+    input_result = await guardrails_engine.process_input(report.description)
 
     if not input_result.is_safe:
         raise HTTPException(
@@ -68,7 +72,7 @@ async def submit_report(
     sanitized_description = input_result.sanitized_message
 
     # Step 2: Determine category
-    category = request.category
+    category = report.category
     severity = "medium"  # Default severity
 
     if category is None:
@@ -80,7 +84,7 @@ async def submit_report(
                 tenant_id=str(current_user.tenant_id),
                 session_id=str(uuid.uuid4()),
                 message=sanitized_description,
-                language=request.language,
+                language=report.language,
             )
 
             flow = IntakeFlow(redis_url=settings.REDIS_URL, llm_model="gpt-4o")
@@ -109,17 +113,17 @@ async def submit_report(
         category = category.lower()
 
     # Override category if is_gbv flag is set
-    if request.is_gbv:
+    if report.is_gbv:
         category = "gbv"
 
     # Step 3: Extract location data
     latitude = None
     longitude = None
-    address = request.manual_address
+    address = report.manual_address
 
-    if request.location:
-        latitude = request.location.latitude
-        longitude = request.location.longitude
+    if report.location:
+        latitude = report.location.latitude
+        longitude = report.location.longitude
         # In production, would reverse-geocode to get address
         # For now, use manual_address if provided, else leave None
         if not address:
@@ -132,7 +136,7 @@ async def submit_report(
     ticket_description = sanitized_description
     encrypted_description = None
 
-    if category == "gbv" or request.is_gbv:
+    if category == "gbv" or report.is_gbv:
         # Encrypt actual description and use placeholder for public field
         encrypted_description = sanitized_description
         ticket_description = "GBV incident report"
@@ -147,9 +151,9 @@ async def submit_report(
         address=address,
         severity=severity,
         status="open",
-        language=request.language,
+        language=report.language,
         user_id=current_user.id,
-        is_sensitive=(category == "gbv" or request.is_gbv),
+        is_sensitive=(category == "gbv" or report.is_gbv),
         tenant_id=current_user.tenant_id,
         created_by=current_user.id,
         updated_by=current_user.id,
@@ -161,11 +165,11 @@ async def submit_report(
 
     # Step 5: Link media attachments
     media_count = 0
-    if request.media_file_ids:
+    if report.media_file_ids:
         # Look up MediaAttachment records by file_id
         result = await db.execute(
             select(MediaAttachment).where(
-                MediaAttachment.file_id.in_(request.media_file_ids),
+                MediaAttachment.file_id.in_(report.media_file_ids),
                 MediaAttachment.tenant_id == current_user.tenant_id
             )
         )
@@ -173,7 +177,7 @@ async def submit_report(
 
         # Verify all file_ids were found
         found_file_ids = {m.file_id for m in media_attachments}
-        missing_file_ids = set(request.media_file_ids) - found_file_ids
+        missing_file_ids = set(report.media_file_ids) - found_file_ids
 
         if missing_file_ids:
             # Clean up ticket (rollback)
@@ -192,7 +196,7 @@ async def submit_report(
         await db.commit()
 
     # Step 6: If GBV, trigger SAPS notification
-    if category == "gbv" or request.is_gbv:
+    if category == "gbv" or report.is_gbv:
         try:
             # Import here to avoid circular dependency
             from src.agents.tools.saps_tool import notify_saps
@@ -222,7 +226,9 @@ async def submit_report(
 
 
 @router.get("/{tracking_number}", response_model=TicketResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_report_by_tracking(
+    request: Request,
     tracking_number: str,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -272,7 +278,9 @@ async def get_report_by_tracking(
 
 
 @router.get("/my", response_model=list[TicketResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_my_reports(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     limit: int = 50,

@@ -112,6 +112,27 @@ def _skip_integration_tests_without_postgres(request):
             pytest.skip("PostgreSQL not available - skipping integration test")
 
 
+@pytest.fixture(autouse=True)
+def reset_rate_limiter():
+    """Reset the in-memory rate limiter between tests to prevent rate limit bleed-over.
+
+    This ensures tests that call rate-limited endpoints directly don't fail
+    due to hits from previous tests in the same session. The slowapi Limiter
+    exposes a `reset()` method that clears the MemoryStorage counters.
+    """
+    from src.middleware.rate_limit import limiter
+    # Reset before each test so rate counters don't carry over between tests
+    try:
+        limiter.reset()
+    except Exception:
+        # Fallback: reset the inner storage directly
+        try:
+            limiter._storage.reset()
+        except Exception:
+            pass
+    yield
+
+
 @pytest_asyncio.fixture(scope="function")
 async def db_session() -> AsyncGenerator[AsyncSession, None]:
     """Provide a test database session with cleanup after each test."""

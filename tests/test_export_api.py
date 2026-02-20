@@ -13,10 +13,27 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 from datetime import datetime, timezone
 
+from starlette.datastructures import Headers
+from starlette.requests import Request
+from starlette.types import Scope
+
 from src.models.user import User, UserRole
 from src.models.ticket import Ticket
 
 pytestmark = pytest.mark.asyncio
+
+
+def make_mock_starlette_request():
+    """Create a minimal starlette Request for use with @limiter.limit() decorated endpoints."""
+    scope: Scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/test",
+        "headers": Headers(headers={}).raw,
+        "query_string": b"",
+        "client": ("127.0.0.1", 0),
+    }
+    return Request(scope=scope)
 
 
 def make_mock_user(role=UserRole.MANAGER, tenant_id=None):
@@ -79,7 +96,7 @@ class TestExportCSVRBAC:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert response.media_type == "text/csv"
@@ -98,7 +115,7 @@ class TestExportCSVRBAC:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert response.media_type == "text/csv"
@@ -116,7 +133,7 @@ class TestExportCSVRBAC:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert response.media_type == "text/csv"
@@ -132,7 +149,7 @@ class TestExportCSVRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await export_tickets_csv(current_user=mock_user, db=mock_db)
+            await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
         assert exc_info.value.status_code == 403
 
@@ -147,7 +164,7 @@ class TestExportCSVRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await export_tickets_csv(current_user=mock_user, db=mock_db)
+            await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
         assert exc_info.value.status_code == 403
 
@@ -168,7 +185,7 @@ class TestCSVExportOutput:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             # Extract CSV content from StreamingResponse
@@ -210,7 +227,7 @@ class TestCSVExportOutput:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Extract CSV content
             content = ""
@@ -243,7 +260,7 @@ class TestCSVExportOutput:
             from src.api.v1.export import export_tickets_csv
 
             # Act
-            response = await export_tickets_csv(current_user=mock_user, db=mock_db)
+            response = await export_tickets_csv(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             disposition = response.headers["Content-Disposition"]
@@ -267,7 +284,7 @@ class TestExcelExportRBAC:
             from src.api.v1.export import export_tickets_excel
 
             # Act
-            response = await export_tickets_excel(current_user=mock_user, db=mock_db)
+            response = await export_tickets_excel(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
             # Assert
             assert "openxmlformats" in response.media_type
@@ -284,7 +301,7 @@ class TestExcelExportRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await export_tickets_excel(current_user=mock_user, db=mock_db)
+            await export_tickets_excel(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
 
         assert exc_info.value.status_code == 403
 
@@ -332,6 +349,7 @@ class TestExportFilters:
 
             # Act
             response = await export_tickets_csv(
+                make_mock_starlette_request(),
                 current_user=mock_user,
                 db=mock_db,
                 status_filter="resolved"
@@ -356,6 +374,7 @@ class TestExportFilters:
 
             # Act
             await export_tickets_csv(
+                make_mock_starlette_request(),
                 current_user=mock_user,
                 db=mock_db,
                 category="water"
@@ -379,6 +398,7 @@ class TestExportFilters:
 
             # Act
             await export_tickets_csv(
+                make_mock_starlette_request(),
                 current_user=mock_user,
                 db=mock_db,
                 search="TKT-123"

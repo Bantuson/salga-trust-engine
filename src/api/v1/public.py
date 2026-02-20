@@ -17,8 +17,10 @@ import logging
 
 from fastapi import APIRouter, Depends
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_db
+from src.middleware.rate_limit import PUBLIC_RATE_LIMIT, limiter
 from src.services.public_metrics_service import PublicMetricsService
 
 logger = logging.getLogger(__name__)
@@ -27,7 +29,9 @@ router = APIRouter(prefix="/public", tags=["public"])
 
 
 @router.get("/municipalities")
+@limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_municipalities(
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
     """Get list of active municipalities with basic public information.
@@ -47,7 +51,9 @@ async def get_municipalities(
 
 
 @router.get("/response-times")
+@limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_response_times(
+    request: Request,
     municipality_id: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
@@ -73,7 +79,9 @@ async def get_response_times(
 
 
 @router.get("/resolution-rates")
+@limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_resolution_rates(
+    request: Request,
     municipality_id: str | None = None,
     months: int = 6,
     db: AsyncSession = Depends(get_db),
@@ -105,7 +113,9 @@ async def get_resolution_rates(
 
 
 @router.get("/heatmap")
+@limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_heatmap(
+    request: Request,
     municipality_id: str | None = None,
     db: AsyncSession = Depends(get_db),
 ) -> list[dict]:
@@ -129,7 +139,9 @@ async def get_heatmap(
 
 
 @router.get("/summary")
+@limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_summary(
+    request: Request,
     db: AsyncSession = Depends(get_db),
 ) -> dict:
     """Get system-wide summary statistics.

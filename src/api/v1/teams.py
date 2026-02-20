@@ -18,8 +18,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db, require_role
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.team import Team
 from src.models.team_invitation import TeamInvitation
 from src.models.ticket import Ticket, TicketStatus
@@ -80,7 +86,9 @@ async def _compute_team_response(
 
 
 @router.get("/", response_model=list[TeamResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_teams(
+    request: Request,
     current_user: User = Depends(
         require_role(UserRole.MANAGER, UserRole.ADMIN, UserRole.WARD_COUNCILLOR)
     ),
@@ -117,7 +125,9 @@ async def list_teams(
 
 
 @router.post("/", response_model=TeamResponse, status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def create_team(
+    request: Request,
     team_data: TeamCreate,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
     db: AsyncSession = Depends(get_db),
@@ -157,7 +167,9 @@ async def create_team(
 
 
 @router.get("/{team_id}", response_model=TeamResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_team(
+    request: Request,
     team_id: UUID,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
@@ -196,7 +208,9 @@ async def get_team(
 
 
 @router.patch("/{team_id}", response_model=TeamResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def update_team(
+    request: Request,
     team_id: UUID,
     update_data: TeamUpdate,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
@@ -249,7 +263,9 @@ async def update_team(
 
 
 @router.get("/{team_id}/members", response_model=list[TeamMemberResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_team_members(
+    request: Request,
     team_id: UUID,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),
@@ -321,7 +337,9 @@ async def get_team_members(
     "/{team_id}/members/{invitation_id}",
     status_code=status.HTTP_204_NO_CONTENT
 )
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def remove_team_member(
+    request: Request,
     team_id: UUID,
     invitation_id: UUID,
     current_user: User = Depends(require_role(UserRole.ADMIN, UserRole.MANAGER)),
@@ -381,7 +399,9 @@ async def remove_team_member(
 
 
 @router.get("/{team_id}/invitations", response_model=list[TeamInvitationResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_team_invitations(
+    request: Request,
     team_id: UUID,
     current_user: User = Depends(require_role(UserRole.MANAGER, UserRole.ADMIN)),
     db: AsyncSession = Depends(get_db),

@@ -5,8 +5,14 @@ from fastapi import APIRouter, Depends, HTTPException, Query, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_db, require_role
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.municipality import Municipality
 from src.models.user import User, UserRole
 from src.schemas.municipality import (
@@ -24,7 +30,9 @@ router = APIRouter(prefix="/api/v1/municipalities", tags=["Municipalities"])
     status_code=status.HTTP_201_CREATED,
     dependencies=[Depends(require_role(UserRole.ADMIN))],
 )
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def create_municipality(
+    request: Request,
     municipality: MunicipalityCreate,
     db: AsyncSession = Depends(get_db),
 ) -> Municipality:
@@ -82,7 +90,9 @@ async def create_municipality(
     response_model=list[MunicipalityResponse],
     dependencies=[Depends(require_role(UserRole.ADMIN))],
 )
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_municipalities(
+    request: Request,
     db: AsyncSession = Depends(get_db),
     limit: int = Query(50, ge=1, le=100),
     offset: int = Query(0, ge=0),
@@ -117,7 +127,9 @@ async def list_municipalities(
     response_model=MunicipalityResponse,
     dependencies=[Depends(require_role(UserRole.ADMIN))],
 )
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_municipality(
+    request: Request,
     municipality_id: UUID,
     db: AsyncSession = Depends(get_db),
 ) -> Municipality:
@@ -152,7 +164,9 @@ async def get_municipality(
     response_model=MunicipalityResponse,
     dependencies=[Depends(require_role(UserRole.ADMIN))],
 )
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def update_municipality(
+    request: Request,
     municipality_id: UUID,
     municipality_update: MunicipalityUpdate,
     db: AsyncSession = Depends(get_db),

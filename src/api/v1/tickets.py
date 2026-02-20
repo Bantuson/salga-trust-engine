@@ -20,8 +20,14 @@ from uuid import UUID
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import desc, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import (
+    SENSITIVE_READ_RATE_LIMIT,
+    SENSITIVE_WRITE_RATE_LIMIT,
+    limiter,
+)
 from src.models.assignment import TicketAssignment
 from src.models.audit_log import AuditLog
 from src.models.ticket import Ticket
@@ -81,7 +87,9 @@ def _compute_sla_status(ticket: Ticket) -> str | None:
 
 
 @router.get("/", response_model=PaginatedTicketResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def list_tickets(
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
     page: int = 0,
@@ -205,7 +213,9 @@ async def list_tickets(
 
 
 @router.get("/{ticket_id}", response_model=TicketDetailResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_ticket_detail(
+    request: Request,
     ticket_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
@@ -270,7 +280,9 @@ async def get_ticket_detail(
 
 
 @router.patch("/{ticket_id}/status", response_model=TicketResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def update_ticket_status(
+    request: Request,
     ticket_id: UUID,
     status_update: TicketStatusUpdate,
     current_user: User = Depends(get_current_user),
@@ -372,7 +384,9 @@ async def update_ticket_status(
 
 
 @router.post("/{ticket_id}/assign", response_model=TicketResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def assign_ticket(
+    request: Request,
     ticket_id: UUID,
     assign_request: TicketAssignRequest,
     current_user: User = Depends(get_current_user),
@@ -468,7 +482,9 @@ async def assign_ticket(
 
 
 @router.get("/{ticket_id}/history", response_model=list[dict])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_ticket_history(
+    request: Request,
     ticket_id: UUID,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),

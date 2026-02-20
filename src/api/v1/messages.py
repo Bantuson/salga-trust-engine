@@ -11,8 +11,10 @@ from typing import Any
 from fastapi import APIRouter, Depends, HTTPException, status
 from pydantic import BaseModel, Field
 from sqlalchemy.ext.asyncio import AsyncSession
+from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, SENSITIVE_WRITE_RATE_LIMIT, limiter
 from src.agents.flows.intake_flow import IntakeFlow
 from src.agents.flows.state import IntakeState
 from src.core.config import settings
@@ -92,8 +94,10 @@ class SessionHistoryResponse(BaseModel):
 
 
 @router.post("/send", response_model=MessageResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
 async def send_message(
-    request: MessageRequest,
+    request: Request,
+    message_body: MessageRequest,
     current_user: User = Depends(get_current_user),
     db: AsyncSession = Depends(get_db),
 ) -> MessageResponse:
@@ -108,7 +112,7 @@ async def send_message(
     6. Return structured response
 
     Args:
-        request: Message request with content and optional session_id
+        message_body: Message request with content and optional session_id
         current_user: Authenticated user (from JWT token)
         db: Database session
 
@@ -128,19 +132,19 @@ async def send_message(
         )
 
     # Step 1: Validate input through guardrails
-    input_result = await guardrails_engine.process_input(request.message)
+    input_result = await guardrails_engine.process_input(message_body.message)
 
     if not input_result.is_safe:
         # Input blocked - return error response
         return MessageResponse(
             response=input_result.blocked_reason or "Message blocked by safety filters",
-            session_id=request.session_id or str(uuid.uuid4()),
+            session_id=message_body.session_id or str(uuid.uuid4()),
             language="en",
             blocked=True,
         )
 
     # Step 2: Get or create conversation session
-    session_id = request.session_id or str(uuid.uuid4())
+    session_id = message_body.session_id or str(uuid.uuid4())
     conversation_manager = ConversationManager(settings.REDIS_URL)
 
     try:
@@ -247,7 +251,9 @@ async def send_message(
 
 
 @router.get("/session/{session_id}", response_model=SessionHistoryResponse)
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
 async def get_session_history(
+    request: Request,
     session_id: str,
     current_user: User = Depends(get_current_user),
 ) -> SessionHistoryResponse:
