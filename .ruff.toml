@@ -1,0 +1,28 @@
+# Ruff linter configuration for SALGA Trust Engine
+line-length = 120
+target-version = "py312"
+
+[lint]
+select = [
+  "E",      # pycodestyle errors
+  "W",      # pycodestyle warnings
+  "F",      # pyflakes
+  "I",      # isort
+  "N",      # pep8-naming
+  "UP",     # pyupgrade
+  "B",      # flake8-bugbear
+  "SIM",    # flake8-simplify
+  "S",      # flake8-bandit (security)
+]
+ignore = [
+  "E501",   # line too long (handled by line-length)
+  "S101",   # assert usage (OK in tests)
+  "S104",   # binding to 0.0.0.0 (required for deployment)
+  "S105",   # hardcoded password (false positives on test fixtures)
+  "S106",   # hardcoded password (false positives on test fixtures)
+  "B008",   # function call in default arg (FastAPI Depends pattern)
+]
+
+[lint.per-file-ignores]
+"tests/**" = ["S101", "S105", "S106"]
+"alembic/**" = ["E", "W", "I"]
