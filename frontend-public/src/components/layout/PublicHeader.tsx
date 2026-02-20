@@ -52,7 +52,7 @@ export function PublicHeader() {
     { to: '/', label: 'Home' },
     { to: '/dashboard', label: 'Dashboard' },
     { to: '/about', label: 'About' },
-    { to: '/profile', label: 'Profile' },
+    { to: user ? '/profile' : '/login', label: user ? 'My Reports' : 'Sign In' },
   ];
 
   return (
@@ -86,9 +86,6 @@ export function PublicHeader() {
                 className="header-user-button"
                 onClick={() => setIsUserMenuOpen(!isUserMenuOpen)}
               >
-                <div className="user-avatar">
-                  {(user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase()}
-                </div>
                 <span className="user-name">
                   {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Citizen'}
                 </span>
@@ -159,9 +156,6 @@ export function PublicHeader() {
             {/* Mobile User Identity (if authenticated) */}
             {user && (
               <div className="mobile-user-identity">
-                <div className="user-avatar">
-                  {(user.user_metadata?.full_name || user.email || 'U').charAt(0).toUpperCase()}
-                </div>
                 <span className="mobile-user-name">
                   {user.user_metadata?.full_name || user.email?.split('@')[0] || 'Citizen'}
                 </span>
@@ -189,7 +183,14 @@ export function PublicHeader() {
                     className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
-                    Profile
+                    My Profile
+                  </NavLink>
+                  <NavLink
+                    to="/report"
+                    className={({ isActive }) => `mobile-nav-link ${isActive ? 'active' : ''}`}
+                    onClick={() => setIsMobileMenuOpen(false)}
+                  >
+                    Report Issue
                   </NavLink>
                   <hr className="mobile-nav-divider" />
                   <button
@@ -202,7 +203,7 @@ export function PublicHeader() {
               )}
             </nav>
 
-            {/* Mobile CTA (only when unauthenticated) */}
+            {/* Mobile Report Issue CTA (only when unauthenticated) */}
             {!user && (
               <div className="mobile-cta">
                 <Link to="/report" onClick={() => setIsMobileMenuOpen(false)}>

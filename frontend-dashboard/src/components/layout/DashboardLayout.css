@@ -8,10 +8,25 @@
 
 .dashboard-layout {
   min-height: 100vh;
-  background: var(--surface-base);
+  background-color: var(--surface-base);
+  background-image: url('/assets/skyline.png');
+  background-size: cover;
+  background-position: center bottom;
+  background-attachment: fixed;
+}
+
+.dashboard-layout::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.35);
+  z-index: 0;
+  pointer-events: none;
 }
 
 .dashboard-main {
+  position: relative;
+  z-index: 1;
   margin-left: 64px;
   min-height: 100vh;
   padding: var(--space-2xl);
@@ -19,6 +34,10 @@
 
 /* Mobile: No left margin (sidebar is overlay) */
 @media (max-width: 767px) {
+  .dashboard-layout {
+    background-attachment: scroll;
+  }
+
   .dashboard-main {
     margin-left: 0;
     padding: var(--space-xl);

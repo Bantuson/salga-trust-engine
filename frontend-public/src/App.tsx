@@ -10,7 +10,7 @@ import { CitizenLoginPage } from './pages/CitizenLoginPage';
 import { CitizenRegisterPage } from './pages/CitizenRegisterPage';
 import { CitizenPortalPage } from './pages/CitizenPortalPage';
 import { ReportIssuePage } from './pages/ReportIssuePage';
-import { ProfilePage } from './pages/ProfilePage';
+// ProfilePage content now accessed via "Personal Details" tab in CitizenPortalPage
 import { PublicHeader } from './components/layout/PublicHeader';
 import { PublicFooter } from './components/layout/PublicFooter';
 import '@shared/design-tokens.css';
@@ -26,6 +26,16 @@ function ScrollToTop() {
     window.scrollTo(0, 0);
   }, [pathname]);
   return null;
+}
+
+/**
+ * ConditionalFooter - hides footer on /profile and /report routes
+ */
+function ConditionalFooter() {
+  const { pathname } = useLocation();
+  const hideFooter = pathname === '/profile' || pathname === '/report';
+  if (hideFooter) return null;
+  return <PublicFooter />;
 }
 
 /**
@@ -76,7 +86,7 @@ function App() {
                 <Route path="*" element={<Navigate to="/" replace />} />
               </Routes>
             </main>
-            <PublicFooter />
+            <ConditionalFooter />
           </div>
         </LenisProvider>
       </AuthProvider>

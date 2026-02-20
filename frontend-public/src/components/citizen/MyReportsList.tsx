@@ -5,7 +5,6 @@
 
 import React, { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
-import { Skeleton } from '@shared/components/ui/Skeleton';
 import { TicketCard } from './TicketCard';
 import { GBVCaseCard } from './GBVCaseCard';
 import type { CitizenTicket } from '../../hooks/useCitizenReports';
@@ -32,16 +31,15 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
 
   if (loading) {
     return (
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--spacing-md)',
-      }}>
-        {[1, 2, 3].map((i) => (
-          <GlassCard key={i} variant="elevated" style={{ padding: 'var(--spacing-lg)' }}>
-            <Skeleton height={200} />
-          </GlassCard>
-        ))}
+      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px', gap: '12px' }}>
+        <div style={{
+          width: 32, height: 32,
+          border: '3px solid rgba(0,0,0,0.1)',
+          borderTopColor: 'var(--color-teal)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite',
+        }} />
+        <p style={{ color: '#555', fontSize: '0.875rem' }}>Loading...</p>
       </div>
     );
   }
@@ -52,7 +50,7 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
       <div style={{
         display: 'flex',
         gap: 'var(--spacing-sm)',
-        marginBottom: 'var(--spacing-lg)',
+        marginBottom: '20px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         paddingBottom: 'var(--spacing-sm)',
       }}>
@@ -114,17 +112,23 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
         <GlassCard variant="default" style={{
           padding: 'var(--spacing-xl)',
           textAlign: 'center',
+          marginTop: '0px',
+          minHeight: '360px',
+          display: 'flex',
+          flexDirection: 'column' as const,
+          alignItems: 'center',
+          justifyContent: 'center',
         }}>
           <svg
             width="64"
             height="64"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="var(--text-secondary)"
+            stroke="#1a1a1a"
             strokeWidth="1"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ margin: '0 auto var(--spacing-md)' }}
+            style={{ margin: '0 auto var(--spacing-lg)' }}
           >
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
@@ -135,14 +139,14 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
           <h3 style={{
             fontSize: 'var(--text-xl)',
             fontWeight: 600,
-            color: 'var(--text-primary)',
-            margin: '0 0 var(--spacing-sm)',
+            color: '#1a1a1a',
+            margin: '0 0 var(--spacing-md)',
           }}>
             {activeFilter === 'all' ? 'No reports yet' : `No ${activeFilter} reports`}
           </h3>
           <p style={{
             fontSize: 'var(--text-sm)',
-            color: 'var(--text-secondary)',
+            color: '#555',
             margin: 0,
           }}>
             {activeFilter === 'all'
