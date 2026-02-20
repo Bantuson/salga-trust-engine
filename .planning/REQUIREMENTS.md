@@ -9,10 +9,10 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Platform Infrastructure
 
-- [ ] **PLAT-01**: System uses multi-tenant architecture with data isolation per municipality (3-5 pilots)
-- [ ] **PLAT-02**: User must create an account to submit reports (mandatory registration)
-- [ ] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
-- [ ] **PLAT-04**: System supports trilingual interface (English, isiZulu, Afrikaans)
+- [x] **PLAT-01**: System uses multi-tenant architecture with data isolation per municipality (3-5 pilots)
+- [x] **PLAT-02**: User must create an account to submit reports (mandatory registration)
+- [x] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
+- [x] **PLAT-04**: System supports trilingual interface (English, isiZulu, Afrikaans)
 - [x] **PLAT-05**: All API endpoints implement input/output validation with security guardrails
 - [ ] **PLAT-06**: System implements security firewalls between service endpoints (endpoint isolation)
 - [ ] **PLAT-07**: System is POPIA-compliant from day one (consent management, data minimization, right to access/delete)
@@ -42,8 +42,8 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Ticket Management
 
-- [ ] **TKT-01**: Citizen receives automated status updates via WhatsApp as ticket progresses
-- [ ] **TKT-02**: System uses geospatial analytics to route tickets to correct municipal team based on location + category
+- [x] **TKT-01**: Citizen receives automated status updates via WhatsApp as ticket progresses
+- [x] **TKT-02**: System uses geospatial analytics to route tickets to correct municipal team based on location + category
 - [ ] **TKT-03**: System tracks SLA compliance (response time and resolution time against targets)
 - [ ] **TKT-04**: System auto-escalates tickets that breach SLA thresholds to higher authority
 - [ ] **TKT-05**: Each ticket has full audit trail (creation, assignment, status changes, resolution)
@@ -69,7 +69,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **SEC-02**: POPIA consent captured at registration with clear data processing purpose
 - [ ] **SEC-03**: User can request access to their data and request deletion (POPIA rights)
 - [x] **SEC-04**: Role-based access control (citizen, field worker, manager, admin, SAPS liaison)
-- [ ] **SEC-05**: GBV data accessible only to authorized SAPS liaison and system admin (firewall-isolated)
+- [x] **SEC-05**: GBV data accessible only to authorized SAPS liaison and system admin (firewall-isolated)
 - [ ] **SEC-06**: API rate limiting and abuse prevention on all public endpoints
 - [ ] **SEC-07**: Comprehensive audit logging on all data access and modifications
 - [ ] **SEC-08**: Input sanitization and output encoding on all user-facing endpoints (OWASP Top 10)
@@ -129,10 +129,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| PLAT-01 | Phase 1 | Pending |
-| PLAT-02 | Phase 3 | Pending |
-| PLAT-03 | Phase 3 | Pending |
-| PLAT-04 | Phase 2 | Pending |
+| PLAT-01 | Phase 1 | Complete |
+| PLAT-02 | Phase 3 | Complete |
+| PLAT-03 | Phase 3 | Complete |
+| PLAT-04 | Phase 2 | Complete |
 | PLAT-05 | Phase 1 | Complete |
 | PLAT-06 | Phase 1 | Pending |
 | PLAT-07 | Phase 1 | Pending |
@@ -153,8 +153,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPT-07 | Phase 3 | Pending |
 | RPT-08 | Phase 3 | Pending |
 | RPT-09 | Phase 3 | Pending |
-| TKT-01 | Phase 4 | Pending |
-| TKT-02 | Phase 4 | Pending |
+| TKT-01 | Phase 4 | Complete |
+| TKT-02 | Phase 4 | Complete |
 | TKT-03 | Phase 4 | Pending |
 | TKT-04 | Phase 4 | Pending |
 | TKT-05 | Phase 4 | Pending |
@@ -171,7 +171,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SEC-02 | Phase 1 | Pending |
 | SEC-03 | Phase 1 | Pending |
 | SEC-04 | Phase 1 | Complete |
-| SEC-05 | Phase 4 | Pending |
+| SEC-05 | Phase 4 | Complete |
 | SEC-06 | Phase 1 | Pending |
 | SEC-07 | Phase 1 | Pending |
 | SEC-08 | Phase 1 | Pending |
