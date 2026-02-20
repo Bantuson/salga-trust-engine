@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 06.9.2 Plan 05 COMPLETE — 3-way communication flow tests + crew server behavioral tests: 39 tests validating agent->dashboard->public data path and SEC-05 GBV firewall
+**Current focus:** Phase 06.9.2 Plan 04 COMPLETE — Security audit tests: 95 tests covering OWASP auth enforcement, 6-role RBAC, SEC-05 GBV 5-layer firewall, POPIA compliance
 
 ## Current Position
 
@@ -143,6 +143,7 @@ Progress: [██████████] 100% (5/5 plans)
 | Phase 06.9.2 P02 | 1564 | 2 tasks | 13 files |
 | Phase 06.9.2 P01 | continued | 2 tasks | 24 files |
 | Phase 06.9.2 P05 | 37 | 2 tasks | 2 files |
+| Phase 06.9.2 P04 | 13620 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -492,6 +493,8 @@ Recent decisions affecting current work:
 - [Phase 06.9.2]: reset_rate_limiter autouse fixture added to conftest.py — prevents in-memory slowapi storage bleed-over between unit tests
 - [Phase 06.9.2]: patch src.core.supabase.get_supabase_admin (not tool module) — ticket_tool imports get_supabase_admin locally inside _create_ticket_impl
 - [Phase 06.9.2]: slowapi rate-limited endpoints cannot be called directly in tests — inspect internal logic functions instead; slowapi wraps at decoration time looking for kwarg named 'request'
+- [Phase 06.9.2]: app.dependency_overrides[get_current_user] required for RBAC tests in SQLite test env — JWT tokens fail UUID DB lookup
+- [Phase 06.9.2]: Direct endpoint function tests must pass explicit Query defaults (start_date=None) to avoid FastAPI Query injection issues
 
 ### Pending Todos
 
