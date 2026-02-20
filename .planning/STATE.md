@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 06.9.2 Plan 01 COMPLETE — API rate limiting hardening: all 71 endpoints with explicit rate limits, crew server CORS + rate limiting + input validation
+**Current focus:** Phase 06.9.2 Plan 05 COMPLETE — 3-way communication flow tests + crew server behavioral tests: 39 tests validating agent->dashboard->public data path and SEC-05 GBV firewall
 
 ## Current Position
 
 Phase: 06.9.2 of 06.9.2 (System-wide Integration Validation — full security audit, API completeness, CI/CD, Render staging)
-Plan: 4 of 5 in current phase (plans 01, 02, 03 all complete; plan 04 and 05 pending)
-Status: COMPLETE — Plans 01-03 delivered: API rate limiting hardening (Plan 01), dashboard error handling (Plan 02), CI/CD + Render staging (Plan 03)
-Last activity: 2026-02-20 — Phase 06.9.2 Plan 01 complete: 68 main-app endpoints + 3 crew endpoints all explicitly rate limited
+Plan: 5 of 5 in current phase (ALL PLANS COMPLETE)
+Status: COMPLETE — All 5 plans delivered: API rate limiting (01), dashboard error handling (02), CI/CD + Render staging (03), code quality (04), 3-way communication tests (05)
+Last activity: 2026-02-21 — Phase 06.9.2 Plan 05 complete: 39 integration tests for 3-way flow + crew server behaviors
 
-Progress: [████░░░░░░] 60% (3/5 plans)
+Progress: [██████████] 100% (5/5 plans)
 
 ## Performance Metrics
 
@@ -142,6 +142,7 @@ Progress: [████░░░░░░] 60% (3/5 plans)
 | Phase 06.9.2 P03 | 403 | 2 tasks | 4 files |
 | Phase 06.9.2 P02 | 1564 | 2 tasks | 13 files |
 | Phase 06.9.2 P01 | continued | 2 tasks | 24 files |
+| Phase 06.9.2 P05 | 37 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -489,6 +490,8 @@ Recent decisions affecting current work:
 - [Phase 06.9.2]: slowapi requires parameter named 'request' (not just starlette Request type) — Pydantic body params renamed when collision occurs
 - [Phase 06.9.2]: whatsapp.py intentionally excluded from explicit rate limiting — Twilio webhook caller cannot be rate-limited per IP
 - [Phase 06.9.2]: reset_rate_limiter autouse fixture added to conftest.py — prevents in-memory slowapi storage bleed-over between unit tests
+- [Phase 06.9.2]: patch src.core.supabase.get_supabase_admin (not tool module) — ticket_tool imports get_supabase_admin locally inside _create_ticket_impl
+- [Phase 06.9.2]: slowapi rate-limited endpoints cannot be called directly in tests — inspect internal logic functions instead; slowapi wraps at decoration time looking for kwarg named 'request'
 
 ### Pending Todos
 
@@ -515,10 +518,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-20 (Phase 06.9.2 Plan 01 complete — 68 main-app endpoints + crew server explicitly rate limited, CORS on crew server, input validation on ChatRequest)
-Stopped at: Completed 06.9.2-01-PLAN.md
-Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-01-SUMMARY.md
+Last session: 2026-02-21 (Phase 06.9.2 Plan 05 complete — 39 integration tests for 3-way communication flow + crew server behavioral tests, SEC-05 GBV firewall verified at public layer)
+Stopped at: Completed 06.9.2-05-PLAN.md
+Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-05-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-20 (06.9.2 Plan 01 complete — all 71 API endpoints explicitly rate limited, crew server CORS + rate limiting)*
+*Last updated: 2026-02-21 (06.9.2 Plan 05 complete — 3-way communication flow tests + crew server behavioral tests, phase 06.9.2 ALL PLANS COMPLETE)*
