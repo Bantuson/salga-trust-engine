@@ -10,7 +10,7 @@
  */
 
 import { useState, useRef } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
@@ -27,7 +27,6 @@ const PILOT_MUNICIPALITIES = [
 
 export function CitizenRegisterPage() {
   const { signUp } = useAuth();
-  const navigate = useNavigate();
   const location = useLocation();
 
   const [loading, setLoading] = useState(false);
@@ -48,7 +47,7 @@ export function CitizenRegisterPage() {
   // Animation refs
   const containerRef = useRef<HTMLDivElement>(null);
   const cardRef = useRef<HTMLDivElement>(null);
-  const formFieldsRef = useRef<HTMLDivElement>(null);
+  const formFieldsRef = useRef<HTMLFormElement>(null);
 
   // Staggered entrance animation
   useGSAP(

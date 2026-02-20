@@ -20,7 +20,7 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithPhone: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, token: string) => Promise<void>;
-  signUp: (email: string, password: string, metadata?: { full_name?: string; phone?: string }) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: { full_name?: string; phone?: string; municipality?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -94,7 +94,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUp = async (
     email: string,
     password: string,
-    metadata?: { full_name?: string; phone?: string }
+    metadata?: { full_name?: string; phone?: string; municipality?: string }
   ) => {
     const { error } = await supabase.auth.signUp({
       email,

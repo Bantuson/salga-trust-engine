@@ -39,14 +39,13 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
       avg: 0,
     };
 
-    animate({
-      targets,
+    animate(targets, {
       total: stats.total_reports,
       resolved: stats.resolved_count,
       avg: stats.avg_resolution_days || 0,
       duration: 1200,
       easing: 'easeOutQuad',
-      update: () => {
+      onUpdate: () => {
         setAnimatedTotal(Math.round(targets.total));
         setAnimatedResolved(Math.round(targets.resolved));
         setAnimatedAvg(Number(targets.avg.toFixed(1)));

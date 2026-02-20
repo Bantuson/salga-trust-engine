@@ -23,7 +23,21 @@ import {
 /**
  * Custom hooks for querying Supabase public views directly.
  * NO FastAPI dependency - fully serverless.
+ *
+ * All hooks degrade gracefully to mock data on Supabase errors.
+ * isLoading is ALWAYS set to false in finally blocks (no infinite spinners).
  */
+
+// Diagnostic connectivity check — runs once on module load, does not block rendering.
+// Logs a warning to the console if Supabase is unreachable, aiding debugging.
+supabase
+  .from('public_municipalities')
+  .select('*', { count: 'exact', head: true })
+  .then(({ error }) => {
+    if (error) {
+      console.warn('[PublicStats] Supabase connection issue:', error.message);
+    }
+  });
 
 export function useMunicipalities() {
   const [municipalities, setMunicipalities] = useState<Municipality[]>([]);

@@ -10,7 +10,7 @@
  * Must be acknowledged before allowing GBV category selection.
  */
 
-import React, { useEffect, useRef } from 'react';
+import { useEffect, useRef } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 
 interface GBVConsentDialogProps {
