@@ -121,7 +121,7 @@ export function ProfilePage() {
     try {
       // 1. Upload file to Supabase Storage
       const fileName = `${user.id}/${file.name}`;
-      const { data: uploadData, error: uploadError } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('documents')
         .upload(`residence/${fileName}`, file, {
           cacheControl: '3600',

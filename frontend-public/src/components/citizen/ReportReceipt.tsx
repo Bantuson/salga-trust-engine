@@ -9,7 +9,7 @@
  * - Two CTAs: Submit Another Report, View My Reports
  */
 
-import React, { useState } from 'react';
+import { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 

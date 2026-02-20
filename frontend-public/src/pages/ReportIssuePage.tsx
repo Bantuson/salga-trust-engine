@@ -12,7 +12,7 @@
  * - Premium skyline background + glassmorphic card
  */
 
-import React, { useState, useCallback, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { GlassCard } from '@shared/components/ui/GlassCard';
