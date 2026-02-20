@@ -65,7 +65,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Security & Compliance
 
-- [ ] **SEC-01**: All data encrypted at rest and in transit (TLS 1.3, AES-256)
+- [x] **SEC-01**: All data encrypted at rest and in transit (TLS 1.3, AES-256)
 - [ ] **SEC-02**: POPIA consent captured at registration with clear data processing purpose
 - [ ] **SEC-03**: User can request access to their data and request deletion (POPIA rights)
 - [x] **SEC-04**: Role-based access control (citizen, field worker, manager, admin, SAPS liaison)
@@ -167,7 +167,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TRNS-03 | Phase 6 | Complete |
 | TRNS-04 | Phase 6 | Pending |
 | TRNS-05 | Phase 6 | Pending |
-| SEC-01 | Phase 1 | Pending |
+| SEC-01 | Phase 1 | Complete |
 | SEC-02 | Phase 1 | Pending |
 | SEC-03 | Phase 1 | Pending |
 | SEC-04 | Phase 1 | Complete |

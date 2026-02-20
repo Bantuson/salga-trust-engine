@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 06.9.2 Plan 02 COMPLETE — Dashboard error handling, 401 retry interceptor, TypeScript build fixes
+**Current focus:** Phase 06.9.2 Plan 01 COMPLETE — API rate limiting hardening: all 71 endpoints with explicit rate limits, crew server CORS + rate limiting + input validation
 
 ## Current Position
 
 Phase: 06.9.2 of 06.9.2 (System-wide Integration Validation — full security audit, API completeness, CI/CD, Render staging)
-Plan: 2 of 5 in current phase
-Status: IN PROGRESS — Plan 02 delivered: 401 retry interceptor with token refresh queue, public dashboard Supabase connectivity diagnostics, 11 pre-existing TypeScript errors fixed
-Last activity: 2026-02-20 — Phase 06.9.2 Plan 02 complete: Axios 401 retry + public dashboard TS clean build
+Plan: 4 of 5 in current phase (plans 01, 02, 03 all complete; plan 04 and 05 pending)
+Status: COMPLETE — Plans 01-03 delivered: API rate limiting hardening (Plan 01), dashboard error handling (Plan 02), CI/CD + Render staging (Plan 03)
+Last activity: 2026-02-20 — Phase 06.9.2 Plan 01 complete: 68 main-app endpoints + 3 crew endpoints all explicitly rate limited
 
-Progress: [██░░░░░░░░] 40% (2/5 plans)
+Progress: [████░░░░░░] 60% (3/5 plans)
 
 ## Performance Metrics
 
@@ -141,6 +141,7 @@ Progress: [██░░░░░░░░] 40% (2/5 plans)
 | 06.1.1-04 | 6.0m (361s) | 2 | 6 |
 | Phase 06.9.2 P03 | 403 | 2 tasks | 4 files |
 | Phase 06.9.2 P02 | 1564 | 2 tasks | 13 files |
+| Phase 06.9.2 P01 | continued | 2 tasks | 24 files |
 
 ## Accumulated Context
 
@@ -485,6 +486,9 @@ Recent decisions affecting current work:
 - [Phase 06.9.2]: 401 retry uses isRefreshing flag + failedQueue array: prevents concurrent refresh races in municipal dashboard API
 - [Phase 06.9.2]: animejs v4 breaking change: animate(targets, options) signature, and update callback renamed to onUpdate
 - [Phase 06.9.2]: signUp metadata type extended with municipality field in AuthContext — Supabase passes through arbitrary user_metadata JSON, no schema change needed
+- [Phase 06.9.2]: slowapi requires parameter named 'request' (not just starlette Request type) — Pydantic body params renamed when collision occurs
+- [Phase 06.9.2]: whatsapp.py intentionally excluded from explicit rate limiting — Twilio webhook caller cannot be rate-limited per IP
+- [Phase 06.9.2]: reset_rate_limiter autouse fixture added to conftest.py — prevents in-memory slowapi storage bleed-over between unit tests
 
 ### Pending Todos
 
@@ -511,10 +515,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-20 (Phase 06.9.2 Plan 02 complete — 401 retry interceptor, Supabase connectivity diagnostics, 11 TS errors fixed)
-Stopped at: Completed 06.9.2-02-PLAN.md
-Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-02-SUMMARY.md
+Last session: 2026-02-20 (Phase 06.9.2 Plan 01 complete — 68 main-app endpoints + crew server explicitly rate limited, CORS on crew server, input validation on ChatRequest)
+Stopped at: Completed 06.9.2-01-PLAN.md
+Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-20 (06.9.2 Plan 02 complete — dashboard error handling and TypeScript clean builds)*
+*Last updated: 2026-02-20 (06.9.2 Plan 01 complete — all 71 API endpoints explicitly rate limited, crew server CORS + rate limiting)*
