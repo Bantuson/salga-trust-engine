@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 06.9.2 Plan 03 COMPLETE — CI/CD pipeline, Ruff linter, Render staging Blueprint
+**Current focus:** Phase 06.9.2 Plan 02 COMPLETE — Dashboard error handling, 401 retry interceptor, TypeScript build fixes
 
 ## Current Position
 
 Phase: 06.9.2 of 06.9.2 (System-wide Integration Validation — full security audit, API completeness, CI/CD, Render staging)
-Plan: 3 of 5 in current phase
-Status: IN PROGRESS — Plan 03 delivered: .ruff.toml, .github/workflows/ci.yml, render.yaml — code quality + CI/CD + staging
-Last activity: 2026-02-20 — Phase 06.9.2 Plan 03 complete: Ruff linter + GitHub Actions CI + Render Blueprint
+Plan: 2 of 5 in current phase
+Status: IN PROGRESS — Plan 02 delivered: 401 retry interceptor with token refresh queue, public dashboard Supabase connectivity diagnostics, 11 pre-existing TypeScript errors fixed
+Last activity: 2026-02-20 — Phase 06.9.2 Plan 02 complete: Axios 401 retry + public dashboard TS clean build
 
-Progress: [███░░░░░░░] 60% (3/5 plans)
+Progress: [██░░░░░░░░] 40% (2/5 plans)
 
 ## Performance Metrics
 
@@ -140,6 +140,7 @@ Progress: [███░░░░░░░] 60% (3/5 plans)
 | Phase 06.1.1 P05 | 542 | 2 tasks | 7 files |
 | 06.1.1-04 | 6.0m (361s) | 2 | 6 |
 | Phase 06.9.2 P03 | 403 | 2 tasks | 4 files |
+| Phase 06.9.2 P02 | 1564 | 2 tasks | 13 files |
 
 ## Accumulated Context
 
@@ -481,6 +482,9 @@ Recent decisions affecting current work:
 - [Phase 06.9.2-03]: Ruff selected as single linter/formatter tool covering security (bandit), isort, pyflakes, pyupgrade, bugbear
 - [Phase 06.9.2-03]: Render starter plan for all 4 services — crew server deployed as separate web service (needs HTTP health check)
 - [Phase 06.9.2-03]: CI lint job gates test job (needs: lint) and uses sqlite+aiosqlite (USES_SQLITE_TESTS=1) — no PostgreSQL needed in CI
+- [Phase 06.9.2]: 401 retry uses isRefreshing flag + failedQueue array: prevents concurrent refresh races in municipal dashboard API
+- [Phase 06.9.2]: animejs v4 breaking change: animate(targets, options) signature, and update callback renamed to onUpdate
+- [Phase 06.9.2]: signUp metadata type extended with municipality field in AuthContext — Supabase passes through arbitrary user_metadata JSON, no schema change needed
 
 ### Pending Todos
 
@@ -507,10 +511,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-20 (Phase 06.9.2 Plan 03 complete — .ruff.toml, .github/workflows/ci.yml, render.yaml)
-Stopped at: Completed 06.9.2-03-PLAN.md
-Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-03-SUMMARY.md
+Last session: 2026-02-20 (Phase 06.9.2 Plan 02 complete — 401 retry interceptor, Supabase connectivity diagnostics, 11 TS errors fixed)
+Stopped at: Completed 06.9.2-02-PLAN.md
+Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-20 (06.9.2 Plan 03 complete — CI/CD pipeline, Ruff linter, Render Blueprint)*
+*Last updated: 2026-02-20 (06.9.2 Plan 02 complete — dashboard error handling and TypeScript clean builds)*
