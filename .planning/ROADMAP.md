@@ -179,10 +179,11 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.5. Public Dashboard UI Refinements | 3/3 | ✓ Complete | 2026-02-14 |
 | 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
 | 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
+| 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-20 (Phase 06.9.2 planned — 5 plans in 2 waves)*
+*Last updated: 2026-02-20 (Phase 06.9.2 complete — 5 plans in 2 waves)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
@@ -202,14 +203,14 @@ Plans:
 **Goal:** End-to-end system validation before production deployment. (1) API completeness: every endpoint tested, secured (auth + RBAC), and rate-limited — including CrewAI tool endpoints (crew_server). (2) Dashboard fetch fixes: investigate and fix failing fetches in both municipal and public dashboards. (3) Full security audit (OWASP, POPIA, SEC-05 GBV firewall). (4) 3-way communication validation: CrewAI WhatsApp agents create tickets → municipal dashboard receives for filing/status updates → analytics aggregate municipal stats → public dashboard transparency views. (5) Code quality checks. (6) CI/CD pipeline setup. (7) Render staging deployment with live Twilio WhatsApp credentials for final CrewAI integration test. Tests assess component behavior, failure points, and system design soundness — not overengineered.
 **Depends on:** Phase 6.9.1
 **Requirements:** SEC-01, SEC-02, SEC-03, SEC-04, SEC-05, PLAT-01, PLAT-02, PLAT-03, PLAT-04, PLAT-05, AI-01, AI-02, AI-03, TKT-01, TKT-02, OPS-01, OPS-02, TRNS-01, TRNS-02, TRNS-03
-**Plans:** 4/4 plans complete
+**Plans:** 5/5 plans complete
 
 Plans:
-- [ ] 06.9.2-01-PLAN.md -- API security hardening: crew server CORS/rate-limiting/input-validation, endpoint-specific rate limits on all 71 endpoints
-- [ ] 06.9.2-02-PLAN.md -- Dashboard fetch fixes: 401 retry with token refresh (municipal), Supabase query resilience (public)
-- [ ] 06.9.2-03-PLAN.md -- Code quality (ruff linter), GitHub Actions CI pipeline, Render staging Blueprint
-- [ ] 06.9.2-04-PLAN.md -- Security audit tests: OWASP auth enforcement, RBAC coverage, SEC-05 GBV 5-layer firewall, POPIA compliance
-- [ ] 06.9.2-05-PLAN.md -- 3-way communication tests: agent ticket creation -> municipal dashboard -> public stats, crew server behavioral tests
+- [x] 06.9.2-01-PLAN.md -- API security hardening: crew server CORS/rate-limiting/input-validation, endpoint-specific rate limits on all 71 endpoints
+- [x] 06.9.2-02-PLAN.md -- Dashboard fetch fixes: 401 retry with token refresh (municipal), Supabase query resilience (public)
+- [x] 06.9.2-03-PLAN.md -- Code quality (ruff linter), GitHub Actions CI pipeline, Render staging Blueprint
+- [x] 06.9.2-04-PLAN.md -- Security audit tests: OWASP auth enforcement, RBAC coverage, SEC-05 GBV 5-layer firewall, POPIA compliance
+- [x] 06.9.2-05-PLAN.md -- 3-way communication tests: agent ticket creation -> municipal dashboard -> public stats, crew server behavioral tests
 
 ### Phase 06.9.1: Fix agent output formatting Pydantic models auth OTP tool failures and system prompt engineering (INSERTED)
 
