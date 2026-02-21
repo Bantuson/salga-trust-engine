@@ -11,12 +11,12 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PLAT-01**: System uses multi-tenant architecture with data isolation per municipality (3-5 pilots)
 - [x] **PLAT-02**: User must create an account to submit reports (mandatory registration)
-- [x] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
+- [ ] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
 - [x] **PLAT-04**: System supports trilingual interface (English, isiZulu, Afrikaans)
 - [x] **PLAT-05**: All API endpoints implement input/output validation with security guardrails
-- [ ] **PLAT-06**: System implements security firewalls between service endpoints (endpoint isolation)
-- [ ] **PLAT-07**: System is POPIA-compliant from day one (consent management, data minimization, right to access/delete)
-- [ ] **PLAT-08**: API-first architecture — all features accessible via documented REST API with tool-use design pattern
+- [x] **PLAT-06**: System implements security firewalls between service endpoints (endpoint isolation)
+- [x] **PLAT-07**: System is POPIA-compliant from day one (consent management, data minimization, right to access/delete)
+- [x] **PLAT-08**: API-first architecture — all features accessible via documented REST API with tool-use design pattern
 
 ### Agentic AI System
 
@@ -44,15 +44,15 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **TKT-01**: Citizen receives automated status updates via WhatsApp as ticket progresses
 - [x] **TKT-02**: System uses geospatial analytics to route tickets to correct municipal team based on location + category
-- [ ] **TKT-03**: System tracks SLA compliance (response time and resolution time against targets)
-- [ ] **TKT-04**: System auto-escalates tickets that breach SLA thresholds to higher authority
-- [ ] **TKT-05**: Each ticket has full audit trail (creation, assignment, status changes, resolution)
+- [x] **TKT-03**: System tracks SLA compliance (response time and resolution time against targets)
+- [x] **TKT-04**: System auto-escalates tickets that breach SLA thresholds to higher authority
+- [x] **TKT-05**: Each ticket has full audit trail (creation, assignment, status changes, resolution)
 
 ### Municipal Operations
 
 - [x] **OPS-01**: Municipal manager can view, filter, search, and assign tickets via web dashboard
 - [x] **OPS-02**: Municipal manager can export issue data to Excel/CSV
-- [x] **OPS-03**: Ward councillor can view dashboard filtered to issues in their ward
+- [ ] **OPS-03**: Ward councillor can view dashboard filtered to issues in their ward
 - [x] **OPS-04**: Dashboard shows real-time ticket volumes, SLA compliance, and team workload
 
 ### Public Transparency
@@ -60,19 +60,19 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **TRNS-01**: Public dashboard displays average response times per municipality
 - [x] **TRNS-02**: Public dashboard displays resolution rates per municipality
 - [x] **TRNS-03**: Public dashboard displays geographic heatmap of reported issues
-- [ ] **TRNS-04**: Public dashboard is accessible without login (open to all citizens)
-- [ ] **TRNS-05**: GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
+- [x] **TRNS-04**: Public dashboard is accessible without login (open to all citizens)
+- [x] **TRNS-05**: GBV/sensitive report data is NEVER displayed on public dashboard (aggregated counts only, no identifying details)
 
 ### Security & Compliance
 
 - [x] **SEC-01**: All data encrypted at rest and in transit (TLS 1.3, AES-256)
-- [ ] **SEC-02**: POPIA consent captured at registration with clear data processing purpose
-- [ ] **SEC-03**: User can request access to their data and request deletion (POPIA rights)
+- [x] **SEC-02**: POPIA consent captured at registration with clear data processing purpose
+- [x] **SEC-03**: User can request access to their data and request deletion (POPIA rights)
 - [x] **SEC-04**: Role-based access control (citizen, field worker, manager, admin, SAPS liaison)
 - [x] **SEC-05**: GBV data accessible only to authorized SAPS liaison and system admin (firewall-isolated)
-- [ ] **SEC-06**: API rate limiting and abuse prevention on all public endpoints
-- [ ] **SEC-07**: Comprehensive audit logging on all data access and modifications
-- [ ] **SEC-08**: Input sanitization and output encoding on all user-facing endpoints (OWASP Top 10)
+- [x] **SEC-06**: API rate limiting and abuse prevention on all public endpoints
+- [x] **SEC-07**: Comprehensive audit logging on all data access and modifications
+- [x] **SEC-08**: Input sanitization and output encoding on all user-facing endpoints (OWASP Top 10)
 
 ## v2 Requirements
 
@@ -131,12 +131,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 3 | Complete |
-| PLAT-03 | Phase 3 | Complete |
+| PLAT-03 | Phase 9 | Pending |
 | PLAT-04 | Phase 2 | Complete |
 | PLAT-05 | Phase 1 | Complete |
-| PLAT-06 | Phase 1 | Pending |
-| PLAT-07 | Phase 1 | Pending |
-| PLAT-08 | Phase 1 | Pending |
+| PLAT-06 | Phase 1 | Complete |
+| PLAT-07 | Phase 1 | Complete |
+| PLAT-08 | Phase 1 | Complete |
 | AI-01 | Phase 2 | Complete |
 | AI-02 | Phase 2 | Complete |
 | AI-03 | Phase 2 | Complete |
@@ -144,37 +144,37 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-05 | Phase 2 | Complete |
 | AI-06 | Phase 2 | Complete |
 | AI-07 | Phase 2 | Complete |
-| RPT-01 | Phase 3 | Pending |
-| RPT-02 | Phase 3 | Pending |
-| RPT-03 | Phase 3 | Pending |
-| RPT-04 | Phase 3 | Pending |
-| RPT-05 | Phase 3 | Pending |
-| RPT-06 | Phase 3 | Pending |
-| RPT-07 | Phase 3 | Pending |
-| RPT-08 | Phase 3 | Pending |
-| RPT-09 | Phase 3 | Pending |
+| RPT-01 | Phase 7 | Pending |
+| RPT-02 | Phase 8 | Pending |
+| RPT-03 | Phase 8 | Pending |
+| RPT-04 | Phase 8 | Pending |
+| RPT-05 | Phase 8 | Pending |
+| RPT-06 | Phase 8 | Pending |
+| RPT-07 | Phase 7 | Pending |
+| RPT-08 | Phase 8 | Pending |
+| RPT-09 | Phase 9 | Pending |
 | TKT-01 | Phase 4 | Complete |
 | TKT-02 | Phase 4 | Complete |
-| TKT-03 | Phase 4 | Pending |
-| TKT-04 | Phase 4 | Pending |
-| TKT-05 | Phase 4 | Pending |
+| TKT-03 | Phase 4 | Complete |
+| TKT-04 | Phase 4 | Complete |
+| TKT-05 | Phase 4 | Complete |
 | OPS-01 | Phase 5 | Complete |
 | OPS-02 | Phase 5 | Complete |
-| OPS-03 | Phase 5 | Complete |
+| OPS-03 | Phase 9 | Pending |
 | OPS-04 | Phase 5 | Complete |
 | TRNS-01 | Phase 6 | Complete |
 | TRNS-02 | Phase 6 | Complete |
 | TRNS-03 | Phase 6 | Complete |
-| TRNS-04 | Phase 6 | Pending |
-| TRNS-05 | Phase 6 | Pending |
+| TRNS-04 | Phase 6 | Complete |
+| TRNS-05 | Phase 6 | Complete |
 | SEC-01 | Phase 1 | Complete |
-| SEC-02 | Phase 1 | Pending |
-| SEC-03 | Phase 1 | Pending |
+| SEC-02 | Phase 1 | Complete |
+| SEC-03 | Phase 1 | Complete |
 | SEC-04 | Phase 1 | Complete |
 | SEC-05 | Phase 4 | Complete |
-| SEC-06 | Phase 1 | Pending |
-| SEC-07 | Phase 1 | Pending |
-| SEC-08 | Phase 1 | Pending |
+| SEC-06 | Phase 1 | Complete |
+| SEC-07 | Phase 1 | Complete |
+| SEC-08 | Phase 1 | Complete |
 
 **Coverage:**
 - v1 requirements: 46 total
@@ -183,4 +183,4 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 ---
 *Requirements defined: 2026-02-09*
-*Last updated: 2026-02-09 after roadmap creation*
+*Last updated: 2026-02-21 — gap closure phases 7-10 assigned, 11 checkboxes synced, 2 reset to partial*
