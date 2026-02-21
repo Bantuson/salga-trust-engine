@@ -161,10 +161,39 @@ Plans:
 
 This policy applies to all 6 phases. Test files live in `tests/` mirroring the `src/` structure.
 
+### Phase 7: Fix WhatsApp -> AI Agent Integration (GAP CLOSURE)
+**Goal:** Fix broken WhatsApp intake path — WhatsAppService calls removed IntakeFlow API (llm_model kwarg, receive_message(), classify_message()). Update to route through ManagerCrew. Fix GBV routing via Twilio webhook path.
+**Depends on:** Phase 6.9 (ManagerCrew must exist)
+**Requirements:** RPT-01, RPT-07
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+**Plans:** 0/0
+
+### Phase 8: Wire Web Portal Report Submission (GAP CLOSURE)
+**Goal:** Replace mock submit in ReportIssuePage.tsx with real API call to POST /api/v1/reports/submit. Fix reports.py to use ManagerCrew API instead of removed IntakeFlow methods. When tickets actually create: photos link (RPT-03), GPS saves (RPT-04), tracking numbers issue (RPT-05), GBV tickets create (RPT-06), encryption exercises (RPT-08).
+**Depends on:** Phase 6.9 (ManagerCrew must exist)
+**Requirements:** RPT-02, RPT-03, RPT-04, RPT-05, RPT-06, RPT-08
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+**Plans:** 0/0
+
+### Phase 9: OCR Supabase Bridge & Ward Filtering (GAP CLOSURE)
+**Goal:** Bridge OCR verification result to Supabase user_metadata (residence_verified = true) so frontend gate unlocks. Add User.ward_id field with migration and wire ward filtering in tickets/dashboard queries so ward councillors see only their ward's tickets.
+**Depends on:** Nothing (independent)
+**Requirements:** PLAT-03, RPT-09, OPS-03
+**Gap Closure:** Closes gaps from v1.0 milestone audit
+**Plans:** 0/0
+
+### Phase 10: Render Staging Deployment Fixes (GAP CLOSURE)
+**Goal:** Fix render.yaml deployment config: Celery startCommand path (src.celery_app -> src.tasks.celery_app), add missing SUPABASE_JWT_SECRET env var, fix TWILIO_WHATSAPP_FROM -> TWILIO_WHATSAPP_NUMBER env var name. Unblocks staging WhatsApp notifications and municipal dashboard auth.
+**Depends on:** Nothing (independent)
+**Requirements:** TKT-01, SEC-01, SEC-04, RPT-01
+**Gap Closure:** Closes deployment gaps from v1.0 milestone audit
+**Plans:** 0/0
+
 ## Progress
 
 **Execution Order:**
 Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
+Gap closure phases (7-10) are independent and can execute in parallel.
 
 | Phase | Plans Complete | Status | Completed |
 |-------|----------------|--------|-----------|
@@ -180,10 +209,14 @@ Phases execute in numeric order: 1 -> 2 -> 3 -> 4 -> 5 -> 6
 | 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
 | 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
+| 7. Fix WhatsApp -> AI Agent Integration | 0/0 | Pending | — |
+| 8. Wire Web Portal Report Submission | 0/0 | Pending | — |
+| 9. OCR Supabase Bridge & Ward Filtering | 0/0 | Pending | — |
+| 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-20 (Phase 06.9.2 complete — 5 plans in 2 waves)*
+*Last updated: 2026-02-21 (Gap closure phases 7-10 added from v1.0 audit)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
