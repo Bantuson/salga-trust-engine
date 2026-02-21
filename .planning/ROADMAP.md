@@ -166,7 +166,11 @@ This policy applies to all 6 phases. Test files live in `tests/` mirroring the `
 **Depends on:** Phase 6.9 (ManagerCrew must exist)
 **Requirements:** RPT-01, RPT-07
 **Gap Closure:** Closes gaps from v1.0 milestone audit
-**Plans:** 0/0
+**Plans:** 2 plans
+
+Plans:
+- [ ] 07-01-PLAN.md -- Fix broken call sites: replace IntakeFlow with direct ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; fix session_id stability in whatsapp.py
+- [ ] 07-02-PLAN.md -- Add GBV confirmation state machine (gbv_pending_confirm) in crew_server.py and whatsapp_service.py; update test mocks for ManagerCrew pipeline
 
 ### Phase 8: Wire Web Portal Report Submission (GAP CLOSURE)
 **Goal:** Replace mock submit in ReportIssuePage.tsx with real API call to POST /api/v1/reports/submit. Fix reports.py to use ManagerCrew API instead of removed IntakeFlow methods. When tickets actually create: photos link (RPT-03), GPS saves (RPT-04), tracking numbers issue (RPT-05), GBV tickets create (RPT-06), encryption exercises (RPT-08).
@@ -209,14 +213,14 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 | 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
 | 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
-| 7. Fix WhatsApp -> AI Agent Integration | 0/0 | Pending | — |
+| 7. Fix WhatsApp -> AI Agent Integration | 0/2 | In Progress | — |
 | 8. Wire Web Portal Report Submission | 0/0 | Pending | — |
 | 9. OCR Supabase Bridge & Ward Filtering | 0/0 | Pending | — |
 | 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-21 (Gap closure phases 7-10 added from v1.0 audit)*
+*Last updated: 2026-02-21 (Phase 7 planned: 2 plans for WhatsApp/AI integration fix)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
