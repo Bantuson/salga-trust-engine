@@ -166,7 +166,7 @@ This policy applies to all 6 phases. Test files live in `tests/` mirroring the `
 **Depends on:** Phase 6.9 (ManagerCrew must exist)
 **Requirements:** RPT-01, RPT-07
 **Gap Closure:** Closes gaps from v1.0 milestone audit
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 07-01-PLAN.md -- Fix broken call sites: replace IntakeFlow with direct ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; fix session_id stability in whatsapp.py
@@ -213,7 +213,7 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 | 6.6. Playwright MCP Automated Testing | 9/9 | ✓ Complete | 2026-02-16 |
 | 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
-| 7. Fix WhatsApp -> AI Agent Integration | 1/2 | In Progress|  |
+| 7. Fix WhatsApp -> AI Agent Integration | 2/2 | Complete   | 2026-02-22 |
 | 8. Wire Web Portal Report Submission | 0/0 | Pending | — |
 | 9. OCR Supabase Bridge & Ward Filtering | 0/0 | Pending | — |
 | 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
