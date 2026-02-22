@@ -199,7 +199,10 @@ Plans:
 **Depends on:** Nothing (independent)
 **Requirements:** TKT-01, SEC-01, SEC-04, RPT-01
 **Gap Closure:** Closes deployment gaps from v1.0 milestone audit
-**Plans:** 0/0
+**Plans:** 1 plan
+
+Plans:
+- [ ] 10-01-PLAN.md -- Fix render.yaml deployment bugs (Celery path, JWT secret, Twilio env var) and add configuration validation test
 
 ## Progress
 
