@@ -188,7 +188,11 @@ Plans:
 **Depends on:** Nothing (independent)
 **Requirements:** PLAT-03, RPT-09, OPS-03
 **Gap Closure:** Closes gaps from v1.0 milestone audit
-**Plans:** 0/0
+**Plans:** 2 plans
+
+Plans:
+- [ ] 09-01-PLAN.md -- OCR-to-Supabase bridge: sync residence_verified to user_metadata after verification, frontend session refresh
+- [ ] 09-02-PLAN.md -- Ward filtering: User.ward_id field, Alembic migration, enforce ward-scoped filtering in tickets and dashboard endpoints
 
 ### Phase 10: Render Staging Deployment Fixes (GAP CLOSURE)
 **Goal:** Fix render.yaml deployment config: Celery startCommand path (src.celery_app -> src.tasks.celery_app), add missing SUPABASE_JWT_SECRET env var, fix TWILIO_WHATSAPP_FROM -> TWILIO_WHATSAPP_NUMBER env var name. Unblocks staging WhatsApp notifications and municipal dashboard auth.
@@ -219,12 +223,12 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
 | 7. Fix WhatsApp -> AI Agent Integration | 2/2 | Complete   | 2026-02-22 |
 | 8. Wire Web Portal Report Submission | 2/2 | Complete   | 2026-02-22 |
-| 9. OCR Supabase Bridge & Ward Filtering | 0/0 | Pending | — |
+| 9. OCR Supabase Bridge & Ward Filtering | 0/2 | In Progress | — |
 | 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-21 (Phase 7 planned: 2 plans for WhatsApp/AI integration fix)*
+*Last updated: 2026-02-22 (Phase 9 planned: 2 plans for OCR-Supabase bridge and ward filtering)*
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
