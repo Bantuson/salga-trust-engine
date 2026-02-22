@@ -36,30 +36,32 @@ def create_mock_user() -> User:
     return user
 
 
-class MockIntakeFlow:
-    """Mock IntakeFlow for testing."""
+class MockManagerCrew:
+    """Mock ManagerCrew for testing messages API."""
 
-    def __init__(self, redis_url: str, llm_model: str = "gpt-4o"):
-        # Mirror the real Flow backing attribute so that production code
-        # using flow._state = IntakeState(...) is visible via flow.state.
-        self._state = None
+    def __init__(self, language: str = "en", llm=None):
+        self.language = language
 
-    @property
-    def state(self):
-        return self._state
+    async def kickoff(self, context: dict) -> dict:
+        """Mock kickoff returns a result dict matching ManagerCrew output."""
+        message = context.get("message", "")
+        message_lower = message.lower()
 
-    def kickoff(self):
-        """Mock kickoff."""
-        self.state.language = "en"
-        message_lower = self.state.message.lower()
         if "abuse" in message_lower or "violence" in message_lower:
-            self.state.category = "gbv"
+            return {
+                "message": "I hear you. Are you in a safe place right now?",
+                "routing_phase": "gbv",
+                "agent": "gbv_intake",
+                "raw_output": "mock raw output",
+            }
         else:
-            self.state.category = "municipal"
-        self.state.is_complete = True
-        self.state.ticket_id = str(uuid.uuid4())
-        self.state.ticket_data = {"category": "test"}
-        return self.state
+            return {
+                "message": "Your report has been received. Tracking number: TKT-20260221-ABC123",
+                "routing_phase": "municipal",
+                "agent": "municipal_intake",
+                "tracking_number": "TKT-20260221-ABC123",
+                "raw_output": "mock raw output",
+            }
 
 
 @pytest.fixture
@@ -84,10 +86,11 @@ def mock_conversation_manager():
 
 
 @pytest.fixture
-def mock_intake_flow():
-    """Mock IntakeFlow."""
-    with patch("src.api.v1.messages.IntakeFlow", MockIntakeFlow):
-        yield
+def mock_manager_crew():
+    """Mock ManagerCrew for messages API tests."""
+    with patch("src.api.v1.messages.ManagerCrew", MockManagerCrew):
+        with patch("src.api.v1.messages.sanitize_reply", side_effect=lambda text, **kw: text):
+            yield
 
 
 @pytest.fixture
@@ -101,7 +104,7 @@ class TestMessagesAPICore:
 
     @pytest.mark.asyncio
     async def test_send_message_valid(
-        self, mock_conversation_manager, mock_intake_flow, mock_db
+        self, mock_conversation_manager, mock_manager_crew, mock_db
     ):
         """send_message with valid input returns proper response."""
         request = MessageRequest(message="There is a water leak")
@@ -129,9 +132,9 @@ class TestMessagesAPICore:
 
     @pytest.mark.asyncio
     async def test_send_message_detects_gbv(
-        self, mock_conversation_manager, mock_intake_flow, mock_db
+        self, mock_conversation_manager, mock_manager_crew, mock_db
     ):
-        """send_message correctly routes GBV content."""
+        """send_message correctly routes GBV content (returns gbv routing_phase)."""
         request = MessageRequest(message="My partner is abusing me and causing violence")
         user = create_mock_user()
 
@@ -142,7 +145,7 @@ class TestMessagesAPICore:
 
     @pytest.mark.asyncio
     async def test_send_message_creates_session(
-        self, mock_conversation_manager, mock_intake_flow, mock_db
+        self, mock_conversation_manager, mock_manager_crew, mock_db
     ):
         """send_message creates session if none provided."""
         request = MessageRequest(message="Test message")
@@ -155,7 +158,7 @@ class TestMessagesAPICore:
 
     @pytest.mark.asyncio
     async def test_send_message_reuses_session(
-        self, mock_conversation_manager, mock_intake_flow, mock_db
+        self, mock_conversation_manager, mock_manager_crew, mock_db
     ):
         """send_message reuses existing session."""
         session_id = "existing-session"

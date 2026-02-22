@@ -1,7 +1,7 @@
 """Unit tests for WhatsApp service with mocked Twilio and S3.
 
 Tests phone-to-user lookup, message processing, media handling,
-and message sending without real Twilio API calls.
+GBV confirmation state machine, and message sending without real Twilio API calls.
 """
 import pytest
 from unittest.mock import MagicMock, AsyncMock, patch
@@ -58,6 +58,19 @@ class TestWhatsAppService:
             preferred_language="en"
         )
 
+    def _make_mock_conv_manager(self, routing_phase=None, language="en"):
+        """Helper: build a mock ConversationManager with configurable state."""
+        mock_conv_instance = AsyncMock()
+        mock_state = MagicMock()
+        mock_state.language = language
+        mock_state.turns = []
+        mock_state.routing_phase = routing_phase
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.create_session = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+        return mock_conv_instance, mock_state
+
     async def test_send_whatsapp_message(self, whatsapp_service):
         """Test sending WhatsApp message via Twilio."""
         # Arrange
@@ -105,13 +118,14 @@ class TestWhatsAppService:
         assert result is None
 
     async def test_process_incoming_message_text(self, whatsapp_service, test_user):
-        """Test processing text-only message."""
+        """Test processing text-only message through ManagerCrew."""
         # Arrange
         mock_db = AsyncMock()
+        mock_conv_instance, mock_state = self._make_mock_conv_manager()
 
         with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
              patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
-             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow:
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
 
             # Mock guardrails
             mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
@@ -123,30 +137,17 @@ class TestWhatsAppService:
             ))
 
             # Mock conversation manager
-            mock_conv_instance = AsyncMock()
-            mock_conv_instance.get_state = AsyncMock(return_value=MagicMock(
-                language="en",
-                turns=[]
-            ))
-            mock_conv_instance.create_session = AsyncMock(return_value=MagicMock(
-                language="en",
-                turns=[]
-            ))
-            mock_conv_instance.append_turn = AsyncMock()
-            mock_conv_instance.close = AsyncMock()
             mock_conv_mgr.return_value = mock_conv_instance
 
-            # Mock IntakeFlow
-            mock_flow_instance = MagicMock()
-            mock_flow_instance.state = MagicMock(
-                ticket_data=None,
-                language="en",
-                category="municipal",
-                is_complete=False,
-                ticket_id=None
-            )
-            mock_flow_instance.kickoff.return_value = None
-            mock_flow.return_value = mock_flow_instance
+            # Mock ManagerCrew
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": "Thank you for your report.",
+                "routing_phase": "municipal",
+                "agent": "municipal_intake",
+                "tracking_number": None,
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
 
             # Act
             result = await whatsapp_service.process_incoming_message(
@@ -159,9 +160,8 @@ class TestWhatsAppService:
 
         # Assert
         assert "response" in result
-        assert result["is_complete"] is False
         mock_guardrails.process_input.assert_called_once()
-        mock_flow_instance.kickoff.assert_called_once()
+        mock_crew_instance.kickoff.assert_called_once()
 
     async def test_process_incoming_message_with_media(self, whatsapp_service, test_user, mock_storage_service):
         """Test processing message with media attachments."""
@@ -170,10 +170,12 @@ class TestWhatsAppService:
         media_items = [
             {"url": "https://api.twilio.com/media/ME123", "content_type": "image/jpeg"}
         ]
+        mock_conv_instance, mock_state = self._make_mock_conv_manager()
+        mock_conv_instance.get_state = AsyncMock(return_value=None)  # Force create_session path
 
         with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
              patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
-             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow, \
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls, \
              patch('src.services.whatsapp_service.settings') as mock_settings:
 
             mock_settings.TWILIO_ACCOUNT_SID = "AC123"
@@ -189,27 +191,17 @@ class TestWhatsAppService:
             ))
 
             # Mock conversation manager
-            mock_conv_instance = AsyncMock()
-            mock_conv_instance.get_state = AsyncMock(return_value=None)
-            mock_conv_instance.create_session = AsyncMock(return_value=MagicMock(
-                language="en",
-                turns=[]
-            ))
-            mock_conv_instance.append_turn = AsyncMock()
-            mock_conv_instance.close = AsyncMock()
             mock_conv_mgr.return_value = mock_conv_instance
 
-            # Mock IntakeFlow
-            mock_flow_instance = MagicMock()
-            mock_flow_instance.state = MagicMock(
-                ticket_data=None,
-                language="en",
-                category="municipal",
-                is_complete=False,
-                ticket_id=None
-            )
-            mock_flow_instance.kickoff.return_value = None
-            mock_flow.return_value = mock_flow_instance
+            # Mock ManagerCrew
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": "Thank you for the photo.",
+                "routing_phase": "municipal",
+                "agent": "municipal_intake",
+                "tracking_number": None,
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
 
             # Act
             result = await whatsapp_service.process_incoming_message(
@@ -274,14 +266,15 @@ class TestWhatsAppService:
         assert "Inappropriate content detected" in result["response"]
         assert result["tracking_number"] is None
 
-    async def test_process_message_flow_exception(self, whatsapp_service, test_user):
-        """Test flow.kickoff() raising an exception."""
+    async def test_process_message_crew_exception(self, whatsapp_service, test_user):
+        """Test ManagerCrew.kickoff() raising an exception."""
         # Arrange
         mock_db = AsyncMock()
+        mock_conv_instance, mock_state = self._make_mock_conv_manager()
 
         with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
              patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
-             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow:
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
 
             # Mock guardrails
             mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
@@ -293,20 +286,12 @@ class TestWhatsAppService:
             ))
 
             # Mock conversation manager
-            mock_conv_instance = AsyncMock()
-            mock_conv_instance.get_state = AsyncMock(return_value=MagicMock(
-                language="en",
-                turns=[]
-            ))
-            mock_conv_instance.append_turn = AsyncMock()
-            mock_conv_instance.close = AsyncMock()
             mock_conv_mgr.return_value = mock_conv_instance
 
-            # Mock IntakeFlow to raise exception
-            mock_flow_instance = MagicMock()
-            mock_flow_instance.state = MagicMock(language="en")
-            mock_flow_instance.kickoff.side_effect = RuntimeError("LLM API unavailable")
-            mock_flow.return_value = mock_flow_instance
+            # Mock ManagerCrew to raise exception
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(side_effect=RuntimeError("LLM API unavailable"))
+            mock_manager_crew_cls.return_value = mock_crew_instance
 
             # Act
             result = await whatsapp_service.process_incoming_message(
@@ -369,56 +354,39 @@ class TestWhatsAppService:
         # Assert - should return None gracefully
         assert result is None
 
-    async def test_process_message_with_ticket_and_tracking_number(self, whatsapp_service, test_user):
-        """Test tracking number extraction from ticket_data (03-06 fix)."""
+    async def test_process_message_with_tracking_number(self, whatsapp_service, test_user):
+        """Test tracking number extraction from ManagerCrew result dict."""
         # Arrange
         mock_db = AsyncMock()
-        test_ticket_id = str(uuid4())
         test_tracking_number = "TKT-20260210-ABC123"
+        mock_conv_instance, mock_state = self._make_mock_conv_manager()
 
         with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
              patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
-             patch('src.services.whatsapp_service.IntakeFlow') as mock_flow_class:
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
 
             # Mock guardrails
             mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
                 is_safe=True,
                 sanitized_message="There is a pothole on Main Street"
             ))
-
-            # Mock conversation manager
-            mock_conv_instance = AsyncMock()
-            mock_conv_instance.get_state = AsyncMock(return_value=MagicMock(
-                language="en",
-                turns=[]
-            ))
-            mock_conv_instance.append_turn = AsyncMock()
-            mock_conv_instance.close = AsyncMock()
-            mock_conv_mgr.return_value = mock_conv_instance
-
-            # Create a mock flow instance that will update its state after kickoff
-            mock_flow_instance = MagicMock()
-
-            # Define a side_effect for kickoff that updates the state
-            def kickoff_side_effect():
-                # After kickoff, update state with ticket_data
-                mock_flow_instance.state.ticket_data = {
-                    "tracking_number": test_tracking_number,
-                    "category": "roads"
-                }
-                mock_flow_instance.state.ticket_id = test_ticket_id
-                mock_flow_instance.state.is_complete = True
-                mock_flow_instance.state.category = "municipal"
-                return None
-
-            mock_flow_instance.kickoff.side_effect = kickoff_side_effect
-            mock_flow_class.return_value = mock_flow_instance
-
-            # Mock process_output to return response with tracking number
-            expected_response = f"Your report has been received and logged. Your tracking number is {test_tracking_number}. We will investigate this issue and keep you updated."
+            expected_response = f"Your report has been received. Tracking number: {test_tracking_number}."
             mock_guardrails.process_output = AsyncMock(return_value=MagicMock(
                 sanitized_response=expected_response
             ))
+
+            # Mock conversation manager
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            # Mock ManagerCrew returning a tracking number
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": expected_response,
+                "routing_phase": "municipal",
+                "agent": "municipal_intake",
+                "tracking_number": test_tracking_number,
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
 
             # Act
             result = await whatsapp_service.process_incoming_message(
@@ -432,3 +400,308 @@ class TestWhatsAppService:
         # Assert
         assert result["tracking_number"] == test_tracking_number
         assert test_tracking_number in result["response"]
+
+
+class TestGBVConfirmation:
+    """Tests for GBV confirmation state machine in WhatsApp service."""
+
+    @pytest.fixture
+    def mock_storage_service(self):
+        """Create mocked StorageService."""
+        mock_service = MagicMock(spec=StorageService)
+        mock_service.download_and_upload_media = AsyncMock(return_value={
+            "s3_bucket": "test-bucket",
+            "s3_key": "evidence/tenant/ticket/file.jpg",
+            "file_id": str(uuid4()),
+            "content_type": "image/jpeg",
+            "file_size": 12345
+        })
+        return mock_service
+
+    @pytest.fixture
+    def whatsapp_service(self, mock_storage_service):
+        """Create WhatsAppService with mocked dependencies."""
+        with patch('src.services.whatsapp_service.Client'):
+            service = WhatsAppService(
+                redis_url="redis://localhost:6379/0",
+                storage_service=mock_storage_service
+            )
+            service._twilio_client = MagicMock()
+            return service
+
+    @pytest.fixture
+    def test_user(self):
+        """Create test user."""
+        return User(
+            id=uuid4(),
+            email="gbv_test@example.com",
+            full_name="GBV Test User",
+            phone="+27987654321",
+            tenant_id=str(uuid4()),
+            municipality_id=uuid4(),
+            role=UserRole.CITIZEN,
+            is_active=True,
+            preferred_language="en"
+        )
+
+    def _make_mock_conv_state(self, routing_phase=None, language="en"):
+        """Helper: create a mock ConversationState."""
+        mock_state = MagicMock()
+        mock_state.language = language
+        mock_state.turns = []
+        mock_state.routing_phase = routing_phase
+        return mock_state
+
+    async def test_gbv_first_signal_enters_confirmation(self, whatsapp_service, test_user):
+        """First GBV classification from ManagerCrew enters gbv_pending_confirm state."""
+        mock_db = AsyncMock()
+        mock_state = self._make_mock_conv_state(routing_phase=None, language="en")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="My husband is beating me"
+            ))
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            # ManagerCrew classifies as GBV
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": "I hear you. Are you safe?",
+                "routing_phase": "gbv",
+                "agent": "gbv_intake",
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="My husband is beating me",
+                media_items=[],
+                session_id="gbv-test-session-1",
+                db=mock_db
+            )
+
+        # The response should be the GBV confirmation message (NOT the crew's direct reply)
+        assert "10111" in result["response"] or "0800 150 150" in result["response"]
+        assert result["tracking_number"] is None
+        assert result["is_complete"] is False
+        # The conversation state should now be in gbv_pending_confirm
+        assert mock_state.routing_phase == "gbv_pending_confirm"
+
+    async def test_gbv_confirmed_routes_to_gbv_crew(self, whatsapp_service, test_user):
+        """Citizen replying YES routes through GBVCrew (routing_phase becomes gbv)."""
+        mock_db = AsyncMock()
+        # Start in gbv_pending_confirm state
+        mock_state = self._make_mock_conv_state(routing_phase="gbv_pending_confirm", language="en")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="yes"
+            ))
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            # ManagerCrew not expected to be called for YES confirmation (handled before)
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": "Your report has been forwarded to SAPS.",
+                "routing_phase": "gbv",
+                "agent": "gbv_intake",
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="yes",
+                media_items=[],
+                session_id="gbv-test-session-2",
+                db=mock_db
+            )
+
+        # After YES confirmation, routing_phase should advance to gbv
+        assert mock_state.routing_phase == "gbv"
+
+    async def test_gbv_declined_routes_to_municipal(self, whatsapp_service, test_user):
+        """Citizen replying NO gets treated as municipal report."""
+        mock_db = AsyncMock()
+        # Start in gbv_pending_confirm state
+        mock_state = self._make_mock_conv_state(routing_phase="gbv_pending_confirm", language="en")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="no"
+            ))
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="no",
+                media_items=[],
+                session_id="gbv-test-session-3",
+                db=mock_db
+            )
+
+        # After NO, routing_phase should change to municipal
+        assert mock_state.routing_phase == "municipal"
+        # Response should acknowledge and offer help
+        assert "understood" in result["response"].lower() or "help" in result["response"].lower()
+        assert result["tracking_number"] is None
+        assert result["is_complete"] is False
+
+    async def test_gbv_ambiguous_resends_confirmation(self, whatsapp_service, test_user):
+        """Ambiguous reply (neither YES nor NO) resends GBV confirmation with emergency numbers."""
+        mock_db = AsyncMock()
+        # Start in gbv_pending_confirm state
+        mock_state = self._make_mock_conv_state(routing_phase="gbv_pending_confirm", language="en")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="maybe"
+            ))
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="maybe",
+                media_items=[],
+                session_id="gbv-test-session-4",
+                db=mock_db
+            )
+
+        # Ambiguous — confirmation message resent with emergency numbers
+        assert "10111" in result["response"] or "0800 150 150" in result["response"]
+        assert result["tracking_number"] is None
+        assert result["is_complete"] is False
+        # routing_phase should remain gbv_pending_confirm
+        assert mock_state.routing_phase == "gbv_pending_confirm"
+
+    async def test_gbv_confirmation_zulu_language(self, whatsapp_service, test_user):
+        """GBV confirmation message uses isiZulu when session language is 'zu'."""
+        mock_db = AsyncMock()
+        # Start in gbv_pending_confirm with Zulu language
+        mock_state = self._make_mock_conv_state(routing_phase="gbv_pending_confirm", language="zu")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="maybe"
+            ))
+            # Return the confirmation message as-is so we can inspect it
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="maybe",
+                media_items=[],
+                session_id="gbv-test-session-zu",
+                db=mock_db
+            )
+
+        # Zulu response should contain YEBO (Zulu word for YES)
+        assert "YEBO" in result["response"]
+        assert "10111" in result["response"]
+
+    async def test_gbv_yebo_confirm_accepted(self, whatsapp_service, test_user):
+        """isiZulu 'yebo' is recognized as GBV confirmation YES."""
+        mock_db = AsyncMock()
+        mock_state = self._make_mock_conv_state(routing_phase="gbv_pending_confirm", language="zu")
+
+        mock_conv_instance = AsyncMock()
+        mock_conv_instance.get_state = AsyncMock(return_value=mock_state)
+        mock_conv_instance.append_turn = AsyncMock(return_value=mock_state)
+        mock_conv_instance.close = AsyncMock()
+
+        with patch('src.services.whatsapp_service.guardrails_engine') as mock_guardrails, \
+             patch('src.services.whatsapp_service.ConversationManager') as mock_conv_mgr, \
+             patch('src.services.whatsapp_service.ManagerCrew') as mock_manager_crew_cls:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="yebo"
+            ))
+            mock_guardrails.process_output = AsyncMock(side_effect=lambda msg: MagicMock(
+                sanitized_response=msg
+            ))
+            mock_conv_mgr.return_value = mock_conv_instance
+
+            mock_crew_instance = AsyncMock()
+            mock_crew_instance.kickoff = AsyncMock(return_value={
+                "message": "Report sent to SAPS.",
+                "routing_phase": "gbv",
+                "agent": "gbv_intake",
+            })
+            mock_manager_crew_cls.return_value = mock_crew_instance
+
+            result = await whatsapp_service.process_incoming_message(
+                user=test_user,
+                message_body="yebo",
+                media_items=[],
+                session_id="gbv-test-session-yebo",
+                db=mock_db
+            )
+
+        # 'yebo' should be recognized as YES — routing_phase advances to gbv
+        assert mock_state.routing_phase == "gbv"
+
+
+def test_gbv_confirmation_messages_have_emergency_numbers():
+    """All GBV confirmation messages include SAPS and GBV helpline numbers."""
+    from src.api.v1.crew_server import GBV_CONFIRMATION_MESSAGES
+
+    for lang, msg in GBV_CONFIRMATION_MESSAGES.items():
+        assert "10111" in msg, f"SAPS number missing in {lang} confirmation"
+        assert "0800 150 150" in msg, f"GBV helpline missing in {lang} confirmation"
