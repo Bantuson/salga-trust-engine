@@ -1,4 +1,4 @@
-"""Unit tests for Dashboard API endpoints (Phase 5).
+"""Unit tests for Dashboard API endpoints (Phase 5 + Phase 9-02 ward enforcement).
 
 Tests RBAC enforcement and response structure for dashboard metrics endpoints:
 - /dashboard/metrics - Overall metrics
@@ -7,6 +7,7 @@ Tests RBAC enforcement and response structure for dashboard metrics endpoints:
 - /dashboard/workload - Team workload distribution
 
 SEC-05: Verifies GBV ticket exclusion from all dashboard queries.
+Phase 9-02: Verifies ward councillor auto-enforcement from stored ward_id.
 """
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
@@ -34,14 +35,21 @@ def make_mock_starlette_request():
     return Request(scope=scope)
 
 
-def make_mock_user(role=UserRole.MANAGER, tenant_id=None):
-    """Create a mock User object."""
+def make_mock_user(role=UserRole.MANAGER, tenant_id=None, ward_id=None):
+    """Create a mock User object.
+
+    Args:
+        role: User role (default MANAGER)
+        tenant_id: Optional tenant UUID (generates random if not provided)
+        ward_id: Optional ward_id string (None by default — important for ward councillor tests)
+    """
     user = MagicMock(spec=User)
     user.id = uuid4()
     user.email = f"user-{user.id}@example.com"
     user.role = role
     user.tenant_id = str(tenant_id or uuid4())
     user.is_active = True
+    user.ward_id = ward_id  # Explicitly set (not auto-created by MagicMock spec)
     return user
 
 
@@ -72,8 +80,14 @@ class TestDashboardMetricsRBAC:
 
             from src.api.v1.dashboard import get_dashboard_metrics
 
-            # Act
-            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            # Act — pass explicit None for date params to avoid FastAPI Query injection
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert result["total_open"] == 10
@@ -99,16 +113,22 @@ class TestDashboardMetricsRBAC:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert result["total_open"] == 5
 
-    async def test_ward_councillor_can_access_metrics(self):
-        """Test WARD_COUNCILLOR role can access dashboard metrics."""
+    async def test_ward_councillor_with_ward_can_access_metrics(self):
+        """Test WARD_COUNCILLOR with assigned ward_id can access dashboard metrics."""
         # Arrange
         with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
-            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR)
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id="Ward 1")
             mock_db = AsyncMock()
 
             mock_service = MagicMock()
@@ -123,10 +143,20 @@ class TestDashboardMetricsRBAC:
 
             from src.api.v1.dashboard import get_dashboard_metrics
 
-            # Act
-            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db, ward_id="Ward 1")
+            # Act — client passes a different ward_id, but stored ward_id must be used
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                ward_id="Ward 99",  # Should be ignored — stored ward_id used instead
+                start_date=None,
+                end_date=None,
+            )
 
-            # Assert
+            # Assert — service called with stored ward_id "Ward 1", not "Ward 99"
+            mock_service.get_metrics.assert_called_once()
+            call_kwargs = mock_service.get_metrics.call_args.kwargs
+            assert call_kwargs["ward_id"] == "Ward 1"
             assert result["total_open"] == 2
 
     async def test_citizen_cannot_access_metrics(self):
@@ -140,7 +170,13 @@ class TestDashboardMetricsRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -155,7 +191,13 @@ class TestDashboardMetricsRBAC:
 
         # Act & Assert
         with pytest.raises(HTTPException) as exc_info:
-            await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
         assert exc_info.value.status_code == 403
 
@@ -183,7 +225,13 @@ class TestDashboardEndpointResponses:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert "total_open" in result
@@ -208,8 +256,14 @@ class TestDashboardEndpointResponses:
 
             from src.api.v1.dashboard import get_volume_by_category
 
-            # Act
-            result = await get_volume_by_category(current_user=mock_user, db=mock_db)
+            # Act — volume endpoint requires request param (rate limiter)
+            result = await get_volume_by_category(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert isinstance(result, list)
@@ -237,8 +291,14 @@ class TestDashboardEndpointResponses:
 
             from src.api.v1.dashboard import get_sla_compliance
 
-            # Act
-            result = await get_sla_compliance(current_user=mock_user, db=mock_db)
+            # Act — sla endpoint requires request param (rate limiter)
+            result = await get_sla_compliance(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert "response_compliance_percent" in result
@@ -266,7 +326,13 @@ class TestDashboardEndpointResponses:
             from src.api.v1.dashboard import get_team_workload
 
             # Act
-            result = await get_team_workload(make_mock_starlette_request(), current_user=mock_user, db=mock_db)
+            result = await get_team_workload(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
 
             # Assert
             assert isinstance(result, list)
@@ -278,13 +344,13 @@ class TestDashboardEndpointResponses:
 
 
 class TestDashboardWardFiltering:
-    """Test ward_id parameter filtering."""
+    """Test ward_id parameter filtering and ward councillor enforcement."""
 
     async def test_metrics_with_ward_id_parameter(self):
-        """Test WARD_COUNCILLOR can filter metrics by ward_id."""
+        """Test MANAGER can filter metrics by ward_id query param."""
         # Arrange
         with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
-            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR)
+            mock_user = make_mock_user(role=UserRole.MANAGER)
             mock_db = AsyncMock()
             ward_id = "Ward 1"
 
@@ -301,12 +367,202 @@ class TestDashboardWardFiltering:
             from src.api.v1.dashboard import get_dashboard_metrics
 
             # Act
-            result = await get_dashboard_metrics(make_mock_starlette_request(), current_user=mock_user, db=mock_db, ward_id=ward_id)
-
-            # Assert
-            mock_service.get_metrics.assert_called_once_with(
-                municipality_id=mock_user.tenant_id,
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
                 db=mock_db,
-                ward_id=ward_id
+                ward_id=ward_id,
+                start_date=None,
+                end_date=None,
             )
+
+            # Assert — manager uses client-supplied ward_id (not stored value)
+            mock_service.get_metrics.assert_called_once()
+            call_kwargs = mock_service.get_metrics.call_args.kwargs
+            assert call_kwargs["ward_id"] == ward_id
             assert result["total_open"] == 3
+
+
+class TestDashboardWardCouncillorEnforcement:
+    """Test ward_id enforcement for WARD_COUNCILLOR role (Phase 9-02).
+
+    Ward councillors must have their stored ward_id used for all dashboard
+    queries — client-supplied ward_id query params are ignored (prevents spoofing).
+    Councillors with no ward_id return empty/zeroed results (fail-safe, not fail-open).
+    """
+
+    async def test_dashboard_metrics_ward_councillor_auto_filters(self):
+        """Ward councillor metrics use stored ward_id, ignoring client-supplied value."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id="Ward 3")
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service.get_metrics = AsyncMock(return_value={
+                "total_open": 4,
+                "total_resolved": 2,
+                "sla_compliance_percent": 88.0,
+                "avg_response_hours": 2.0,
+                "sla_breaches": 1,
+            })
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_dashboard_metrics
+
+            # Act — client passes "Ward 99" but stored ward_id "Ward 3" must be used
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                ward_id="Ward 99",  # Must be ignored
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert DashboardService called with stored ward_id "Ward 3"
+            mock_service.get_metrics.assert_called_once()
+            call_kwargs = mock_service.get_metrics.call_args.kwargs
+            assert call_kwargs["ward_id"] == "Ward 3", (
+                "DashboardService must be called with the stored ward_id, not client-supplied"
+            )
+            assert result["total_open"] == 4
+
+    async def test_dashboard_metrics_ward_councillor_no_ward_returns_zero(self):
+        """Ward councillor with no ward_id gets zeroed metrics immediately (fail-safe)."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id=None)
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_dashboard_metrics
+
+            # Act
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert — returns zeroed dict without calling DashboardService
+            mock_service.get_metrics.assert_not_called()
+            assert result["total_open"] == 0
+            assert result["total_resolved"] == 0
+            assert result["sla_compliance_percent"] == 0.0
+            assert result["avg_response_hours"] == 0.0
+            assert result["sla_breaches"] == 0
+
+    async def test_dashboard_volume_ward_councillor_no_ward_returns_empty(self):
+        """Ward councillor with no ward_id gets empty volume list (fail-safe)."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id=None)
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_volume_by_category
+
+            # Act
+            result = await get_volume_by_category(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert — empty list returned, service not called
+            mock_service.get_volume_by_category.assert_not_called()
+            assert result == []
+
+    async def test_dashboard_sla_ward_councillor_no_ward_returns_zero(self):
+        """Ward councillor with no ward_id gets zeroed SLA metrics (fail-safe)."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id=None)
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_sla_compliance
+
+            # Act
+            result = await get_sla_compliance(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert — zeroed SLA dict returned, service not called
+            mock_service.get_sla_compliance.assert_not_called()
+            assert result["response_compliance_percent"] == 0.0
+            assert result["resolution_compliance_percent"] == 0.0
+            assert result["total_with_sla"] == 0
+
+    async def test_dashboard_workload_ward_councillor_no_ward_returns_empty(self):
+        """Ward councillor with no ward_id gets empty workload list (fail-safe)."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.WARD_COUNCILLOR, ward_id=None)
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_team_workload
+
+            # Act
+            result = await get_team_workload(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert — empty list returned, service not called
+            mock_service.get_team_workload.assert_not_called()
+            assert result == []
+
+    async def test_dashboard_metrics_manager_unaffected_by_ward_enforcement(self):
+        """Manager role is not restricted by ward enforcement — uses client-supplied ward_id."""
+        # Arrange
+        with patch('src.api.v1.dashboard.DashboardService') as mock_service_class:
+            mock_user = make_mock_user(role=UserRole.MANAGER)
+            mock_db = AsyncMock()
+
+            mock_service = MagicMock()
+            mock_service.get_metrics = AsyncMock(return_value={
+                "total_open": 50,
+                "total_resolved": 30,
+                "sla_compliance_percent": 82.0,
+                "avg_response_hours": 4.0,
+                "sla_breaches": 5,
+            })
+            mock_service_class.return_value = mock_service
+
+            from src.api.v1.dashboard import get_dashboard_metrics
+
+            # Act — manager with no ward_id on profile should still get all results
+            result = await get_dashboard_metrics(
+                make_mock_starlette_request(),
+                current_user=mock_user,
+                db=mock_db,
+                ward_id=None,
+                start_date=None,
+                end_date=None,
+            )
+
+            # Assert — service is called normally (manager sees all)
+            mock_service.get_metrics.assert_called_once()
+            assert result["total_open"] == 50

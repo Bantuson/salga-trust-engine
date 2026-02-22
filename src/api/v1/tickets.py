@@ -130,18 +130,25 @@ async def list_tickets(
             detail="Not authorized to view tickets"
         )
 
-    # Ward councillor ward enforcement (interim: log warning)
+    # Ward councillor ward enforcement — use stored ward_id, not client-supplied
     if current_user.role == UserRole.WARD_COUNCILLOR:
-        if ward_id:
+        # Auto-apply ward filter from user's stored ward_id.
+        # This prevents ward councillors from spoofing a different ward_id via query param.
+        effective_ward_id = current_user.ward_id
+        if effective_ward_id is None:
+            # No ward assigned yet — return empty results (fail-safe, not fail-open)
             logger.warning(
-                f"WARD_COUNCILLOR {current_user.id} accessing ward {ward_id}. "
-                "Ward enforcement will be added when User.ward_id field is implemented."
+                f"WARD_COUNCILLOR {current_user.id} has no ward_id assigned. Returning empty results."
             )
-        else:
-            logger.warning(
-                f"WARD_COUNCILLOR {current_user.id} accessing tickets without ward filter. "
-                "Ward enforcement will be added when User.ward_id field is implemented."
+            return PaginatedTicketResponse(
+                tickets=[],
+                total=0,
+                page=page,
+                page_size=page_size,
+                page_count=0,
             )
+        # Override client-supplied ward_id with stored value
+        ward_id = effective_ward_id
 
     # Build base query
     query = select(Ticket)
@@ -252,13 +259,28 @@ async def get_ticket_detail(
                 detail="Not authorized to access sensitive reports"
             )
 
-    # RBAC: Ticket owner or manager/admin/saps_liaison
+    # RBAC: Ticket owner or manager/admin/saps_liaison/ward_councillor
     if (ticket.user_id != current_user.id and
-        current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON]):
+        current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.WARD_COUNCILLOR]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view this ticket"
         )
+
+    # Ward councillor: only view tickets in their assigned ward
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        if current_user.ward_id is None:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="No ward assigned to your account"
+            )
+        # Address-based ward check (same pattern as list endpoint)
+        ticket_address = ticket.address or ""
+        if current_user.ward_id.lower() not in ticket_address.lower():
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Ticket is not in your assigned ward"
+            )
 
     # Build response
     response = TicketDetailResponse.model_validate(ticket)

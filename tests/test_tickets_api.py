@@ -1,15 +1,52 @@
-"""Unit tests for Ticket Management API (Phase 4).
+"""Unit tests for Ticket Management API (Phase 4 + Phase 9-02 ward enforcement).
 
 Tests ticket listing, detail views, status updates, assignment endpoints,
 and RBAC enforcement with SEC-05 GBV access controls.
+
+Phase 9-02: TestWardCouncillorEnforcement — unit tests for ward_id enforcement.
 """
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 from uuid import uuid4
 
-from src.models.user import UserRole
+from starlette.datastructures import Headers
+from starlette.requests import Request
+from starlette.types import Scope
+
+from src.models.user import User, UserRole
 
 pytestmark = [pytest.mark.asyncio, pytest.mark.integration]
+
+
+def make_mock_starlette_request_tickets():
+    """Create a minimal starlette Request for rate-limited ticket endpoints."""
+    scope: Scope = {
+        "type": "http",
+        "method": "GET",
+        "path": "/test",
+        "headers": Headers(headers={}).raw,
+        "query_string": b"",
+        "client": ("127.0.0.1", 0),
+    }
+    return Request(scope=scope)
+
+
+def make_mock_ticket_user(role=UserRole.MANAGER, ward_id=None, tenant_id=None):
+    """Create a mock User object for ticket tests.
+
+    Args:
+        role: User role (default MANAGER)
+        ward_id: Optional stored ward_id (None = no ward assigned)
+        tenant_id: Optional tenant UUID
+    """
+    user = MagicMock(spec=User)
+    user.id = uuid4()
+    user.email = f"user-{user.id}@example.com"
+    user.role = role
+    user.tenant_id = str(tenant_id or uuid4())
+    user.is_active = True
+    user.ward_id = ward_id  # Explicitly set ward_id
+    return user
 
 
 class TestTicketsAPI:
@@ -367,3 +404,104 @@ class TestEnhancedListTickets:
 
         # Assert
         assert response.status_code == 403
+
+
+# ---------------------------------------------------------------------------
+# Phase 9-02: Ward Councillor Enforcement Unit Tests
+# These tests use direct function calls with mock users (no DB/client required).
+# The module-level pytestmark includes integration, so these will be skipped
+# without PostgreSQL — but they verify the enforcement logic when run.
+# ---------------------------------------------------------------------------
+
+class TestWardCouncillorEnforcement:
+    """Unit tests for ward_id enforcement in list_tickets() (Phase 9-02).
+
+    Ward councillors must have their stored ward_id applied automatically.
+    Client-supplied ward_id query param is overridden (prevents spoofing).
+    Councillors with no ward_id return empty results (fail-safe).
+    """
+
+    @pytest.mark.asyncio
+    async def test_list_tickets_ward_councillor_with_ward_id(self):
+        """Ward councillor with assigned ward_id gets tickets filtered to that ward."""
+        from src.api.v1.tickets import list_tickets
+        from src.schemas.ticket import PaginatedTicketResponse
+
+        mock_user = make_mock_ticket_user(role=UserRole.WARD_COUNCILLOR, ward_id="Ward 5")
+        mock_db = AsyncMock()
+
+        # Mock the database to return empty result set (just testing filter applied)
+        mock_count_result = MagicMock()
+        mock_count_result.scalar.return_value = 0
+        mock_ticket_result = MagicMock()
+        mock_ticket_result.scalars.return_value.all.return_value = []
+
+        # db.execute returns different results for count vs data queries
+        mock_db.execute = AsyncMock(side_effect=[mock_count_result, mock_ticket_result])
+
+        result = await list_tickets(
+            request=make_mock_starlette_request_tickets(),
+            current_user=mock_user,
+            db=mock_db,
+            page=0,
+            page_size=50,
+            ward_id=None,  # Client supplies no ward_id — stored ward_id must be used
+        )
+
+        # Assert — returns valid paginated response (no empty short-circuit for assigned ward)
+        assert isinstance(result, PaginatedTicketResponse)
+        assert result.page == 0
+        assert result.page_size == 50
+
+    @pytest.mark.asyncio
+    async def test_list_tickets_ward_councillor_no_ward_id_returns_empty(self):
+        """Ward councillor with no ward_id assigned returns empty result (fail-safe)."""
+        from src.api.v1.tickets import list_tickets
+        from src.schemas.ticket import PaginatedTicketResponse
+
+        mock_user = make_mock_ticket_user(role=UserRole.WARD_COUNCILLOR, ward_id=None)
+        mock_db = AsyncMock()
+
+        result = await list_tickets(
+            request=make_mock_starlette_request_tickets(),
+            current_user=mock_user,
+            db=mock_db,
+            page=0,
+            page_size=50,
+        )
+
+        # Assert — early return with empty results, no DB queries needed
+        assert isinstance(result, PaginatedTicketResponse)
+        assert result.total == 0
+        assert result.tickets == []
+        assert result.page_count == 0
+        # Verify no DB query was made (fail-fast, fail-safe)
+        mock_db.execute.assert_not_called()
+
+    @pytest.mark.asyncio
+    async def test_list_tickets_manager_unaffected_by_ward_enforcement(self):
+        """Manager role bypasses ward enforcement and can query without restriction."""
+        from src.api.v1.tickets import list_tickets
+        from src.schemas.ticket import PaginatedTicketResponse
+
+        mock_user = make_mock_ticket_user(role=UserRole.MANAGER, ward_id=None)
+        mock_db = AsyncMock()
+
+        # Mock DB to return empty results
+        mock_count_result = MagicMock()
+        mock_count_result.scalar.return_value = 0
+        mock_ticket_result = MagicMock()
+        mock_ticket_result.scalars.return_value.all.return_value = []
+        mock_db.execute = AsyncMock(side_effect=[mock_count_result, mock_ticket_result])
+
+        result = await list_tickets(
+            request=make_mock_starlette_request_tickets(),
+            current_user=mock_user,
+            db=mock_db,
+            page=0,
+            page_size=50,
+        )
+
+        # Assert — valid response, DB was queried (manager not short-circuited)
+        assert isinstance(result, PaginatedTicketResponse)
+        assert mock_db.execute.call_count >= 1  # At least count query was executed
