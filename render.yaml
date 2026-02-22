@@ -34,13 +34,15 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false  # Required by verify_supabase_token() in src/core/security.py
       - key: ALLOWED_ORIGINS
         value: '["https://salga-public.vercel.app","https://salga-dashboard.vercel.app"]'
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
         sync: false
-      - key: TWILIO_WHATSAPP_FROM
+      - key: TWILIO_WHATSAPP_NUMBER
         sync: false
       - key: DEEPSEEK_API_KEY
         sync: false
@@ -88,7 +90,7 @@ services:
     runtime: python
     plan: starter  # Workers need paid plan on Render
     buildCommand: pip install -e "."
-    startCommand: celery -A src.celery_app worker --loglevel=info --concurrency=2
+    startCommand: celery -A src.tasks.celery_app worker --loglevel=info --concurrency=2
     envVars:
       - key: ENVIRONMENT
         value: staging
@@ -107,11 +109,13 @@ services:
         sync: false
       - key: SUPABASE_SERVICE_ROLE_KEY
         sync: false
+      - key: SUPABASE_JWT_SECRET
+        sync: false  # Defensive: future Celery tasks may need JWT verification
       - key: TWILIO_ACCOUNT_SID
         sync: false
       - key: TWILIO_AUTH_TOKEN
         sync: false
-      - key: TWILIO_WHATSAPP_FROM
+      - key: TWILIO_WHATSAPP_NUMBER
         sync: false
 
   # Redis for Celery broker + rate limiting + conversation state
