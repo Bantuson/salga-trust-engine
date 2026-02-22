@@ -26,6 +26,7 @@ type PageState = 'form' | 'receipt';
 interface LocationData {
   latitude: number;
   longitude: number;
+  accuracy: number;
 }
 
 interface UploadedFile {
@@ -33,6 +34,17 @@ interface UploadedFile {
   name: string;
   url: string;
 }
+
+const CATEGORY_MAP: Record<string, string> = {
+  'Water & Sanitation': 'water',
+  'Electricity': 'electricity',
+  'Roads & Potholes': 'roads',
+  'Waste Management': 'waste',
+  'Public Safety': 'other',
+  'Housing': 'other',
+  'GBV/Abuse': 'gbv',
+  'Other': 'other',
+};
 
 export function ReportIssuePage() {
   const navigate = useNavigate();
@@ -110,6 +122,7 @@ export function ReportIssuePage() {
         setLocation({
           latitude: position.coords.latitude,
           longitude: position.coords.longitude,
+          accuracy: position.coords.accuracy,
         });
         setLocationLoading(false);
         setLocationError(null);
@@ -188,6 +201,29 @@ export function ReportIssuePage() {
 
         if (uploadError) throw uploadError;
 
+        // After successful Supabase Storage upload, create MediaAttachment record
+        const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+        const { data: { session: uploadSession } } = await supabase.auth.getSession();
+        if (uploadSession) {
+          try {
+            const confirmResponse = await fetch(
+              `${apiUrl}/api/v1/uploads/confirm?file_id=${fileId}&purpose=${isGbv ? 'evidence' : 'evidence'}`,
+              {
+                method: 'POST',
+                headers: {
+                  'Authorization': `Bearer ${uploadSession.access_token}`,
+                },
+              }
+            );
+            if (!confirmResponse.ok) {
+              console.warn('[ReportIssuePage] Upload confirm failed, media may not link:', await confirmResponse.text());
+            }
+          } catch (confirmErr) {
+            console.warn('[ReportIssuePage] Upload confirm error:', confirmErr);
+            // Non-fatal — photo is in storage, just won't be linked to ticket
+          }
+        }
+
         // Get public URL for preview
         const { data } = supabase.storage.from(bucket).getPublicUrl(path);
 
@@ -258,16 +294,51 @@ export function ReportIssuePage() {
     setIsSubmitting(true);
 
     try {
-      // TODO: Replace with actual API call when backend endpoint is ready
-      // For now, simulate successful submission
-      await new Promise((resolve) => setTimeout(resolve, 1500));
+      const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
-      // Generate mock tracking number
-      const trackingNumber = `TKT-${new Date().toISOString().slice(0, 10).replace(/-/g, '')}-${Math.random().toString(16).slice(2, 8).toUpperCase()}`;
+      // Map display category to backend enum value
+      const backendCategory = isGbv ? 'gbv' : (CATEGORY_MAP[category] ?? 'other');
 
-      // Set receipt data
+      const payload = {
+        description,
+        category: backendCategory,
+        location: location ? {
+          latitude: location.latitude,
+          longitude: location.longitude,
+          accuracy: location.accuracy,
+          source: 'gps',
+        } : null,
+        manual_address: manualAddress || null,
+        media_file_ids: uploadedFiles.map(f => f.id),
+        language: 'en',
+        is_gbv: isGbv,
+      };
+
+      // Get fresh auth session
+      const { data: { session: submitSession } } = await supabase.auth.getSession();
+      if (!submitSession) {
+        throw new Error('Your session has expired. Please log in again.');
+      }
+
+      const response = await fetch(`${apiUrl}/api/v1/reports/submit`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${submitSession.access_token}`,
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json().catch(() => ({ detail: response.statusText }));
+        throw new Error(errorData.detail || `Submit failed: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+
+      // Set receipt data with REAL tracking number from backend
       setReceiptData({
-        trackingNumber,
+        trackingNumber: data.tracking_number,
         category,
         description,
         expectedResponseTime: getExpectedResponseTime(category),
@@ -285,7 +356,7 @@ export function ReportIssuePage() {
       setIsGbv(false);
     } catch (error) {
       console.error('[ReportIssuePage] Submit failed:', error);
-      setError(error instanceof Error ? error.message : 'Failed to submit report');
+      setError(error instanceof Error ? error.message : 'Failed to submit report. Please try again.');
     } finally {
       setIsSubmitting(false);
     }
