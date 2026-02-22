@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 06.9.2 Plan 04 COMPLETE — Security audit tests: 95 tests covering OWASP auth enforcement, 6-role RBAC, SEC-05 GBV 5-layer firewall, POPIA compliance
+**Current focus:** Phase 07 Plan 01 COMPLETE — Fix WhatsApp/AI agent integration: replace broken IntakeFlow calls with direct ManagerCrew.kickoff() across messages.py, reports.py, whatsapp_service.py; fix stable session_id in whatsapp.py
 
 ## Current Position
 
@@ -144,6 +144,7 @@ Progress: [██████████] 100% (5/5 plans)
 | Phase 06.9.2 P01 | continued | 2 tasks | 24 files |
 | Phase 06.9.2 P05 | 37 | 2 tasks | 2 files |
 | Phase 06.9.2 P04 | 13620 | 2 tasks | 3 files |
+| Phase 07 P01 | 638 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -495,6 +496,9 @@ Recent decisions affecting current work:
 - [Phase 06.9.2]: slowapi rate-limited endpoints cannot be called directly in tests — inspect internal logic functions instead; slowapi wraps at decoration time looking for kwarg named 'request'
 - [Phase 06.9.2]: app.dependency_overrides[get_current_user] required for RBAC tests in SQLite test env — JWT tokens fail UUID DB lookup
 - [Phase 06.9.2]: Direct endpoint function tests must pass explicit Query defaults (start_date=None) to avoid FastAPI Query injection issues
+- [Phase 07-01]: Replace all IntakeFlow usage with direct ManagerCrew.kickoff() calls matching crew_server.py reference pattern — eliminates async/sync boundary issue and wrong llm_model kwarg
+- [Phase 07-01]: WhatsApp session_id uses stable phone-based key (wa-{phone}) not per-message (wa-{MessageSid}) for multi-turn state and GBV confirmation persistence
+- [Phase 07-01]: Media linking in whatsapp_service.py deferred to Phase 8 via tracking_number lookup — ManagerCrew creates tickets internally via tools, ticket_id not surfaced in result dict
 
 ### Pending Todos
 
@@ -521,10 +525,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-21 (Phase 06.9.2 Plan 05 complete — 39 integration tests for 3-way communication flow + crew server behavioral tests, SEC-05 GBV firewall verified at public layer)
-Stopped at: Completed 06.9.2-05-PLAN.md
-Resume file: .planning/phases/06.9.2-system-wide-integration-validation-full-security-audit-api-completeness-3-way-communication-code-quality-ci-cd-render-staging/06.9.2-05-SUMMARY.md
+Last session: 2026-02-22 (Phase 07 Plan 01 complete — Fixed IntakeFlow->ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; stable phone-based session_id in whatsapp.py)
+Stopped at: Completed 07-01-PLAN.md
+Resume file: .planning/phases/07-fix-whatsapp-ai-agent-integration/07-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-21 (06.9.2 Plan 05 complete — 3-way communication flow tests + crew server behavioral tests, phase 06.9.2 ALL PLANS COMPLETE)*
+*Last updated: 2026-02-22 (07 Plan 01 complete — fixed broken IntakeFlow->ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; stable phone session_id in whatsapp.py)*

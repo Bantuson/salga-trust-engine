@@ -30,7 +30,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 ### Citizen Reporting
 
-- [ ] **RPT-01**: Citizen can report service issues via WhatsApp using hybrid bot (guided intake + AI agent)
+- [x] **RPT-01**: Citizen can report service issues via WhatsApp using hybrid bot (guided intake + AI agent)
 - [ ] **RPT-02**: Citizen can report service issues via web portal
 - [ ] **RPT-03**: Citizen can upload photos with report for visual evidence
 - [ ] **RPT-04**: System captures GPS geolocation automatically (with manual address fallback)
@@ -144,7 +144,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | AI-05 | Phase 2 | Complete |
 | AI-06 | Phase 2 | Complete |
 | AI-07 | Phase 2 | Complete |
-| RPT-01 | Phase 7 | Pending |
+| RPT-01 | Phase 7 | Complete |
 | RPT-02 | Phase 8 | Pending |
 | RPT-03 | Phase 8 | Pending |
 | RPT-04 | Phase 8 | Pending |
