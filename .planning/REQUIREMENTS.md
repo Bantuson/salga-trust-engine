@@ -52,7 +52,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **OPS-01**: Municipal manager can view, filter, search, and assign tickets via web dashboard
 - [x] **OPS-02**: Municipal manager can export issue data to Excel/CSV
-- [ ] **OPS-03**: Ward councillor can view dashboard filtered to issues in their ward
+- [x] **OPS-03**: Ward councillor can view dashboard filtered to issues in their ward
 - [x] **OPS-04**: Dashboard shows real-time ticket volumes, SLA compliance, and team workload
 
 ### Public Transparency
@@ -160,7 +160,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | TKT-05 | Phase 4 | Complete |
 | OPS-01 | Phase 5 | Complete |
 | OPS-02 | Phase 5 | Complete |
-| OPS-03 | Phase 9 | Pending |
+| OPS-03 | Phase 9 | Complete |
 | OPS-04 | Phase 5 | Complete |
 | TRNS-01 | Phase 6 | Complete |
 | TRNS-02 | Phase 6 | Complete |

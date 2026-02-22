@@ -188,7 +188,7 @@ Plans:
 **Depends on:** Nothing (independent)
 **Requirements:** PLAT-03, RPT-09, OPS-03
 **Gap Closure:** Closes gaps from v1.0 milestone audit
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 09-01-PLAN.md -- OCR-to-Supabase bridge: sync residence_verified to user_metadata after verification, frontend session refresh
@@ -223,7 +223,7 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
 | 7. Fix WhatsApp -> AI Agent Integration | 2/2 | Complete   | 2026-02-22 |
 | 8. Wire Web Portal Report Submission | 2/2 | Complete   | 2026-02-22 |
-| 9. OCR Supabase Bridge & Ward Filtering | 1/2 | In Progress|  |
+| 9. OCR Supabase Bridge & Ward Filtering | 2/2 | Complete   | 2026-02-22 |
 | 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
 
 ---
