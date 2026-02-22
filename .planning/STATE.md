@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 07 Plan 02 COMPLETE — GBV confirmation state machine: gbv_pending_confirm two-turn gate in crew_server.py + whatsapp_service.py; updated test suite replacing IntakeFlow mocks with ManagerCrew mocks; 25 tests passing.
+**Current focus:** Phase 08 Plan 01 COMPLETE — Fixed PostGIS location bug (from_shape Point), /my route ordering, ManagerCrew test mock migration in reports.py; 12 tests collect cleanly.
 
 ## Current Position
 
-Phase: 07 of 07 (Fix WhatsApp/AI Agent Integration)
-Plan: 2 of 2 in current phase (ALL PLANS COMPLETE)
-Status: COMPLETE — All 2 plans delivered: replace IntakeFlow with ManagerCrew.kickoff() (01), GBV confirmation state machine + test updates (02)
-Last activity: 2026-02-22 — Phase 07 Plan 02 complete: GBV confirmation gate in crew_server.py and whatsapp_service.py, 25 tests passing
+Phase: 08 of 08 (Wire Web Portal Report Submission)
+Plan: 1 of 2 in current phase
+Status: IN PROGRESS — Plan 01 delivered: PostGIS location fix + route ordering + ManagerCrew test mocks (01)
+Last activity: 2026-02-22 — Phase 08 Plan 01 complete: backend report submission bugs fixed, tests updated
 
-Progress: [██████████] 100% (2/2 plans)
+Progress: [█████░░░░░] 50% (1/2 plans)
 
 ## Performance Metrics
 
@@ -146,6 +146,7 @@ Progress: [██████████] 100% (2/2 plans)
 | Phase 06.9.2 P04 | 13620 | 2 tasks | 3 files |
 | Phase 07 P01 | 638 | 2 tasks | 4 files |
 | Phase 07 P02 | 643 | 2 tasks | 4 files |
+| Phase 08 P01 | 7 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -504,6 +505,9 @@ Recent decisions affecting current work:
 - [Phase 07-02]: GBV_CONFIRMATION_MESSAGES defined at crew_server module level — whatsapp_service imports from crew_server (single source of truth for trilingual confirmation messages)
 - [Phase 07-02]: Ambiguous responses (not YES or NO) resend confirmation and stay in gbv_pending_confirm state — citizen must explicitly confirm or decline
 - [Phase 07-02]: whatsapp_service GBV gate checks current_routing != 'gbv' before entering pending_confirm to prevent re-triggering on already-confirmed sessions
+- [Phase 08]: [Phase 08-01]: from_shape(Point(lng, lat), srid=4326) for GPS-to-PostGIS conversion — longitude first per WGS84/GeoJSON convention
+- [Phase 08]: [Phase 08-01]: Route /my defined before /{tracking_number} in reports.py — FastAPI matches routes in registration order, prevents 404 for /my endpoint
+- [Phase 08]: [Phase 08-01]: test_submit_report_gbv_encrypted patches src.agents.tools.saps_tool.notify_saps at source — notify_saps imported inside function body so module-namespace patch would not work
 
 ### Pending Todos
 
@@ -530,10 +534,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 07 Plan 02 complete — GBV confirmation state machine in crew_server.py + whatsapp_service.py; updated tests replacing IntakeFlow mocks with ManagerCrew mocks; 25 tests pass)
-Stopped at: Completed 07-02-PLAN.md
-Resume file: .planning/phases/07-fix-whatsapp-ai-agent-integration/07-02-SUMMARY.md
+Last session: 2026-02-22 (Phase 08 Plan 01 complete — PostGIS location bug fix, route /my ordering fix, ManagerCrew test mock migration; 12 tests collect cleanly)
+Stopped at: Completed 08-01-PLAN.md
+Resume file: .planning/phases/08-wire-web-portal-report-submission/08-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-22 (07 Plan 02 complete — GBV confirmation state machine + test updates; 25 tests passing; Phase 07 all plans complete)*
+*Last updated: 2026-02-22 (08 Plan 01 complete — backend report submission bugs fixed, ManagerCrew test mocks updated; ready for frontend wiring in 08-02)*
