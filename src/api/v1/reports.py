@@ -5,6 +5,7 @@ attach evidence photos, and track report status. Uses ManagerCrew.kickoff()
 for AI classification when category not specified.
 """
 import logging
+import os
 import uuid
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -21,6 +22,16 @@ from src.models.ticket import Ticket, generate_tracking_number
 from src.models.user import User, UserRole
 from src.schemas.report import ReportSubmitRequest, ReportSubmitResponse
 from src.schemas.ticket import TicketResponse
+
+# Detect if we're using SQLite (tests) or PostgreSQL (production)
+# Follows the same guard pattern as routing_service.py and ticket.py
+USE_POSTGIS = os.getenv("USE_SQLITE_TESTS") != "1"
+if USE_POSTGIS:
+    try:
+        from shapely.geometry import Point
+        from geoalchemy2.shape import from_shape
+    except ImportError:
+        USE_POSTGIS = False
 
 logger = logging.getLogger(__name__)
 
@@ -117,17 +128,16 @@ async def submit_report(
         category = "gbv"
 
     # Step 3: Extract location data
-    latitude = None
-    longitude = None
+    location_value = None
     address = report.manual_address
 
     if report.location:
-        latitude = report.location.latitude
-        longitude = report.location.longitude
-        # In production, would reverse-geocode to get address
-        # For now, use manual_address if provided, else leave None
+        lat = report.location.latitude
+        lng = report.location.longitude
+        if USE_POSTGIS:
+            location_value = from_shape(Point(lng, lat), srid=4326)  # Point(longitude, latitude)
         if not address:
-            address = f"{latitude}, {longitude}"
+            address = f"{lat}, {lng}"
 
     # Step 4: Create ticket
     tracking_number = generate_tracking_number()
@@ -146,8 +156,7 @@ async def submit_report(
         category=category,
         description=ticket_description,
         encrypted_description=encrypted_description,
-        latitude=latitude,
-        longitude=longitude,
+        location=location_value,
         address=address,
         severity=severity,
         status="open",
@@ -205,7 +214,7 @@ async def submit_report(
             notify_saps(
                 ticket_id=str(ticket.id),
                 incident_type="GBV Report",
-                location=address or f"{latitude}, {longitude}",
+                location=address or "Location not provided",
                 danger_level="high"
             )
         except Exception as e:
@@ -223,6 +232,50 @@ async def submit_report(
         message=message,
         media_count=media_count,
     )
+
+
+@router.get("/my", response_model=list[TicketResponse])
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
+async def get_my_reports(
+    request: Request,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+    limit: int = 50,
+    offset: int = 0,
+) -> list[TicketResponse]:
+    """Get current user's reports (paginated).
+
+    Args:
+        current_user: Authenticated user
+        db: Database session
+        limit: Maximum number of results (default 50)
+        offset: Offset for pagination (default 0)
+
+    Returns:
+        List of TicketResponse objects for user's tickets
+    """
+    # Query user's tickets, ordered by most recent first
+    result = await db.execute(
+        select(Ticket)
+        .where(Ticket.user_id == current_user.id)
+        .order_by(desc(Ticket.created_at))
+        .limit(limit)
+        .offset(offset)
+    )
+    tickets = result.scalars().all()
+
+    # Convert to response objects
+    ticket_responses = []
+    for ticket in tickets:
+        ticket_response = TicketResponse.model_validate(ticket)
+
+        # For GBV tickets, show "[Sensitive Report]" instead of description
+        if ticket.is_sensitive and current_user.role != UserRole.SAPS_LIAISON:
+            ticket_response.description = "[Sensitive Report]"
+
+        ticket_responses.append(ticket_response)
+
+    return ticket_responses
 
 
 @router.get("/{tracking_number}", response_model=TicketResponse)
@@ -275,47 +328,3 @@ async def get_report_by_tracking(
         ticket_response.description = ticket.description  # Already "[Sensitive Report]" or "GBV incident report"
 
     return ticket_response
-
-
-@router.get("/my", response_model=list[TicketResponse])
-@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
-async def get_my_reports(
-    request: Request,
-    current_user: User = Depends(get_current_user),
-    db: AsyncSession = Depends(get_db),
-    limit: int = 50,
-    offset: int = 0,
-) -> list[TicketResponse]:
-    """Get current user's reports (paginated).
-
-    Args:
-        current_user: Authenticated user
-        db: Database session
-        limit: Maximum number of results (default 50)
-        offset: Offset for pagination (default 0)
-
-    Returns:
-        List of TicketResponse objects for user's tickets
-    """
-    # Query user's tickets, ordered by most recent first
-    result = await db.execute(
-        select(Ticket)
-        .where(Ticket.user_id == current_user.id)
-        .order_by(desc(Ticket.created_at))
-        .limit(limit)
-        .offset(offset)
-    )
-    tickets = result.scalars().all()
-
-    # Convert to response objects
-    ticket_responses = []
-    for ticket in tickets:
-        ticket_response = TicketResponse.model_validate(ticket)
-
-        # For GBV tickets, show "[Sensitive Report]" instead of description
-        if ticket.is_sensitive and current_user.role != UserRole.SAPS_LIAISON:
-            ticket_response.description = "[Sensitive Report]"
-
-        ticket_responses.append(ticket_response)
-
-    return ticket_responses
