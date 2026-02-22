@@ -15,8 +15,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-from src.agents.flows.intake_flow import IntakeFlow
-from src.agents.flows.state import IntakeState
+from src.agents.crews.manager_crew import ManagerCrew
+from src.api.v1.crew_server import sanitize_reply, _format_history
 from src.core.config import settings
 from src.core.conversation import ConversationManager
 from src.guardrails.engine import guardrails_engine
@@ -150,13 +150,13 @@ class WhatsAppService:
     ) -> dict[str, Any]:
         """Process incoming WhatsApp message through the intake pipeline.
 
-        This reuses the SAME pipeline as messages.py (Phase 2):
+        This reuses the SAME pipeline as messages.py:
         1. Handle media attachments (download from Twilio, upload to S3)
         2. Run through guardrails (process_input)
         3. Get or create conversation session
-        4. Create IntakeState and IntakeFlow
-        5. Run flow.kickoff()
-        6. Link media to ticket if created
+        4. Build conversation history string
+        5. Call ManagerCrew.kickoff() directly
+        6. Apply sanitize_reply() to agent output
         7. Sanitize output (process_output)
         8. Save conversation turns
         9. Return response with tracking number
@@ -265,83 +265,49 @@ class WhatsAppService:
                     is_gbv=False,
                 )
 
-            # Step 5: Create IntakeFlow with state
-            intake_state = IntakeState(
-                message_id=str(uuid.uuid4()),
-                user_id=user_id,
-                tenant_id=tenant_id,
-                session_id=session_id,
-                message=input_result.sanitized_message,
-                language=conversation_state.language,
-                turn_count=len(conversation_state.turns) + 1,
-            )
+            # Step 5: Build conversation history and run ManagerCrew directly
+            conversation_history = _format_history(conversation_state.turns)
 
-            # Initialize flow
-            flow = IntakeFlow(redis_url=self._redis_url, llm_model="gpt-4o")
-            # Flow.state is a read-only @property backed by flow._state.
-            # CrewAI 1.8.1 provides no public setter, so we assign directly.
-            flow._state = intake_state
-
-            # Step 6: Run flow (kickoff)
+            # Step 6: Run ManagerCrew directly (matches crew_server.py reference pattern)
             try:
-                result = flow.kickoff()
+                manager_crew = ManagerCrew(language=conversation_state.language)
+                agent_result = await manager_crew.kickoff({
+                    "message": input_result.sanitized_message,
+                    "user_id": user_id,
+                    "tenant_id": tenant_id,
+                    "language": conversation_state.language,
+                    "phone": user.phone or "",
+                    "session_status": "active",
+                    "user_exists": "True",
+                    "conversation_history": conversation_history,
+                    "pending_intent": "none",
+                })
 
-                # Extract tracking number from ticket_data
-                tracking_number = None
-                if flow.state.ticket_data and isinstance(flow.state.ticket_data, dict):
-                    tracking_number = flow.state.ticket_data.get("tracking_number")
+                # Extract results from ManagerCrew result dict
+                tracking_number = agent_result.get("tracking_number")
+                agent_response = agent_result.get("message", "Your report is being processed.")
+                agent_response = sanitize_reply(
+                    agent_response,
+                    agent_name=agent_result.get("agent", "manager"),
+                    language=conversation_state.language,
+                )
+                detected_language = conversation_state.language
+                category = agent_result.get("routing_phase", "other")
+                is_complete = True
+                ticket_id = None  # ManagerCrew creates ticket internally via tools
 
-                # Extract response from flow state
-                agent_response = "Thank you for your report. We are processing your request."
-                if flow.state.ticket_data:
-                    # Ticket was created
-                    tracking_number_text = f" Your tracking number is {tracking_number}." if tracking_number else ""
-                    agent_response = (
-                        f"Your report has been received and logged.{tracking_number_text} "
-                        f"We will investigate this issue and keep you updated."
-                    )
-
-                detected_language = flow.state.language
-                category = flow.state.category
-                is_complete = flow.state.is_complete
-                ticket_id = flow.state.ticket_id
-
-                # Step 7: If ticket created and media exists, link media to ticket
-                if ticket_id and media_file_ids:
-                    # Create MediaAttachment records for each uploaded file
-                    for file_id in media_file_ids:
-                        media_attachment = MediaAttachment(
-                            ticket_id=ticket_id,
-                            file_id=file_id,
-                            s3_bucket=settings.S3_BUCKET_EVIDENCE,
-                            s3_key=f"evidence/{tenant_id}/{ticket_id}/{file_id}",
-                            filename=f"{file_id}.jpg",
-                            content_type="image/jpeg",
-                            file_size=0,  # Size was logged during upload but not stored; acceptable for now
-                            purpose="evidence",
-                            source="whatsapp",
-                            is_processed=False,
-                            tenant_id=tenant_id,
-                            created_by=user_id,
-                            updated_by=user_id,
-                        )
-                        db.add(media_attachment)
-                    await db.commit()
-
+                # Step 7: Media linking — ticket_id is None since ManagerCrew manages
+                # ticket creation internally. Skip media linking for now.
+                # TODO (Phase 8): Link uploaded media via tracking_number lookup after crew completes.
+                if media_file_ids and not ticket_id:
                     logger.info(
-                        f"Linked {len(media_file_ids)} media attachments to ticket",
-                        extra={
-                            "ticket_id": ticket_id,
-                            "media_count": len(media_file_ids),
-                        }
+                        f"Media uploaded but not yet linked (ticket created by ManagerCrew tools): "
+                        f"{len(media_file_ids)} file(s) pending tracking_number={tracking_number}"
                     )
 
             except Exception as e:
-                logger.error(f"Flow execution failed: {e}", exc_info=True)
-                agent_response = (
-                    "I apologize, but I encountered an error processing your request. "
-                    "Please try again or contact support if the issue persists."
-                )
+                logger.error(f"ManagerCrew execution failed: {e}", exc_info=True)
+                agent_response = "I'm sorry, something went wrong processing your message. Please try again in a few minutes."
                 detected_language = conversation_state.language
                 category = None
                 is_complete = False

@@ -184,8 +184,9 @@ async def whatsapp_webhook(
             storage_service=storage_service
         )
 
-        # Generate session_id from MessageSid (unique per message)
-        session_id = f"wa-{payload.MessageSid}"
+        # Stable session per phone number (not per message) — supports multi-turn state
+        normalized_phone = sender_phone.replace("whatsapp:", "").strip()
+        session_id = f"wa-{normalized_phone}"
 
         result = await whatsapp_service.process_incoming_message(
             user=user,
