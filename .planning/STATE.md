@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 08 COMPLETE — End-to-end web portal report submission wired: backend PostGIS fix (08-01) + frontend API integration (08-02). RPT-02, RPT-03, RPT-04, RPT-05, RPT-06, RPT-08 all complete.
+**Current focus:** Phase 09 IN PROGRESS — OCR-Supabase bridge: Plan 01 complete (residence_verified synced to Supabase user_metadata after OCR, ProfilePage session refresh). PLAT-03 and RPT-09 requirements marked complete.
 
 ## Current Position
 
-Phase: 08 of 08 (Wire Web Portal Report Submission)
-Plan: 2 of 2 in current phase
-Status: COMPLETE — Phase 08 done. Plan 02 delivered: ReportIssuePage wired to POST /api/v1/reports/submit with real auth, GPS accuracy, CATEGORY_MAP, media linking, GBV flag, real tracking number
-Last activity: 2026-02-22 — Phase 08 Plan 02 complete: frontend report submission fully wired to backend
+Phase: 09 of 09 (OCR-Supabase Bridge and Ward Filtering)
+Plan: 1 of 2 in current phase
+Status: IN PROGRESS — Phase 09 Plan 01 delivered: OCR verification endpoint now syncs residence_verified=True to Supabase user_metadata; ProfilePage.tsx calls refreshSession() after upload
+Last activity: 2026-02-22 — Phase 09 Plan 01 complete: OCR-to-Supabase bridge closes residence gate unlock gap
 
-Progress: [██████████] 100% (2/2 plans)
+Progress: [█████] 50% (1/2 plans)
 
 ## Performance Metrics
 
@@ -148,6 +148,7 @@ Progress: [██████████] 100% (2/2 plans)
 | Phase 07 P02 | 643 | 2 tasks | 4 files |
 | Phase 08 P01 | 7 | 2 tasks | 2 files |
 | Phase 08 P02 | 4 | 1 tasks | 1 files |
+| Phase 09 P01 | 594 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -514,6 +515,8 @@ Recent decisions affecting current work:
 - [Phase 08-02]: isGbv flag takes priority over CATEGORY_MAP for backendCategory — prevents edge case where GBV/Abuse display string might mismatch
 - [Phase 08-02]: supabase.auth.getSession() called fresh at submit time — prevents stale token errors on long form completion sessions
 - [Phase 08-02]: CATEGORY_MAP at module level maps display strings to backend enum values (Water & Sanitation→water, Roads & Potholes→roads, GBV/Abuse→gbv, etc.)
+- [Phase 09]: DB is source of truth for verification — Supabase sync failure does NOT fail the endpoint; user is verified in DB regardless
+- [Phase 09]: Missing Supabase admin client logs WARNING (expected in local dev), sync failure logs ERROR (unexpected in production)
 
 ### Pending Todos
 
@@ -540,9 +543,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 08 Plan 02 complete — ReportIssuePage wired to real backend API: CATEGORY_MAP, GPS accuracy, upload confirm, is_gbv flag, real tracking number from backend)
-Stopped at: Completed 08-02-PLAN.md
-Resume file: .planning/phases/08-wire-web-portal-report-submission/08-02-SUMMARY.md
+Last session: 2026-02-22 (Phase 09 Plan 01 complete — OCR-to-Supabase bridge: verification.py syncs residence_verified=True to Supabase admin API; ProfilePage.tsx calls refreshSession() after upload; 3 new unit tests)
+Stopped at: Completed 09-01-PLAN.md
+Resume file: .planning/phases/09-ocr-supabase-bridge-ward-filtering/09-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*

@@ -11,7 +11,7 @@ Requirements for initial release. Each maps to roadmap phases.
 
 - [x] **PLAT-01**: System uses multi-tenant architecture with data isolation per municipality (3-5 pilots)
 - [x] **PLAT-02**: User must create an account to submit reports (mandatory registration)
-- [ ] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
+- [x] **PLAT-03**: User must verify proof of residence (OCR document analysis) to bind account to specific municipality
 - [x] **PLAT-04**: System supports trilingual interface (English, isiZulu, Afrikaans)
 - [x] **PLAT-05**: All API endpoints implement input/output validation with security guardrails
 - [x] **PLAT-06**: System implements security firewalls between service endpoints (endpoint isolation)
@@ -38,7 +38,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [x] **RPT-06**: Citizen can report GBV/domestic violence/abuse as a dedicated category
 - [x] **RPT-07**: GBV reports are automatically routed to the nearest SAPS police station based on geolocation
 - [x] **RPT-08**: GBV report data is stored with enhanced encryption and access controls (need-to-know basis)
-- [ ] **RPT-09**: System performs OCR analysis on uploaded documents/images for verification and evidence capture
+- [x] **RPT-09**: System performs OCR analysis on uploaded documents/images for verification and evidence capture
 
 ### Ticket Management
 
@@ -131,7 +131,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 |-------------|-------|--------|
 | PLAT-01 | Phase 1 | Complete |
 | PLAT-02 | Phase 3 | Complete |
-| PLAT-03 | Phase 9 | Pending |
+| PLAT-03 | Phase 9 | Complete |
 | PLAT-04 | Phase 2 | Complete |
 | PLAT-05 | Phase 1 | Complete |
 | PLAT-06 | Phase 1 | Complete |
@@ -152,7 +152,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPT-06 | Phase 8 | Complete |
 | RPT-07 | Phase 7 | Complete |
 | RPT-08 | Phase 8 | Complete |
-| RPT-09 | Phase 9 | Pending |
+| RPT-09 | Phase 9 | Complete |
 | TKT-01 | Phase 4 | Complete |
 | TKT-02 | Phase 4 | Complete |
 | TKT-03 | Phase 4 | Complete |
