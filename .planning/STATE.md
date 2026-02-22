@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 09 COMPLETE — OCR-Supabase bridge (Plan 01) and ward councillor enforcement (Plan 02) both delivered. OPS-03, PLAT-03, and RPT-09 requirements marked complete.
+**Current focus:** Phase 10 COMPLETE — Render staging deployment fixes delivered: Celery module path corrected, SUPABASE_JWT_SECRET added to salga-api + salga-celery, TWILIO_WHATSAPP_FROM renamed to TWILIO_WHATSAPP_NUMBER. CI test guard added.
 
 ## Current Position
 
-Phase: 09 of 09 (OCR-Supabase Bridge and Ward Filtering)
-Plan: 2 of 2 in current phase
-Status: COMPLETE — Phase 09 Plan 02 delivered: User.ward_id field added, Alembic migration created, ward councillors auto-filtered to stored ward_id in tickets and all 4 dashboard endpoints
-Last activity: 2026-02-22 — Phase 09 Plan 02 complete: ward councillor enforcement closes OPS-03 gap
+Phase: 10 of 10 (Render Staging Deployment Fixes)
+Plan: 1 of 1 in current phase
+Status: COMPLETE — Phase 10 Plan 01 delivered: render.yaml has all 3 bugs fixed, tests/test_render_config.py has 5 passing CI guard tests
+Last activity: 2026-02-22 — Phase 10 Plan 01 complete: render.yaml deployment bugs fixed, staging unblocked
 
-Progress: [██████████] 100% (2/2 plans)
+Progress: [██████████] 100% (1/1 plans)
 
 ## Performance Metrics
 
@@ -150,6 +150,7 @@ Progress: [██████████] 100% (2/2 plans)
 | Phase 08 P02 | 4 | 1 tasks | 1 files |
 | Phase 09 P01 | 594 | 2 tasks | 3 files |
 | Phase 09 P02 | 840 | 2 tasks | 5 files |
+| Phase 10 P01 | 291 | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -522,6 +523,9 @@ Recent decisions affecting current work:
 - [Phase 09-02]: Ward councillor with no ward_id returns empty/zeroed results (fail-safe, not fail-open) — no tickets or metrics visible until ward is assigned
 - [Phase 09-02]: All 4 dashboard endpoints enforce ward_id from stored profile; zeroed metrics and empty lists for no-ward councillor
 - [Phase 09-02]: Alembic migration revision a1b2c3d4e5f6 adds ix_users_ward_id index on users table
+- [Phase 10]: render.yaml fixes are targeted one-line changes only — no structural changes to service configuration
+- [Phase 10]: SUPABASE_JWT_SECRET added to salga-celery defensively even though current Celery tasks do not verify JWTs directly
+- [Phase 10]: PyYAML used for render.yaml test parsing (transitive dep, no new dependencies added)
 
 ### Pending Todos
 
@@ -548,9 +552,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 09 Plan 02 complete — ward councillor enforcement: User.ward_id field, Alembic migration, real enforcement in list_tickets() and all 4 dashboard endpoints, 9 new tests)
-Stopped at: Completed 09-02-PLAN.md
-Resume file: .planning/phases/09-ocr-supabase-bridge-ward-filtering/09-02-SUMMARY.md
+Last session: 2026-02-22 (Phase 10 Plan 01 complete — render.yaml 3 bugs fixed: Celery module path, SUPABASE_JWT_SECRET added, TWILIO_WHATSAPP_FROM renamed to NUMBER; 5 CI guard tests added)
+Stopped at: Completed 10-01-PLAN.md
+Resume file: .planning/phases/10-render-staging-deployment-fixes/10-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
