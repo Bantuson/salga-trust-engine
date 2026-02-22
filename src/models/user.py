@@ -49,6 +49,11 @@ class User(TenantAwareModel):
         nullable=False,
         index=True
     )
+    ward_id: Mapped[str | None] = mapped_column(
+        String(100),
+        nullable=True,
+        index=True,
+    )
 
     # Proof of residence verification
     verification_status: Mapped[str] = mapped_column(
