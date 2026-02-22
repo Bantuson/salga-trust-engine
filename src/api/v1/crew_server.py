@@ -370,6 +370,33 @@ _DELEGATION_ARTIFACT_PATTERNS = [
     r"^According to (?:my|the) (?:instructions|assignment).*$",  # Instructions narration
 ]
 
+# GBV confirmation messages — shown before routing to GBVCrew/SAPS.
+# Citizen must explicitly confirm (YES) before their report is forwarded
+# to emergency services. Includes emergency numbers in all 3 languages.
+GBV_CONFIRMATION_MESSAGES = {
+    "en": (
+        "I hear you, and your safety is the most important thing right now. "
+        "I'd like to create a confidential report and alert emergency services on your behalf. "
+        "Can I go ahead and do that?\n\n"
+        "Reply YES to confirm, or NO if you'd prefer not to.\n\n"
+        "Emergency: SAPS 10111 | GBV Command Centre: 0800 150 150"
+    ),
+    "zu": (
+        "Ngiyakuzwa, futhi ukuphepha kwakho kubaluleke kakhulu manje. "
+        "Ngingathanda ukwenza umbiko oyimfihlo futhi ngixwayise izinsizakalo zezimo eziphuthumayo. "
+        "Ngingaqhubeka ngikwenzele lokho?\n\n"
+        "Phendula YEBO ukuqinisekisa, noma CHA uma ungathandi.\n\n"
+        "Isimo esiphuthumayo: SAPS 10111 | GBV Command Centre: 0800 150 150"
+    ),
+    "af": (
+        "Ek hoor jou, en jou veiligheid is die belangrikste ding nou. "
+        "Ek wil 'n vertroulike verslag skep en nooddienste namens jou waarsku. "
+        "Kan ek daarmee voortgaan?\n\n"
+        "Antwoord JA om te bevestig, of NEE as jy verkies om nie.\n\n"
+        "Noodgeval: SAPS 10111 | GBV Command Centre: 0800 150 150"
+    ),
+}
+
 # Warm fallbacks when sanitization leaves nothing usable
 _FALLBACK_REPLIES = {
     "auth_agent": {
@@ -832,11 +859,51 @@ async def chat(
             "pending_intent": getattr(conv_state, 'pending_intent', None) or "none",
         }
 
+        # --- GBV CONFIRMATION GATE ---
+        # If routing_phase is "gbv_pending_confirm", the citizen needs to confirm
+        # before we route to GBVCrew. This is a two-turn safety gate.
+        # This MUST be checked before the specialist short-circuit below so that
+        # "gbv_pending_confirm" never accidentally maps to GBVCrew directly.
+        if routing_phase == "gbv_pending_confirm":
+            lower_msg = request.message.strip().lower()
+            positive = any(w in lower_msg for w in ["yes", "yebo", "ja", "confirm", "okay", "ok"])
+            negative = any(w in lower_msg for w in ["no", "cha", "nee", "cancel", "stop"])
+
+            if positive:
+                # Confirmed — route to GBV crew
+                conv_state.routing_phase = "gbv"
+                if hasattr(manager, 'save_state'):
+                    try:
+                        await manager.save_state(conv_state, is_gbv=True)
+                    except Exception:
+                        pass
+                # Update routing_phase so the specialist short-circuit below handles it
+                routing_phase = "gbv"
+            elif negative:
+                # Declined — treat as regular municipal ticket
+                conv_state.routing_phase = "municipal"
+                if hasattr(manager, 'save_state'):
+                    try:
+                        await manager.save_state(conv_state, is_gbv=False)
+                    except Exception:
+                        pass
+                reply = "Understood. If you'd like to report a service issue, I'm here to help. What can I assist you with?"
+                agent_name = "manager"
+                agent_result = {"message": reply, "routing_phase": "municipal", "agent": "manager"}
+                routing_phase = "_handled"
+            else:
+                # Ambiguous — resend confirmation
+                lang = detected_language if detected_language in ("en", "zu", "af") else "en"
+                reply = GBV_CONFIRMATION_MESSAGES[lang]
+                agent_name = "manager"
+                agent_result = {"message": reply, "routing_phase": "gbv_pending_confirm", "agent": "manager"}
+                routing_phase = "_handled"
+
         # --- SHORT-CIRCUIT: active specialist session ---
         # Per locked decision: specialist keeps control until task completes
         # OR citizen interrupts. If routing_phase is not "manager", route
         # directly to the owning specialist crew (skip manager re-entry).
-        if routing_phase != "manager":
+        if routing_phase not in ("manager", "_handled"):
             # Map routing_phase values to specialist crews
             _SPECIALIST_MAP = {
                 "auth": ("src.agents.crews.auth_crew", "AuthCrew"),
@@ -871,6 +938,17 @@ async def chat(
         # Without this, routing_phase in Redis would always be "manager"
         # and the short-circuit above would never trigger on subsequent turns.
         new_routing_phase = agent_result.get("routing_phase", "manager")
+
+        # If ManagerCrew classified as GBV for the first time, intercept with
+        # confirmation gate — don't route to GBVCrew until citizen confirms.
+        if new_routing_phase == "gbv" and routing_phase == "manager":
+            new_routing_phase = "gbv_pending_confirm"
+            lang = detected_language if detected_language in ("en", "zu", "af") else "en"
+            reply = GBV_CONFIRMATION_MESSAGES[lang]
+            agent_name = "manager"
+            agent_result = {"message": reply, "routing_phase": "gbv_pending_confirm", "agent": "manager"}
+            is_gbv = False  # Not confirmed GBV yet
+
         conv_state.routing_phase = new_routing_phase
 
         # --- PERSIST pending_intent when routing to auth ---

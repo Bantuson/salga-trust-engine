@@ -16,7 +16,7 @@ from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
 from src.agents.crews.manager_crew import ManagerCrew
-from src.api.v1.crew_server import sanitize_reply, _format_history
+from src.api.v1.crew_server import GBV_CONFIRMATION_MESSAGES, sanitize_reply, _format_history
 from src.core.config import settings
 from src.core.conversation import ConversationManager
 from src.guardrails.engine import guardrails_engine
@@ -265,6 +265,70 @@ class WhatsAppService:
                     is_gbv=False,
                 )
 
+            # --- GBV CONFIRMATION GATE (start of turn) ---
+            # If the conversation is in "gbv_pending_confirm" state, handle
+            # the citizen's YES/NO response before calling ManagerCrew again.
+            current_routing = getattr(conversation_state, 'routing_phase', None)
+            if current_routing == "gbv_pending_confirm":
+                lower_msg = (input_result.sanitized_message or "").strip().lower()
+                positive = any(w in lower_msg for w in ["yes", "yebo", "ja", "confirm", "okay", "ok"])
+                negative = any(w in lower_msg for w in ["no", "cha", "nee", "cancel", "stop"])
+
+                if positive:
+                    # Confirmed — update state and continue to ManagerCrew/GBVCrew
+                    conversation_state.routing_phase = "gbv"
+                elif negative:
+                    # Declined — treat as regular municipal report
+                    conversation_state.routing_phase = "municipal"
+                    decline_response = (
+                        "Understood. If you'd like to report a service issue, I'm here to help."
+                    )
+                    output_result = await guardrails_engine.process_output(decline_response)
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="user",
+                        content=input_result.sanitized_message,
+                        is_gbv=False,
+                    )
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="agent",
+                        content=output_result.sanitized_response,
+                        is_gbv=False,
+                    )
+                    return {
+                        "response": output_result.sanitized_response,
+                        "tracking_number": None,
+                        "is_complete": False,
+                    }
+                else:
+                    # Ambiguous — resend confirmation message
+                    lang = getattr(conversation_state, 'language', 'en')
+                    lang = lang if lang in ("en", "zu", "af") else "en"
+                    resend_response = GBV_CONFIRMATION_MESSAGES[lang]
+                    output_result = await guardrails_engine.process_output(resend_response)
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="user",
+                        content=input_result.sanitized_message,
+                        is_gbv=False,
+                    )
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="agent",
+                        content=output_result.sanitized_response,
+                        is_gbv=False,
+                    )
+                    return {
+                        "response": output_result.sanitized_response,
+                        "tracking_number": None,
+                        "is_complete": False,
+                    }
+
             # Step 5: Build conversation history and run ManagerCrew directly
             conversation_history = _format_history(conversation_state.turns)
 
@@ -283,6 +347,39 @@ class WhatsAppService:
                     "pending_intent": "none",
                 })
 
+                routing_phase = agent_result.get("routing_phase", "other")
+
+                # --- GBV CONFIRMATION GATE (after ManagerCrew classification) ---
+                # If ManagerCrew classified as GBV for the first time, intercept
+                # with a confirmation step before routing to GBVCrew/SAPS.
+                current_after_crew = getattr(conversation_state, 'routing_phase', 'manager')
+                if routing_phase == "gbv" and current_after_crew != "gbv":
+                    # Enter confirmation state — do not route to GBVCrew yet
+                    conversation_state.routing_phase = "gbv_pending_confirm"
+                    lang = getattr(conversation_state, 'language', 'en')
+                    lang = lang if lang in ("en", "zu", "af") else "en"
+                    confirmation_msg = GBV_CONFIRMATION_MESSAGES[lang]
+                    output_result = await guardrails_engine.process_output(confirmation_msg)
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="user",
+                        content=input_result.sanitized_message,
+                        is_gbv=False,
+                    )
+                    await conversation_manager.append_turn(
+                        user_id=user_id,
+                        session_id=session_id,
+                        role="agent",
+                        content=output_result.sanitized_response,
+                        is_gbv=False,
+                    )
+                    return {
+                        "response": output_result.sanitized_response,
+                        "tracking_number": None,
+                        "is_complete": False,
+                    }
+
                 # Extract results from ManagerCrew result dict
                 tracking_number = agent_result.get("tracking_number")
                 agent_response = agent_result.get("message", "Your report is being processed.")
@@ -292,7 +389,7 @@ class WhatsAppService:
                     language=conversation_state.language,
                 )
                 detected_language = conversation_state.language
-                category = agent_result.get("routing_phase", "other")
+                category = routing_phase
                 is_complete = True
                 ticket_id = None  # ManagerCrew creates ticket internally via tools
 
