@@ -15,8 +15,8 @@ from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
 from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, SENSITIVE_WRITE_RATE_LIMIT, limiter
-from src.agents.flows.intake_flow import IntakeFlow
-from src.agents.flows.state import IntakeState
+from src.agents.crews.manager_crew import ManagerCrew
+from src.api.v1.crew_server import sanitize_reply, _format_history
 from src.core.config import settings
 from src.core.conversation import ConversationManager
 from src.guardrails.engine import guardrails_engine
@@ -106,7 +106,7 @@ async def send_message(
     This endpoint orchestrates the complete message processing flow:
     1. Validate input through guardrails (prompt injection, sanitization)
     2. Get or create conversation session
-    3. Create and run IntakeFlow (language detection -> classification -> crew)
+    3. Build conversation history, call ManagerCrew.kickoff() directly
     4. Sanitize output through guardrails (PII masking)
     5. Save updated conversation state
     6. Return structured response
@@ -165,53 +165,47 @@ async def send_message(
                 is_gbv=False,
             )
 
-        # Step 3: Create IntakeFlow with state
-        intake_state = IntakeState(
-            message_id=str(uuid.uuid4()),
-            user_id=str(current_user.id),
-            tenant_id=str(tenant_id),
-            session_id=session_id,
-            message=input_result.sanitized_message,
-            language=conversation_state.language,
-            turn_count=len(conversation_state.turns) + 1,
-        )
+        # Step 3: Build conversation history for ManagerCrew context
+        conversation_history = _format_history(conversation_state.turns)
 
-        # Initialize flow
-        flow = IntakeFlow(redis_url=settings.REDIS_URL, llm_model="gpt-4o")
-        # Flow.state is a read-only @property backed by flow._state.
-        # CrewAI 1.8.1 provides no public setter, so we assign directly.
-        flow._state = intake_state
-
-        # Step 4: Run flow (kickoff)
+        # Step 4: Run ManagerCrew directly (matches crew_server.py reference pattern)
         try:
-            # Flow will handle language detection, classification, and crew routing
-            result = flow.kickoff()
+            manager_crew = ManagerCrew(language=conversation_state.language)
+            agent_result = await manager_crew.kickoff({
+                "message": input_result.sanitized_message,
+                "user_id": str(current_user.id),
+                "tenant_id": str(tenant_id),
+                "language": conversation_state.language,
+                "phone": getattr(current_user, "phone", "") or "",
+                "session_status": "active",
+                "user_exists": "True",
+                "conversation_history": conversation_history,
+                "pending_intent": "none",
+            })
 
-            # Extract response from flow state
-            agent_response = "Thank you for your report. We are processing your request."
-            if flow.state.ticket_data:
-                # Ticket was created
-                agent_response = (
-                    f"Your report has been received and logged. "
-                    f"Category: {flow.state.category}. "
-                    f"We will investigate this issue."
-                )
+            # Extract results from ManagerCrew result dict
+            agent_response = agent_result.get("message", "Your report is being processed.")
+            tracking_number = agent_result.get("tracking_number")
+            detected_language = conversation_state.language
+            category = agent_result.get("routing_phase", "other")
+            is_complete = True
+            ticket_id = None  # ManagerCrew handles ticket creation internally via tools
 
-            detected_language = flow.state.language
-            category = flow.state.category
-            is_complete = flow.state.is_complete
-            ticket_id = flow.state.ticket_id
+            # Apply sanitize_reply() before output guardrails
+            agent_response = sanitize_reply(
+                agent_response,
+                agent_name=agent_result.get("agent", "manager"),
+                language=detected_language,
+            )
 
         except Exception as e:
-            logger.error(f"Flow execution failed: {e}", exc_info=True)
-            agent_response = (
-                "I apologize, but I encountered an error processing your request. "
-                "Please try again or contact support if the issue persists."
-            )
+            logger.error(f"ManagerCrew execution failed: {e}", exc_info=True)
+            agent_response = "I'm sorry, something went wrong processing your message. Please try again in a few minutes."
             detected_language = conversation_state.language
             category = None
             is_complete = False
             ticket_id = None
+            tracking_number = None
 
         # Step 5: Sanitize output through guardrails
         output_result = await guardrails_engine.process_output(agent_response)
@@ -240,7 +234,7 @@ async def send_message(
             language=detected_language,
             category=category,
             ticket_id=ticket_id,
-            tracking_number=None,  # Would be from ticket creation
+            tracking_number=tracking_number,
             is_complete=is_complete,
             blocked=False,
         )
