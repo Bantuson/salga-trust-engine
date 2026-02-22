@@ -84,11 +84,18 @@ async def get_dashboard_metrics(
             detail="Not authorized to view dashboard metrics"
         )
 
-    # Ward councillor enforcement (interim: accept ward_id from query param)
-    if current_user.role == UserRole.WARD_COUNCILLOR and ward_id:
-        logger.info(
-            f"WARD_COUNCILLOR {current_user.id} accessing metrics for ward {ward_id}"
-        )
+    # Ward councillor enforcement — use stored ward_id, ignore client-supplied
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        ward_id = current_user.ward_id
+        if ward_id is None:
+            # No ward assigned — return zeroed-out metrics (fail-safe)
+            return {
+                "total_open": 0,
+                "total_resolved": 0,
+                "sla_compliance_percent": 0.0,
+                "avg_response_hours": 0.0,
+                "sla_breaches": 0,
+            }
 
     parsed_start = _parse_date_param(start_date, "start_date")
     parsed_end = _parse_date_param(end_date, "end_date")
@@ -137,6 +144,13 @@ async def get_volume_by_category(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view dashboard metrics"
         )
+
+    # Ward councillor enforcement — use stored ward_id, ignore client-supplied
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        ward_id = current_user.ward_id
+        if ward_id is None:
+            # No ward assigned — return empty list (fail-safe)
+            return []
 
     parsed_start = _parse_date_param(start_date, "start_date")
     parsed_end = _parse_date_param(end_date, "end_date")
@@ -187,6 +201,19 @@ async def get_sla_compliance(
             detail="Not authorized to view dashboard metrics"
         )
 
+    # Ward councillor enforcement — use stored ward_id, ignore client-supplied
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        ward_id = current_user.ward_id
+        if ward_id is None:
+            # No ward assigned — return zeroed-out SLA metrics (fail-safe)
+            return {
+                "response_compliance_percent": 0.0,
+                "resolution_compliance_percent": 0.0,
+                "total_with_sla": 0,
+                "response_breaches": 0,
+                "resolution_breaches": 0,
+            }
+
     parsed_start = _parse_date_param(start_date, "start_date")
     parsed_end = _parse_date_param(end_date, "end_date")
 
@@ -234,6 +261,13 @@ async def get_team_workload(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view dashboard metrics"
         )
+
+    # Ward councillor enforcement — use stored ward_id, ignore client-supplied
+    if current_user.role == UserRole.WARD_COUNCILLOR:
+        ward_id = current_user.ward_id
+        if ward_id is None:
+            # No ward assigned — return empty list (fail-safe)
+            return []
 
     parsed_start = _parse_date_param(start_date, "start_date")
     parsed_end = _parse_date_param(end_date, "end_date")
