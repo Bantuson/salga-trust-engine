@@ -1,12 +1,11 @@
 """Report submission API for web portal.
 
 Provides endpoints for citizens to submit reports via web with GPS/address,
-attach evidence photos, and track report status. Integrates with IntakeFlow
+attach evidence photos, and track report status. Uses ManagerCrew.kickoff()
 for AI classification when category not specified.
 """
 import logging
 import uuid
-from typing import Any
 
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy import select, desc
@@ -15,9 +14,7 @@ from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
 from src.middleware.rate_limit import REPORT_RATE_LIMIT, SENSITIVE_READ_RATE_LIMIT, limiter
-from src.agents.flows.intake_flow import IntakeFlow
-from src.agents.flows.state import IntakeState
-from src.core.config import settings
+from src.agents.crews.manager_crew import ManagerCrew
 from src.guardrails.engine import guardrails_engine
 from src.models.media import MediaAttachment
 from src.models.ticket import Ticket, generate_tracking_number
@@ -43,7 +40,7 @@ async def submit_report(
     Flow:
     1. Validate description through guardrails
     2. If category provided, skip AI classification
-    3. If category not provided, run IntakeFlow for AI classification
+    3. If category not provided, run ManagerCrew.kickoff() for AI classification
     4. Create ticket with location data
     5. Link media attachments
     6. If GBV, trigger SAPS notification
@@ -76,28 +73,31 @@ async def submit_report(
     severity = "medium"  # Default severity
 
     if category is None:
-        # Run IntakeFlow for AI classification
+        # Run ManagerCrew for AI classification (single-shot, no conversation history)
         try:
-            intake_state = IntakeState(
-                message_id=str(uuid.uuid4()),
-                user_id=str(current_user.id),
-                tenant_id=str(current_user.tenant_id),
-                session_id=str(uuid.uuid4()),
-                message=sanitized_description,
-                language=report.language,
-            )
+            manager_crew = ManagerCrew(language=report.language or "en")
+            agent_result = await manager_crew.kickoff({
+                "message": sanitized_description,
+                "user_id": str(current_user.id),
+                "tenant_id": str(current_user.tenant_id),
+                "language": report.language or "en",
+                "phone": "",
+                "session_status": "active",
+                "user_exists": "True",
+                "conversation_history": "(none)",
+                "pending_intent": "none",
+            })
 
-            flow = IntakeFlow(redis_url=settings.REDIS_URL, llm_model="gpt-4o")
-            # Flow.state is a read-only @property backed by flow._state.
-            # CrewAI 1.8.1 provides no public setter, so we assign directly.
-            flow._state = intake_state
-
-            # Run classification (receive_message -> classify_message)
-            flow.receive_message()
-            flow.classify_message()
-
-            # Extract classification result
-            category = flow.state.subcategory or flow.state.category or "other"
+            # Map routing_phase to a ticket category
+            routing_phase = agent_result.get("routing_phase", "other")
+            _PHASE_TO_CATEGORY = {
+                "municipal": "other",
+                "gbv": "gbv",
+                "auth": "other",
+                "manager": "other",
+                "ticket_status": "other",
+            }
+            category = _PHASE_TO_CATEGORY.get(routing_phase, "other")
 
         except Exception as e:
             logger.error(f"AI classification failed: {e}", exc_info=True)
