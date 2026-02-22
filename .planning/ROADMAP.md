@@ -177,7 +177,7 @@ Plans:
 **Depends on:** Phase 6.9 (ManagerCrew must exist)
 **Requirements:** RPT-02, RPT-03, RPT-04, RPT-05, RPT-06, RPT-08
 **Gap Closure:** Closes gaps from v1.0 milestone audit
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 08-01-PLAN.md -- Fix PostGIS location bug in reports.py, route ordering, USE_POSTGIS guard, update test mocks from IntakeFlow to ManagerCrew
@@ -218,7 +218,7 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 | 6.9.1. Agent Output Formatting & Prompt Engineering | 4/4 | ✓ Complete | 2026-02-19 |
 | 6.9.2. System-wide Integration Validation | 5/5 | ✓ Complete | 2026-02-20 |
 | 7. Fix WhatsApp -> AI Agent Integration | 2/2 | Complete   | 2026-02-22 |
-| 8. Wire Web Portal Report Submission | 1/2 | In Progress|  |
+| 8. Wire Web Portal Report Submission | 2/2 | Complete   | 2026-02-22 |
 | 9. OCR Supabase Bridge & Ward Filtering | 0/0 | Pending | — |
 | 10. Render Staging Deployment Fixes | 0/0 | Pending | — |
 
