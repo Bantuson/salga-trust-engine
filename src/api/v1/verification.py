@@ -3,6 +3,7 @@
 Provides endpoints for uploading proof of residence documents, running OCR extraction,
 and checking verification status.
 """
+import logging
 from datetime import datetime
 from io import BytesIO
 from uuid import uuid4
@@ -15,6 +16,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
+from src.core.supabase import get_supabase_admin
 from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, VERIFICATION_RATE_LIMIT, limiter
 from src.models.media import MediaAttachment
 from src.models.user import User
@@ -23,6 +25,8 @@ from src.schemas.user import UserVerificationRequest, UserVerificationResponse
 from src.services.image_utils import strip_exif_metadata, validate_image_quality
 from src.services.ocr_service import OCRService
 from src.services.storage_service import StorageService, StorageServiceError
+
+logger = logging.getLogger(__name__)
 
 router = APIRouter(prefix="/verification", tags=["verification"])
 
@@ -216,6 +220,37 @@ async def verify_proof_of_residence(
         current_user.verified_at = datetime.utcnow()
 
     await db.commit()
+
+    # Sync residence_verified flag to Supabase user_metadata
+    # This bridges the DB verification status to the frontend session gate
+    if verification_result["status"] == "verified":
+        supabase_admin = get_supabase_admin()
+        if supabase_admin:
+            try:
+                supabase_admin.auth.admin.update_user_by_id(
+                    str(current_user.id),
+                    {
+                        "user_metadata": {
+                            "residence_verified": True,
+                            "residence_verified_at": datetime.utcnow().isoformat(),
+                        }
+                    }
+                )
+                logger.info(
+                    f"Synced residence_verified=True to Supabase for user {current_user.id}"
+                )
+            except Exception as e:
+                logger.error(
+                    f"Failed to sync residence_verified to Supabase for user {current_user.id}: {e}",
+                    exc_info=True
+                )
+                # Do NOT raise — DB is already committed, user is verified locally
+        else:
+            logger.warning(
+                f"Supabase admin client not configured. residence_verified not synced to Supabase "
+                f"for user {current_user.id}. Frontend gate will not unlock until Supabase is configured."
+            )
+
     await db.refresh(current_user)
 
     # Build response message
