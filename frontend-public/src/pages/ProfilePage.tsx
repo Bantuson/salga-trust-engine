@@ -138,10 +138,11 @@ export function ProfilePage() {
       const documentUrl = urlData.publicUrl;
 
       // 3. Update user metadata
-      // Note: residence_verified stays false until admin/OCR verifies
+      // Note: residence_verified starts false — the backend OCR endpoint will
+      // set it to true via Supabase admin API after successful verification.
       const { error: updateError } = await supabase.auth.updateUser({
         data: {
-          residence_verified: false, // Will be set to true by admin verification
+          residence_verified: false, // Will be set to true by backend OCR verification
           residence_document_url: documentUrl,
           residence_upload_date: new Date().toISOString(),
         },
@@ -150,6 +151,13 @@ export function ProfilePage() {
       if (updateError) throw updateError;
 
       setSuccessMessage('Document uploaded. Verification pending.');
+
+      // Refresh session to pick up updated user_metadata after backend verification
+      // The backend OCR endpoint sets residence_verified=true via Supabase admin API.
+      // This refresh ensures the ReportIssuePage gate unlocks without manual page reload
+      // if OCR runs fast enough during the same session. On next visit the session
+      // will naturally reflect the updated metadata.
+      await supabase.auth.refreshSession();
     } catch (err: any) {
       setErrorMessage(err.message || 'Failed to upload document');
     } finally {
