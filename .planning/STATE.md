@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 09 IN PROGRESS — OCR-Supabase bridge: Plan 01 complete (residence_verified synced to Supabase user_metadata after OCR, ProfilePage session refresh). PLAT-03 and RPT-09 requirements marked complete.
+**Current focus:** Phase 09 COMPLETE — OCR-Supabase bridge (Plan 01) and ward councillor enforcement (Plan 02) both delivered. OPS-03, PLAT-03, and RPT-09 requirements marked complete.
 
 ## Current Position
 
 Phase: 09 of 09 (OCR-Supabase Bridge and Ward Filtering)
-Plan: 1 of 2 in current phase
-Status: IN PROGRESS — Phase 09 Plan 01 delivered: OCR verification endpoint now syncs residence_verified=True to Supabase user_metadata; ProfilePage.tsx calls refreshSession() after upload
-Last activity: 2026-02-22 — Phase 09 Plan 01 complete: OCR-to-Supabase bridge closes residence gate unlock gap
+Plan: 2 of 2 in current phase
+Status: COMPLETE — Phase 09 Plan 02 delivered: User.ward_id field added, Alembic migration created, ward councillors auto-filtered to stored ward_id in tickets and all 4 dashboard endpoints
+Last activity: 2026-02-22 — Phase 09 Plan 02 complete: ward councillor enforcement closes OPS-03 gap
 
-Progress: [█████] 50% (1/2 plans)
+Progress: [██████████] 100% (2/2 plans)
 
 ## Performance Metrics
 
@@ -149,6 +149,7 @@ Progress: [█████] 50% (1/2 plans)
 | Phase 08 P01 | 7 | 2 tasks | 2 files |
 | Phase 08 P02 | 4 | 1 tasks | 1 files |
 | Phase 09 P01 | 594 | 2 tasks | 3 files |
+| Phase 09 P02 | 840 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -517,6 +518,10 @@ Recent decisions affecting current work:
 - [Phase 08-02]: CATEGORY_MAP at module level maps display strings to backend enum values (Water & Sanitation→water, Roads & Potholes→roads, GBV/Abuse→gbv, etc.)
 - [Phase 09]: DB is source of truth for verification — Supabase sync failure does NOT fail the endpoint; user is verified in DB regardless
 - [Phase 09]: Missing Supabase admin client logs WARNING (expected in local dev), sync failure logs ERROR (unexpected in production)
+- [Phase 09-02]: Stored ward_id from user profile overrides any client-supplied ward_id query param — prevents ward councillors from spoofing a different ward
+- [Phase 09-02]: Ward councillor with no ward_id returns empty/zeroed results (fail-safe, not fail-open) — no tickets or metrics visible until ward is assigned
+- [Phase 09-02]: All 4 dashboard endpoints enforce ward_id from stored profile; zeroed metrics and empty lists for no-ward councillor
+- [Phase 09-02]: Alembic migration revision a1b2c3d4e5f6 adds ix_users_ward_id index on users table
 
 ### Pending Todos
 
@@ -543,9 +548,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 09 Plan 01 complete — OCR-to-Supabase bridge: verification.py syncs residence_verified=True to Supabase admin API; ProfilePage.tsx calls refreshSession() after upload; 3 new unit tests)
-Stopped at: Completed 09-01-PLAN.md
-Resume file: .planning/phases/09-ocr-supabase-bridge-ward-filtering/09-01-SUMMARY.md
+Last session: 2026-02-22 (Phase 09 Plan 02 complete — ward councillor enforcement: User.ward_id field, Alembic migration, real enforcement in list_tickets() and all 4 dashboard endpoints, 9 new tests)
+Stopped at: Completed 09-02-PLAN.md
+Resume file: .planning/phases/09-ocr-supabase-bridge-ward-filtering/09-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
