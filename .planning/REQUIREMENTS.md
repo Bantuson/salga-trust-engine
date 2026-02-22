@@ -36,7 +36,7 @@ Requirements for initial release. Each maps to roadmap phases.
 - [ ] **RPT-04**: System captures GPS geolocation automatically (with manual address fallback)
 - [ ] **RPT-05**: Citizen receives unique tracking number for each report
 - [ ] **RPT-06**: Citizen can report GBV/domestic violence/abuse as a dedicated category
-- [ ] **RPT-07**: GBV reports are automatically routed to the nearest SAPS police station based on geolocation
+- [x] **RPT-07**: GBV reports are automatically routed to the nearest SAPS police station based on geolocation
 - [ ] **RPT-08**: GBV report data is stored with enhanced encryption and access controls (need-to-know basis)
 - [ ] **RPT-09**: System performs OCR analysis on uploaded documents/images for verification and evidence capture
 
@@ -150,7 +150,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RPT-04 | Phase 8 | Pending |
 | RPT-05 | Phase 8 | Pending |
 | RPT-06 | Phase 8 | Pending |
-| RPT-07 | Phase 7 | Pending |
+| RPT-07 | Phase 7 | Complete |
 | RPT-08 | Phase 8 | Pending |
 | RPT-09 | Phase 9 | Pending |
 | TKT-01 | Phase 4 | Complete |

@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 07 Plan 01 COMPLETE — Fix WhatsApp/AI agent integration: replace broken IntakeFlow calls with direct ManagerCrew.kickoff() across messages.py, reports.py, whatsapp_service.py; fix stable session_id in whatsapp.py
+**Current focus:** Phase 07 Plan 02 COMPLETE — GBV confirmation state machine: gbv_pending_confirm two-turn gate in crew_server.py + whatsapp_service.py; updated test suite replacing IntakeFlow mocks with ManagerCrew mocks; 25 tests passing.
 
 ## Current Position
 
-Phase: 06.9.2 of 06.9.2 (System-wide Integration Validation — full security audit, API completeness, CI/CD, Render staging)
-Plan: 5 of 5 in current phase (ALL PLANS COMPLETE)
-Status: COMPLETE — All 5 plans delivered: API rate limiting (01), dashboard error handling (02), CI/CD + Render staging (03), code quality (04), 3-way communication tests (05)
-Last activity: 2026-02-21 — Phase 06.9.2 Plan 05 complete: 39 integration tests for 3-way flow + crew server behaviors
+Phase: 07 of 07 (Fix WhatsApp/AI Agent Integration)
+Plan: 2 of 2 in current phase (ALL PLANS COMPLETE)
+Status: COMPLETE — All 2 plans delivered: replace IntakeFlow with ManagerCrew.kickoff() (01), GBV confirmation state machine + test updates (02)
+Last activity: 2026-02-22 — Phase 07 Plan 02 complete: GBV confirmation gate in crew_server.py and whatsapp_service.py, 25 tests passing
 
-Progress: [██████████] 100% (5/5 plans)
+Progress: [██████████] 100% (2/2 plans)
 
 ## Performance Metrics
 
@@ -145,6 +145,7 @@ Progress: [██████████] 100% (5/5 plans)
 | Phase 06.9.2 P05 | 37 | 2 tasks | 2 files |
 | Phase 06.9.2 P04 | 13620 | 2 tasks | 3 files |
 | Phase 07 P01 | 638 | 2 tasks | 4 files |
+| Phase 07 P02 | 643 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -499,6 +500,10 @@ Recent decisions affecting current work:
 - [Phase 07-01]: Replace all IntakeFlow usage with direct ManagerCrew.kickoff() calls matching crew_server.py reference pattern — eliminates async/sync boundary issue and wrong llm_model kwarg
 - [Phase 07-01]: WhatsApp session_id uses stable phone-based key (wa-{phone}) not per-message (wa-{MessageSid}) for multi-turn state and GBV confirmation persistence
 - [Phase 07-01]: Media linking in whatsapp_service.py deferred to Phase 8 via tracking_number lookup — ManagerCrew creates tickets internally via tools, ticket_id not surfaced in result dict
+- [Phase 07-02]: GBV confirmation gate uses '_handled' sentinel routing_phase to prevent double-routing after YES/NO response in crew_server.py chat()
+- [Phase 07-02]: GBV_CONFIRMATION_MESSAGES defined at crew_server module level — whatsapp_service imports from crew_server (single source of truth for trilingual confirmation messages)
+- [Phase 07-02]: Ambiguous responses (not YES or NO) resend confirmation and stay in gbv_pending_confirm state — citizen must explicitly confirm or decline
+- [Phase 07-02]: whatsapp_service GBV gate checks current_routing != 'gbv' before entering pending_confirm to prevent re-triggering on already-confirmed sessions
 
 ### Pending Todos
 
@@ -525,10 +530,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 07 Plan 01 complete — Fixed IntakeFlow->ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; stable phone-based session_id in whatsapp.py)
-Stopped at: Completed 07-01-PLAN.md
-Resume file: .planning/phases/07-fix-whatsapp-ai-agent-integration/07-01-SUMMARY.md
+Last session: 2026-02-22 (Phase 07 Plan 02 complete — GBV confirmation state machine in crew_server.py + whatsapp_service.py; updated tests replacing IntakeFlow mocks with ManagerCrew mocks; 25 tests pass)
+Stopped at: Completed 07-02-PLAN.md
+Resume file: .planning/phases/07-fix-whatsapp-ai-agent-integration/07-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-22 (07 Plan 01 complete — fixed broken IntakeFlow->ManagerCrew.kickoff() in messages.py, reports.py, whatsapp_service.py; stable phone session_id in whatsapp.py)*
+*Last updated: 2026-02-22 (07 Plan 02 complete — GBV confirmation state machine + test updates; 25 tests passing; Phase 07 all plans complete)*
