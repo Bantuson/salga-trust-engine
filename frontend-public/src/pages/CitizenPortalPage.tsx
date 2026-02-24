@@ -82,8 +82,8 @@ export const CitizenPortalPage: React.FC = () => {
               className="filter-tab"
               style={{
                 padding: '8px 16px',
-                background: activeTab === 'reports' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
-                color: activeTab === 'reports' ? 'var(--color-teal)' : 'var(--text-secondary)',
+                background: activeTab === 'reports' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
+                color: activeTab === 'reports' ? 'var(--color-coral)' : 'var(--text-secondary)',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: 'var(--text-sm)',
@@ -99,8 +99,8 @@ export const CitizenPortalPage: React.FC = () => {
               className="filter-tab"
               style={{
                 padding: '8px 16px',
-                background: activeTab === 'details' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
-                color: activeTab === 'details' ? 'var(--color-teal)' : 'var(--text-secondary)',
+                background: activeTab === 'details' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
+                color: activeTab === 'details' ? 'var(--color-coral)' : 'var(--text-secondary)',
                 border: 'none',
                 borderRadius: 'var(--radius-sm)',
                 fontSize: 'var(--text-sm)',
