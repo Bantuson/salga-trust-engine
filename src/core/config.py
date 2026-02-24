@@ -52,7 +52,7 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: list[str] = Field(
-        default=["http://localhost:3000"],
+        default=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
         description="Allowed CORS origins"
     )
 
@@ -88,6 +88,7 @@ class Settings(BaseSettings):
     TWILIO_ACCOUNT_SID: str = Field(default="", description="Twilio account SID")
     TWILIO_AUTH_TOKEN: str = Field(default="", description="Twilio auth token")
     TWILIO_WHATSAPP_NUMBER: str = Field(default="", description="Twilio WhatsApp sender number (whatsapp:+14155238886)")
+    TWILIO_PHONE_NUMBER: str = Field(default="", description="Twilio phone number for SMS OTP (E.164 format, e.g. +1234567890)")
 
     # Environment
     DEBUG: bool = Field(default=False, description="Debug mode")

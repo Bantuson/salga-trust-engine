@@ -37,6 +37,8 @@ from src.schemas.ticket import (
     PaginatedTicketResponse,
     TicketAssignRequest,
     TicketDetailResponse,
+    TicketEscalateRequest,
+    TicketNoteCreate,
     TicketResponse,
     TicketStatusUpdate,
 )
@@ -123,8 +125,11 @@ async def list_tickets(
     Raises:
         HTTPException: 403 if user not authorized
     """
-    # RBAC check - allow WARD_COUNCILLOR
-    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.WARD_COUNCILLOR]:
+    # RBAC check - allow WARD_COUNCILLOR and FIELD_WORKER
+    if current_user.role not in [
+        UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON,
+        UserRole.WARD_COUNCILLOR, UserRole.FIELD_WORKER,
+    ]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view tickets"
@@ -152,6 +157,10 @@ async def list_tickets(
 
     # Build base query
     query = select(Ticket)
+
+    # Field worker: only see tickets assigned to them
+    if current_user.role == UserRole.FIELD_WORKER:
+        query = query.where(Ticket.assigned_to == current_user.id)
 
     # SEC-05: SAPS_LIAISON only sees GBV tickets
     if current_user.role == UserRole.SAPS_LIAISON:
@@ -259,8 +268,11 @@ async def get_ticket_detail(
                 detail="Not authorized to access sensitive reports"
             )
 
-    # RBAC: Ticket owner or manager/admin/saps_liaison/ward_councillor
-    if (ticket.user_id != current_user.id and
+    # RBAC: Ticket owner, assigned field worker, or manager/admin/saps_liaison/ward_councillor
+    is_assigned_worker = (
+        current_user.role == UserRole.FIELD_WORKER and ticket.assigned_to == current_user.id
+    )
+    if (ticket.user_id != current_user.id and not is_assigned_worker and
         current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.WARD_COUNCILLOR]):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
@@ -288,8 +300,8 @@ async def get_ticket_detail(
     # Compute SLA status
     response.sla_status = _compute_sla_status(ticket)
 
-    # Load assignment history (if user is manager/admin/saps_liaison)
-    if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON]:
+    # Load assignment history (if user is manager/admin/saps_liaison/field_worker)
+    if current_user.role in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.FIELD_WORKER]:
         assignment_service = AssignmentService()
         assignments = await assignment_service.get_assignment_history(ticket_id, db)
 
@@ -326,7 +338,7 @@ async def update_ticket_status(
         HTTPException: 403 if user not authorized (SEC-05)
     """
     # RBAC check
-    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON]:
+    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.FIELD_WORKER]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to update ticket status"
@@ -341,6 +353,25 @@ async def update_ticket_status(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ticket {ticket_id} not found"
         )
+
+    # Field worker: can only update tickets assigned to them
+    if current_user.role == UserRole.FIELD_WORKER:
+        if ticket.assigned_to != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to update this ticket"
+            )
+        # Field workers: only allowed transitions
+        allowed_transitions = {
+            "open": ["in_progress"],
+            "in_progress": ["resolved", "escalated"],
+        }
+        allowed = allowed_transitions.get(ticket.status, [])
+        if status_update.status not in allowed:
+            raise HTTPException(
+                status_code=status.HTTP_400_BAD_REQUEST,
+                detail=f"Field workers cannot transition from '{ticket.status}' to '{status_update.status}'"
+            )
 
     # SEC-05: GBV tickets only accessible to SAPS_LIAISON and ADMIN
     if ticket.is_sensitive:
@@ -526,7 +557,7 @@ async def get_ticket_history(
         HTTPException: 403 if user not authorized (SEC-05)
     """
     # RBAC check
-    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON]:
+    if current_user.role not in [UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON, UserRole.FIELD_WORKER]:
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
             detail="Not authorized to view ticket history"
@@ -541,6 +572,14 @@ async def get_ticket_history(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Ticket {ticket_id} not found"
         )
+
+    # Field worker: only their assigned tickets
+    if current_user.role == UserRole.FIELD_WORKER:
+        if ticket.assigned_to != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to view this ticket's history"
+            )
 
     # SEC-05: GBV access control
     if ticket.is_sensitive:
@@ -592,3 +631,136 @@ async def get_ticket_history(
     history.sort(key=lambda x: x["timestamp"], reverse=True)
 
     return history
+
+
+@router.post("/{ticket_id}/escalate", response_model=TicketResponse)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
+async def escalate_ticket(
+    request: Request,
+    ticket_id: UUID,
+    escalate_request: TicketEscalateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> TicketResponse:
+    """Escalate a ticket with a reason.
+
+    Args:
+        ticket_id: Ticket UUID
+        escalate_request: Escalation reason
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        Updated TicketResponse
+    """
+    if current_user.role not in [
+        UserRole.FIELD_WORKER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to escalate tickets"
+        )
+
+    result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
+    ticket = result.scalar_one_or_none()
+
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ticket {ticket_id} not found"
+        )
+
+    # Field worker: only their assigned tickets
+    if current_user.role == UserRole.FIELD_WORKER:
+        if ticket.assigned_to != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to escalate this ticket"
+            )
+
+    # SEC-05: GBV access control
+    if ticket.is_sensitive:
+        if current_user.role not in [UserRole.SAPS_LIAISON, UserRole.ADMIN]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to access sensitive reports"
+            )
+
+    ticket.status = "escalated"
+    ticket.escalated_at = datetime.now(timezone.utc)
+    ticket.escalation_reason = escalate_request.reason
+    ticket.updated_by = current_user.id
+
+    await db.commit()
+    await db.refresh(ticket)
+
+    return TicketResponse.model_validate(ticket)
+
+
+@router.post("/{ticket_id}/notes", status_code=status.HTTP_201_CREATED)
+@limiter.limit(SENSITIVE_WRITE_RATE_LIMIT)
+async def add_ticket_note(
+    request: Request,
+    ticket_id: UUID,
+    note: TicketNoteCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Add a note to a ticket (stored as audit log entry).
+
+    Args:
+        ticket_id: Ticket UUID
+        note: Note content
+        current_user: Authenticated user
+        db: Database session
+
+    Returns:
+        Confirmation with note ID
+    """
+    if current_user.role not in [
+        UserRole.FIELD_WORKER, UserRole.MANAGER, UserRole.ADMIN, UserRole.SAPS_LIAISON,
+    ]:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Not authorized to add notes"
+        )
+
+    result = await db.execute(select(Ticket).where(Ticket.id == ticket_id))
+    ticket = result.scalar_one_or_none()
+
+    if not ticket:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Ticket {ticket_id} not found"
+        )
+
+    # Field worker: only their assigned tickets
+    if current_user.role == UserRole.FIELD_WORKER:
+        if ticket.assigned_to != current_user.id:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to add notes to this ticket"
+            )
+
+    # SEC-05: GBV access control
+    if ticket.is_sensitive:
+        if current_user.role not in [UserRole.SAPS_LIAISON, UserRole.ADMIN]:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Not authorized to access sensitive reports"
+            )
+
+    # Store note as audit log entry
+    audit_entry = AuditLog(
+        tenant_id=str(current_user.tenant_id) if current_user.tenant_id else "",
+        user_id=str(current_user.id),
+        operation="UPDATE",
+        table_name="tickets",
+        record_id=str(ticket_id),
+        changes=f"note: {note.content}",
+    )
+    db.add(audit_entry)
+    await db.commit()
+    await db.refresh(audit_entry)
+
+    return {"id": str(audit_entry.id), "message": "Note added successfully"}
