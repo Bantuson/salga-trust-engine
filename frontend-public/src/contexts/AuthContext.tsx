@@ -22,7 +22,7 @@ interface AuthContextType {
   verifyOtp: (phone: string, token: string) => Promise<void>;
   signInWithEmailOtp: (email: string) => Promise<void>; // SEC-01: Passwordless email OTP login
   verifyEmailOtp: (email: string, token: string) => Promise<void>; // SEC-01: Verify email OTP and create session
-  signUp: (email: string, password: string, metadata?: { full_name?: string; phone?: string; municipality?: string }) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: { full_name?: string; display_name?: string; phone?: string; municipality?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUp = async (
     email: string,
     password: string,
-    metadata?: { full_name?: string; phone?: string; municipality?: string }
+    metadata?: { full_name?: string; display_name?: string; phone?: string; municipality?: string }
   ) => {
     const { error } = await supabase.auth.signUp({
       email,
@@ -108,7 +108,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (error) throw error;
   };
 
-  // SEC-01: Send 6-digit OTP to email for passwordless login (existing users only)
+  // SEC-01: Send OTP code to email for passwordless login (existing users only)
   const signInWithEmailOtp = async (email: string) => {
     const { error } = await supabase.auth.signInWithOtp({
       email,
