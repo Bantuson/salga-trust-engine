@@ -152,6 +152,7 @@ Progress: [██████████] 100% (1/1 plans)
 | Phase 09 P02 | 840 | 2 tasks | 5 files |
 | Phase 10 P01 | 291 | 2 tasks | 2 files |
 | Phase 10.1 P01 | 381 | 2 tasks | 4 files |
+| Phase 10.1 P02 | 335 | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -530,6 +531,9 @@ Recent decisions affecting current work:
 - [Phase 10.1]: verifyOtp must use type: 'email' (not 'signup') to confirm email AND create session simultaneously
 - [Phase 10.1]: signInWithEmailOtp uses shouldCreateUser: false — OTP login must never create new accounts
 - [Phase 10.1]: Dead-end post-signup success screen replaced with inline 6-digit OTP step on both registration pages; navigate to /profile (citizen) or / (dashboard) after verification
+- [Phase 10.1]: Email OTP login uses signInWithEmailOtp(shouldCreateUser: false) — login only, never creates accounts via OTP
+- [Phase 10.1]: verifyEmailOtp for sign-in uses type: email — same type as registration OTP verify
+- [Phase 10.1]: Municipal dashboard email OTP verify does NOT navigate manually — auth state change triggers redirect via App.tsx
 
 ### Pending Todos
 
