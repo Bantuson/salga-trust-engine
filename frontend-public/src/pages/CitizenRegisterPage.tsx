@@ -7,11 +7,13 @@
  * - GSAP animation sequence on load
  * - Email+password signup with optional phone and municipality
  * - NO proof of residence required at signup (per user decision)
+ * - Inline 6-digit OTP verification step after signup (no dead-end success screen)
  */
 
 import { useState, useRef } from 'react';
-import { Link, useLocation } from 'react-router-dom';
+import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { supabase } from '../lib/supabase';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -25,13 +27,19 @@ const PILOT_MUNICIPALITIES = [
   { value: 'buffalo-city', label: 'Buffalo City Metropolitan' },
 ];
 
+type RegisterMode = 'form' | 'verify-otp' | 'success';
+
 export function CitizenRegisterPage() {
   const { signUp } = useAuth();
   const location = useLocation();
+  const navigate = useNavigate();
 
+  const [mode, setMode] = useState<RegisterMode>('form');
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   // Form fields
   const [fullName, setFullName] = useState('');
@@ -115,15 +123,16 @@ export function CitizenRegisterPage() {
     setLoading(true);
 
     try {
-      // Sign up with metadata
+      // Sign up with metadata — Supabase sends a 6-digit OTP to the email
       await signUp(email, password, {
         full_name: fullName,
         phone: phone || undefined,
         municipality: municipality || undefined,
       });
 
-      // Show success message
-      setSuccess(true);
+      // Transition to OTP verification step (not dead-end success screen)
+      setRegisteredEmail(email);
+      setMode('verify-otp');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -131,8 +140,44 @@ export function CitizenRegisterPage() {
     }
   };
 
-  // If registration successful, show confirmation instead of form
-  if (success) {
+  const handleVerifyRegistrationOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      // verifyOtp with type 'email' confirms the email AND creates an active session
+      // CRITICAL: must be type 'email' (not 'signup') — see research Pitfall 1
+      await supabase.auth.verifyOtp({
+        email: registeredEmail,
+        token: otpCode,
+        type: 'email',
+      });
+      // User is now fully authenticated — navigate to profile
+      navigate('/profile', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResendMessage(null);
+    setError(null);
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: registeredEmail,
+      });
+      if (resendError) throw resendError;
+      setResendMessage('Verification code resent! Check your email.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend code');
+    }
+  };
+
+  // OTP verification step — appears after successful signUp()
+  if (mode === 'verify-otp') {
     return (
       <div ref={containerRef} style={styles.container}>
         <div className="auth-skyline-bg" />
@@ -141,26 +186,79 @@ export function CitizenRegisterPage() {
         <div ref={cardRef}>
           <GlassCard style={styles.card}>
             <div style={styles.logoSection}>
-              <h1 style={styles.title}>Account Created!</h1>
-              <p style={styles.tagline}>Welcome to SALGA Trust Engine</p>
+              <h1 style={styles.title}>Verify Your Email</h1>
+              <p style={styles.tagline}>Enter the 6-digit code we sent you</p>
             </div>
+
+            {error && (
+              <div style={styles.errorBox}>
+                {error}
+              </div>
+            )}
+
+            {resendMessage && (
+              <div style={styles.successBox}>
+                {resendMessage}
+              </div>
+            )}
 
             <div style={styles.successBox}>
-              <p style={{ marginBottom: '1rem' }}>
-                Your account has been created successfully. Please check your email to verify your account.
+              <p style={{ margin: 0 }}>
+                Verification code sent to <strong>{registeredEmail}</strong>
               </p>
-              <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)' }}>
-                Check your spam folder if you don't see the email within a few minutes.
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Check your spam folder if you don't see it within a minute.
               </p>
             </div>
 
-            <Link
-              to="/login"
-              state={{ from: location.state?.from }}
-              style={styles.button}
-            >
-              Go to Login
-            </Link>
+            <form onSubmit={handleVerifyRegistrationOtp} style={{ ...styles.form, marginTop: '1.5rem' }}>
+              <div style={styles.formGroup}>
+                <label htmlFor="otpCode" style={styles.label}>
+                  Verification Code <span style={styles.required}>*</span>
+                </label>
+                <input
+                  id="otpCode"
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  style={{
+                    ...styles.input,
+                    textAlign: 'center',
+                    letterSpacing: '0.5em',
+                    fontSize: '1.5rem',
+                  }}
+                  placeholder="000000"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                style={{
+                  ...styles.button,
+                  ...(loading || otpCode.length !== 6 ? styles.buttonDisabled : {}),
+                }}
+              >
+                {loading ? 'Verifying...' : 'Verify Email'}
+              </button>
+
+              <div style={styles.divider}>
+                <span style={styles.dividerText}>Didn't receive the code?</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleResendCode}
+                style={styles.linkButton}
+              >
+                Resend Code
+              </button>
+            </form>
           </GlassCard>
         </div>
       </div>
@@ -380,7 +478,7 @@ const styles = {
     border: '1px solid var(--color-teal)',
     borderRadius: 'var(--radius-sm)',
     color: 'var(--text-primary)',
-    marginBottom: '1.5rem',
+    marginBottom: '1rem',
     fontSize: '0.95rem',
     lineHeight: '1.6',
   } as React.CSSProperties,
