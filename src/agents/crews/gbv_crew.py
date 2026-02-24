@@ -1,8 +1,7 @@
 """GBVCrew — GBV crisis support with enhanced privacy."""
 from typing import Any
 
-from src.agents.crews.base_crew import AgentResponse, BaseCrew, _repair_from_raw
-from src.agents.prompts.gbv import GBV_INTAKE_PROMPTS
+from src.agents.crews.base_crew import AgentResponse, BaseCrew, _repair_from_raw, validate_gbv_output
 from src.agents.tools.saps_tool import notify_saps
 from src.agents.tools.ticket_tool import create_municipal_ticket
 
@@ -21,8 +20,8 @@ class GBVCrew(BaseCrew):
     tools = [create_municipal_ticket, notify_saps]
     memory_enabled = False
 
-    def get_language_prompt(self, language: str) -> str:
-        return GBV_INTAKE_PROMPTS.get(language, GBV_INTAKE_PROMPTS["en"])
+    def get_task_guardrail(self, context: dict):
+        return validate_gbv_output
 
     def build_task_kwargs(self, context: dict) -> dict:
         return {"output_pydantic": GBVResponse}

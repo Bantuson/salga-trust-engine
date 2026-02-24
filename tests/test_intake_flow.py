@@ -117,7 +117,7 @@ def test_intake_state_serialization():
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_detects_language(
     mock_get_llm, mock_lang_detector, mock_redis_url, sample_state
 ):
@@ -145,7 +145,7 @@ async def test_receive_and_route_detects_language(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_detects_zulu(
     mock_get_llm, mock_lang_detector, mock_redis_url
 ):
@@ -178,7 +178,7 @@ async def test_receive_and_route_detects_zulu(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_passes_full_context_to_manager(
     mock_get_llm, mock_lang_detector, mock_redis_url
 ):
@@ -221,7 +221,7 @@ async def test_receive_and_route_passes_full_context_to_manager(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_stores_result_in_state(
     mock_get_llm, mock_lang_detector, mock_redis_url, sample_state
 ):
@@ -250,7 +250,7 @@ async def test_receive_and_route_stores_result_in_state(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_increments_turn_count(
     mock_get_llm, mock_lang_detector, mock_redis_url
 ):
@@ -273,7 +273,7 @@ async def test_receive_and_route_increments_turn_count(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_pending_intent_none_becomes_none_string(
     mock_get_llm, mock_lang_detector, mock_redis_url
 ):
@@ -298,7 +298,7 @@ async def test_receive_and_route_pending_intent_none_becomes_none_string(
 
 
 @patch("src.agents.flows.intake_flow.language_detector")
-@patch("src.agents.flows.intake_flow.get_deepseek_llm")
+@patch("src.agents.flows.intake_flow.get_crew_llm")
 async def test_receive_and_route_sets_state_language_from_detected(
     mock_get_llm, mock_lang_detector, mock_redis_url
 ):

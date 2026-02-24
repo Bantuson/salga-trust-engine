@@ -21,9 +21,7 @@ from typing import Any
 import yaml
 from crewai import Agent, Crew, Process, Task
 
-from src.agents.prompts.auth import AUTH_PROMPTS
-from src.agents.prompts.gbv import GBV_INTAKE_PROMPTS
-from src.agents.prompts.municipal import MUNICIPAL_INTAKE_PROMPTS
+from src.agents.crews.base_crew import validate_structured_output
 from src.agents.tools.auth_tool import (
     create_supabase_user_tool,
     lookup_user_tool,
@@ -82,9 +80,18 @@ class ManagerCrew:
     def llm(self):
         """Lazy LLM resolution — avoids circular imports, supports test fakes."""
         if self._llm is None:
-            from src.agents.llm import get_deepseek_llm
-            self._llm = get_deepseek_llm()
+            from src.agents.llm import get_crew_llm
+            self._llm = get_crew_llm()
         return self._llm
+
+    @staticmethod
+    def _get_backstory(agent_config: dict, language: str) -> str:
+        """Get language-specific backstory from YAML config."""
+        if language == "zu":
+            return agent_config.get("backstory_zu", agent_config["backstory"])
+        elif language == "af":
+            return agent_config.get("backstory_af", agent_config["backstory"])
+        return agent_config["backstory"]
 
     def create_crew(self, context: dict) -> Crew:
         """Build manager agent, all 4 specialist agents, manager task, and Crew.
@@ -115,59 +122,41 @@ class ManagerCrew:
 
         # ── Auth specialist ──
         auth_config = self.agents_config["auth_agent"]
-        auth_language_prompt = AUTH_PROMPTS.get(language, AUTH_PROMPTS["en"])
-        auth_backstory = (
-            auth_config["backstory"] + "\n\n" + auth_language_prompt
-            if auth_language_prompt
-            else auth_config["backstory"]
-        )
         auth_agent = Agent(
             role=auth_config["role"],
             goal=auth_config["goal"].format(language=language),
-            backstory=auth_backstory,
+            backstory=self._get_backstory(auth_config, language),
             tools=[send_otp_tool, verify_otp_tool, create_supabase_user_tool, lookup_user_tool],
             llm=self.llm,
-            allow_delegation=False,  # Specialists MUST NOT delegate further
-            max_iter=10,  # Override YAML default (3) — auth needs multiple tool calls (send_otp + verify_otp + create_user)
-            verbose=False,
+            allow_delegation=auth_config.get("allow_delegation", False),
+            max_iter=auth_config.get("max_iter", 10),
+            verbose=auth_config.get("verbose", False),
         )
 
         # ── Municipal intake specialist ──
         municipal_config = self.agents_config["municipal_intake_agent"]
-        municipal_language_prompt = MUNICIPAL_INTAKE_PROMPTS.get(language, MUNICIPAL_INTAKE_PROMPTS["en"])
-        municipal_backstory = (
-            municipal_config["backstory"] + "\n\n" + municipal_language_prompt
-            if municipal_language_prompt
-            else municipal_config["backstory"]
-        )
         municipal_agent = Agent(
             role=municipal_config["role"],
             goal=municipal_config["goal"].format(language=language),
-            backstory=municipal_backstory,
+            backstory=self._get_backstory(municipal_config, language),
             tools=[create_municipal_ticket],
             llm=self.llm,
-            allow_delegation=False,
-            max_iter=5,  # Override YAML default (3) — municipal needs info gathering + ticket creation
-            verbose=False,
+            allow_delegation=municipal_config.get("allow_delegation", False),
+            max_iter=municipal_config.get("max_iter", 5),
+            verbose=municipal_config.get("verbose", False),
         )
 
         # ── GBV crisis support specialist ──
         gbv_config = self.agents_config["gbv_agent"]
-        gbv_language_prompt = GBV_INTAKE_PROMPTS.get(language, GBV_INTAKE_PROMPTS["en"])
-        gbv_backstory = (
-            gbv_config["backstory"] + "\n\n" + gbv_language_prompt
-            if gbv_language_prompt
-            else gbv_config["backstory"]
-        )
         gbv_agent = Agent(
             role=gbv_config["role"],
             goal=gbv_config["goal"].format(language=language),
-            backstory=gbv_backstory,
+            backstory=self._get_backstory(gbv_config, language),
             tools=[create_municipal_ticket, notify_saps],
             llm=self.llm,
-            allow_delegation=False,
+            allow_delegation=gbv_config.get("allow_delegation", False),
             max_iter=gbv_config.get("max_iter", 3),
-            verbose=False,
+            verbose=gbv_config.get("verbose", False),
         )
 
         # ── Ticket status specialist ──
@@ -175,12 +164,12 @@ class ManagerCrew:
         ticket_status_agent = Agent(
             role=ticket_config["role"],
             goal=ticket_config["goal"].format(language=language),
-            backstory=ticket_config["backstory"],
+            backstory=self._get_backstory(ticket_config, language),
             tools=[lookup_ticket],
             llm=self.llm,
-            allow_delegation=False,
+            allow_delegation=ticket_config.get("allow_delegation", False),
             max_iter=ticket_config.get("max_iter", 5),
-            verbose=False,
+            verbose=ticket_config.get("verbose", False),
         )
 
         # ── Manager task — routing logic ──
@@ -200,6 +189,8 @@ class ManagerCrew:
             description=manager_task_config["description"].format(**task_context),
             expected_output=manager_task_config["expected_output"],
             agent=manager_agent,
+            guardrail=validate_structured_output,
+            guardrail_max_retries=2,
         )
 
         # ── Crew with Process.hierarchical ──
@@ -349,10 +340,16 @@ class ManagerCrew:
         municipal_score = sum(1 for s in _MUNICIPAL_SIGNALS if s in raw_lower)
 
         # --- GBV indicators ---
+        # NOTE: Do NOT include "10111", "0800 150 150", "violence", "abuse"
+        # as standalone signals — they appear in the GBV specialist's backstory
+        # which leaks into Process.hierarchical raw output for ALL messages,
+        # causing false-positive GBV routing on greetings.
+        # Only use actual delegation/action indicators.
         _GBV_SIGNALS = [
-            "10111", "0800 150 150", "gbv", "gender-based violence",
-            "violence", "abuse", "crisis support specialist",
-            "notify_saps", "safe right now",
+            "notify_saps", "gbv report", "gender-based violence",
+            "crisis support specialist",
+            "delegating to crisis", "i will handle this gbv",
+            "immediate danger", "safe right now",
         ]
         gbv_score = sum(1 for s in _GBV_SIGNALS if s in raw_lower)
 
@@ -364,7 +361,7 @@ class ManagerCrew:
         ]
         ticket_score = sum(1 for s in _TICKET_STATUS_SIGNALS if s in raw_lower)
 
-        # Pick highest score, minimum threshold of 2 to avoid false positives
+        # Pick highest score; GBV needs threshold of 2, others need 2
         scores = {
             "auth": auth_score,
             "municipal": municipal_score,

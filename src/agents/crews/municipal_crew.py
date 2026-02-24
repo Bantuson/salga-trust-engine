@@ -2,7 +2,6 @@
 from typing import Any
 
 from src.agents.crews.base_crew import AgentResponse, BaseCrew, _repair_from_raw
-from src.agents.prompts.municipal import MUNICIPAL_INTAKE_PROMPTS
 from src.agents.tools.ticket_tool import create_municipal_ticket
 
 
@@ -17,10 +16,7 @@ class MunicipalCrew(BaseCrew):
     agent_key = "municipal_intake_agent"
     task_key = "handle_municipal_report"
     tools = [create_municipal_ticket]
-    memory_enabled = False  # FIX: was unset (defaulted True), now explicit
-
-    def get_language_prompt(self, language: str) -> str:
-        return MUNICIPAL_INTAKE_PROMPTS.get(language, MUNICIPAL_INTAKE_PROMPTS["en"])
+    memory_enabled = False
 
     def build_task_kwargs(self, context: dict) -> dict:
         return {"output_pydantic": MunicipalResponse}

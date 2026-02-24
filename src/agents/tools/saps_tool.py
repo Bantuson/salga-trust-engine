@@ -11,9 +11,10 @@ CRITICAL SECURITY:
 """
 import logging
 from datetime import datetime
-from typing import Any
+from typing import Any, Type
 
-from crewai.tools import tool
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
 
 # Dedicated logger for SAPS notifications
 # WARNING level ensures these are always captured
@@ -87,5 +88,34 @@ def _notify_saps_impl(
     }
 
 
-# Wrap implementation as CrewAI tool
-notify_saps = tool("notify_saps")(_notify_saps_impl)
+class NotifySapsInput(BaseModel):
+    """Input schema for notify_saps."""
+    ticket_id: str = Field(..., description="UUID of the created ticket")
+    tracking_number: str = Field(..., description="Public tracking number (TKT-YYYYMMDD-XXXXXX)")
+    incident_type: str = Field(..., description="Type of GBV incident (physical, sexual, verbal, threat, other)")
+    location: str = Field(..., description="General location area (NOT full address to protect victim)")
+    is_immediate_danger: bool = Field(..., description="Whether victim indicated immediate danger")
+    tenant_id: str = Field(..., description="Municipality tenant UUID")
+
+
+class NotifySapsTool(BaseTool):
+    name: str = "notify_saps"
+    description: str = "Notify SAPS liaison of GBV ticket creation."
+    args_schema: Type[BaseModel] = NotifySapsInput
+
+    def _run(
+        self,
+        ticket_id: str,
+        tracking_number: str,
+        incident_type: str,
+        location: str,
+        is_immediate_danger: bool,
+        tenant_id: str,
+    ) -> dict[str, Any]:
+        return _notify_saps_impl(
+            ticket_id, tracking_number, incident_type,
+            location, is_immediate_danger, tenant_id,
+        )
+
+
+notify_saps = NotifySapsTool()

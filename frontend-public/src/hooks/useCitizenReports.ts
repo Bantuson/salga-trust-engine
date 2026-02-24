@@ -101,7 +101,6 @@ export function useCitizenReports(statusFilter?: string) {
 
         if (!session) {
           // No auth session - use demo mode for UI testing
-          console.warn('No authentication session - showing demo data');
           setIsDemoMode(true);
           setReports(DEMO_TICKETS);
           setStats(DEMO_STATS);
@@ -154,7 +153,6 @@ export function useCitizenReports(statusFilter?: string) {
         setTotal(reportsData.total);
         setStats(statsData);
       } catch (err) {
-        console.error('Error fetching citizen data:', err);
         setError(err instanceof Error ? err.message : 'Unknown error occurred');
         // On error, don't show demo mode - show error state instead
       } finally {

@@ -64,7 +64,6 @@ export function FileUpload({
     const tenantId = user?.app_metadata?.tenant_id;
 
     if (!tenantId) {
-      console.error('[FileUpload] No tenant_id in user metadata');
       setUploadStatuses((prev) =>
         prev.map((status) =>
           status.status === 'uploading'
@@ -109,7 +108,6 @@ export function FileUpload({
 
         newFileIds.push(fileId);
       } catch (error) {
-        console.error('[FileUpload] Upload failed:', error);
         // Update status to error
         setUploadStatuses((prev) =>
           prev.map((status) =>

@@ -1,16 +1,32 @@
-"""DeepSeek LLM factory for CrewAI agents.
+"""LLM factory for CrewAI agents.
 
-Provides a factory function for creating DeepSeek V3.2 LLM instances.
-Kept separate from config.py to avoid circular imports (config is imported everywhere).
+Default: gpt-4o-mini — strong tool-calling, cost-effective, reliable instruction following.
+OPENAI_API_KEY is read automatically by LiteLLM from environment.
+
+DeepSeek kept as optional fallback via get_deepseek_llm().
 """
 from crewai import LLM
+
 from src.core.config import settings
 
 
-def get_deepseek_llm() -> LLM:
-    """Factory for DeepSeek V3.2 LLM via OpenAI-compatible endpoint.
+def get_crew_llm() -> LLM:
+    """Factory for gpt-4o-mini LLM.
 
-    Uses LiteLLM format 'deepseek/deepseek-chat' for provider routing.
+    OPENAI_API_KEY is picked up from env by LiteLLM automatically.
+
+    Returns:
+        crewai.LLM configured for gpt-4o-mini
+    """
+    return LLM(
+        model="gpt-4o-mini",
+        temperature=0.7,
+        max_tokens=2048,
+    )
+
+
+def get_deepseek_llm() -> LLM:
+    """Factory for DeepSeek V3.2 LLM (legacy/fallback).
 
     Returns:
         crewai.LLM configured for DeepSeek V3.2 chat model

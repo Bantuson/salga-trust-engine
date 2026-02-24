@@ -60,7 +60,6 @@ export function BrandingSection({ profile }: BrandingSectionProps) {
       // 1. const upload = await requestPresignedUrl(selectedFile.name, selectedFile.type, selectedFile.size, 'logo')
       // 2. Upload to Supabase Storage
       // 3. await updateMunicipalityProfile({ logo_url: upload.path })
-      console.log('[BrandingSection] Logo upload not yet wired to backend — file:', selectedFile.name);
       await new Promise((resolve) => setTimeout(resolve, 500));
       setSelectedFile(null);
     } finally {

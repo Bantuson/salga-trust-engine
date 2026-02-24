@@ -24,7 +24,6 @@ export function ExportButton({ filters }: ExportButtonProps) {
       a.click();
       URL.revokeObjectURL(blobUrl);
     } catch (error) {
-      console.error('[Export] Failed:', error);
       alert(`Export failed: ${error instanceof Error ? error.message : 'Unknown error'}`);
     } finally {
       setIsExporting(false);

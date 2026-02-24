@@ -83,7 +83,6 @@ export function RequestAccessPage() {
         const parsed = JSON.parse(draft);
         setFormData(parsed);
       } catch (err) {
-        console.error('Failed to parse draft:', err);
       }
     }
   }, []);

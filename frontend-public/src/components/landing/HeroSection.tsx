@@ -1,8 +1,8 @@
-import { useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { useRef, useState } from 'react';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
+import { VideoModal } from '../VideoModal';
 
 gsap.registerPlugin(useGSAP);
 
@@ -11,6 +11,7 @@ export function HeroSection() {
   const headlineRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
   const reducedMotion = useReducedMotion();
+  const [showVideo, setShowVideo] = useState(false);
 
   useGSAP(() => {
     if (reducedMotion) {
@@ -28,21 +29,25 @@ export function HeroSection() {
   }, { scope: sectionRef, dependencies: [reducedMotion] });
 
   return (
-    <section ref={sectionRef} className="hero-section">
-      <div className="hero-content">
-        <h1 ref={headlineRef} className="hero-headline">
-          Transparent Municipal Services.<br />
-          <span className="text-coral">For Every Citizen.</span>
-        </h1>
-        <div ref={subtitleRef} className="hero-subtitle-container">
-          <p className="hero-subtitle">
-            Track service delivery, hold municipalities accountable, and see real results across South Africa.
-          </p>
-          <Link to="/dashboard" className="hero-cta">
-            View Municipal Performance
-          </Link>
+    <>
+      <section ref={sectionRef} className="hero-section">
+        <div className="hero-content">
+          <h1 ref={headlineRef} className="hero-headline">
+            Transparent Municipal Services.<br />
+            <span className="text-coral">For Every Citizen.</span>
+          </h1>
+          <div ref={subtitleRef} className="hero-subtitle-container">
+            <p className="hero-subtitle">
+              Track service delivery, hold municipalities accountable, and see real results across South Africa.
+            </p>
+            <button className="hero-cta" onClick={() => setShowVideo(true)}>
+              Watch Video Demo
+            </button>
+          </div>
         </div>
-      </div>
-    </section>
+      </section>
+
+      <VideoModal isOpen={showVideo} onClose={() => setShowVideo(false)} />
+    </>
   );
 }

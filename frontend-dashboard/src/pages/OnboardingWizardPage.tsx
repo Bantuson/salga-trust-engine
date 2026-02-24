@@ -110,7 +110,6 @@ export function OnboardingWizardPage() {
             setWizardData(parsed.data || {});
             setCurrentStep(parsed.step || 0);
           } catch (err) {
-            console.error('Failed to parse cached wizard data:', err);
           }
         }
       }

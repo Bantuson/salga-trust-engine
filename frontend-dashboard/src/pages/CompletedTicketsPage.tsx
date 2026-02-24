@@ -38,7 +38,6 @@ export function CompletedTicketsPage() {
       setTickets(response.tickets);
       setPageCount(response.page_count);
     } catch (err) {
-      console.error('[CompletedTicketsPage] Failed to load tickets:', err);
       setTickets([]);
     } finally {
       setIsLoading(false);

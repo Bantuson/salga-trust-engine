@@ -71,7 +71,6 @@ export function useOnboarding() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to load progress';
       setError(errorMessage);
-      console.error('loadProgress error:', err);
       return null;
     } finally {
       setIsLoading(false);
@@ -123,7 +122,6 @@ export function useOnboarding() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to save step';
       setError(errorMessage);
-      console.error('saveStep error:', err);
       return null;
     } finally {
       setIsLoading(false);
@@ -163,7 +161,6 @@ export function useOnboarding() {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to complete onboarding';
       setError(errorMessage);
-      console.error('completeOnboarding error:', err);
       return false;
     } finally {
       setIsLoading(false);

@@ -74,7 +74,6 @@ export function FieldWorkerTicketsPage() {
       const response = await fetchTickets({ page: 0, page_size: 200 });
       setTickets(response.tickets);
     } catch (err) {
-      console.error('[FieldWorkerTicketsPage] Failed to load tickets:', err);
       setTickets([]);
     } finally {
       setIsLoading(false);

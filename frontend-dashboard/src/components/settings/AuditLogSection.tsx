@@ -65,7 +65,6 @@ export function AuditLogSection() {
         }
         setHasMore(pageNum * PAGE_SIZE < result.total);
       } catch (err) {
-        console.error('[AuditLogSection] Failed to load audit logs:', err);
       } finally {
         setIsLoading(false);
         setIsLoadingMore(false);

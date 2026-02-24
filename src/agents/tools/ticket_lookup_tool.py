@@ -10,9 +10,10 @@ Security model:
   Citizens get status + emergency numbers. No location, no description.
 """
 import logging
-from typing import Any
+from typing import Any, Type
 
-from crewai.tools import tool
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
 
 logger = logging.getLogger(__name__)
 
@@ -119,5 +120,19 @@ def _lookup_ticket_impl(user_id: str, tracking_number: str = "") -> dict[str, An
         return {"error": str(e), "tickets": [], "count": 0}
 
 
-# Wrap the implementation as a CrewAI tool
-lookup_ticket = tool("lookup_ticket")(_lookup_ticket_impl)
+class LookupTicketInput(BaseModel):
+    """Input schema for lookup_ticket."""
+    user_id: str = Field(..., description="The authenticated user's UUID. MANDATORY. Never empty.")
+    tracking_number: str = Field("", description="Optional tracking number (e.g. TKT-20260218-A1B2C3). If empty, returns up to 10 most recent tickets.")
+
+
+class LookupTicketTool(BaseTool):
+    name: str = "lookup_ticket"
+    description: str = "Look up ticket status for a citizen, scoped strictly to their own tickets."
+    args_schema: Type[BaseModel] = LookupTicketInput
+
+    def _run(self, user_id: str, tracking_number: str = "") -> dict[str, Any]:
+        return _lookup_ticket_impl(user_id, tracking_number)
+
+
+lookup_ticket = LookupTicketTool()
