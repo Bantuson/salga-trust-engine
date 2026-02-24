@@ -5,7 +5,7 @@
  * - Full-viewport skyline background with pink overlay
  * - Glassmorphism login card with SALGA branding
  * - Staggered GSAP animation sequence on load
- * - Dual auth modes: Email+password and Phone OTP
+ * - Three auth modes: Email+password, Phone OTP, and Email OTP
  */
 
 import { useState, useRef } from 'react';
@@ -15,10 +15,10 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
-type AuthMode = 'email' | 'phone' | 'verify-otp';
+type AuthMode = 'email' | 'phone' | 'verify-otp' | 'email-otp' | 'verify-email-otp';
 
 export function LoginPage() {
-  const { signInWithEmail, signInWithPhone, verifyOtp } = useAuth();
+  const { signInWithEmail, signInWithPhone, verifyOtp, signInWithEmailOtp, verifyEmailOtp } = useAuth();
   const [mode, setMode] = useState<AuthMode>('email');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -30,6 +30,9 @@ export function LoginPage() {
   // Phone OTP fields
   const [phone, setPhone] = useState('');
   const [otpToken, setOtpToken] = useState('');
+
+  // Email OTP fields
+  const [emailForOtp, setEmailForOtp] = useState('');
 
   // Animation refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -114,6 +117,35 @@ export function LoginPage() {
       // Auth state change will trigger redirect via App.tsx
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Invalid OTP code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleEmailOtpSend = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await signInWithEmailOtp(email);
+      setEmailForOtp(email);
+      setMode('verify-email-otp');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to send verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleVerifyEmailOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setLoading(true);
+    setError(null);
+    try {
+      await verifyEmailOtp(emailForOtp, otpToken);
+      // Auth state change will trigger redirect via App.tsx
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid verification code');
     } finally {
       setLoading(false);
     }
@@ -221,10 +253,18 @@ export function LoginPage() {
 
             <button
               type="button"
-              onClick={() => setMode('phone')}
+              onClick={() => { setMode('phone'); setError(null); }}
               style={styles.linkButton}
             >
               Sign in with Phone OTP
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setMode('email-otp'); setError(null); }}
+              style={styles.linkButton}
+            >
+              Sign in with Email Code
             </button>
 
             <div style={{ ...styles.divider, marginTop: '0.5rem' }}>
@@ -285,12 +325,13 @@ export function LoginPage() {
               <input
                 id="otp"
                 type="text"
+                inputMode="numeric"
                 value={otpToken}
-                onChange={(e) => setOtpToken(e.target.value)}
+                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
                 required
                 maxLength={6}
                 pattern="[0-9]{6}"
-                style={styles.input}
+                style={{ ...styles.input, textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem' }}
                 placeholder="123456"
                 autoComplete="one-time-code"
               />
@@ -316,6 +357,94 @@ export function LoginPage() {
               style={styles.linkButton}
             >
               Resend OTP
+            </button>
+          </form>
+        )}
+
+        {mode === 'email-otp' && (
+          <form onSubmit={handleEmailOtpSend} style={styles.form}>
+            <div style={styles.formGroup}>
+              <label htmlFor="email-otp-input" style={styles.label}>Email Address</label>
+              <input
+                id="email-otp-input"
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="user@municipality.gov.za"
+                autoComplete="email"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                ...styles.button,
+                ...(loading ? styles.buttonDisabled : {}),
+              }}
+            >
+              {loading ? 'Sending Code...' : 'Send Verification Code'}
+            </button>
+
+            <button
+              type="button"
+              onClick={() => { setMode('email'); setError(null); }}
+              style={styles.linkButton}
+            >
+              Back to email login
+            </button>
+          </form>
+        )}
+
+        {mode === 'verify-email-otp' && (
+          <form onSubmit={handleVerifyEmailOtp} style={styles.form}>
+            <div style={styles.infoBox}>
+              Verification code sent to {emailForOtp}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="email-otp-code" style={styles.label}>6-Digit Code</label>
+              <input
+                id="email-otp-code"
+                type="text"
+                inputMode="numeric"
+                value={otpToken}
+                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                required
+                maxLength={6}
+                pattern="[0-9]{6}"
+                style={{ ...styles.input, textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem' }}
+                placeholder="123456"
+                autoComplete="one-time-code"
+              />
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              style={{
+                ...styles.button,
+                ...(loading ? styles.buttonDisabled : {}),
+              }}
+            >
+              {loading ? 'Verifying...' : 'Verify Code'}
+            </button>
+
+            <button
+              type="button"
+              onClick={async () => {
+                setError(null);
+                try {
+                  await signInWithEmailOtp(emailForOtp);
+                } catch (err) {
+                  setError(err instanceof Error ? err.message : 'Failed to resend code');
+                }
+              }}
+              style={styles.linkButton}
+            >
+              Resend Code
             </button>
           </form>
         )}
