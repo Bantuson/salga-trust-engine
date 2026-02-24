@@ -233,6 +233,15 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-22 (Phase 9 planned: 2 plans for OCR-Supabase bridge and ward filtering)*
 
+### Phase 10.1: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 10.1 to break down)
+
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
 **Goal:** Replace keyword-based IntakeFlow router and imperative crew_server.py routing logic with a CrewAI hierarchical manager agent. Manager handles first contact, classifies intent via LLM, delegates to specialist agents (auth, municipal intake, GBV, ticket status). Add new ticket status agent for citizens to check on existing reports.

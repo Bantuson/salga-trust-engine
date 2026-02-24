@@ -545,6 +545,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.9.1 inserted after Phase 6.9: Fix agent output formatting Pydantic models auth OTP tool failures and system prompt engineering (URGENT)
 - Phase 6.1.1 inserted after Phase 6.1: Teams, Analytics and Settings pages UI — full implementations with user roles, municipal multi-tenancy, new roles/teams management, user journeys, design consistency (URGENT)
 - Phase 6.9.2 inserted after Phase 6.9.1: System-wide integration validation — full security audit, API completeness, 3-way communication (agents ↔ municipal ↔ public), code quality, CI/CD, Render staging deployment (URGENT)
+- Phase 10.1 inserted after Phase 10: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (URGENT)
 
 ### Blockers/Concerns
 
