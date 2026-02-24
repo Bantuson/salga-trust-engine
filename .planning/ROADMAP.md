@@ -235,12 +235,14 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 
 ### Phase 10.1: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
+**Goal:** Fix "invalid credentials" registration bug (unconfirmed email accounts) by adding inline 6-digit OTP verification to both registration pages, add email OTP as a login method alongside password and phone OTP, and remediate existing stuck accounts.
 **Depends on:** Phase 10
-**Plans:** 0 plans
+**Requirements:** SEC-01, SEC-02
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 10.1 to break down)
+- [ ] 10.1-01-PLAN.md -- Auth layer email OTP methods + inline OTP verification step on both registration pages
+- [ ] 10.1-02-PLAN.md -- Email OTP sign-in mode on both login pages + SQL remediation + template verification checkpoint
 
 ### Phase 06.9: Multi-Agent Manager Refactor -- CrewAI hierarchical routing with manager agent greeting task auth routing municipal tickets agent (INSERTED)
 
