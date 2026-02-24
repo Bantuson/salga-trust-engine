@@ -20,6 +20,8 @@ interface AuthContextType {
   signInWithEmail: (email: string, password: string) => Promise<void>;
   signInWithPhone: (phone: string) => Promise<void>;
   verifyOtp: (phone: string, token: string) => Promise<void>;
+  signInWithEmailOtp: (email: string) => Promise<void>; // SEC-01: Passwordless email OTP login
+  verifyEmailOtp: (email: string, token: string) => Promise<void>; // SEC-01: Verify email OTP and create session
   signUp: (email: string, password: string, metadata?: { full_name?: string; phone?: string; municipality?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
@@ -106,6 +108,27 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (error) throw error;
   };
 
+  // SEC-01: Send 6-digit OTP to email for passwordless login (existing users only)
+  const signInWithEmailOtp = async (email: string) => {
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false, // CRITICAL: login only, never create new accounts via OTP
+      },
+    });
+    if (error) throw error;
+  };
+
+  // SEC-01: Verify 6-digit email OTP and create authenticated session
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const { error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email', // CRITICAL: must be 'email' not 'sms' or 'signup'
+    });
+    if (error) throw error;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -125,6 +148,8 @@ export function AuthProvider({ children }: AuthProviderProps) {
     signInWithEmail,
     signInWithPhone,
     verifyOtp,
+    signInWithEmailOtp,
+    verifyEmailOtp,
     signUp,
     signOut,
   };
