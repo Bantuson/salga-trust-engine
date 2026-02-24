@@ -8,12 +8,19 @@ export default defineConfig({
   envDir: path.resolve(__dirname, '..'),
   server: {
     port: 5174, // Public dashboard
+    fs: {
+      allow: ['..'],
+    },
   },
   resolve: {
     alias: {
       '@shared': path.resolve(__dirname, '../shared'),
     },
-    dedupe: ['react', 'react-dom', 'react/jsx-runtime'],
+    dedupe: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
+    preserveSymlinks: false,
+  },
+  optimizeDeps: {
+    include: ['react', 'react-dom', 'react/jsx-runtime', 'clsx', 'class-variance-authority', 'react-loading-skeleton'],
   },
   build: {
     rollupOptions: {
