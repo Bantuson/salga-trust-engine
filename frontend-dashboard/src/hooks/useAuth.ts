@@ -80,6 +80,29 @@ export function useAuth() {
     return data;
   };
 
+  // SEC-01: Send 6-digit OTP to email for passwordless login (existing users only)
+  const signInWithEmailOtp = async (email: string) => {
+    const { data, error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: false, // CRITICAL: login only, never create new accounts via OTP
+      },
+    });
+    if (error) throw error;
+    return data;
+  };
+
+  // SEC-01: Verify 6-digit email OTP and create authenticated session
+  const verifyEmailOtp = async (email: string, token: string) => {
+    const { data, error } = await supabase.auth.verifyOtp({
+      email,
+      token,
+      type: 'email', // CRITICAL: must be 'email' not 'sms' or 'signup'
+    });
+    if (error) throw error;
+    return data;
+  };
+
   const signOut = async () => {
     const { error } = await supabase.auth.signOut();
     if (error) throw error;
@@ -102,6 +125,8 @@ export function useAuth() {
     signInWithEmail,
     signInWithPhone,
     verifyOtp,
+    signInWithEmailOtp,
+    verifyEmailOtp,
     signOut,
     getAccessToken,
     getUserRole,
