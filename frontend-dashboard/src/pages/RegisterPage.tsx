@@ -6,19 +6,26 @@
  * - Glassmorphism registration card with SALGA branding
  * - Staggered GSAP animation sequence on load
  * - Registration with email + password + full name
+ * - Inline 6-digit OTP verification step after signup (no dead-end success screen)
  */
 
 import { useState, useRef } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { supabase } from '../lib/supabase';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
+type RegisterMode = 'form' | 'verify-otp';
+
 export function RegisterPage() {
+  const navigate = useNavigate();
+  const [mode, setMode] = useState<RegisterMode>('form');
+  const [registeredEmail, setRegisteredEmail] = useState('');
+  const [otpCode, setOtpCode] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState(false);
+  const [resendMessage, setResendMessage] = useState<string | null>(null);
 
   // Form fields
   const [email, setEmail] = useState('');
@@ -88,7 +95,9 @@ export function RegisterPage() {
 
       if (signUpError) throw signUpError;
 
-      setSuccess(true);
+      // Transition to OTP verification step (not dead-end success screen)
+      setRegisteredEmail(email);
+      setMode('verify-otp');
       setError(null);
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
@@ -97,7 +106,44 @@ export function RegisterPage() {
     }
   };
 
-  if (success) {
+  const handleVerifyRegistrationOtp = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError(null);
+    setLoading(true);
+    try {
+      // verifyOtp with type 'email' confirms the email AND creates an active session
+      // CRITICAL: must be type 'email' (not 'signup') — see research Pitfall 1
+      await supabase.auth.verifyOtp({
+        email: registeredEmail,
+        token: otpCode,
+        type: 'email',
+      });
+      // User is now fully authenticated — navigate to dashboard root
+      navigate('/', { replace: true });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Invalid verification code');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleResendCode = async () => {
+    setResendMessage(null);
+    setError(null);
+    try {
+      const { error: resendError } = await supabase.auth.resend({
+        type: 'signup',
+        email: registeredEmail,
+      });
+      if (resendError) throw resendError;
+      setResendMessage('Verification code resent! Check your email.');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to resend code');
+    }
+  };
+
+  // OTP verification step — appears after successful signUp()
+  if (mode === 'verify-otp') {
     return (
       <div ref={containerRef} style={styles.container}>
         {/* Skyline background layers */}
@@ -105,36 +151,80 @@ export function RegisterPage() {
         <div className="auth-skyline-overlay" />
 
         <div ref={cardRef}>
-        <GlassCard style={styles.card}>
-          <div style={styles.logoSection}>
-            <h1 style={styles.title}>SALGA Trust Engine</h1>
-            <p style={styles.tagline}>Municipal Dashboard</p>
-          </div>
+          <GlassCard style={styles.card}>
+            <div style={styles.logoSection}>
+              <h1 style={styles.title}>SALGA Trust Engine</h1>
+              <p style={styles.tagline}>Verify Your Email</p>
+            </div>
 
-          <div style={styles.successBox}>
-            <svg
-              width="48"
-              height="48"
-              fill="none"
-              stroke="var(--color-teal)"
-              strokeWidth="2"
-              strokeLinecap="round"
-              strokeLinejoin="round"
-              style={{ margin: '0 auto 1rem' }}
-            >
-              <path d="M22 11.08V12a10 10 0 0 0 10 10h.92" />
-              <circle cx="12" cy="12" r="10" />
-              <polyline points="8 12 12 16 16 12" />
-            </svg>
-            <h2 style={{ marginBottom: '0.5rem', fontSize: '1.25rem' }}>Account Created!</h2>
-            <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              Please check your email to verify your account.
-            </p>
-            <Link to="/login" style={styles.linkButton}>
-              Go to Sign In
-            </Link>
-          </div>
-        </GlassCard>
+            {error && (
+              <div style={styles.errorBox}>
+                {error}
+              </div>
+            )}
+
+            {resendMessage && (
+              <div style={styles.successBox}>
+                {resendMessage}
+              </div>
+            )}
+
+            <div style={styles.successBox}>
+              <p style={{ margin: 0 }}>
+                Verification code sent to <strong>{registeredEmail}</strong>
+              </p>
+              <p style={{ margin: '0.5rem 0 0', fontSize: '0.875rem', color: 'var(--text-muted)' }}>
+                Check your spam folder if you don't see it within a minute.
+              </p>
+            </div>
+
+            <form onSubmit={handleVerifyRegistrationOtp} style={{ ...styles.form, marginTop: '1.5rem' }}>
+              <div style={styles.formGroup}>
+                <label htmlFor="otpCode" style={styles.label}>Verification Code</label>
+                <input
+                  id="otpCode"
+                  type="text"
+                  value={otpCode}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  required
+                  maxLength={6}
+                  pattern="[0-9]{6}"
+                  inputMode="numeric"
+                  autoComplete="one-time-code"
+                  style={{
+                    ...styles.input,
+                    textAlign: 'center',
+                    letterSpacing: '0.5em',
+                    fontSize: '1.5rem',
+                  }}
+                  placeholder="000000"
+                />
+              </div>
+
+              <button
+                type="submit"
+                disabled={loading || otpCode.length !== 6}
+                style={{
+                  ...styles.button,
+                  ...(loading || otpCode.length !== 6 ? styles.buttonDisabled : {}),
+                }}
+              >
+                {loading ? 'Verifying...' : 'Verify Email'}
+              </button>
+
+              <div style={styles.divider}>
+                <span style={styles.dividerText}>Didn't receive the code?</span>
+              </div>
+
+              <button
+                type="button"
+                onClick={handleResendCode}
+                style={styles.linkButton}
+              >
+                Resend Code
+              </button>
+            </form>
+          </GlassCard>
         </div>
       </div>
     );
@@ -291,8 +381,14 @@ const styles = {
     fontSize: '0.875rem',
   } as React.CSSProperties,
   successBox: {
-    textAlign: 'center' as const,
+    padding: '1rem',
+    backgroundColor: 'rgba(0, 217, 166, 0.1)',
+    border: '1px solid var(--color-teal)',
+    borderRadius: 'var(--radius-sm)',
     color: 'var(--text-primary)',
+    marginBottom: '1rem',
+    fontSize: '0.95rem',
+    lineHeight: '1.6',
   } as React.CSSProperties,
   form: {
     display: 'flex',
