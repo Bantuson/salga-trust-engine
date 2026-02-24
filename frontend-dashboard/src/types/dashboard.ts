@@ -103,3 +103,36 @@ export interface DashboardEvent {
   data: Record<string, unknown>;
   ward_id?: string;
 }
+
+/**
+ * Extended ticket detail with SLA + assignment info.
+ */
+export interface TicketDetailResponse extends Ticket {
+  assignment_history: AssignmentBrief[];
+  sla_status: string | null;
+  escalation_reason: string | null;
+}
+
+export interface AssignmentBrief {
+  team_name: string | null;
+  assigned_to_name: string | null;
+  assigned_by: string | null;
+  reason: string | null;
+  created_at: string;
+}
+
+/**
+ * History entry (assignment or audit log).
+ */
+export interface HistoryEntry {
+  type: 'assignment' | 'audit';
+  timestamp: string;
+  team_id?: string | null;
+  assigned_to?: string | null;
+  assigned_by?: string | null;
+  reason?: string | null;
+  is_current?: boolean;
+  operation?: string;
+  user_id?: string | null;
+  changes?: string | null;
+}

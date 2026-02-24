@@ -79,6 +79,9 @@ export const PERMISSION_MATRIX: Record<SystemRole, string[]> = {
   ],
   field_worker: [
     'view_tickets',
+    'update_ticket_status',
+    'add_feedback',
+    'escalate_ticket',
   ],
   ward_councillor: [
     'view_tickets',

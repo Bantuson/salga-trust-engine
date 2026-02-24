@@ -18,6 +18,9 @@ import { TicketListPage } from './pages/TicketListPage';
 import { TeamsPage } from './pages/TeamsPage';
 import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { SAPSReportsPage } from './pages/SAPSReportsPage';
+import { FieldWorkerTicketsPage } from './pages/FieldWorkerTicketsPage';
+import { CompletedTicketsPage } from './pages/CompletedTicketsPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
@@ -71,7 +74,7 @@ function AppRoutes() {
         <Route path="/onboarding" element={<OnboardingWizardPage />} />
 
         {/* Dashboard routes (wrapped in DashboardLayout) */}
-        <Route path="/" element={<DashboardLayout><DashboardPage /></DashboardLayout>} />
+        <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
         <Route path="/municipalities" element={<DashboardLayout><div style={styles.placeholder}>Municipalities (Coming Soon)</div></DashboardLayout>} />
@@ -79,11 +82,26 @@ function AppRoutes() {
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
         <Route path="/system" element={<DashboardLayout><div style={styles.placeholder}>System (Coming Soon)</div></DashboardLayout>} />
-        <Route path="/reports" element={<DashboardLayout><div style={styles.placeholder}>Reports (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/reports" element={<DashboardLayout><SAPSReportsPage /></DashboardLayout>} />
+        <Route path="/completed" element={<DashboardLayout><CompletedTicketsPage /></DashboardLayout>} />
+        <Route path="/field-worker" element={<DashboardLayout><FieldWorkerTicketsPage /></DashboardLayout>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PageTransition>
   );
+}
+
+/**
+ * Role-based dashboard: field workers see their assigned tickets page,
+ * SAPS liaison sees GBV cases, everyone else sees the default dashboard.
+ */
+function RoleBasedDashboard() {
+  const { getUserRole } = useAuth();
+  const role = getUserRole();
+
+  if (role === 'field_worker') return <FieldWorkerTicketsPage />;
+  if (role === 'saps_liaison') return <TicketListPage />;
+  return <DashboardPage />;
 }
 
 const styles = {

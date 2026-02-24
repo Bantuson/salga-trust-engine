@@ -5,6 +5,7 @@ import { useTicketFilters } from '../hooks/useTicketFilters';
 import type { Ticket } from '../types/dashboard';
 import { FilterBar } from '../components/dashboard/FilterBar';
 import { TicketTable } from '../components/dashboard/TicketTable';
+import { TicketDetailModal } from '../components/dashboard/TicketDetailModal';
 import { Pagination } from '../components/dashboard/Pagination';
 import { ExportButton } from '../components/dashboard/ExportButton';
 
@@ -17,6 +18,7 @@ export function TicketListPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [retryCount, setRetryCount] = useState(0);
+  const [selectedTicket, setSelectedTicket] = useState<Ticket | null>(null);
   const retryTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const prevFiltersRef = useRef<string>('');
 
@@ -215,7 +217,17 @@ export function TicketListPage() {
         onPaginationChange={handlePaginationChange}
         onSortingChange={handleSortingChange}
         isLoading={isLoading}
+        onRowClick={(ticket) => setSelectedTicket(ticket)}
       />
+
+      {/* Ticket detail modal */}
+      {selectedTicket && (
+        <TicketDetailModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+          onUpdated={() => setRetryCount(0)}
+        />
+      )}
 
       {/* Pagination controls */}
       {!isLoading && tickets.length > 0 && (

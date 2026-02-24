@@ -6,7 +6,7 @@
 
 import axios, { AxiosError } from 'axios';
 import { supabase } from '../lib/supabase';
-import type { TicketFilters, PaginatedTicketResponse, DashboardMetrics, CategoryVolume, SLACompliance, TeamWorkload } from '../types/dashboard';
+import type { TicketFilters, PaginatedTicketResponse, DashboardMetrics, CategoryVolume, SLACompliance, TeamWorkload, TicketDetailResponse, HistoryEntry } from '../types/dashboard';
 import type { Team, TeamCreate, TeamMember, TeamInvitation, InvitationCreate, BulkInvitationCreate } from '../types/teams';
 import type { AnalyticsData } from '../types/analytics';
 import type { SLAConfig, MunicipalityProfile, PaginatedAuditLogs } from '../types/settings';
@@ -528,6 +528,102 @@ export async function fetchAuditLogs(params: {
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.detail || 'Failed to fetch audit logs');
+    }
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Ticket Actions API
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch ticket detail with SLA status and assignment history.
+ */
+export async function fetchTicketDetail(id: string): Promise<TicketDetailResponse> {
+  try {
+    const response = await api.get(`/tickets/${id}`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch ticket detail');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Assign ticket to team/user.
+ */
+export async function assignTicket(
+  id: string,
+  data: { team_id?: string; assigned_to?: string; reason?: string }
+): Promise<TicketDetailResponse> {
+  try {
+    const response = await api.post(`/tickets/${id}/assign`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to assign ticket');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update ticket status.
+ */
+export async function updateTicketStatus(id: string, newStatus: string): Promise<TicketDetailResponse> {
+  try {
+    const response = await api.patch(`/tickets/${id}/status`, { status: newStatus });
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to update ticket status');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Escalate a ticket with a reason.
+ */
+export async function escalateTicket(id: string, reason: string): Promise<TicketDetailResponse> {
+  try {
+    const response = await api.post(`/tickets/${id}/escalate`, { reason });
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to escalate ticket');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Add a note to a ticket.
+ */
+export async function addTicketNote(id: string, content: string): Promise<void> {
+  try {
+    await api.post(`/tickets/${id}/notes`, { content });
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to add note');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch ticket history (assignments + audit logs).
+ */
+export async function fetchTicketHistory(id: string): Promise<HistoryEntry[]> {
+  try {
+    const response = await api.get(`/tickets/${id}/history`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch ticket history');
     }
     throw error;
   }

@@ -167,6 +167,18 @@ class TicketAssignRequest(BaseModel):
     reason: str | None = None
 
 
+class TicketEscalateRequest(BaseModel):
+    """Schema for escalating a ticket."""
+
+    reason: str = Field(min_length=10, max_length=500)
+
+
+class TicketNoteCreate(BaseModel):
+    """Schema for adding a note to a ticket."""
+
+    content: str = Field(min_length=1, max_length=2000)
+
+
 class TicketData(BaseModel):
     """Structured output schema for agent intake.
 

@@ -19,6 +19,7 @@ interface TicketTableProps {
   onPaginationChange: (updater: ((old: PaginationState) => PaginationState) | PaginationState) => void;
   onSortingChange: (updater: ((old: SortingState) => SortingState) | SortingState) => void;
   isLoading: boolean;
+  onRowClick?: (ticket: Ticket) => void;
 }
 
 function getStatusBadgeColor(status: string): string {
@@ -61,6 +62,7 @@ export function TicketTable({
   onPaginationChange,
   onSortingChange,
   isLoading,
+  onRowClick,
 }: TicketTableProps) {
   const columns = useMemo<ColumnDef<Ticket>[]>(
     () => [
@@ -261,7 +263,9 @@ export function TicketTable({
               key={row.id}
               style={{
                 borderBottom: '1px solid var(--glass-border)',
+                cursor: onRowClick ? 'pointer' : 'default',
               }}
+              onClick={() => onRowClick?.(row.original)}
               onMouseOver={(e) => (e.currentTarget.style.backgroundColor = 'var(--surface-elevated)')}
               onMouseOut={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
             >
