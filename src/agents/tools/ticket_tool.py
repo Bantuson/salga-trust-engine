@@ -10,9 +10,10 @@ DATABASE_URL (for unit tests with SQLite).
 import logging
 import secrets
 from datetime import date
-from typing import Any
+from typing import Any, Type
 
-from crewai.tools import tool
+from crewai.tools import BaseTool
+from pydantic import BaseModel, Field
 
 from src.models.ticket import TicketCategory, TicketSeverity, TicketStatus
 
@@ -124,5 +125,40 @@ def _create_ticket_impl(
         return {"error": f"Failed to create ticket: {str(e)}"}
 
 
-# Wrap the implementation as a CrewAI tool
-create_municipal_ticket = tool("create_municipal_ticket")(_create_ticket_impl)
+class CreateTicketInput(BaseModel):
+    """Input schema for create_municipal_ticket."""
+    category: str = Field(..., description="Ticket category (water/roads/electricity/waste/sanitation/other)")
+    description: str = Field(..., description="Detailed description of the issue (min 20 characters)")
+    user_id: str = Field(..., description="UUID of the reporting user")
+    tenant_id: str = Field(..., description="UUID of the municipality tenant")
+    language: str = Field(..., description="Language code (en/zu/af)")
+    severity: str = Field("medium", description="Issue severity (low/medium/high/critical)")
+    latitude: float | None = Field(None, description="Optional GPS latitude coordinate")
+    longitude: float | None = Field(None, description="Optional GPS longitude coordinate")
+    address: str | None = Field(None, description="Optional human-readable address")
+
+
+class CreateMunicipalTicketTool(BaseTool):
+    name: str = "create_municipal_ticket"
+    description: str = "Create a municipal service ticket in the database."
+    args_schema: Type[BaseModel] = CreateTicketInput
+
+    def _run(
+        self,
+        category: str,
+        description: str,
+        user_id: str,
+        tenant_id: str,
+        language: str,
+        severity: str = "medium",
+        latitude: float | None = None,
+        longitude: float | None = None,
+        address: str | None = None,
+    ) -> dict[str, Any]:
+        return _create_ticket_impl(
+            category, description, user_id, tenant_id, language,
+            severity, latitude, longitude, address,
+        )
+
+
+create_municipal_ticket = CreateMunicipalTicketTool()

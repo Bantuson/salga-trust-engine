@@ -82,6 +82,66 @@ def _repair_from_raw(raw: str, model_class, fallback_message: str, language: str
 
 
 # ---------------------------------------------------------------------------
+# Native task guardrails (CrewAI guardrail= parameter)
+# ---------------------------------------------------------------------------
+
+def validate_structured_output(result) -> tuple[bool, Any]:
+    """Default guardrail for all crews: reject empty/gibberish output.
+
+    Accepts if:
+    - Raw output contains JSON with a "message" key (>= 10 chars)
+    - Raw output contains "Final Answer:" with meaningful text
+    - Raw text is >= 20 chars (real response)
+
+    Returns:
+        (True, result) on accept, (False, re-prompt instruction) on reject.
+    """
+    raw = str(result) if result else ""
+
+    # Accept: JSON with "message" key
+    json_match = re.search(r'\{[^{}]*"message"\s*:\s*"([^"]{10,})"', raw)
+    if json_match:
+        return (True, result)
+
+    # Accept: "Final Answer:" with meaningful text
+    final_match = re.search(r"Final Answer:?\s*(.{10,})", raw, re.IGNORECASE)
+    if final_match:
+        return (True, result)
+
+    # Accept: raw text >= 20 chars
+    if len(raw.strip()) >= 20:
+        return (True, result)
+
+    # Reject: too short or empty
+    return (False, (
+        "Your response was too short or empty. Please provide a complete, "
+        "helpful response to the citizen's message. Include all relevant "
+        "details and next steps."
+    ))
+
+
+def validate_gbv_output(result) -> tuple[bool, Any]:
+    """GBV-specific guardrail: ensure emergency contact numbers are present.
+
+    GBV responses MUST include SAPS (10111) or GBV Command Centre (0800 150 150)
+    for citizen safety. Rejects and re-prompts if neither is found.
+
+    Returns:
+        (True, result) on accept, (False, re-prompt instruction) on reject.
+    """
+    raw = str(result) if result else ""
+
+    if "10111" in raw or "0800 150 150" in raw:
+        return (True, result)
+
+    return (False, (
+        "Your response MUST include emergency contact numbers for citizen safety. "
+        "Include SAPS emergency number 10111 and the GBV Command Centre 0800 150 150. "
+        "Please regenerate your response with these numbers included."
+    ))
+
+
+# ---------------------------------------------------------------------------
 # BaseCrew
 # ---------------------------------------------------------------------------
 
@@ -98,7 +158,6 @@ class BaseCrew(ABC):
         memory_enabled: bool    — False for PII-sensitive crews (auth, gbv)
 
     Subclasses MAY override:
-        get_language_prompt(language) — return language-specific backstory extension
         build_task_description(context) — custom task description building
         build_task_kwargs(context) — extra Task() kwargs (e.g. output_pydantic)
         build_kickoff_inputs(context) — dict of inputs passed to crew.kickoff()
@@ -127,13 +186,20 @@ class BaseCrew(ABC):
     def llm(self):
         """Lazy LLM resolution — avoids circular imports, supports test fakes."""
         if self._llm is None:
-            from src.agents.llm import get_deepseek_llm
-            self._llm = get_deepseek_llm()
+            from src.agents.llm import get_crew_llm
+            self._llm = get_crew_llm()
         return self._llm
 
-    def get_language_prompt(self, language: str) -> str:
-        """Return language-specific backstory extension. Override in subclass."""
-        return ""
+    def _get_backstory(self, agent_config: dict, language: str) -> str:
+        """Get language-specific backstory from YAML config.
+
+        Looks for backstory_zu/backstory_af keys; falls back to backstory (English).
+        """
+        if language == "zu":
+            return agent_config.get("backstory_zu", agent_config["backstory"])
+        elif language == "af":
+            return agent_config.get("backstory_af", agent_config["backstory"])
+        return agent_config["backstory"]
 
     def build_task_description(self, context: dict) -> str:
         """Build task description from YAML template + context.
@@ -143,6 +209,10 @@ class BaseCrew(ABC):
         """
         task_config = self.tasks_config[self.task_key]
         return task_config["description"].format(**context)
+
+    def get_task_guardrail(self, context: dict):
+        """Return guardrail function for task. Override for custom validation."""
+        return validate_structured_output
 
     def build_task_kwargs(self, context: dict) -> dict:
         """Extra kwargs for Task() constructor. Override to add output_pydantic etc."""
@@ -197,11 +267,7 @@ class BaseCrew(ABC):
         agent_config = self.agents_config[self.agent_key]
         role = agent_config["role"]
         goal = agent_config["goal"].format(language=language)
-        yaml_backstory = agent_config["backstory"]
-
-        # Combine YAML identity + language-specific operational prompt
-        language_prompt = self.get_language_prompt(language)
-        backstory = yaml_backstory + "\n\n" + language_prompt if language_prompt else yaml_backstory
+        backstory = self._get_backstory(agent_config, language)
 
         agent = Agent(
             role=role,
@@ -223,6 +289,12 @@ class BaseCrew(ABC):
             "agent": agent,
             **self.build_task_kwargs(context),
         }
+
+        guardrail = self.get_task_guardrail(context)
+        if guardrail:
+            task_kwargs["guardrail"] = guardrail
+            task_kwargs["guardrail_max_retries"] = 2
+
         task = Task(**task_kwargs)
 
         crew = Crew(

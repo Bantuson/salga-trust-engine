@@ -103,7 +103,6 @@ export function TicketListPage() {
         setPageCount(response.page_count);
         setRetryCount(0); // Reset on success
       } catch (err) {
-        console.error(`[TicketListPage] Fetch failed (attempt ${retryCount + 1}/${MAX_RETRIES}):`, err);
         setTickets([]);
         setPageCount(0);
 

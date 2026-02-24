@@ -35,7 +35,6 @@ supabase
   .select('*', { count: 'exact', head: true })
   .then(({ error }) => {
     if (error) {
-      console.warn('[PublicStats] Supabase connection issue:', error.message);
     }
   });
 
@@ -59,7 +58,6 @@ export function useMunicipalities() {
         setMunicipalities(rows.length > 0 ? rows : mockMunicipalities);
         setError(null);
       } catch (err) {
-        console.error('Error fetching municipalities:', err);
         setMunicipalities(mockMunicipalities);
         setError(null);
       } finally {
@@ -129,7 +127,6 @@ export function useResponseTimes(municipalityId?: string) {
         }
         setError(null);
       } catch (err) {
-        console.error('Error fetching response times:', err);
         const fallback = municipalityId
           ? mockResponseTimes.filter(r => r.municipality_id === municipalityId)
           : mockResponseTimes;
@@ -235,7 +232,6 @@ export function useResolutionRates(municipalityId?: string, months = 6) {
         }
         setError(null);
       } catch (err) {
-        console.error('Error fetching resolution rates:', err);
         const fallback = municipalityId
           ? mockResolutionRates.filter(r => r.municipality_id === municipalityId)
           : mockResolutionRates;
@@ -278,7 +274,6 @@ export function useHeatmapData(municipalityId?: string) {
         setData(heatmapRows.length > 0 ? heatmapRows : mockHeatmapData);
         setError(null);
       } catch (err) {
-        console.error('Error fetching heatmap data:', err);
         setData(mockHeatmapData);
         setError(null);
       } finally {
@@ -332,7 +327,6 @@ export function useCategoryBreakdown(municipalityId?: string) {
         }
         setError(null);
       } catch (err) {
-        console.error('Error fetching category breakdown:', err);
         setData(mockCategoryBreakdown);
         setError(null);
       } finally {
@@ -392,7 +386,6 @@ export function useSystemSummary() {
         }
         setError(null);
       } catch (err) {
-        console.error('Error fetching system summary:', err);
         setSummary(mockSystemSummary);
         setError(null);
       } finally {

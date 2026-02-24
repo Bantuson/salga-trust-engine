@@ -41,7 +41,6 @@ export function SAPSReportsPage() {
       setTickets(response.tickets);
       setPageCount(response.page_count);
     } catch (err) {
-      console.error('[SAPSReportsPage] Failed to load tickets:', err);
       setTickets([]);
     } finally {
       setIsLoading(false);

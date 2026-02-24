@@ -22,7 +22,10 @@ from unittest.mock import AsyncMock, MagicMock, patch
 from src.agents.crews.gbv_crew import GBVCrew
 from src.agents.flows.intake_flow import IntakeFlow
 from src.agents.flows.state import IntakeState
-from src.agents.prompts.gbv import GBV_INTAKE_PROMPTS, GBV_CLASSIFICATION_KEYWORDS
+import yaml
+from pathlib import Path
+
+from src.agents.prompts.gbv import GBV_CLASSIFICATION_KEYWORDS
 from src.agents.tools.saps_tool import notify_saps, _notify_saps_impl
 
 # Set fake OpenAI API key for tests (required by CrewAI Agent initialization)
@@ -87,37 +90,41 @@ class TestGBVCrewInstantiation:
 
 
 class TestGBVPrompts:
-    """Test GBV prompt content and structure."""
+    """Test GBV prompt content in agents.yaml (prompts moved from Python to YAML)."""
+
+    @pytest.fixture(autouse=True)
+    def load_yaml_prompts(self):
+        """Load GBV agent backstories from agents.yaml."""
+        config_path = Path(__file__).parent.parent / "src" / "agents" / "config" / "agents.yaml"
+        with open(config_path, "r", encoding="utf-8") as f:
+            agents_config = yaml.safe_load(f)
+        gbv_config = agents_config["gbv_agent"]
+        self.prompts = {
+            "en": gbv_config["backstory"],
+            "zu": gbv_config.get("backstory_zu", gbv_config["backstory"]),
+            "af": gbv_config.get("backstory_af", gbv_config["backstory"]),
+        }
 
     def test_english_prompt_contains_emergency_numbers(self):
         """English prompt must include SAPS (10111) and GBV Command Centre."""
-        en_prompt = GBV_INTAKE_PROMPTS["en"]
-        assert "10111" in en_prompt
-        assert "0800 150 150" in en_prompt
+        assert "10111" in self.prompts["en"]
+        assert "0800 150 150" in self.prompts["en"]
 
     def test_isizulu_prompt_contains_emergency_numbers(self):
         """isiZulu prompt must include emergency numbers."""
-        zu_prompt = GBV_INTAKE_PROMPTS["zu"]
-        assert "10111" in zu_prompt
-        assert "0800 150 150" in zu_prompt
+        assert "10111" in self.prompts["zu"]
+        assert "0800 150 150" in self.prompts["zu"]
 
     def test_afrikaans_prompt_contains_emergency_numbers(self):
         """Afrikaans prompt must include emergency numbers."""
-        af_prompt = GBV_INTAKE_PROMPTS["af"]
-        assert "10111" in af_prompt
-        assert "0800 150 150" in af_prompt
+        assert "10111" in self.prompts["af"]
+        assert "0800 150 150" in self.prompts["af"]
 
     def test_no_prompt_asks_for_perpetrator_identification(self):
-        """Verify no prompt requests perpetrator name or identification.
-
-        Note: 'who hurt you' may appear in safety assessment context
-        ('is the person who hurt you still nearby?') which is acceptable.
-        We check for explicit perpetrator identification requests.
-        """
-        # These are direct perpetrator identification requests (never acceptable)
+        """Verify no prompt requests perpetrator name or identification."""
         sensitive_terms = ["perpetrator name", "name of the person", "identify the perpetrator"]
 
-        for lang, prompt in GBV_INTAKE_PROMPTS.items():
+        for lang, prompt in self.prompts.items():
             prompt_lower = prompt.lower()
             for term in sensitive_terms:
                 assert term not in prompt_lower, (
@@ -127,27 +134,19 @@ class TestGBVPrompts:
 
     def test_prompts_are_trauma_informed(self):
         """Verify prompts use trauma-informed language."""
-        # English indicators
         en_indicators = ["empathetic", "non-judgmental", "safe", "support", "calm"]
-
-        # isiZulu indicators (different language, same concepts)
         zu_indicators = ["uzole", "uphephile", "umuzwa", "wesekwa"]
-
-        # Afrikaans indicators
         af_indicators = ["empaties", "nie-veroordelend", "veilig", "ondersteuning", "kalm"]
 
-        # Test English
-        en_prompt = GBV_INTAKE_PROMPTS["en"].lower()
+        en_prompt = self.prompts["en"].lower()
         en_matches = [ind for ind in en_indicators if ind in en_prompt]
         assert len(en_matches) >= 2, "English prompt should be trauma-informed"
 
-        # Test isiZulu
-        zu_prompt = GBV_INTAKE_PROMPTS["zu"].lower()
+        zu_prompt = self.prompts["zu"].lower()
         zu_matches = [ind for ind in zu_indicators if ind in zu_prompt]
         assert len(zu_matches) >= 2, "isiZulu prompt should be trauma-informed"
 
-        # Test Afrikaans
-        af_prompt = GBV_INTAKE_PROMPTS["af"].lower()
+        af_prompt = self.prompts["af"].lower()
         af_matches = [ind for ind in af_indicators if ind in af_prompt]
         assert len(af_matches) >= 2, "Afrikaans prompt should be trauma-informed"
 
@@ -232,7 +231,7 @@ class TestGBVRoutingInFlow:
         source module: src.agents.crews.manager_crew.ManagerCrew
         """
         with patch("src.agents.flows.intake_flow.language_detector") as mock_lang, \
-             patch("src.agents.flows.intake_flow.get_deepseek_llm") as mock_llm_fn, \
+             patch("src.agents.flows.intake_flow.get_crew_llm") as mock_llm_fn, \
              patch("src.agents.crews.manager_crew.ManagerCrew") as MockManagerCrew:
 
             mock_lang.detect.return_value = "en"
@@ -269,7 +268,7 @@ class TestGBVRoutingInFlow:
     async def test_gbv_context_includes_session_status(self):
         """ManagerCrew context includes session_status for auth-aware GBV routing."""
         with patch("src.agents.flows.intake_flow.language_detector") as mock_lang, \
-             patch("src.agents.flows.intake_flow.get_deepseek_llm") as mock_llm_fn, \
+             patch("src.agents.flows.intake_flow.get_crew_llm") as mock_llm_fn, \
              patch("src.agents.crews.manager_crew.ManagerCrew") as MockManagerCrew:
 
             mock_lang.detect.return_value = "en"
@@ -325,7 +324,7 @@ class TestSessionClearing:
     async def test_gbv_flow_result_stored_in_state(self):
         """IntakeFlow stores GBV ManagerCrew result in state (Phase 6.9 pattern)."""
         with patch("src.agents.flows.intake_flow.language_detector") as mock_lang, \
-             patch("src.agents.flows.intake_flow.get_deepseek_llm") as mock_llm_fn, \
+             patch("src.agents.flows.intake_flow.get_crew_llm") as mock_llm_fn, \
              patch("src.agents.crews.manager_crew.ManagerCrew") as MockManagerCrew:
 
             mock_lang.detect.return_value = "en"

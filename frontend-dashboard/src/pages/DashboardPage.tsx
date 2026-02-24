@@ -68,7 +68,6 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
       setWorkloadData(workloadRes);
       setLastUpdated(new Date());
     } catch (error) {
-      console.error('[Dashboard] Failed to fetch data:', error);
     } finally {
       setLoading(false);
     }

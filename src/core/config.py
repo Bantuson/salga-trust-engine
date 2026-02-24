@@ -52,7 +52,13 @@ class Settings(BaseSettings):
 
     # CORS
     ALLOWED_ORIGINS: list[str] = Field(
-        default=["http://localhost:5173", "http://localhost:5174", "http://localhost:3000"],
+        default=[
+            "http://localhost:5173",
+            "http://localhost:5174",
+            "http://localhost:3000",
+            "https://salga-municipal-dashboard.vercel.app",
+            "https://salga-public-municipal.vercel.app",
+        ],
         description="Allowed CORS origins"
     )
 

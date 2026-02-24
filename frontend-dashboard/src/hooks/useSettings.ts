@@ -51,7 +51,6 @@ export function useSettings(): UseSettingsReturn {
     } catch (err) {
       const message = err instanceof Error ? err.message : 'Failed to load settings';
       setError(message);
-      console.error('[useSettings] Load failed:', err);
     } finally {
       setIsLoading(false);
     }

@@ -143,17 +143,8 @@ export function Sidebar({ userEmail, userPhone, userRole, onSignOut }: SidebarPr
         ))}
       </nav>
 
-      {/* User Profile Section */}
-      <div className="sidebar-user">
-        <div className="sidebar-user-avatar">
-          {userInitials}
-        </div>
-        <div className="sidebar-user-info">
-          <div className="sidebar-user-name">{userDisplay}</div>
-          <Badge variant="default" size="sm" className="sidebar-user-role">
-            {roleLabel}
-          </Badge>
-        </div>
+      {/* Sign Out + User Profile Section */}
+      <div className="sidebar-bottom">
         <button
           onClick={onSignOut}
           className="sidebar-logout"
@@ -164,7 +155,20 @@ export function Sidebar({ userEmail, userPhone, userRole, onSignOut }: SidebarPr
             <polyline points="16 17 21 12 16 7" />
             <line x1="21" y1="12" x2="9" y2="12" />
           </svg>
+          <span className="sidebar-label">Sign Out</span>
         </button>
+
+        <div className="sidebar-user">
+          <div className="sidebar-user-avatar">
+            {userInitials}
+          </div>
+          <div className="sidebar-user-info">
+            <div className="sidebar-user-name">{userDisplay}</div>
+            <Badge variant="default" size="sm" className="sidebar-user-role">
+              {roleLabel}
+            </Badge>
+          </div>
+        </div>
       </div>
     </>
   );

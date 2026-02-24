@@ -33,7 +33,6 @@ export function useRealtimeTickets({ municipalityId, enabled = true, onUpdate }:
       .channel(`municipality:${municipalityId}`)
       // Listen for broadcast events from pg_notify
       .on('broadcast', { event: 'ticket_event' }, (payload) => {
-        console.log('[Realtime] Broadcast event received:', payload);
         onUpdate();
       })
       // Listen for direct postgres changes to tickets table
@@ -46,12 +45,10 @@ export function useRealtimeTickets({ municipalityId, enabled = true, onUpdate }:
           filter: `tenant_id=eq.${municipalityId}`,
         },
         (payload) => {
-          console.log('[Realtime] Postgres change received:', payload);
           onUpdate();
         }
       )
       .subscribe((status) => {
-        console.log('[Realtime] Subscription status:', status);
         setConnected(status === 'SUBSCRIBED');
       });
 

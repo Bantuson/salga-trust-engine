@@ -216,10 +216,8 @@ export function ReportIssuePage() {
               }
             );
             if (!confirmResponse.ok) {
-              console.warn('[ReportIssuePage] Upload confirm failed, media may not link:', await confirmResponse.text());
             }
           } catch (confirmErr) {
-            console.warn('[ReportIssuePage] Upload confirm error:', confirmErr);
             // Non-fatal — photo is in storage, just won't be linked to ticket
           }
         }
@@ -233,7 +231,6 @@ export function ReportIssuePage() {
           url: data.publicUrl,
         });
       } catch (error) {
-        console.error('[ReportIssuePage] Upload failed:', error);
         setUploadError(
           error instanceof Error ? error.message : 'Upload failed'
         );
@@ -355,7 +352,6 @@ export function ReportIssuePage() {
       setUploadedFiles([]);
       setIsGbv(false);
     } catch (error) {
-      console.error('[ReportIssuePage] Submit failed:', error);
       setError(error instanceof Error ? error.message : 'Failed to submit report. Please try again.');
     } finally {
       setIsSubmitting(false);

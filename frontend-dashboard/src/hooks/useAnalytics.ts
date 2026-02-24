@@ -76,7 +76,6 @@ export function useAnalytics({ wardId }: UseAnalyticsOptions = {}): UseAnalytics
       const result = await fetchAnalyticsData(start, end, wardId);
       setData(result);
     } catch (err) {
-      console.warn('[useAnalytics] Failed to fetch analytics data:', err);
       const message = err instanceof Error ? err.message : 'Failed to load analytics data';
       setError(message);
       setData(null);

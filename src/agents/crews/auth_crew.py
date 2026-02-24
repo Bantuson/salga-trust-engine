@@ -2,7 +2,7 @@
 from typing import Any
 
 from src.agents.crews.base_crew import BaseCrew, _repair_from_raw
-from src.agents.prompts.auth import AUTH_PROMPTS, AuthResult, build_auth_task_description
+from src.agents.prompts.auth import AuthResult, build_auth_task_description
 from src.agents.tools.auth_tool import (
     create_supabase_user_tool,
     lookup_user_tool,
@@ -18,9 +18,6 @@ class AuthCrew(BaseCrew):
     task_key = "authenticate_citizen"
     tools = [send_otp_tool, verify_otp_tool, create_supabase_user_tool, lookup_user_tool]
     memory_enabled = False
-
-    def get_language_prompt(self, language: str) -> str:
-        return AUTH_PROMPTS.get(language, AUTH_PROMPTS["en"])
 
     def build_task_description(self, context: dict) -> str:
         """Auth uses build_auth_task_description() instead of YAML template."""

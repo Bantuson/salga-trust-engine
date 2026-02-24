@@ -45,7 +45,6 @@ export function SettingsSection({
     try {
       await onSave();
     } catch (err) {
-      console.error(`[SettingsSection] Save failed for "${id}":`, err);
     }
   };
 

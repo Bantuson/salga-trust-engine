@@ -87,7 +87,6 @@ export function AnalyticsPage() {
       document.body.removeChild(a);
       URL.revokeObjectURL(url);
     } catch (error) {
-      console.error('[AnalyticsPage] CSV export failed:', error);
     }
   }, [timeRange, wardId]);
 

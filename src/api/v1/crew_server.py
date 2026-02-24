@@ -627,8 +627,8 @@ async def health_check() -> HealthResponse:
 @crew_app.post("/api/v1/session/reset")
 @limiter.limit(CREW_RESET_RATE_LIMIT)
 async def reset_session(
-    http_request: Request,
-    request: SessionResetRequest,
+    request: Request,
+    body: SessionResetRequest,
     x_api_key: str | None = Header(default=None),
 ) -> dict:
     """Clear conversation state for a phone number.
@@ -637,8 +637,8 @@ async def reset_session(
     GBV namespaces are cleared. Used for testing and conversation restart.
 
     Args:
-        http_request: Starlette Request object (required by slowapi rate limiter).
-        request: SessionResetRequest with phone number.
+        request: Starlette Request object (required by slowapi rate limiter).
+        body: SessionResetRequest with phone number.
         x_api_key: X-API-Key header for authentication.
 
     Returns:
@@ -649,7 +649,7 @@ async def reset_session(
     manager = _get_conversation_manager()
 
     # Use phone as both user_id and session_id for crew server simplicity
-    phone = request.phone.strip()
+    phone = body.phone.strip()
     session_id = f"crew:{phone}"
 
     try:
@@ -666,8 +666,8 @@ async def reset_session(
 @crew_app.post("/api/v1/chat", response_model=ChatResponse)
 @limiter.limit(CREW_CHAT_RATE_LIMIT)
 async def chat(
-    http_request: Request,
-    request: ChatRequest,
+    request: Request,
+    body: ChatRequest,
     x_api_key: str | None = Header(default=None),
 ) -> ChatResponse:
     """Main intake endpoint — phone detection, agent routing, and response.
@@ -689,9 +689,9 @@ async def chat(
     decision (no retry, no fallback model).
 
     Args:
-        http_request: Starlette Request object (required by slowapi rate limiter).
-        request: ChatRequest with phone, message, language, municipality_id,
-                 session_override.
+        request: Starlette Request object (required by slowapi rate limiter).
+        body: ChatRequest with phone, message, language, municipality_id,
+              session_override.
         x_api_key: X-API-Key header.
 
     Returns:
@@ -699,7 +699,7 @@ async def chat(
     """
     _validate_api_key(x_api_key)
 
-    phone = request.phone.strip()
+    phone = body.phone.strip()
     session_id = f"crew:{phone}"
     manager = _get_conversation_manager()
 
@@ -707,11 +707,11 @@ async def chat(
     # Step 1: Determine session status
     # ------------------------------------------------------------------
 
-    if request.session_override in ("expired", "new", "active"):
+    if body.session_override in ("expired", "new", "active"):
         # Test mode: use the provided override directly
-        if request.session_override == "new":
+        if body.session_override == "new":
             session_status = "none"
-        elif request.session_override == "expired":
+        elif body.session_override == "expired":
             session_status = "expired"
         else:
             session_status = "active"
@@ -721,7 +721,7 @@ async def chat(
         # Uses Supabase PostgREST — same working connection as auth tools
         resolved_user_id: str | None = None
         resolved_municipality_id: str | None = None
-        if request.session_override in ("active", "expired"):
+        if body.session_override in ("active", "expired"):
             try:
                 from src.core.supabase import get_supabase_admin
                 sb = get_supabase_admin()
@@ -737,7 +737,7 @@ async def chat(
                 pass  # Fall back to phone if lookup fails
 
         detection_result = {
-            "user_exists": request.session_override != "new",
+            "user_exists": body.session_override != "new",
             "session_status": session_status,
             "user_id": resolved_user_id or phone,
             "municipality_id": resolved_municipality_id,
@@ -769,11 +769,11 @@ async def chat(
     # Step 1.5: Auto-detect language from citizen's message
     # ------------------------------------------------------------------
     # Override the static dashboard language hint with detected language.
-    # Falls back to request.language if text is too short (<20 chars)
+    # Falls back to body.language if text is too short (<20 chars)
     # or detection confidence is below threshold (0.7).
     detected_language = language_detector.detect(
-        request.message,
-        fallback=request.language,
+        body.message,
+        fallback=body.language,
     )
 
     # ------------------------------------------------------------------
@@ -783,7 +783,7 @@ async def chat(
     # "isiZulu", "Afrikaans"), lock to that language for all future turns.
     # If a preference was stored in a previous turn, override auto-detection.
 
-    explicit_pref = _detect_language_preference(request.message)
+    explicit_pref = _detect_language_preference(body.message)
 
     # ------------------------------------------------------------------
     # Step 2: Load / create conversation history
@@ -798,7 +798,7 @@ async def chat(
 
     if conv_state is None:
         # Create new session — use phone as user_id, empty string for tenant_id
-        tenant_id = request.municipality_id or ""
+        tenant_id = body.municipality_id or ""
         conv_state = await manager.create_session(
             user_id=phone,
             session_id=session_id,
@@ -826,7 +826,7 @@ async def chat(
     # (Turns are only persisted to the store in Step 4, after the crew runs.
     #  Without this, the crew never sees what the user just typed.)
     history_turns = list(conv_state.turns) + [
-        {"role": "user", "content": request.message}
+        {"role": "user", "content": body.message}
     ]
     conversation_history = _format_history(history_turns)
 
@@ -844,10 +844,10 @@ async def chat(
 
         # Build context dict (shared by both short-circuit and manager paths)
         manager_context = {
-            "message": request.message,
+            "message": body.message,
             "user_id": detection_result.get("user_id") or phone,
             "tenant_id": (
-                request.municipality_id
+                body.municipality_id
                 or detection_result.get("municipality_id")
                 or conv_state.tenant_id
             ),
@@ -865,7 +865,7 @@ async def chat(
         # This MUST be checked before the specialist short-circuit below so that
         # "gbv_pending_confirm" never accidentally maps to GBVCrew directly.
         if routing_phase == "gbv_pending_confirm":
-            lower_msg = request.message.strip().lower()
+            lower_msg = body.message.strip().lower()
             positive = any(w in lower_msg for w in ["yes", "yebo", "ja", "confirm", "okay", "ok"])
             negative = any(w in lower_msg for w in ["no", "cha", "nee", "cancel", "stop"])
 
@@ -959,10 +959,10 @@ async def chat(
         if (
             new_routing_phase == "auth"
             and routing_phase == "manager"  # Only on first routing (not re-entry)
-            and len(request.message.strip()) > 20
+            and len(body.message.strip()) > 20
             and not conv_state.pending_intent  # Don't overwrite existing intent
         ):
-            conv_state.pending_intent = request.message
+            conv_state.pending_intent = body.message
         # Explicitly persist routing_phase to the store now.
         # ConversationManager.append_turn() re-fetches from Redis so we must
         # save BEFORE Step 4 or the updated field would be lost.
@@ -978,7 +978,7 @@ async def chat(
     except Exception as e:
         # Fail fast on DeepSeek API errors — no retry, no fallback model
         error_str = str(e)
-        error_lang = detected_language if "detected_language" in dir() else request.language
+        error_lang = detected_language if "detected_language" in dir() else body.language
         reply = _get_fallback("error", error_lang)
 
         return ChatResponse(
@@ -1034,7 +1034,7 @@ async def chat(
             user_id=phone,
             session_id=session_id,
             role="user",
-            content=request.message,
+            content=body.message,
             is_gbv=is_gbv,
         )
 
@@ -1070,10 +1070,10 @@ async def chat(
             "session_status": session_status,
             "routing_phase": getattr(conv_state, 'routing_phase', 'manager'),
             "phone": phone,
-            "language": request.language,
+            "language": body.language,
             "detected_language": detected_language,
             "language_preference": explicit_pref or stored_pref,
-            "municipality_id": request.municipality_id,
+            "municipality_id": body.municipality_id,
             "agent_result": agent_result,
             "raw_reply": raw_reply,
             "detection": {
