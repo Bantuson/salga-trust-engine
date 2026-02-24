@@ -151,6 +151,7 @@ Progress: [██████████] 100% (1/1 plans)
 | Phase 09 P01 | 594 | 2 tasks | 3 files |
 | Phase 09 P02 | 840 | 2 tasks | 5 files |
 | Phase 10 P01 | 291 | 2 tasks | 2 files |
+| Phase 10.1 P01 | 381 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -526,6 +527,9 @@ Recent decisions affecting current work:
 - [Phase 10]: render.yaml fixes are targeted one-line changes only — no structural changes to service configuration
 - [Phase 10]: SUPABASE_JWT_SECRET added to salga-celery defensively even though current Celery tasks do not verify JWTs directly
 - [Phase 10]: PyYAML used for render.yaml test parsing (transitive dep, no new dependencies added)
+- [Phase 10.1]: verifyOtp must use type: 'email' (not 'signup') to confirm email AND create session simultaneously
+- [Phase 10.1]: signInWithEmailOtp uses shouldCreateUser: false — OTP login must never create new accounts
+- [Phase 10.1]: Dead-end post-signup success screen replaced with inline 6-digit OTP step on both registration pages; navigate to /profile (citizen) or / (dashboard) after verification
 
 ### Pending Todos
 

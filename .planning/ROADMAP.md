@@ -238,7 +238,7 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 **Goal:** Fix "invalid credentials" registration bug (unconfirmed email accounts) by adding inline 6-digit OTP verification to both registration pages, add email OTP as a login method alongside password and phone OTP, and remediate existing stuck accounts.
 **Depends on:** Phase 10
 **Requirements:** SEC-01, SEC-02
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 10.1-01-PLAN.md -- Auth layer email OTP methods + inline OTP verification step on both registration pages
