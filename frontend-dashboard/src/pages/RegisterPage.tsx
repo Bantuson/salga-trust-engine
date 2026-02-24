@@ -89,13 +89,22 @@ export function RegisterPage() {
         options: {
           data: {
             full_name: fullName,
+            display_name: fullName,
           },
         },
       });
 
       if (signUpError) throw signUpError;
 
-      // Transition to OTP verification step (not dead-end success screen)
+      // Send OTP via signInWithOtp (uses "Magic Link" template which delivers reliably)
+      // The "Confirm signup" template may not deliver, so we bypass it entirely.
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+      if (otpError) throw otpError;
+
+      // Transition to OTP verification step
       setRegisteredEmail(email);
       setMode('verify-otp');
       setError(null);
@@ -131,9 +140,10 @@ export function RegisterPage() {
     setResendMessage(null);
     setError(null);
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
+      // Resend via signInWithOtp (uses "Magic Link" template which delivers reliably)
+      const { error: resendError } = await supabase.auth.signInWithOtp({
         email: registeredEmail,
+        options: { shouldCreateUser: false },
       });
       if (resendError) throw resendError;
       setResendMessage('Verification code resent! Check your email.');
@@ -185,10 +195,10 @@ export function RegisterPage() {
                   id="otpCode"
                   type="text"
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   required
-                  maxLength={6}
-                  pattern="[0-9]{6}"
+                  maxLength={8}
+                  pattern="[0-9]{6,8}"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   style={{
@@ -197,16 +207,16 @@ export function RegisterPage() {
                     letterSpacing: '0.5em',
                     fontSize: '1.5rem',
                   }}
-                  placeholder="000000"
+                  placeholder="00000000"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={loading || otpCode.length !== 6}
+                disabled={loading || otpCode.length < 6}
                 style={{
                   ...styles.button,
-                  ...(loading || otpCode.length !== 6 ? styles.buttonDisabled : {}),
+                  ...(loading || otpCode.length < 6 ? styles.buttonDisabled : {}),
                 }}
               >
                 {loading ? 'Verifying...' : 'Verify Email'}

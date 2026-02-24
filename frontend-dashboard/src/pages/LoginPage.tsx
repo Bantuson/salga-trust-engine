@@ -321,18 +321,18 @@ export function LoginPage() {
             </div>
 
             <div style={styles.formGroup}>
-              <label htmlFor="otp" style={styles.label}>6-Digit Code</label>
+              <label htmlFor="otp" style={styles.label}>Verification Code</label>
               <input
                 id="otp"
                 type="text"
                 inputMode="numeric"
                 value={otpToken}
-                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 required
-                maxLength={6}
-                pattern="[0-9]{6}"
+                maxLength={8}
+                pattern="[0-9]{6,8}"
                 style={{ ...styles.input, textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem' }}
-                placeholder="123456"
+                placeholder="12345678"
                 autoComplete="one-time-code"
               />
             </div>
@@ -405,18 +405,18 @@ export function LoginPage() {
             </div>
 
             <div style={styles.formGroup}>
-              <label htmlFor="email-otp-code" style={styles.label}>6-Digit Code</label>
+              <label htmlFor="email-otp-code" style={styles.label}>Verification Code</label>
               <input
                 id="email-otp-code"
                 type="text"
                 inputMode="numeric"
                 value={otpToken}
-                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                onChange={(e) => setOtpToken(e.target.value.replace(/\D/g, '').slice(0, 8))}
                 required
-                maxLength={6}
-                pattern="[0-9]{6}"
+                maxLength={8}
+                pattern="[0-9]{6,8}"
                 style={{ ...styles.input, textAlign: 'center', letterSpacing: '0.5em', fontSize: '1.5rem' }}
-                placeholder="123456"
+                placeholder="12345678"
                 autoComplete="one-time-code"
               />
             </div>

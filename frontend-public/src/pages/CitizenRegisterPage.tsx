@@ -10,13 +10,113 @@
  * - Inline 6-digit OTP verification step after signup (no dead-end success screen)
  */
 
-import { useState, useRef } from 'react';
+import { useState, useRef, useEffect } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
+
+function MunicipalityDropdown({
+  options,
+  value,
+  onChange,
+}: {
+  options: { value: string; label: string }[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [isOpen, setIsOpen] = useState(false);
+  const [focusedIndex, setFocusedIndex] = useState(-1);
+  const wrapperRef = useRef<HTMLDivElement>(null);
+
+  const selectedLabel = options.find((o) => o.value === value)?.label || options[0]?.label;
+
+  // Close on click outside
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  return (
+    <div ref={wrapperRef} style={{ position: 'relative' }}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        style={{
+          width: '100%',
+          padding: '0.75rem',
+          paddingRight: '2.5rem',
+          border: '1px solid var(--border-subtle)',
+          borderRadius: 'var(--radius-sm)',
+          fontSize: '1rem',
+          backgroundColor: 'var(--surface-elevated)',
+          color: 'var(--text-primary)',
+          cursor: 'pointer',
+          textAlign: 'left',
+          position: 'relative',
+          outline: 'none',
+          fontFamily: 'inherit',
+          transition: 'border-color 0.2s',
+          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d9a6' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
+          backgroundRepeat: 'no-repeat',
+          backgroundPosition: 'right 0.75rem center',
+        }}
+      >
+        {selectedLabel}
+      </button>
+
+      {isOpen && (
+        <div
+          style={{
+            position: 'absolute',
+            top: 'calc(100% + 4px)',
+            left: 0,
+            width: '100%',
+            background: 'rgba(30, 30, 40, 0.95)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid var(--border-subtle)',
+            borderRadius: 'var(--radius-sm)',
+            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
+            maxHeight: '240px',
+            overflowY: 'auto',
+            zIndex: 50,
+          }}
+        >
+          {options.map((option, index) => (
+            <div
+              key={option.value}
+              onClick={() => {
+                onChange(option.value);
+                setIsOpen(false);
+              }}
+              onMouseEnter={() => setFocusedIndex(index)}
+              onMouseLeave={() => setFocusedIndex(-1)}
+              style={{
+                padding: '0.625rem 1rem',
+                color: option.value === value ? 'var(--color-teal)' : 'var(--text-primary)',
+                fontWeight: option.value === value ? 600 : 400,
+                background: focusedIndex === index ? 'rgba(205, 94, 129, 0.15)' : 'transparent',
+                cursor: 'pointer',
+                fontSize: '0.95rem',
+                transition: 'background 0.15s',
+              }}
+            >
+              {option.label}
+            </div>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
 
 const PILOT_MUNICIPALITIES = [
   { value: '', label: 'Select your municipality (optional)' },
@@ -43,6 +143,7 @@ export function CitizenRegisterPage() {
 
   // Form fields
   const [fullName, setFullName] = useState('');
+  const [username, setUsername] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -92,6 +193,10 @@ export function CitizenRegisterPage() {
       errors.fullName = 'Full name is required';
     }
 
+    if (!username.trim()) {
+      errors.username = 'Username is required';
+    }
+
     if (!email.trim()) {
       errors.email = 'Email is required';
     } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
@@ -123,14 +228,23 @@ export function CitizenRegisterPage() {
     setLoading(true);
 
     try {
-      // Sign up with metadata — Supabase sends a 6-digit OTP to the email
+      // Step 1: Create the account with metadata
       await signUp(email, password, {
         full_name: fullName,
+        display_name: username,
         phone: phone || undefined,
         municipality: municipality || undefined,
       });
 
-      // Transition to OTP verification step (not dead-end success screen)
+      // Step 2: Send OTP via signInWithOtp (uses "Magic Link" template which delivers reliably)
+      // The "Confirm signup" template may not deliver, so we bypass it entirely.
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: { shouldCreateUser: false },
+      });
+      if (otpError) throw otpError;
+
+      // Transition to OTP verification step
       setRegisteredEmail(email);
       setMode('verify-otp');
     } catch (err) {
@@ -165,9 +279,10 @@ export function CitizenRegisterPage() {
     setResendMessage(null);
     setError(null);
     try {
-      const { error: resendError } = await supabase.auth.resend({
-        type: 'signup',
+      // Resend via signInWithOtp (uses "Magic Link" template which delivers reliably)
+      const { error: resendError } = await supabase.auth.signInWithOtp({
         email: registeredEmail,
+        options: { shouldCreateUser: false },
       });
       if (resendError) throw resendError;
       setResendMessage('Verification code resent! Check your email.');
@@ -187,7 +302,7 @@ export function CitizenRegisterPage() {
           <GlassCard style={styles.card}>
             <div style={styles.logoSection}>
               <h1 style={styles.title}>Verify Your Email</h1>
-              <p style={styles.tagline}>Enter the 6-digit code we sent you</p>
+              <p style={styles.tagline}>Enter the verification code we sent you</p>
             </div>
 
             {error && (
@@ -220,10 +335,10 @@ export function CitizenRegisterPage() {
                   id="otpCode"
                   type="text"
                   value={otpCode}
-                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  onChange={(e) => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 8))}
                   required
-                  maxLength={6}
-                  pattern="[0-9]{6}"
+                  maxLength={8}
+                  pattern="[0-9]{6,8}"
                   inputMode="numeric"
                   autoComplete="one-time-code"
                   style={{
@@ -232,16 +347,16 @@ export function CitizenRegisterPage() {
                     letterSpacing: '0.5em',
                     fontSize: '1.5rem',
                   }}
-                  placeholder="000000"
+                  placeholder="00000000"
                 />
               </div>
 
               <button
                 type="submit"
-                disabled={loading || otpCode.length !== 6}
+                disabled={loading || otpCode.length < 6}
                 style={{
                   ...styles.button,
-                  ...(loading || otpCode.length !== 6 ? styles.buttonDisabled : {}),
+                  ...(loading || otpCode.length < 6 ? styles.buttonDisabled : {}),
                 }}
               >
                 {loading ? 'Verifying...' : 'Verify Email'}
@@ -302,6 +417,25 @@ export function CitizenRegisterPage() {
               />
               {fieldErrors.fullName && (
                 <span style={styles.fieldError}>{fieldErrors.fullName}</span>
+              )}
+            </div>
+
+            <div style={styles.formGroup}>
+              <label htmlFor="username" style={styles.label}>
+                Username <span style={styles.required}>*</span>
+              </label>
+              <input
+                id="username"
+                type="text"
+                value={username}
+                onChange={(e) => setUsername(e.target.value)}
+                required
+                style={styles.input}
+                placeholder="johndoe"
+                autoComplete="username"
+              />
+              {fieldErrors.username && (
+                <span style={styles.fieldError}>{fieldErrors.username}</span>
               )}
             </div>
 
@@ -379,21 +513,14 @@ export function CitizenRegisterPage() {
             </div>
 
             <div style={styles.formGroup}>
-              <label htmlFor="municipality" style={styles.label}>
+              <label style={styles.label}>
                 Municipality (optional)
               </label>
-              <select
-                id="municipality"
+              <MunicipalityDropdown
+                options={PILOT_MUNICIPALITIES}
                 value={municipality}
-                onChange={(e) => setMunicipality(e.target.value)}
-                style={styles.input}
-              >
-                {PILOT_MUNICIPALITIES.map((muni) => (
-                  <option key={muni.value} value={muni.value}>
-                    {muni.label}
-                  </option>
-                ))}
-              </select>
+                onChange={setMunicipality}
+              />
               <small style={styles.helperText}>You can set this later in your profile</small>
             </div>
 
