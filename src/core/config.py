@@ -57,7 +57,7 @@ class Settings(BaseSettings):
             "http://localhost:5174",
             "http://localhost:3000",
             "https://salga-municipal-dashboard.vercel.app",
-            "https://salga-public-municipal.vercel.app",
+            "https://salga-trust-engine-public.vercel.app",
         ],
         description="Allowed CORS origins"
     )
