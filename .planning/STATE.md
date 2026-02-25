@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10 COMPLETE — Render staging deployment fixes delivered: Celery module path corrected, SUPABASE_JWT_SECRET added to salga-api + salga-celery, TWILIO_WHATSAPP_FROM renamed to TWILIO_WHATSAPP_NUMBER. CI test guard added.
+**Current focus:** Phase 10.2 Plan 02 COMPLETE — Client-side password validation on all registration pages. Supabase Dashboard checkpoint resolved: Free Plan documented, SMTP pending, email_confirm: True stays until SMTP configured. SEC-01/SEC-02/SEC-04 requirements verified.
 
 ## Current Position
 
-Phase: 10 of 10 (Render Staging Deployment Fixes)
-Plan: 1 of 1 in current phase
-Status: COMPLETE — Phase 10 Plan 01 delivered: render.yaml has all 3 bugs fixed, tests/test_render_config.py has 5 passing CI guard tests
-Last activity: 2026-02-22 — Phase 10 Plan 01 complete: render.yaml deployment bugs fixed, staging unblocked
+Phase: 10.2 of 10.2 (Auth System Security Hardening)
+Plan: 2 of 2 in current phase
+Status: COMPLETE — Phase 10.2 Plan 02 delivered: client-side password validation with real-time hint UI, Supabase Dashboard Free Plan limitations documented
+Last activity: 2026-02-25 — Phase 10.2 Plan 02 complete: client-side password validation committed, Supabase Dashboard checkpoint resolved
 
-Progress: [██████████] 100% (1/1 plans)
+Progress: [██████████] 100% (2/2 plans)
 
 ## Performance Metrics
 
@@ -542,6 +542,9 @@ Recent decisions affecting current work:
 - [Phase 10.2]: Symbols not required in password policy — usability tradeoff for citizens per research decision
 - [Phase 10.2]: POPIA: only email domain logged in auth events (never full email); user IDs truncated to 8 chars
 - [Phase 10.2]: OperationType enum extended (not replaced) with 6 new AUTH_ values for structured auth event logging
+- [Phase 10.2-02]: Client-side password validation mirrors backend policy exactly (12 chars, uppercase, lowercase, digit) — same rules prevent UX/server rule gaps
+- [Phase 10.2-02]: Free Plan limitation documented — Supabase Dashboard password policy, HaveIBeenPwned, session management unavailable; backend + frontend is primary enforcement layer
+- [Phase 10.2-02]: email_confirm: True workaround stays in src/api/v1/auth.py until SMTP is configured — remaining hardening item for when SMTP is set up
 
 ### Pending Todos
 
@@ -570,9 +573,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-22 (Phase 10 Plan 01 complete — render.yaml 3 bugs fixed: Celery module path, SUPABASE_JWT_SECRET added, TWILIO_WHATSAPP_FROM renamed to NUMBER; 5 CI guard tests added)
-Stopped at: Completed 10-01-PLAN.md
-Resume file: .planning/phases/10-render-staging-deployment-fixes/10-01-SUMMARY.md
+Last session: 2026-02-25 (Phase 10.2 Plan 02 complete — client-side password validation on both registration pages, Supabase Dashboard checkpoint resolved, Free Plan limitations documented, email_confirm: True stays until SMTP configured)
+Stopped at: Completed 10.2-02-PLAN.md
+Resume file: .planning/phases/10.2-auth-system-security-hardening/10.2-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
