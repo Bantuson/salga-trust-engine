@@ -154,6 +154,7 @@ Progress: [██████████] 100% (1/1 plans)
 | Phase 10.1 P01 | 381 | 2 tasks | 4 files |
 | Phase 10.1 P02 | 335 | 1 tasks | 3 files |
 | Phase 10.2 P02 | 698 | 1 tasks | 2 files |
+| Phase 10.2 P01 | 1616 | 3 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -538,6 +539,9 @@ Recent decisions affecting current work:
 - [Phase 10.2-02]: Client-side password validation mirrors backend policy exactly (12 chars, uppercase, lowercase, digit) to prevent UX/server rule gaps
 - [Phase 10.2-02]: Password requirements hint shown only when user has typed something (password.length > 0) — avoids intimidating blank form
 - [Phase 10.2-02]: Login pages unchanged — existing passwords may predate the 12-char policy, no client-side complexity check on login
+- [Phase 10.2]: Symbols not required in password policy — usability tradeoff for citizens per research decision
+- [Phase 10.2]: POPIA: only email domain logged in auth events (never full email); user IDs truncated to 8 chars
+- [Phase 10.2]: OperationType enum extended (not replaced) with 6 new AUTH_ values for structured auth event logging
 
 ### Pending Todos
 
