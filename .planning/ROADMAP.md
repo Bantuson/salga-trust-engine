@@ -231,7 +231,18 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-22 (Phase 9 planned: 2 plans for OCR-Supabase bridge and ward filtering)*
+*Last updated: 2026-02-25 (Phase 10.2 planned: 2 plans for auth system security hardening)*
+
+### Phase 10.2: Auth system security hardening (INSERTED)
+
+**Goal:** Harden the auth system with strong password validation (12 chars, uppercase+lowercase+digit), POPIA-safe auth event audit logging on all FastAPI auth endpoints, client-side password requirements UI on registration pages, and Supabase Dashboard security configuration (OTP expiry, password policy, session settings).
+**Depends on:** Phase 10.1
+**Requirements:** SEC-01, SEC-02, SEC-04, SEC-06, SEC-07, SEC-08
+**Plans:** 2 plans
+
+Plans:
+- [ ] 10.2-01-PLAN.md -- Backend auth hardening: password complexity validator, auth event audit logging, OperationType enum extension, unit tests
+- [ ] 10.2-02-PLAN.md -- Frontend password validation UI on registration pages + Supabase Dashboard security settings verification checkpoint
 
 ### Phase 10.1: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (INSERTED)
 
