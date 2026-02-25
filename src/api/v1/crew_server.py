@@ -38,6 +38,12 @@ import asyncio
 import os
 import re
 
+# Load .env into os.environ BEFORE the setdefault below.
+# Pydantic Settings loads .env into the settings object but NOT os.environ,
+# so without this, the dummy key always wins over the real .env key.
+from dotenv import load_dotenv
+load_dotenv()
+
 # CrewAI/LiteLLM requires OPENAI_API_KEY during import validation.
 # Set a dummy value if not already configured. This MUST happen before
 # any crewai imports occur (per research Pitfall 1).
