@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.2 Plan 02 COMPLETE — Client-side password validation on all registration pages. Supabase Dashboard checkpoint resolved: Free Plan documented, SMTP pending, email_confirm: True stays until SMTP configured. SEC-01/SEC-02/SEC-04 requirements verified.
+**Current focus:** Phase 10.3 Plan 01 COMPLETE — Agent archive and scaffold: old src/agents/ archived to src/agents_old/, new scaffold built with IntakeState, BaseCrew, dual LLM factories, deepeval 3.4.6 installed, test infrastructure ready.
 
 ## Current Position
 
-Phase: 10.2 of 10.2 (Auth System Security Hardening)
-Plan: 2 of 2 in current phase
-Status: COMPLETE — Phase 10.2 Plan 02 delivered: client-side password validation with real-time hint UI, Supabase Dashboard Free Plan limitations documented
-Last activity: 2026-02-25 — Phase 10.2 Plan 02 complete: client-side password validation committed, Supabase Dashboard checkpoint resolved
+Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
+Plan: 1 of 9 in current phase
+Status: IN PROGRESS — Phase 10.3 Plan 01 complete: archive + scaffold committed. Ready for Plan 02 (Auth Agent rebuild).
+Last activity: 2026-02-25 — Phase 10.3 Plan 01 complete: src/agents/ archived, new scaffold built, deepeval installed, test fixtures ready
 
-Progress: [██████████] 100% (2/2 plans)
+Progress: [█░░░░░░░░░] 11% (1/9 plans)
 
 ## Performance Metrics
 
@@ -155,6 +155,7 @@ Progress: [██████████] 100% (2/2 plans)
 | Phase 10.1 P02 | 335 | 1 tasks | 3 files |
 | Phase 10.2 P02 | 698 | 1 tasks | 2 files |
 | Phase 10.2 P01 | 1616 | 3 tasks | 4 files |
+| Phase 10.3 P01 | 31 | 2 tasks | 19 files |
 
 ## Accumulated Context
 
@@ -545,6 +546,9 @@ Recent decisions affecting current work:
 - [Phase 10.2-02]: Client-side password validation mirrors backend policy exactly (12 chars, uppercase, lowercase, digit) — same rules prevent UX/server rule gaps
 - [Phase 10.2-02]: Free Plan limitation documented — Supabase Dashboard password policy, HaveIBeenPwned, session management unavailable; backend + frontend is primary enforcement layer
 - [Phase 10.2-02]: email_confirm: True workaround stays in src/api/v1/auth.py until SMTP is configured — remaining hardening item for when SMTP is set up
+- [Phase 10.3]: Flow-as-router replaces Process.hierarchical — @router + sequential Crews pattern adopted
+- [Phase 10.3]: get_deepseek_llm() for conversation-heavy agents, get_routing_llm() (gpt-4o-mini) for tool-heavy agents and routing
+- [Phase 10.3]: deepeval added as [eval] optional dependency (not dev) — eval runs require live LLM API keys
 
 ### Pending Todos
 
@@ -574,9 +578,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25 (Phase 10.3 context gathered — CrewAI agent rebuild and LLM eval framework decisions captured)
-Stopped at: Phase 10.3 context gathered
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-CONTEXT.md
+Last session: 2026-02-25 (Phase 10.3 Plan 01 complete — agent archive + scaffold committed, deepeval installed, test fixtures ready)
+Stopped at: Phase 10.3 Plan 01 complete
+Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-01-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
