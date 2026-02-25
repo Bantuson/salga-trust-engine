@@ -235,12 +235,20 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 
 ### Phase 10.3: CrewAI Agent Rebuild and LLM Evaluation Framework (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
+**Goal:** Rebuild the entire CrewAI agent system from scratch using Flow @router architecture (replacing broken Process.hierarchical). Archive existing code, rebuild each specialist agent (Auth, Municipal, TicketStatus, GBV) independently with proven end-to-end tests, then wire IntakeFlow routing. Establish LLM evaluation framework with trajectory evals (deepeval ToolCorrectnessMetric) and Claude-as-judge rubrics for regression prevention.
 **Depends on:** Phase 10
-**Plans:** 0 plans
+**Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
+**Plans:** 8 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 10.3 to break down)
+- [ ] 10.3-01-PLAN.md -- Archive old agents, scaffold new directory structure, install deepeval, create test infrastructure
+- [ ] 10.3-02-PLAN.md -- Eval framework: scenarios for all 5 agents, trajectory eval harness, judge rubrics
+- [ ] 10.3-03-PLAN.md -- Auth agent rebuild (tools, prompts, crew) + crew_server.py rebuild from scratch
+- [ ] 10.3-04-PLAN.md -- Auth agent unit tests + crew server unit tests
+- [ ] 10.3-05-PLAN.md -- Municipal Intake + Ticket Status agents rebuild with tools, prompts, tests
+- [ ] 10.3-06-PLAN.md -- GBV agent rebuild with trauma-informed prompts, SAPS tool, SEC-05 boundary tests
+- [ ] 10.3-07-PLAN.md -- IntakeFlow @router rebuild, wire all specialists, update WhatsApp/messages endpoints
+- [ ] 10.3-08-PLAN.md -- Integration tests, eval runner, regression check, Streamlit verification checkpoint
 
 ### Phase 10.2: Auth system security hardening (INSERTED)
 
