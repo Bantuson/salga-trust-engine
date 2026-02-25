@@ -15,7 +15,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from twilio.rest import Client
 from twilio.base.exceptions import TwilioRestException
 
-from src.agents.crews.manager_crew import ManagerCrew
 from src.api.v1.crew_server import GBV_CONFIRMATION_MESSAGES, sanitize_reply, _format_history
 from src.core.config import settings
 from src.core.conversation import ConversationManager
@@ -329,34 +328,40 @@ class WhatsAppService:
                         "is_complete": False,
                     }
 
-            # Step 5: Build conversation history and run ManagerCrew directly
+            # Step 5: Build conversation history and run IntakeFlow
             conversation_history = _format_history(conversation_state.turns)
 
-            # Step 6: Run ManagerCrew directly (matches crew_server.py reference pattern)
+            # Step 6: Run IntakeFlow (deterministic @router dispatch to specialist crews)
+            # WhatsApp users are authenticated (session_status="active") since they
+            # pass through lookup_or_create_session before reaching this method.
             try:
-                manager_crew = ManagerCrew(language=conversation_state.language)
-                agent_result = await manager_crew.kickoff({
-                    "message": input_result.sanitized_message,
-                    "user_id": user_id,
-                    "tenant_id": tenant_id,
-                    "language": conversation_state.language,
-                    "phone": user.phone or "",
-                    "session_status": "active",
-                    "user_exists": "True",
-                    "conversation_history": conversation_history,
-                    "pending_intent": "none",
-                })
+                from src.agents.flows.intake_flow import IntakeFlow
 
-                routing_phase = agent_result.get("routing_phase", "other")
+                # Check current routing_phase to support multi-turn specialist sessions
+                current_routing = getattr(conversation_state, 'routing_phase', 'manager')
 
-                # --- GBV CONFIRMATION GATE (after ManagerCrew classification) ---
-                # If ManagerCrew classified as GBV for the first time, intercept
-                # with a confirmation step before routing to GBVCrew/SAPS.
-                current_after_crew = getattr(conversation_state, 'routing_phase', 'manager')
-                if routing_phase == "gbv" and current_after_crew != "gbv":
+                flow = IntakeFlow()
+                flow.state.message = input_result.sanitized_message
+                flow.state.phone = user.phone or ""
+                flow.state.language = conversation_state.language
+                flow.state.routing_phase = current_routing
+                flow.state.session_status = "active"  # WhatsApp users are authenticated
+                flow.state.user_id = user_id
+                flow.state.conversation_history = conversation_history
+                flow.state.pending_intent = getattr(conversation_state, 'pending_intent', '') or ''
+
+                await flow.kickoff_async()
+
+                agent_result = flow.state.result or {}
+                routing_phase = agent_result.get("routing_phase", flow.state.intent or "other")
+
+                # --- GBV CONFIRMATION GATE (after IntakeFlow intent classification) ---
+                # If IntakeFlow classified as GBV for the first time (current_routing was
+                # "manager"), intercept with a confirmation step before routing to GBVCrew.
+                if flow.state.intent == "gbv" and current_routing == "manager":
                     # Enter confirmation state — do not route to GBVCrew yet
                     conversation_state.routing_phase = "gbv_pending_confirm"
-                    lang = getattr(conversation_state, 'language', 'en')
+                    lang = conversation_state.language
                     lang = lang if lang in ("en", "zu", "af") else "en"
                     confirmation_msg = GBV_CONFIRMATION_MESSAGES[lang]
                     output_result = await guardrails_engine.process_output(confirmation_msg)
@@ -380,18 +385,18 @@ class WhatsAppService:
                         "is_complete": False,
                     }
 
-                # Extract results from ManagerCrew result dict
+                # Extract results from IntakeFlow result dict
                 tracking_number = agent_result.get("tracking_number")
                 agent_response = agent_result.get("message", "Your report is being processed.")
                 agent_response = sanitize_reply(
                     agent_response,
-                    agent_name=agent_result.get("agent", "manager"),
-                    language=conversation_state.language,
+                    agent_name=agent_result.get("agent_name", flow.state.intent or "unknown"),
+                    language=flow.state.language or conversation_state.language,
                 )
-                detected_language = conversation_state.language
+                detected_language = flow.state.language or conversation_state.language
                 category = routing_phase
                 is_complete = True
-                ticket_id = None  # ManagerCrew creates ticket internally via tools
+                ticket_id = None  # Specialist crew creates ticket internally via tools
 
                 # Step 7: Media linking — ticket_id is None since ManagerCrew manages
                 # ticket creation internally. Skip media linking for now.
