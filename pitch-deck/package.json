@@ -1,0 +1,26 @@
+{
+  "name": "salga-pitch-deck",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "studio": "remotion studio",
+    "render": "remotion render PitchDeck out/pitch-deck.mp4",
+    "build": "remotion render PitchDeck out/pitch-deck.mp4"
+  },
+  "dependencies": {
+    "@remotion/cli": "4.0.261",
+    "@remotion/google-fonts": "4.0.261",
+    "@remotion/tailwind-v4": "4.0.261",
+    "@remotion/transitions": "4.0.261",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0",
+    "remotion": "4.0.261",
+    "tailwindcss": "^4.0.0",
+    "@tailwindcss/postcss": "^4.0.0"
+  },
+  "devDependencies": {
+    "@types/react": "^19.0.0",
+    "@types/react-dom": "^19.0.0",
+    "typescript": "^5.7.0"
+  }
+}

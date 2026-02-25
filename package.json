@@ -1,9 +1,0 @@
-{
-  "dependencies": {
-    "@types/react": "^19.2.14",
-    "class-variance-authority": "^0.7.1",
-    "clsx": "^2.1.1",
-    "react": "^19.2.4",
-    "react-loading-skeleton": "^3.5.0"
-  }
-}
