@@ -1,14 +1,33 @@
 # agents.yaml — Agent persona definitions
-# Populated per-agent in plans 03-07
 # Architecture: Flow-as-router + sequential specialist Crews (Phase 10.3 rebuild)
 #
 # Structure per agent:
 #   <agent_key>:
 #     role: str
 #     goal: str  (may contain {language} placeholder)
-#     backstory: str           # English
+#     backstory: str           # English (or note: "Set at runtime from AUTH_PROMPTS")
 #     backstory_zu: str        # isiZulu (optional)
 #     backstory_af: str        # Afrikaans (optional)
 #     allow_delegation: bool   # Always False for specialists
 #     max_iter: int
 #     verbose: bool
+#
+# Note on auth_agent backstory:
+#   The backstory field below is a placeholder only.
+#   AuthCrew.create_crew() injects the full Gugu persona from
+#   src/agents/prompts/auth.py AUTH_PROMPTS[language] at runtime.
+#   This avoids duplicating 200+ lines of trilingual prompt content in YAML.
+
+auth_agent:
+  role: "Citizen Authentication Assistant"
+  goal: "Help citizens register or log in to SALGA Trust Engine"
+  backstory: "Selected per language at runtime from AUTH_PROMPTS in src/agents/prompts/auth.py"
+  allow_delegation: false
+  max_iter: 15
+  verbose: false
+
+# --- Plans 04-07: additional agents added here as they are rebuilt ---
+# manager_agent:
+# municipal_intake_agent:
+# gbv_agent:
+# ticket_status_specialist:

@@ -1,8 +1,23 @@
 # tasks.yaml — Task template definitions
-# Populated per-agent in plans 03-07
 # Architecture: Flow-as-router + sequential specialist Crews (Phase 10.3 rebuild)
 #
 # Structure per task:
 #   <task_key>:
 #     description: str   (may contain {placeholder} variables filled by context dict)
 #     expected_output: str
+#
+# Note on auth_task description:
+#   The description field below is a placeholder only.
+#   AuthCrew.build_task_description() calls build_auth_task_description(context)
+#   from src/agents/prompts/auth.py to generate the full task description at
+#   runtime (per-request, per-language, per-user-state).
+
+auth_task:
+  description: "Generated dynamically by build_auth_task_description() in src/agents/prompts/auth.py"
+  expected_output: "A warm, helpful response guiding the citizen through authentication"
+
+# --- Plans 04-07: additional tasks added here as agents are rebuilt ---
+# municipal_intake_task:
+# gbv_intake_task:
+# ticket_status_task:
+# manager_routing_task:
