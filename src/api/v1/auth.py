@@ -34,6 +34,36 @@ CONSENT_DESCRIPTIONS = {
 }
 
 
+def _log_auth_event(
+    event: str,
+    request: Request,
+    email_domain: str | None = None,
+    user_id: str | None = None,
+    reason: str | None = None,
+) -> None:
+    """Log auth event with POPIA-safe data (no full email addresses).
+
+    POPIA compliance: Only email domain is logged (never full email).
+    User IDs are truncated to first 8 chars for correlation without exposure.
+    """
+    extra = {
+        "event": event,
+        "ip": request.client.host if request.client else "unknown",
+        "user_agent": request.headers.get("user-agent", "unknown")[:200],
+    }
+    if email_domain:
+        extra["email_domain"] = email_domain
+    if user_id:
+        extra["user_id"] = user_id[:8] + "..."
+    if reason:
+        extra["reason"] = reason
+
+    if "failure" in event or "error" in event:
+        logger.warning(f"auth.event: {event}", extra=extra)
+    else:
+        logger.info(f"auth.event: {event}", extra=extra)
+
+
 @router.post("/register", response_model=UserResponse, status_code=status.HTTP_201_CREATED)
 @limiter.limit(REGISTER_RATE_LIMIT)
 async def register(
@@ -118,9 +148,23 @@ async def register(
         })
 
         supabase_user_id = auth_response.user.id
+        # POPIA: log email domain only, truncated user_id
+        _log_auth_event(
+            "register_success",
+            request,
+            email_domain=registration.email.split("@")[-1],
+            user_id=str(supabase_user_id),
+        )
 
     except Exception as e:
-        logger.error(f"Supabase Auth user creation failed: {e}", exc_info=True)
+        # POPIA: log domain only, not full email; exception detail omitted from structured log
+        _log_auth_event(
+            "register_failure",
+            request,
+            email_domain=registration.email.split("@")[-1],
+            reason="supabase_creation_failed",
+        )
+        logger.error("Supabase Auth user creation failed (see structured log for domain)", exc_info=True)
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to create user account"
@@ -211,6 +255,13 @@ async def login(
         access_token = auth_response.session.access_token
         refresh_token = auth_response.session.refresh_token
 
+        # POPIA: log email domain only (never full email)
+        _log_auth_event(
+            "login_success",
+            request,
+            email_domain=credentials.email.split("@")[-1],
+        )
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -219,7 +270,12 @@ async def login(
 
     except Exception as e:
         # Generic error message for security (don't reveal if email exists)
-        logger.warning(f"Login attempt failed: {e}")
+        _log_auth_event(
+            "login_failure",
+            request,
+            email_domain=credentials.email.split("@")[-1],
+            reason="invalid_credentials",
+        )
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid credentials",
@@ -262,6 +318,8 @@ async def refresh_token(
         access_token = auth_response.session.access_token
         new_refresh_token = auth_response.session.refresh_token
 
+        _log_auth_event("token_refresh_success", request)
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=new_refresh_token,
@@ -269,7 +327,7 @@ async def refresh_token(
         )
 
     except Exception as e:
-        logger.warning(f"Token refresh failed: {e}")
+        _log_auth_event("token_refresh_failure", request, reason="invalid_refresh_token")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid refresh token",
@@ -312,13 +370,15 @@ async def send_phone_otp(
             "phone": otp_request.phone
         })
 
+        _log_auth_event("otp_send_success", request)
+
         return {
             "message": "OTP sent successfully",
             "phone": otp_request.phone
         }
 
     except Exception as e:
-        logger.error(f"Failed to send OTP: {e}", exc_info=True)
+        _log_auth_event("otp_send_failure", request, reason="send_failed")
         raise HTTPException(
             status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
             detail="Failed to send OTP code"
@@ -364,6 +424,8 @@ async def verify_phone_otp(
         access_token = auth_response.session.access_token
         refresh_token = auth_response.session.refresh_token
 
+        _log_auth_event("otp_verify_success", request)
+
         return TokenResponse(
             access_token=access_token,
             refresh_token=refresh_token,
@@ -371,7 +433,7 @@ async def verify_phone_otp(
         )
 
     except Exception as e:
-        logger.warning(f"OTP verification failed: {e}")
+        _log_auth_event("otp_verify_failure", request, reason="invalid_otp")
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
             detail="Invalid or expired OTP code",
