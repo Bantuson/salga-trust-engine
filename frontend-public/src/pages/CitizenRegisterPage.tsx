@@ -236,17 +236,20 @@ export function CitizenRegisterPage() {
         municipality: municipality || undefined,
       });
 
-      // Step 2: Send OTP via signInWithOtp (uses "Magic Link" template which delivers reliably)
-      // The "Confirm signup" template may not deliver, so we bypass it entirely.
-      const { error: otpError } = await supabase.auth.signInWithOtp({
-        email,
-        options: { shouldCreateUser: false },
-      });
-      if (otpError) throw otpError;
-
-      // Transition to OTP verification step
+      // Transition to OTP verification step immediately after signUp succeeds
       setRegisteredEmail(email);
       setMode('verify-otp');
+
+      // Also send OTP via signInWithOtp (uses "Magic Link" template which delivers reliably)
+      // Non-blocking: if rate-limited, user still has the signUp confirmation code
+      try {
+        await supabase.auth.signInWithOtp({
+          email,
+          options: { shouldCreateUser: false },
+        });
+      } catch {
+        // Ignore rate limit errors — signUp already sent a code
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Registration failed');
     } finally {
@@ -260,7 +263,6 @@ export function CitizenRegisterPage() {
     setLoading(true);
     try {
       // verifyOtp with type 'email' confirms the email AND creates an active session
-      // CRITICAL: must be type 'email' (not 'signup') — see research Pitfall 1
       await supabase.auth.verifyOtp({
         email: registeredEmail,
         token: otpCode,
@@ -279,7 +281,6 @@ export function CitizenRegisterPage() {
     setResendMessage(null);
     setError(null);
     try {
-      // Resend via signInWithOtp (uses "Magic Link" template which delivers reliably)
       const { error: resendError } = await supabase.auth.signInWithOtp({
         email: registeredEmail,
         options: { shouldCreateUser: false },
