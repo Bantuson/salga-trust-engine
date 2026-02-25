@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 01 COMPLETE — Agent archive and scaffold: old src/agents/ archived to src/agents_old/, new scaffold built with IntakeState, BaseCrew, dual LLM factories, deepeval 3.4.6 installed, test infrastructure ready.
+**Current focus:** Phase 10.3 Plan 02 COMPLETE — LLM eval framework: 25 scenarios across 4 agents, trajectory eval harness via deepeval, judge rubrics for all specialist agents, GBV metadata-only eval reports.
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 1 of 9 in current phase
-Status: IN PROGRESS — Phase 10.3 Plan 01 complete: archive + scaffold committed. Ready for Plan 02 (Auth Agent rebuild).
-Last activity: 2026-02-25 — Phase 10.3 Plan 01 complete: src/agents/ archived, new scaffold built, deepeval installed, test fixtures ready
+Plan: 2 of 9 in current phase
+Status: IN PROGRESS — Phase 10.3 Plan 02 complete: eval scenarios + trajectory harness + judge rubrics committed. Ready for Plan 03 (Auth Agent rebuild).
+Last activity: 2026-02-25 — Phase 10.3 Plan 02 complete: 25 eval scenarios, trajectory_evals.py, judge_rubrics.py
 
-Progress: [█░░░░░░░░░] 11% (1/9 plans)
+Progress: [██░░░░░░░░] 22% (2/9 plans)
 
 ## Performance Metrics
 
@@ -156,6 +156,7 @@ Progress: [█░░░░░░░░░] 11% (1/9 plans)
 | Phase 10.2 P02 | 698 | 1 tasks | 2 files |
 | Phase 10.2 P01 | 1616 | 3 tasks | 4 files |
 | Phase 10.3 P01 | 31 | 2 tasks | 19 files |
+| Phase 10.3 P02 | 715 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -549,6 +550,8 @@ Recent decisions affecting current work:
 - [Phase 10.3]: Flow-as-router replaces Process.hierarchical — @router + sequential Crews pattern adopted
 - [Phase 10.3]: get_deepseek_llm() for conversation-heavy agents, get_routing_llm() (gpt-4o-mini) for tool-heavy agents and routing
 - [Phase 10.3]: deepeval added as [eval] optional dependency (not dev) — eval runs require live LLM API keys
+- [Phase 10.3]: 25 total scenarios (Auth:7, Municipal:7, GBV:5, TicketStatus:6) within 20-28 target range
+- [Phase 10.3]: GBV scenarios: metadata_only=True strips ALL response content from eval reports (POPIA compliance)
 
 ### Pending Todos
 
@@ -578,9 +581,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25 (Phase 10.3 Plan 01 complete — agent archive + scaffold committed, deepeval installed, test fixtures ready)
-Stopped at: Phase 10.3 Plan 01 complete
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-01-SUMMARY.md
+Last session: 2026-02-25 (Phase 10.3 Plan 02 complete — 25 eval scenarios, trajectory harness, judge rubrics committed)
+Stopped at: Phase 10.3 Plan 02 complete
+Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
