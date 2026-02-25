@@ -47,6 +47,9 @@ dev = [
     "fakeredis>=2.21.0",
     "ruff>=0.8.0",
 ]
+eval = [
+    "deepeval>=1.0",
+]
 
 [project.scripts]
 salga = "src.main:app"

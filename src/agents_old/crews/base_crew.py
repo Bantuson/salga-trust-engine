@@ -1,22 +1,8 @@
-"""BaseCrew — shared foundation for all CrewAI specialist crews.
-
-Phase 10.3 rebuild: simplified sequential Crew pattern.
-Process.hierarchical is eliminated entirely. Each specialist Crew is:
-  - Single agent, single task
-  - Process.sequential
-  - memory=False (conversation history via string injection)
-  - verbose=False
-
-Architecture: Flow-as-router dispatches to specialist Crews; each Crew
-handles its narrow task autonomously with no delegation.
-
-Sanitization patterns (_repair_from_raw, parse_result) preserved from
-agents_old/crews/base_crew.py with delegation-related code removed.
-"""
+"""BaseCrew — shared foundation for all CrewAI specialist crews."""
 import asyncio
 import json
 import re
-from abc import ABC
+from abc import ABC, abstractmethod
 from pathlib import Path
 from typing import Any
 
@@ -54,7 +40,7 @@ class AgentResponse(BaseModel):
 
 
 # ---------------------------------------------------------------------------
-# Shared repair strategy (module-level — prevents circular imports)
+# Shared repair strategy
 # ---------------------------------------------------------------------------
 
 def _repair_from_raw(raw: str, model_class, fallback_message: str, language: str = "en") -> dict:
@@ -183,39 +169,25 @@ class BaseCrew(ABC):
     agent_key: str
     task_key: str
     tools: list
-    memory_enabled: bool = False  # Safe default: disabled for all specialists
+    memory_enabled: bool = False  # Safe default: disabled
 
     def __init__(self, language: str = "en", llm=None):
         self.language = language if language in ("en", "zu", "af") else "en"
-        self._llm = llm  # Lazy: resolved in .llm property if None
+        self._llm = llm  # Lazy: resolved in create_crew() if None
 
-        # Load YAML configs ONCE at construction time
+        # Load YAML configs ONCE
         config_dir = Path(__file__).parent.parent / "config"
         with open(config_dir / "agents.yaml", "r", encoding="utf-8") as f:
-            self.agents_config = yaml.safe_load(f) or {}
+            self.agents_config = yaml.safe_load(f)
         with open(config_dir / "tasks.yaml", "r", encoding="utf-8") as f:
-            self.tasks_config = yaml.safe_load(f) or {}
-
-    @classmethod
-    def _load_yaml(cls, filename: str) -> dict:
-        """Load a YAML file from src/agents/config/ by filename.
-
-        Args:
-            filename: File name (e.g. "agents.yaml", "tasks.yaml")
-
-        Returns:
-            Parsed YAML content as dict, or empty dict if file is empty.
-        """
-        config_dir = Path(__file__).parent.parent / "config"
-        with open(config_dir / filename, "r", encoding="utf-8") as f:
-            return yaml.safe_load(f) or {}
+            self.tasks_config = yaml.safe_load(f)
 
     @property
     def llm(self):
         """Lazy LLM resolution — avoids circular imports, supports test fakes."""
         if self._llm is None:
-            from src.agents.llm import get_deepseek_llm
-            self._llm = get_deepseek_llm()
+            from src.agents.llm import get_crew_llm
+            self._llm = get_crew_llm()
         return self._llm
 
     def _get_backstory(self, agent_config: dict, language: str) -> str:
@@ -233,7 +205,7 @@ class BaseCrew(ABC):
         """Build task description from YAML template + context.
 
         Default: format task_key template with context dict.
-        Override for custom description building.
+        Override for custom building (e.g. AuthCrew uses build_auth_task_description).
         """
         task_config = self.tasks_config[self.task_key]
         return task_config["description"].format(**context)
@@ -250,12 +222,44 @@ class BaseCrew(ABC):
         """Dict of inputs passed to crew.kickoff(). Override for custom mapping."""
         return context
 
-    def create_crew(self, context: dict) -> Crew:
-        """Build Agent + Task + Crew from YAML config + context.
+    def parse_result(self, result) -> dict[str, Any]:
+        """Parse CrewAI result. Tries Pydantic model first, then regex fallback."""
+        # Pydantic path: if result has .pydantic and it's not None
+        if hasattr(result, "pydantic") and result.pydantic is not None:
+            model_dict = result.pydantic.model_dump()
+            model_dict["raw_output"] = str(result)
+            return model_dict
 
-        Default implementation: loads YAML, creates single Agent + Task + Crew.
-        Subclasses may override entirely for custom crew construction.
-        """
+        # Existing regex fallback
+        raw = str(result)
+        final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
+        clean_message = final.group(1).strip() if final else raw
+        tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
+        json_match = re.search(r"\{[^{}]*\"tracking_number\"[^{}]*\}", raw)
+
+        if json_match:
+            try:
+                ticket_dict = json.loads(json_match.group())
+                ticket_dict["message"] = clean_message
+                ticket_dict["raw_output"] = raw
+                return ticket_dict
+            except json.JSONDecodeError:
+                pass
+
+        if tracking_match:
+            return {
+                "tracking_number": tracking_match.group(),
+                "message": clean_message,
+                "raw_output": raw,
+            }
+        return {"message": clean_message, "raw_output": raw}
+
+    def get_error_response(self, error: Exception) -> dict[str, Any]:
+        """Error response dict. Override for crew-specific error messages."""
+        return {"error": str(error), "message": "Something went wrong. Please try again."}
+
+    def create_crew(self, context: dict) -> Crew:
+        """Build Agent + Task + Crew from YAML config + context."""
         language = context.get("language", self.language)
         if language not in ("en", "zu", "af"):
             language = self.language
@@ -293,56 +297,17 @@ class BaseCrew(ABC):
 
         task = Task(**task_kwargs)
 
-        return Crew(
+        crew = Crew(
             agents=[agent],
             tasks=[task],
-            process=Process.sequential,  # ALWAYS sequential — never hierarchical
+            process=Process.sequential,
             memory=self.memory_enabled,
             verbose=False,
         )
-
-    def parse_result(self, result) -> dict[str, Any]:
-        """Parse CrewAI result. Tries Pydantic model first, then regex fallback."""
-        # Pydantic path: if result has .pydantic and it's not None
-        if hasattr(result, "pydantic") and result.pydantic is not None:
-            model_dict = result.pydantic.model_dump()
-            model_dict["raw_output"] = str(result)
-            return model_dict
-
-        # Regex fallback
-        raw = str(result)
-        final = re.search(r"Final Answer:?\s*(.+)", raw, re.DOTALL | re.IGNORECASE)
-        clean_message = final.group(1).strip() if final else raw
-        tracking_match = re.search(r"TKT-\d{8}-[A-F0-9]{6}", raw)
-        json_match = re.search(r"\{[^{}]*\"tracking_number\"[^{}]*\}", raw)
-
-        if json_match:
-            try:
-                ticket_dict = json.loads(json_match.group())
-                ticket_dict["message"] = clean_message
-                ticket_dict["raw_output"] = raw
-                return ticket_dict
-            except json.JSONDecodeError:
-                pass
-
-        if tracking_match:
-            return {
-                "tracking_number": tracking_match.group(),
-                "message": clean_message,
-                "raw_output": raw,
-            }
-        return {"message": clean_message, "raw_output": raw}
-
-    def get_error_response(self, error: Exception) -> dict[str, Any]:
-        """Error response dict. Override for crew-specific error messages."""
-        return {"error": str(error), "message": "Something went wrong. Please try again."}
+        return crew
 
     async def kickoff(self, context: dict) -> dict[str, Any]:
-        """Run crew asynchronously via thread pool executor.
-
-        Creates Crew via create_crew(), calls crew.kickoff(inputs=context),
-        returns parsed result dict.
-        """
+        """Run crew asynchronously via thread pool executor."""
         try:
             crew = self.create_crew(context)
             inputs = self.build_kickoff_inputs(context)
