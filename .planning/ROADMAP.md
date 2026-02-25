@@ -233,6 +233,15 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-25 (Phase 10.2 planned: 2 plans for auth system security hardening)*
 
+### Phase 10.3: CrewAI Agent Rebuild and LLM Evaluation Framework (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Depends on:** Phase 10
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 10.3 to break down)
+
 ### Phase 10.2: Auth system security hardening (INSERTED)
 
 **Goal:** Harden the auth system with strong password validation (12 chars, uppercase+lowercase+digit), POPIA-safe auth event audit logging on all FastAPI auth endpoints, client-side password requirements UI on registration pages, and Supabase Dashboard security configuration (OTP expiry, password policy, session settings).
