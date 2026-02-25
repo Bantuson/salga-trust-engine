@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 02 COMPLETE — LLM eval framework: 25 scenarios across 4 agents, trajectory eval harness via deepeval, judge rubrics for all specialist agents, GBV metadata-only eval reports.
+**Current focus:** Phase 10.3 Plan 03 COMPLETE — Auth Agent rebuilt: AuthCrew, 4 auth tools (lookup_user, send_otp, verify_otp, create_supabase_user), AUTH_PROMPTS trilingual Gugu persona, AuthResult Pydantic output, crew_server.py health endpoint with agents=["auth"].
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 2 of 9 in current phase
-Status: IN PROGRESS — Phase 10.3 Plan 02 complete: eval scenarios + trajectory harness + judge rubrics committed. Ready for Plan 03 (Auth Agent rebuild).
-Last activity: 2026-02-25 — Phase 10.3 Plan 02 complete: 25 eval scenarios, trajectory_evals.py, judge_rubrics.py
+Plan: 3 of 9 in current phase
+Status: IN PROGRESS — Phase 10.3 Plan 03 complete: AuthCrew + auth tools + crew_server.py updated. Ready for Plan 04 (Auth agent unit tests).
+Last activity: 2026-02-25 — Phase 10.3 Plan 03 complete: auth_tool.py, prompts/auth.py, crews/auth_crew.py, crew_server.py updated
 
-Progress: [██░░░░░░░░] 22% (2/9 plans)
+Progress: [███░░░░░░░] 33% (3/9 plans)
 
 ## Performance Metrics
 
@@ -157,6 +157,7 @@ Progress: [██░░░░░░░░] 22% (2/9 plans)
 | Phase 10.2 P01 | 1616 | 3 tasks | 4 files |
 | Phase 10.3 P01 | 31 | 2 tasks | 19 files |
 | Phase 10.3 P02 | 715 | 2 tasks | 7 files |
+| Phase 10.3 P03 | 1339 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -552,6 +553,9 @@ Recent decisions affecting current work:
 - [Phase 10.3]: deepeval added as [eval] optional dependency (not dev) — eval runs require live LLM API keys
 - [Phase 10.3]: 25 total scenarios (Auth:7, Municipal:7, GBV:5, TicketStatus:6) within 20-28 target range
 - [Phase 10.3]: GBV scenarios: metadata_only=True strips ALL response content from eval reports (POPIA compliance)
+- [Phase 10.3]: AUTH_PROMPTS dict in auth.py holds full trilingual Gugu persona (not agents.yaml) — 200+ lines rich prompts benefit from Python string management
+- [Phase 10.3]: AuthResult simplified to message/requires_otp/session_status/language — crew_server only reads message and session_status from agent_result dict
+- [Phase 10.3]: HealthResponse.agents field added to crew_server /health endpoint — list starts with ['auth'], grows in Plans 04-07 as agents are rebuilt
 
 ### Pending Todos
 
@@ -581,9 +585,9 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25 (Phase 10.3 Plan 02 complete — 25 eval scenarios, trajectory harness, judge rubrics committed)
-Stopped at: Phase 10.3 Plan 02 complete
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-02-SUMMARY.md
+Last session: 2026-02-25 (Phase 10.3 Plan 03 complete — AuthCrew, 4 auth tools, AUTH_PROMPTS, AuthResult, crew_server.py agents=["auth"])
+Stopped at: Phase 10.3 Plan 03 complete
+Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-03-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
