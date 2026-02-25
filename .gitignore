@@ -100,3 +100,4 @@ pitch-deck/out/
 
 # TypeScript build info
 *.tsbuildinfo
+tests/evals/screenshots/
