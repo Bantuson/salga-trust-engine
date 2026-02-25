@@ -8,6 +8,7 @@
  * - Email+password signup with optional phone and municipality
  * - NO proof of residence required at signup (per user decision)
  * - Inline 6-digit OTP verification step after signup (no dead-end success screen)
+ * - Client-side password validation matching backend policy (12 chars, uppercase, lowercase, digit)
  */
 
 import { useState, useRef, useEffect } from 'react';
@@ -127,6 +128,17 @@ const PILOT_MUNICIPALITIES = [
   { value: 'buffalo-city', label: 'Buffalo City Metropolitan' },
 ];
 
+// Password validation matching backend policy (12 chars, uppercase, lowercase, digit)
+// SEC-01: Client-side validation mirrors src/schemas/user.py validate_password_complexity
+function validatePassword(password: string): { valid: boolean; errors: string[] } {
+  const errors: string[] = [];
+  if (password.length < 12) errors.push('At least 12 characters');
+  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter');
+  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter');
+  if (!/\d/.test(password)) errors.push('At least one digit');
+  return { valid: errors.length === 0, errors };
+}
+
 type RegisterMode = 'form' | 'verify-otp' | 'success';
 
 export function CitizenRegisterPage() {
@@ -205,8 +217,11 @@ export function CitizenRegisterPage() {
 
     if (!password) {
       errors.password = 'Password is required';
-    } else if (password.length < 8) {
-      errors.password = 'Password must be at least 8 characters';
+    } else {
+      const pwdValidation = validatePassword(password);
+      if (!pwdValidation.valid) {
+        errors.password = 'Password must contain: ' + pwdValidation.errors.join(', ');
+      }
     }
 
     if (password !== confirmPassword) {
@@ -470,9 +485,36 @@ export function CitizenRegisterPage() {
                 onChange={(e) => setPassword(e.target.value)}
                 required
                 style={styles.input}
-                placeholder="At least 8 characters"
+                placeholder="At least 12 characters"
                 autoComplete="new-password"
               />
+              {/* Password requirements hint — shown when password field has content */}
+              {password.length > 0 && (
+                <div style={{
+                  display: 'flex',
+                  flexWrap: 'wrap' as const,
+                  gap: '0.375rem',
+                  marginTop: '0.25rem',
+                }}>
+                  {[
+                    { label: '12+ characters', met: password.length >= 12 },
+                    { label: 'Uppercase letter', met: /[A-Z]/.test(password) },
+                    { label: 'Lowercase letter', met: /[a-z]/.test(password) },
+                    { label: 'Number', met: /\d/.test(password) },
+                  ].map(({ label, met }) => (
+                    <span key={label} style={{
+                      fontSize: '0.75rem',
+                      color: met ? '#4ade80' : 'rgba(255,255,255,0.45)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}>
+                      <span style={{ fontSize: '0.65rem' }}>{met ? '✓' : '○'}</span>
+                      {label}
+                    </span>
+                  ))}
+                </div>
+              )}
               {fieldErrors.password && (
                 <span style={styles.fieldError}>{fieldErrors.password}</span>
               )}
@@ -527,10 +569,10 @@ export function CitizenRegisterPage() {
 
             <button
               type="submit"
-              disabled={loading}
+              disabled={loading || (password.length > 0 && !validatePassword(password).valid)}
               style={{
                 ...styles.button,
-                ...(loading ? styles.buttonDisabled : {}),
+                ...(loading || (password.length > 0 && !validatePassword(password).valid) ? styles.buttonDisabled : {}),
               }}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
