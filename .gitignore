@@ -95,5 +95,8 @@ glass-morphism-*.png
 landing?page?design*.png
 design-references/
 
+# Remotion build output
+pitch-deck/out/
+
 # TypeScript build info
 *.tsbuildinfo
