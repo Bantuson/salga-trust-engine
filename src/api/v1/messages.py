@@ -15,7 +15,6 @@ from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
 from src.middleware.rate_limit import SENSITIVE_READ_RATE_LIMIT, SENSITIVE_WRITE_RATE_LIMIT, limiter
-from src.agents.crews.manager_crew import ManagerCrew
 from src.api.v1.crew_server import sanitize_reply, _format_history
 from src.core.config import settings
 from src.core.conversation import ConversationManager
@@ -106,7 +105,7 @@ async def send_message(
     This endpoint orchestrates the complete message processing flow:
     1. Validate input through guardrails (prompt injection, sanitization)
     2. Get or create conversation session
-    3. Build conversation history, call ManagerCrew.kickoff() directly
+    3. Build conversation history, run IntakeFlow (deterministic @router dispatch)
     4. Sanitize output through guardrails (PII masking)
     5. Save updated conversation state
     6. Return structured response
@@ -165,41 +164,46 @@ async def send_message(
                 is_gbv=False,
             )
 
-        # Step 3: Build conversation history for ManagerCrew context
+        # Step 3: Build conversation history for IntakeFlow context
         conversation_history = _format_history(conversation_state.turns)
 
-        # Step 4: Run ManagerCrew directly (matches crew_server.py reference pattern)
+        # Step 4: Run IntakeFlow (deterministic @router dispatch to specialist crews)
+        # Web portal users are always authenticated (session_status="active"), so
+        # IntakeFlow will classify intent via LLM and dispatch to the correct specialist.
         try:
-            manager_crew = ManagerCrew(language=conversation_state.language)
-            agent_result = await manager_crew.kickoff({
-                "message": input_result.sanitized_message,
-                "user_id": str(current_user.id),
-                "tenant_id": str(tenant_id),
-                "language": conversation_state.language,
-                "phone": getattr(current_user, "phone", "") or "",
-                "session_status": "active",
-                "user_exists": "True",
-                "conversation_history": conversation_history,
-                "pending_intent": "none",
-            })
+            from src.agents.flows.intake_flow import IntakeFlow
 
-            # Extract results from ManagerCrew result dict
+            flow = IntakeFlow()
+            flow.state.message = input_result.sanitized_message
+            flow.state.phone = getattr(current_user, "phone", "") or ""
+            flow.state.language = conversation_state.language
+            flow.state.routing_phase = getattr(conversation_state, 'routing_phase', 'manager')
+            flow.state.session_status = "active"  # Web portal users are authenticated
+            flow.state.user_id = str(current_user.id)
+            flow.state.conversation_history = conversation_history
+            flow.state.pending_intent = getattr(conversation_state, 'pending_intent', '') or ''
+
+            await flow.kickoff_async()
+
+            agent_result = flow.state.result or {}
+
+            # Extract results from IntakeFlow result dict
             agent_response = agent_result.get("message", "Your report is being processed.")
             tracking_number = agent_result.get("tracking_number")
-            detected_language = conversation_state.language
-            category = agent_result.get("routing_phase", "other")
+            detected_language = flow.state.language or conversation_state.language
+            category = agent_result.get("routing_phase", flow.state.intent or "other")
             is_complete = True
-            ticket_id = None  # ManagerCrew handles ticket creation internally via tools
+            ticket_id = None  # Specialist crew handles ticket creation internally via tools
 
             # Apply sanitize_reply() before output guardrails
             agent_response = sanitize_reply(
                 agent_response,
-                agent_name=agent_result.get("agent", "manager"),
+                agent_name=agent_result.get("agent_name", flow.state.intent or "unknown"),
                 language=detected_language,
             )
 
         except Exception as e:
-            logger.error(f"ManagerCrew execution failed: {e}", exc_info=True)
+            logger.error(f"IntakeFlow execution failed: {e}", exc_info=True)
             agent_response = "I'm sorry, something went wrong processing your message. Please try again in a few minutes."
             detected_language = conversation_state.language
             category = None

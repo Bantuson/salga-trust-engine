@@ -627,7 +627,7 @@ async def health_check() -> HealthResponse:
     """
     return HealthResponse(
         status="ok",
-        agents=["auth"],  # Plan 03: Auth agent wired. Grows in Plans 04-07.
+        agents=["auth", "municipal", "gbv", "ticket_status"],  # All 4 specialists via IntakeFlow
         deepseek_configured=bool(settings.DEEPSEEK_API_KEY),
         version="1.0.0",
     )
@@ -840,10 +840,18 @@ async def chat(
     conversation_history = _format_history(history_turns)
 
     # ------------------------------------------------------------------
-    # Step 3: Route through ManagerCrew (with specialist short-circuit)
+    # Step 3: Route through IntakeFlow (deterministic @router dispatch)
     # ------------------------------------------------------------------
+    # IntakeFlow replaces the old Process.hierarchical ManagerCrew with:
+    # 1. classify_intent (@start): language detection + LLM intent classification
+    # 2. route_by_intent (@router): pure Python dispatch by intent string
+    # 3. handle_* (@listen): dispatches to the matching specialist Crew
+    #
+    # GBV confirmation gate is handled HERE (crew_server level) before
+    # IntakeFlow is invoked. This keeps the two-turn safety gate outside
+    # the Flow so it can intercept routing_phase="gbv_pending_confirm".
 
-    agent_name: str = "manager"
+    agent_name: str = "unknown"
     reply: str
     agent_result: dict[str, Any] = {}
 
@@ -851,27 +859,10 @@ async def chat(
         # Check if there's an active specialist session to resume
         routing_phase = getattr(conv_state, 'routing_phase', 'manager')
 
-        # Build context dict (shared by both short-circuit and manager paths)
-        manager_context = {
-            "message": body.message,
-            "user_id": detection_result.get("user_id") or phone,
-            "tenant_id": (
-                body.municipality_id
-                or detection_result.get("municipality_id")
-                or conv_state.tenant_id
-            ),
-            "language": detected_language,
-            "phone": phone,
-            "session_status": session_status,
-            "user_exists": str(detection_result.get("user_exists", False)),
-            "conversation_history": conversation_history,
-            "pending_intent": getattr(conv_state, 'pending_intent', None) or "none",
-        }
-
         # --- GBV CONFIRMATION GATE ---
         # If routing_phase is "gbv_pending_confirm", the citizen needs to confirm
         # before we route to GBVCrew. This is a two-turn safety gate.
-        # This MUST be checked before the specialist short-circuit below so that
+        # This MUST be checked BEFORE IntakeFlow is invoked so that
         # "gbv_pending_confirm" never accidentally maps to GBVCrew directly.
         if routing_phase == "gbv_pending_confirm":
             lower_msg = body.message.strip().lower()
@@ -879,14 +870,14 @@ async def chat(
             negative = any(w in lower_msg for w in ["no", "cha", "nee", "cancel", "stop"])
 
             if positive:
-                # Confirmed — route to GBV crew
+                # Confirmed — route to GBV crew on next IntakeFlow invocation
                 conv_state.routing_phase = "gbv"
                 if hasattr(manager, 'save_state'):
                     try:
                         await manager.save_state(conv_state, is_gbv=True)
                     except Exception:
                         pass
-                # Update routing_phase so the specialist short-circuit below handles it
+                # Update routing_phase so IntakeFlow routes to GBVCrew
                 routing_phase = "gbv"
             elif negative:
                 # Declined — treat as regular municipal ticket
@@ -898,86 +889,91 @@ async def chat(
                         pass
                 reply = "Understood. If you'd like to report a service issue, I'm here to help. What can I assist you with?"
                 agent_name = "manager"
-                agent_result = {"message": reply, "routing_phase": "municipal", "agent": "manager"}
+                agent_result = {"message": reply, "routing_phase": "municipal", "agent_name": "manager"}
                 routing_phase = "_handled"
             else:
                 # Ambiguous — resend confirmation
                 lang = detected_language if detected_language in ("en", "zu", "af") else "en"
                 reply = GBV_CONFIRMATION_MESSAGES[lang]
                 agent_name = "manager"
-                agent_result = {"message": reply, "routing_phase": "gbv_pending_confirm", "agent": "manager"}
+                agent_result = {"message": reply, "routing_phase": "gbv_pending_confirm", "agent_name": "manager"}
                 routing_phase = "_handled"
 
-        # --- SHORT-CIRCUIT: active specialist session ---
-        # Per locked decision: specialist keeps control until task completes
-        # OR citizen interrupts. If routing_phase is not "manager", route
-        # directly to the owning specialist crew (skip manager re-entry).
-        if routing_phase not in ("manager", "_handled"):
-            # Map routing_phase values to specialist crews
-            _SPECIALIST_MAP = {
-                "auth": ("src.agents.crews.auth_crew", "AuthCrew"),
-                "municipal": ("src.agents.crews.municipal_crew", "MunicipalCrew"),
-                "gbv": ("src.agents.crews.gbv_crew", "GBVCrew"),
-                "ticket_status": ("src.agents.crews.ticket_status_crew", "TicketStatusCrew"),
-            }
-            spec = _SPECIALIST_MAP.get(routing_phase)
-            if spec:
-                import importlib
-                mod = importlib.import_module(spec[0])
-                CrewClass = getattr(mod, spec[1])
-                specialist_crew = CrewClass(language=detected_language)
-                agent_result = await specialist_crew.kickoff(manager_context)
-                agent_name = agent_result.get("agent", routing_phase)
-            else:
-                # Unknown routing_phase — fall through to manager
-                routing_phase = "manager"
+        # --- INTAKE FLOW: route through deterministic @router Flow ---
+        # IntakeFlow handles: routing_phase short-circuit, auth gate, LLM intent classification
+        if routing_phase != "_handled":
+            from src.agents.flows.intake_flow import IntakeFlow
 
-        # --- MANAGER PATH: no active specialist, classify via LLM ---
-        if routing_phase == "manager":
-            from src.agents.crews.manager_crew import ManagerCrew
-            manager_crew = ManagerCrew(language=detected_language)
-            agent_result = await manager_crew.kickoff(manager_context)
+            flow = IntakeFlow()
+            flow.state.message = body.message
+            flow.state.phone = phone
+            flow.state.language = detected_language
+            flow.state.routing_phase = routing_phase
+            flow.state.session_status = session_status
+            flow.state.user_id = detection_result.get("user_id") or phone
+            flow.state.conversation_history = conversation_history
+            flow.state.pending_intent = getattr(conv_state, 'pending_intent', '') or ''
 
-            agent_name = agent_result.get("agent", "manager")
+            # Kick off Flow asynchronously
+            await flow.kickoff_async()
 
-        # Check for GBV routing
-        is_gbv = "gbv" in agent_name.lower() or agent_result.get("category") == "gbv"
+            # Extract result from Flow state
+            agent_result = flow.state.result
+            if not agent_result:
+                # Flow completed without setting state.result (shouldn't happen)
+                agent_result = {"message": "", "agent_name": "error"}
 
-        # --- PERSIST routing_phase back to ConversationState ---
-        # Without this, routing_phase in Redis would always be "manager"
-        # and the short-circuit above would never trigger on subsequent turns.
-        new_routing_phase = agent_result.get("routing_phase", "manager")
+            agent_name = agent_result.get("agent_name", flow.state.intent or "unknown")
 
-        # If ManagerCrew classified as GBV for the first time, intercept with
-        # confirmation gate — don't route to GBVCrew until citizen confirms.
-        if new_routing_phase == "gbv" and routing_phase == "manager":
-            new_routing_phase = "gbv_pending_confirm"
-            lang = detected_language if detected_language in ("en", "zu", "af") else "en"
-            reply = GBV_CONFIRMATION_MESSAGES[lang]
-            agent_name = "manager"
-            agent_result = {"message": reply, "routing_phase": "gbv_pending_confirm", "agent": "manager"}
-            is_gbv = False  # Not confirmed GBV yet
+            # Determine new routing_phase from flow result
+            # For IntakeFlow, the routing_phase is the intent that was dispatched
+            new_routing_phase = agent_result.get("routing_phase", flow.state.intent or "manager")
 
-        conv_state.routing_phase = new_routing_phase
+            # If IntakeFlow classified as GBV for the first time (intent=gbv but
+            # routing_phase was previously "manager"), intercept with confirmation gate.
+            # Don't route to GBVCrew until citizen explicitly confirms.
+            if flow.state.intent == "gbv" and routing_phase == "manager":
+                new_routing_phase = "gbv_pending_confirm"
+                lang = detected_language if detected_language in ("en", "zu", "af") else "en"
+                reply = GBV_CONFIRMATION_MESSAGES[lang]
+                agent_name = "manager"
+                agent_result = {
+                    "message": reply,
+                    "routing_phase": "gbv_pending_confirm",
+                    "agent_name": "manager",
+                }
 
-        # --- PERSIST pending_intent when routing to auth ---
-        # When the manager routes to auth (citizen needs to register/re-auth
-        # before submitting a report), save the citizen's original message so
-        # it can be replayed after auth completes. Only save messages that look
-        # like a real service request (not short greetings or "yes"/"no").
-        if (
-            new_routing_phase == "auth"
-            and routing_phase == "manager"  # Only on first routing (not re-entry)
-            and len(body.message.strip()) > 20
-            and not conv_state.pending_intent  # Don't overwrite existing intent
-        ):
-            conv_state.pending_intent = body.message
-        # Explicitly persist routing_phase to the store now.
+            # Persist updated routing_phase back to conversation state
+            conv_state.routing_phase = new_routing_phase
+
+            # Persist pending_intent when routing to auth for the first time
+            # Save the citizen's original intent so it can be replayed post-auth.
+            if (
+                flow.state.intent == "auth"
+                and routing_phase == "manager"  # Only on first routing
+                and len(body.message.strip()) > 20
+                and not conv_state.pending_intent
+            ):
+                conv_state.pending_intent = body.message
+            elif flow.state.pending_intent and not conv_state.pending_intent:
+                # IntakeFlow may have set pending_intent during auth gate
+                conv_state.pending_intent = flow.state.pending_intent
+
+        else:
+            # GBV gate handled above — set routing_phase from agent_result
+            new_routing_phase = agent_result.get("routing_phase", conv_state.routing_phase)
+            conv_state.routing_phase = new_routing_phase
+
+        # Check for GBV routing (for debug output redaction)
+        is_gbv = (
+            "gbv" in agent_name.lower()
+            or agent_result.get("category") == "gbv"
+            or getattr(conv_state, 'routing_phase', '') == "gbv"
+        )
+
+        # Explicitly persist routing_phase and pending_intent to the store now.
         # ConversationManager.append_turn() re-fetches from Redis so we must
-        # save BEFORE Step 4 or the updated field would be lost.
-        # InMemoryConversationManager holds a direct object reference so the
-        # assignment above already updated the stored state; save_state is a
-        # no-op overhead in that case but harmless.
+        # save BEFORE Step 4 or the updated fields would be lost.
         if hasattr(manager, 'save_state'):
             try:
                 await manager.save_state(conv_state, is_gbv=is_gbv)
@@ -985,7 +981,7 @@ async def chat(
                 pass  # Best-effort; Step 4 append_turn will persist turns anyway
 
     except Exception as e:
-        # Fail fast on DeepSeek API errors — no retry, no fallback model
+        # Fail fast on LLM API errors — no retry, no fallback model
         error_str = str(e)
         error_lang = detected_language if "detected_language" in dir() else body.language
         reply = _get_fallback("error", error_lang)
