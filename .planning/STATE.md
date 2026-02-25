@@ -566,6 +566,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.9.2 inserted after Phase 6.9.1: System-wide integration validation — full security audit, API completeness, 3-way communication (agents ↔ municipal ↔ public), code quality, CI/CD, Render staging deployment (URGENT)
 - Phase 10.1 inserted after Phase 10: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (URGENT)
 - Phase 10.2 inserted after Phase 10: Auth system security hardening (URGENT)
+- Phase 10.3 inserted after Phase 10: CrewAI Agent Rebuild and LLM Evaluation Framework (URGENT)
 
 ### Blockers/Concerns
 
