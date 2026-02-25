@@ -16,6 +16,7 @@ import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { GlassCard } from '@shared/components/ui/GlassCard';
+import { validatePassword, checkPasswordLeaked } from '@shared/lib/password';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
@@ -128,17 +129,6 @@ const PILOT_MUNICIPALITIES = [
   { value: 'buffalo-city', label: 'Buffalo City Metropolitan' },
 ];
 
-// Password validation matching backend policy (12 chars, uppercase, lowercase, digit)
-// SEC-01: Client-side validation mirrors src/schemas/user.py validate_password_complexity
-function validatePassword(password: string): { valid: boolean; errors: string[] } {
-  const errors: string[] = [];
-  if (password.length < 12) errors.push('At least 12 characters');
-  if (!/[A-Z]/.test(password)) errors.push('At least one uppercase letter');
-  if (!/[a-z]/.test(password)) errors.push('At least one lowercase letter');
-  if (!/\d/.test(password)) errors.push('At least one digit');
-  return { valid: errors.length === 0, errors };
-}
-
 type RegisterMode = 'form' | 'verify-otp' | 'success';
 
 export function CitizenRegisterPage() {
@@ -164,6 +154,10 @@ export function CitizenRegisterPage() {
 
   // Validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
+
+  // HIBP leaked password check state
+  const [leakedCount, setLeakedCount] = useState<number | null>(null);
+  const [checkingLeaked, setCheckingLeaked] = useState(false);
 
   // Animation refs
   const containerRef = useRef<HTMLDivElement>(null);
@@ -197,6 +191,19 @@ export function CitizenRegisterPage() {
     },
     { scope: containerRef }
   );
+
+  // Debounced HIBP leaked password check — runs when password passes basic validation
+  useEffect(() => {
+    setLeakedCount(null);
+    if (!validatePassword(password).valid) return;
+    setCheckingLeaked(true);
+    const timer = setTimeout(async () => {
+      const count = await checkPasswordLeaked(password);
+      setLeakedCount(count);
+      setCheckingLeaked(false);
+    }, 500);
+    return () => { clearTimeout(timer); setCheckingLeaked(false); };
+  }, [password]);
 
   const validateForm = (): boolean => {
     const errors: Record<string, string> = {};
@@ -241,6 +248,15 @@ export function CitizenRegisterPage() {
     }
 
     setLoading(true);
+
+    // Block submission if password found in breaches (fail-open: -1 = API unavailable, allow)
+    const breachCount = leakedCount ?? await checkPasswordLeaked(password);
+    if (breachCount > 0) {
+      setLeakedCount(breachCount);
+      setError('This password has been found in data breaches. Please choose a different password.');
+      setLoading(false);
+      return;
+    }
 
     try {
       // Step 1: Create the account with metadata
@@ -513,6 +529,20 @@ export function CitizenRegisterPage() {
                       {label}
                     </span>
                   ))}
+                  {validatePassword(password).valid && (
+                    <span style={{
+                      fontSize: '0.75rem',
+                      color: checkingLeaked ? 'rgba(255,255,255,0.45)' : leakedCount === 0 ? '#4ade80' : leakedCount !== null && leakedCount > 0 ? '#ef4444' : 'rgba(255,255,255,0.45)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.2rem',
+                    }}>
+                      <span style={{ fontSize: '0.65rem' }}>
+                        {checkingLeaked ? '...' : leakedCount === 0 ? '✓' : leakedCount !== null && leakedCount > 0 ? '✗' : '○'}
+                      </span>
+                      {checkingLeaked ? 'Checking breaches...' : leakedCount === 0 ? 'Not in known breaches' : leakedCount !== null && leakedCount > 0 ? 'Found in data breaches!' : 'Breach check pending'}
+                    </span>
+                  )}
                 </div>
               )}
               {fieldErrors.password && (
@@ -569,10 +599,10 @@ export function CitizenRegisterPage() {
 
             <button
               type="submit"
-              disabled={loading || (password.length > 0 && !validatePassword(password).valid)}
+              disabled={loading || (password.length > 0 && !validatePassword(password).valid) || (leakedCount !== null && leakedCount > 0)}
               style={{
                 ...styles.button,
-                ...(loading || (password.length > 0 && !validatePassword(password).valid) ? styles.buttonDisabled : {}),
+                ...(loading || (password.length > 0 && !validatePassword(password).valid) || (leakedCount !== null && leakedCount > 0) ? styles.buttonDisabled : {}),
               }}
             >
               {loading ? 'Creating Account...' : 'Create Account'}
