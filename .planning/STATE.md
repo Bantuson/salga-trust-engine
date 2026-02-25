@@ -153,6 +153,7 @@ Progress: [██████████] 100% (1/1 plans)
 | Phase 10 P01 | 291 | 2 tasks | 2 files |
 | Phase 10.1 P01 | 381 | 2 tasks | 4 files |
 | Phase 10.1 P02 | 335 | 1 tasks | 3 files |
+| Phase 10.2 P02 | 698 | 1 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -534,6 +535,9 @@ Recent decisions affecting current work:
 - [Phase 10.1]: Email OTP login uses signInWithEmailOtp(shouldCreateUser: false) — login only, never creates accounts via OTP
 - [Phase 10.1]: verifyEmailOtp for sign-in uses type: email — same type as registration OTP verify
 - [Phase 10.1]: Municipal dashboard email OTP verify does NOT navigate manually — auth state change triggers redirect via App.tsx
+- [Phase 10.2-02]: Client-side password validation mirrors backend policy exactly (12 chars, uppercase, lowercase, digit) to prevent UX/server rule gaps
+- [Phase 10.2-02]: Password requirements hint shown only when user has typed something (password.length > 0) — avoids intimidating blank form
+- [Phase 10.2-02]: Login pages unchanged — existing passwords may predate the 12-char policy, no client-side complexity check on login
 
 ### Pending Todos
 
@@ -554,6 +558,7 @@ None - CrewAI successfully installed and integrated.
 - Phase 6.1.1 inserted after Phase 6.1: Teams, Analytics and Settings pages UI — full implementations with user roles, municipal multi-tenancy, new roles/teams management, user journeys, design consistency (URGENT)
 - Phase 6.9.2 inserted after Phase 6.9.1: System-wide integration validation — full security audit, API completeness, 3-way communication (agents ↔ municipal ↔ public), code quality, CI/CD, Render staging deployment (URGENT)
 - Phase 10.1 inserted after Phase 10: Auth system diagnosis fix invalid credentials and enable email code verification for dashboards (URGENT)
+- Phase 10.2 inserted after Phase 10: Auth system security hardening (URGENT)
 
 ### Blockers/Concerns
 
