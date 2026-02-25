@@ -1,85 +1,42 @@
-"""Flow state model for tracking conversation across multiple turns.
+"""Flow state model for conversation state management.
 
-This module defines the IntakeState Pydantic model used by the IntakeFlow
-to track conversation progress, language detection, category routing,
-and ticket data as it's collected through multi-turn interaction.
+IntakeState tracks conversation context across multiple turns for the
+Flow-as-router architecture (Phase 10.3 rebuild).
+
+Architecture notes:
+- State is maintained by the caller (crew_server.py / ConversationManager),
+  NOT via CrewAI built-in memory (memory=False on all Crews).
+- Conversation history injected as formatted string in task description.
+- All fields have defaults — required by CrewAI Flow state initialization.
 """
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
 class IntakeState(BaseModel):
-    """State model for intake flow orchestration.
+    """State model for the IntakeFlow orchestrator.
 
-    Tracks conversation metadata, routing decisions, and collected ticket data
-    across multiple turns until intake is complete.
+    Tracks: message content, citizen identity, language, routing intent,
+    auth state, and conversation history across multi-turn conversations.
 
-    Phase 6.9 additions:
-    - session_status: auth state passed to ManagerCrew for demand-driven auth
-    - user_exists: whether the citizen has a Supabase account
-    - pending_intent: saved intent that survives auth handoff
-    - conversation_history: formatted history injected into ManagerCrew
-    - phone: citizen phone number for session lookup
+    Fields:
+        message: Current citizen message text
+        phone: Citizen WhatsApp phone number (E.164 format)
+        language: Detected language ("en" | "zu" | "af")
+        intent: Classified routing intent ("auth" | "municipal" | "ticket_status" | "gbv")
+        routing_phase: Current routing phase ("manager" | "auth" | "municipal" | etc.)
+        session_status: Auth session state ("none" | "active" | "expired" | "otp_pending")
+        user_id: Authenticated user UUID (None if not yet authenticated)
+        conversation_history: Formatted history string injected into task descriptions
+        result: Dict output from the most recently invoked specialist Crew
+        pending_intent: Carries citizen's original intent through auth handoff
     """
-
-    message_id: str = Field(default="", description="Unique message identifier")
-    user_id: str = Field(default="", description="User UUID")
-    tenant_id: str = Field(default="", description="Municipality tenant UUID")
-    session_id: str = Field(default="", description="Conversation session identifier")
-    language: str = Field(default="en", description="Detected language (en/zu/af)")
-    message: str = Field(default="", description="Current user message")
-    category: str | None = Field(default=None, description="Classified category (municipal/gbv)")
-    subcategory: str | None = Field(
-        default=None,
-        description="Subcategory for municipal (water/roads/electricity/waste/sanitation)"
-    )
-    ticket_data: dict | None = Field(default=None, description="Completed ticket information")
-    ticket_id: str | None = Field(default=None, description="Created ticket ID")
-    routing_confidence: float = Field(default=0.0, description="Classification confidence score")
-    turn_count: int = Field(default=0, description="Number of conversation turns")
-    is_complete: bool = Field(default=False, description="Whether intake is complete")
-    error: str | None = Field(default=None, description="Error message if any")
-
-    # --- Phase 6.9: Manager routing context fields ---
-    session_status: str = Field(
-        default="none",
-        description="Auth session status: none/active/expired"
-    )
-    user_exists: bool = Field(
-        default=False,
-        description="Whether user exists in database"
-    )
-    pending_intent: str | None = Field(
-        default=None,
-        description="Saved intent before auth handoff"
-    )
-    conversation_history: str = Field(
-        default="(none)",
-        description="Formatted conversation history"
-    )
-    phone: str = Field(
-        default="",
-        description="Citizen phone number"
-    )
-
-    class Config:
-        """Pydantic config."""
-        json_schema_extra = {
-            "example": {
-                "message_id": "msg_123",
-                "user_id": "user_456",
-                "tenant_id": "tenant_789",
-                "session_id": "session_abc",
-                "language": "en",
-                "message": "There is a water pipe burst on Main Street",
-                "category": "municipal",
-                "subcategory": "water",
-                "routing_confidence": 0.95,
-                "turn_count": 1,
-                "is_complete": False,
-                "session_status": "active",
-                "user_exists": True,
-                "pending_intent": None,
-                "conversation_history": "(none)",
-                "phone": "+27821234567",
-            }
-        }
+    message: str = ""
+    phone: str = ""
+    language: str = "en"
+    intent: str = "unknown"  # "auth" | "municipal" | "ticket_status" | "gbv"
+    routing_phase: str = "manager"
+    session_status: str = "none"  # "none" | "active" | "expired" | "otp_pending"
+    user_id: str | None = None
+    conversation_history: str = "(none)"
+    result: dict = {}
+    pending_intent: str = ""  # Carries citizen's original intent through auth

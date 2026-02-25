@@ -73,7 +73,8 @@ class Settings(BaseSettings):
     ENCRYPTION_KEY_CURRENT: str = Field(default="", description="Current Fernet encryption key")
     ENCRYPTION_KEY_PREVIOUS: str = Field(default="", description="Previous Fernet key for rotation")
 
-    # DeepSeek LLM
+    # LLM providers
+    OPENAI_API_KEY: str = Field(default="", description="OpenAI API key for GPT-4o-mini routing/tool-heavy agents")
     DEEPSEEK_API_KEY: str = Field(default="", description="DeepSeek API key for LLM")
     DEEPSEEK_BASE_URL: str = Field(
         default="https://api.deepseek.com/v1",

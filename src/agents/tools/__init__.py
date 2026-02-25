@@ -1,4 +1,4 @@
-"""Tools for agent actions (ticket creation, database access, etc.)."""
-from src.agents.tools.ticket_tool import create_municipal_ticket, _create_ticket_impl
+"""CrewAI tools for SALGA Trust Engine specialist agents.
 
-__all__ = ["create_municipal_ticket", "_create_ticket_impl"]
+Tools are rebuilt per-agent in Plans 02-07.
+"""
