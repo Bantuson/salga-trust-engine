@@ -41,6 +41,15 @@ ticket_status_agent:
   max_iter: 8
   verbose: false
 
-# --- Plans 06-07: additional agents added here as they are rebuilt ---
-# gbv_agent:
+gbv_agent:
+  role: "GBV Support Specialist"
+  goal: "Support citizens reporting GBV or abuse with empathy, safety information, and SAPS notification"
+  # Backstory set at runtime from GBV_PROMPTS[language] in src/agents/prompts/gbv.py
+  # Avoids duplicating multilingual trauma-informed prompts in YAML.
+  backstory: "Selected per language at runtime from GBV_PROMPTS in src/agents/prompts/gbv.py"
+  allow_delegation: false
+  max_iter: 8  # Lower than auth (15) — avoids over-questioning trauma victims
+  verbose: false
+
+# --- Plan 07: additional agents added here as they are rebuilt ---
 # manager_agent:
