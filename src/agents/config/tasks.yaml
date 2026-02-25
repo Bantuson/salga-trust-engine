@@ -23,6 +23,9 @@ ticket_status_task:
   description: "Generated dynamically by build_ticket_status_task_description() in src/agents/prompts/ticket_status.py"
   expected_output: "A clear, friendly status update for the citizen's service ticket(s)"
 
-# --- Plans 06-07: additional tasks added here as agents are rebuilt ---
-# gbv_intake_task:
+gbv_intake_task:
+  description: "Generated dynamically by build_gbv_task_description() in src/agents/prompts/gbv.py"
+  expected_output: "A calm, empathetic response that includes emergency numbers 10111 and 0800 150 150, acknowledges the citizen's situation without judgment, and confirms SAPS notification has been sent"
+
+# --- Plan 07: additional tasks added here as agents are rebuilt ---
 # manager_routing_task:
