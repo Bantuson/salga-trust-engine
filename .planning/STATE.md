@@ -5,7 +5,7 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 06 COMPLETE — GBV Agent rebuilt: saps_tool.py, prompts/gbv.py (GBV_PROMPTS trilingual trauma-informed), gbv_crew.py (DeepSeek, memory=False, max_iter=8), 58 SEC-05 boundary unit tests passing.
+**Current focus:** Phase 10.3 Plan 06 COMPLETE — GBV Agent rebuilt: saps_tool.py, prompts/gbv.py (GBV_PROMPTS trilingual trauma-informed), gbv_crew.py (DeepSeek, memory=False, max_iter=8), 58 SEC-05 boundary unit tests passing. Plan 05 SUMMARY.md created (MunicipalIntakeCrew + TicketStatusCrew with 88 unit tests).
 
 ## Current Position
 
@@ -561,6 +561,8 @@ Recent decisions affecting current work:
 - [Phase 10.3]: GBV agent uses get_deepseek_llm() — conversation-heavy with single notify_saps at end per research
 - [Phase 10.3]: GBVCrew memory=False enforced at class AND Crew() constructor level (defense-in-depth SEC-05)
 - [Phase 10.3]: GBV prompts injected from GBV_PROMPTS Python dict (not YAML backstory) — same pattern as AUTH_PROMPTS
+- [Phase 10.3]: gpt-4o-mini (get_routing_llm) for both MunicipalIntakeCrew and TicketStatusCrew — both end with a single tool call requiring reliable structured tool use (Phase 10.3 research decision)
+- [Phase 10.3]: USE_POSTGIS guard in ticket_tool.py — try/except import of geoalchemy2/shapely prevents import errors in SQLite unit test environments
 
 ### Pending Todos
 
