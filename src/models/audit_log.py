@@ -15,6 +15,13 @@ class OperationType(str, Enum):
     READ = "READ"
     UPDATE = "UPDATE"
     DELETE = "DELETE"
+    # Auth event types (SEC-07 auth event logging)
+    AUTH_LOGIN_SUCCESS = "AUTH_LOGIN_SUCCESS"
+    AUTH_LOGIN_FAILURE = "AUTH_LOGIN_FAILURE"
+    AUTH_REGISTER = "AUTH_REGISTER"
+    AUTH_OTP_SEND = "AUTH_OTP_SEND"
+    AUTH_OTP_VERIFY = "AUTH_OTP_VERIFY"
+    AUTH_TOKEN_REFRESH = "AUTH_TOKEN_REFRESH"
 
 
 class AuditLog(NonTenantModel):
