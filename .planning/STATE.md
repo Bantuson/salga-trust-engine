@@ -5,16 +5,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 04 COMPLETE — Auth Crew and Crew Server unit tests: 46 tests for AuthCrew (structure, prompts, AuthResult Pydantic, tools), 28 tests for crew_server.py (health, chat shape, sanitize_reply, session reset, debug output). FAKE_LLM pattern established for create_crew() tests. Plan 06 COMPLETE — GBV Agent rebuilt: saps_tool.py, prompts/gbv.py (GBV_PROMPTS trilingual trauma-informed), gbv_crew.py (DeepSeek, memory=False, max_iter=8), 58 SEC-05 boundary unit tests passing. Plan 05 SUMMARY.md created (MunicipalIntakeCrew + TicketStatusCrew with 88 unit tests).
+**Current focus:** Phase 10.3 Plan 07 COMPLETE — IntakeFlow capstone: @router dispatch to all 4 specialist crews, crew_server/messages/whatsapp updated to use IntakeFlow, GBV confirmation gate preserved, 35 routing unit tests (255 total in agents suite).
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 6 of 9 in current phase
-Status: IN PROGRESS — Phase 10.3 Plan 06 complete: GBV agent rebuilt with trauma-informed prompts, SAPS tool, SEC-05 tests. Ready for Plan 07 (Manager Agent rebuild).
-Last activity: 2026-02-25 — Phase 10.3 Plan 06 complete: saps_tool.py, prompts/gbv.py, crews/gbv_crew.py, tests/agents/test_gbv_crew.py (58 tests)
+Plan: 7 of 9 in current phase
+Status: IN PROGRESS — Phase 10.3 Plan 07 complete: IntakeFlow built with @router dispatch, all endpoints updated, 35 unit tests passing. Ready for Plan 08 (LLM evaluation framework).
+Last activity: 2026-02-25 — Phase 10.3 Plan 07 complete: intake_flow.py, crew_server.py (IntakeFlow routing), messages.py, whatsapp_service.py, test_intake_flow.py (35 tests)
 
-Progress: [██████░░░░] 67% (6/9 plans)
+Progress: [███████░░░] 78% (7/9 plans)
 
 ## Performance Metrics
 
@@ -161,6 +161,7 @@ Progress: [██████░░░░] 67% (6/9 plans)
 | Phase 10.3 P06 | 19 | 2 tasks | 6 files |
 | Phase 10.3 P05 | 1557 | 2 tasks | 10 files |
 | Phase 10.3 P04 | 1709 | 2 tasks | 2 files |
+| Phase 10.3 P07 | 1075 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -566,6 +567,13 @@ Recent decisions affecting current work:
 - [Phase 10.3]: USE_POSTGIS guard in ticket_tool.py — try/except import of geoalchemy2/shapely prevents import errors in SQLite unit test environments
 - [Phase 10.3]: FAKE_LLM pattern: crewai.LLM(model='openai/test-model') required for create_crew() tests — MagicMock fails CrewAI Agent model string validation
 - [Phase 10.3]: ManagerCrew patch target is src.agents.crews.manager_crew.ManagerCrew (not crew_server module) — it's a local import inside chat() function body
+- [Phase 10.3]: IntakeFlow uses @router for deterministic Python dispatch — no LLM delegation in routing step
+- [Phase 10.3]: Intent classification is direct get_routing_llm().call() (gpt-4o-mini), NOT a full Crew — simpler and faster for single-shot classification
+- [Phase 10.3]: GBV confirmation gate lives in crew_server.py pre-IntakeFlow (two-turn safety gate before GBVCrew dispatch)
+- [Phase 10.3]: pending_intent stores classified intent string (not raw message) during auth handoff — more reliable for post-auth replay
+- [Phase 10.3]: Lazy crew imports inside @listen handlers prevent circular imports at module level
+- [Phase 10.3]: category='gbv' forced in handle_gbv() result even if GBVCrew omits it (SEC-05 defense-in-depth)
+- [Phase 10.3]: kickoff_async() exists in CrewAI 1.8.1 — no need for sync wrapper (the plan's open question was confirmed)
 
 ### Pending Todos
 
@@ -595,10 +603,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25 (Phase 10.3 Plan 06 complete — GBVCrew rebuilt: saps_tool.py, gbv.py prompts, gbv_crew.py, 58 SEC-05 boundary tests)
-Stopped at: Phase 10.3 Plan 06 complete
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-06-SUMMARY.md
+Last session: 2026-02-25 (Phase 10.3 Plan 07 complete — IntakeFlow capstone: @router dispatch, crew_server/messages/whatsapp updated, 35 routing unit tests, 255 total agents tests)
+Stopped at: Phase 10.3 Plan 07 complete
+Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-07-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-22 (Phase 08 COMPLETE — end-to-end web portal report submission wired, RPT-02/03/04/05/06/08 all complete)*
+*Last updated: 2026-02-25 (Phase 10.3 Plan 07 COMPLETE — IntakeFlow capstone integration)*
