@@ -1,0 +1,12 @@
+@import "tailwindcss";
+
+@theme {
+  --color-rose-primary: #cd5e81;
+  --color-rose-light: #e68ba5;
+  --color-rose-deep: #a34866;
+  --color-gold: #ffd54f;
+  --color-teal: #00bfa5;
+  --color-coral: #FF6B4A;
+  --color-text-primary: #f9f7f8;
+  --color-text-secondary: #e0d4d8;
+}
