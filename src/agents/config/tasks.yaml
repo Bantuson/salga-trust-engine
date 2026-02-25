@@ -6,18 +6,23 @@
 #     description: str   (may contain {placeholder} variables filled by context dict)
 #     expected_output: str
 #
-# Note on auth_task description:
-#   The description field below is a placeholder only.
-#   AuthCrew.build_task_description() calls build_auth_task_description(context)
-#   from src/agents/prompts/auth.py to generate the full task description at
-#   runtime (per-request, per-language, per-user-state).
+# Note on description fields:
+#   Most specialist tasks generate their description dynamically from Python prompt
+#   modules (build_auth_task_description, build_municipal_task_description, etc.)
+#   The description field here is a placeholder only.
 
 auth_task:
   description: "Generated dynamically by build_auth_task_description() in src/agents/prompts/auth.py"
   expected_output: "A warm, helpful response guiding the citizen through authentication"
 
-# --- Plans 04-07: additional tasks added here as agents are rebuilt ---
-# municipal_intake_task:
+municipal_intake_task:
+  description: "Generated dynamically by build_municipal_task_description() in src/agents/prompts/municipal.py"
+  expected_output: "A warm, helpful response collecting issue details or confirming ticket creation with tracking number"
+
+ticket_status_task:
+  description: "Generated dynamically by build_ticket_status_task_description() in src/agents/prompts/ticket_status.py"
+  expected_output: "A clear, friendly status update for the citizen's service ticket(s)"
+
+# --- Plans 06-07: additional tasks added here as agents are rebuilt ---
 # gbv_intake_task:
-# ticket_status_task:
 # manager_routing_task:

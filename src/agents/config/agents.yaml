@@ -5,18 +5,17 @@
 #   <agent_key>:
 #     role: str
 #     goal: str  (may contain {language} placeholder)
-#     backstory: str           # English (or note: "Set at runtime from AUTH_PROMPTS")
+#     backstory: str           # English (or note: "Set at runtime from *_PROMPTS")
 #     backstory_zu: str        # isiZulu (optional)
 #     backstory_af: str        # Afrikaans (optional)
 #     allow_delegation: bool   # Always False for specialists
 #     max_iter: int
 #     verbose: bool
 #
-# Note on auth_agent backstory:
-#   The backstory field below is a placeholder only.
-#   AuthCrew.create_crew() injects the full Gugu persona from
-#   src/agents/prompts/auth.py AUTH_PROMPTS[language] at runtime.
-#   This avoids duplicating 200+ lines of trilingual prompt content in YAML.
+# Note on backstory fields:
+#   Most specialist agents inject their backstory from Python prompt modules
+#   (src/agents/prompts/auth.py, municipal.py, ticket_status.py, etc.) at
+#   runtime. The backstory field here is a placeholder only.
 
 auth_agent:
   role: "Citizen Authentication Assistant"
@@ -26,8 +25,22 @@ auth_agent:
   max_iter: 15
   verbose: false
 
-# --- Plans 04-07: additional agents added here as they are rebuilt ---
-# manager_agent:
-# municipal_intake_agent:
+municipal_intake_agent:
+  role: "Municipal Service Intake Assistant"
+  goal: "Help citizens report municipal service problems and create service tickets"
+  backstory: "Selected per language at runtime from MUNICIPAL_PROMPTS in src/agents/prompts/municipal.py"
+  allow_delegation: false
+  max_iter: 10
+  verbose: false
+
+ticket_status_agent:
+  role: "Ticket Status Specialist"
+  goal: "Help citizens check the status of their municipal service reports"
+  backstory: "Selected per language at runtime from TICKET_STATUS_PROMPTS in src/agents/prompts/ticket_status.py"
+  allow_delegation: false
+  max_iter: 8
+  verbose: false
+
+# --- Plans 06-07: additional agents added here as they are rebuilt ---
 # gbv_agent:
-# ticket_status_specialist:
+# manager_agent:
