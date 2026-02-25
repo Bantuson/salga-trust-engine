@@ -159,13 +159,16 @@ class ChatResponse(BaseModel):
     reply: str
     """Agent's response text to send back to the citizen."""
 
-    agent_name: str
-    """Which agent handled this turn: "auth_agent" | "municipal_intake" | "gbv_intake"."""
+    agent_name: str = "unknown"
+    """Which agent handled this turn: "auth" | "municipal_intake" | "gbv_intake"."""
 
-    session_status: str
+    session_status: str = "none"
     """Session state at time of routing: "active" | "expired" | "none" | "created"."""
 
-    debug: dict
+    language: str = "en"
+    """Language code of the response — "en" | "zu" | "af"."""
+
+    debug: dict = {}
     """Metadata for Streamlit dashboard. GBV conversations only include safe metadata."""
 
 
@@ -182,10 +185,14 @@ class HealthResponse(BaseModel):
     status: str
     """Server health status ("ok")."""
 
-    deepseek_configured: bool
+    agents: list[str]
+    """List of agent names currently active in this server build.
+    Grows as agents are rebuilt in Plans 03-07."""
+
+    deepseek_configured: bool = False
     """True if DEEPSEEK_API_KEY is non-empty (does NOT call the API)."""
 
-    version: str
+    version: str = "1.0.0"
     """API version string."""
 
 
@@ -610,15 +617,17 @@ def _detect_language_preference(message: str) -> str | None:
 
 @crew_app.get("/api/v1/health", response_model=HealthResponse)
 async def health_check() -> HealthResponse:
-    """Check crew server health and configuration.
+    """Check crew server health and active agents.
 
-    Does NOT call the DeepSeek API — only checks if the key is non-empty.
+    Does NOT call any LLM API — only checks if API keys are configured.
+    The agents list grows as specialists are rebuilt in Plans 03-07.
 
     Returns:
-        HealthResponse with status, deepseek_configured, and version.
+        HealthResponse with status, agents, deepseek_configured, and version.
     """
     return HealthResponse(
         status="ok",
+        agents=["auth"],  # Plan 03: Auth agent wired. Grows in Plans 04-07.
         deepseek_configured=bool(settings.DEEPSEEK_API_KEY),
         version="1.0.0",
     )
@@ -985,6 +994,7 @@ async def chat(
             reply=reply,
             agent_name="error",
             session_status=session_status,
+            language=error_lang,
             debug={
                 "error": error_str,
                 "agent_name": "error",
@@ -1086,6 +1096,7 @@ async def chat(
         reply=reply,
         agent_name=agent_name,
         session_status=session_status,
+        language=detected_language,
         debug=debug,
     )
 
