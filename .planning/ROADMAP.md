@@ -238,7 +238,7 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 **Goal:** Rebuild the entire CrewAI agent system from scratch using Flow @router architecture (replacing broken Process.hierarchical). Archive existing code, rebuild each specialist agent (Auth, Municipal, TicketStatus, GBV) independently with proven end-to-end tests, then wire IntakeFlow routing. Establish LLM evaluation framework with trajectory evals (deepeval ToolCorrectnessMetric) and Claude-as-judge rubrics for regression prevention.
 **Depends on:** Phase 10
 **Requirements:** AI-01, AI-02, AI-03, AI-04, AI-05, AI-06, AI-07
-**Plans:** 8 plans
+**Plans:** 9 plans
 
 Plans:
 - [ ] 10.3-01-PLAN.md -- Archive old agents, scaffold new directory structure, install deepeval, create test infrastructure
@@ -248,7 +248,8 @@ Plans:
 - [ ] 10.3-05-PLAN.md -- Municipal Intake + Ticket Status agents rebuild with tools, prompts, tests
 - [ ] 10.3-06-PLAN.md -- GBV agent rebuild with trauma-informed prompts, SAPS tool, SEC-05 boundary tests
 - [ ] 10.3-07-PLAN.md -- IntakeFlow @router rebuild, wire all specialists, update WhatsApp/messages endpoints
-- [ ] 10.3-08-PLAN.md -- Integration tests, eval runner, regression check, Streamlit verification checkpoint
+- [ ] 10.3-08-PLAN.md -- Integration tests, eval runner, regression check, Streamlit smoke-test checkpoint
+- [ ] 10.3-09-PLAN.md -- Playwright+Claude-judge automated eval loop (dynamic Streamlit testing)
 
 ### Phase 10.2: Auth system security hardening (INSERTED)
 
