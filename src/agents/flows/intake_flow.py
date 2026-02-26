@@ -108,6 +108,12 @@ class IntakeFlow(Flow[IntakeState]):
         Returns:
             Intent string: "auth" | "municipal" | "ticket_status" | "gbv"
         """
+        # SEC-05: Intercept adversarial GBV phrasing before LLM classification.
+        # Citizens describing a GBV case using police/SAPS language lack the abuse keywords
+        # the LLM checks for, causing misrouting to ticket_status.
+        if self._is_saps_context(self.state.message):
+            return "gbv"
+
         from src.agents.llm import get_routing_llm
 
         llm = get_routing_llm()
@@ -130,6 +136,27 @@ class IntakeFlow(Flow[IntakeState]):
             intent = "municipal"
 
         return intent
+
+    def _is_saps_context(self, message: str) -> bool:
+        """Return True if message refs SAPS/police officers in citizen's own case.
+
+        Requires BOTH a SAPS/officer term AND a personal-case ownership term.
+        Generic SAPS mentions without case context return False.
+
+        SEC-05: Ensures GBV safety net not bypassed by adversarial phrasing.
+        """
+        msg_lower = message.lower()
+        saps_terms = [
+            "saps officer", "police officer", "investigating officer",
+            "detective", "constable", "sergeant", "lieutenant", "captain",
+        ]
+        case_terms = [
+            "my case", "assigned to", "my report", "my complaint",
+            "my matter", "handling my", "working on my", "officer on my",
+        ]
+        has_saps = any(term in msg_lower for term in saps_terms)
+        has_case = any(term in msg_lower for term in case_terms)
+        return has_saps and has_case
 
     @router(classify_intent)
     def route_by_intent(self) -> str:
