@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: unknown
-last_updated: "2026-02-26T07:14:18.047Z"
+last_updated: "2026-02-26T07:59:55Z"
 progress:
   total_phases: 3
   completed_phases: 2
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 08 COMPLETE (partial — awaiting Task 2 Streamlit checkpoint) — 19 pipeline integration tests, 25-scenario eval framework, LLM fix: auth/municipal/ticket_status switched from gpt-4o-mini to DeepSeek V3.2 after per-agent evals proved 3/4 failing. 274 tests pass.
+**Current focus:** Phase 10.3 Plan 09 Task 1 COMPLETE — Playwright+Claude-judge eval engine (PlaywrightJudge class, run_playwright_eval.py CLI). CHECKPOINT at Task 2: live Playwright eval loop requires running crew_server + Streamlit + real API keys.
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 8 of 9 in current phase (awaiting Task 2 Streamlit checkpoint before Plan 09)
-Status: CHECKPOINT — Phase 10.3 Plan 08 Task 1 complete + LLM fix applied. Awaiting manual Streamlit smoke-test (Task 2) before proceeding to Plan 09.
-Last activity: 2026-02-26 — Phase 10.3 Plan 08: test_full_pipeline.py (19 tests), run_evals.py CLI, LLM fix (auth/municipal/ticket_status -> DeepSeek), 274 tests pass
+Plan: 9 of 9 in current phase (Task 1 complete, awaiting Task 2 live Playwright eval checkpoint)
+Status: CHECKPOINT — Phase 10.3 Plan 09 Task 1 complete. PlaywrightJudge eval engine built. Awaiting live Playwright+Claude-judge eval loop against running agents (Task 2).
+Last activity: 2026-02-26 — Phase 10.3 Plan 09: playwright_judge.py (PlaywrightJudge), run_playwright_eval.py CLI, conftest.py fixtures. 25 scenarios across 4 agents, dry-run verified.
 
-Progress: [████████░░] 89% (8/9 plans)
+Progress: [█████████░] 94% (8.5/9 plans)
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Progress: [████████░░] 89% (8/9 plans)
 | Phase 10.3 P04 | 1709 | 2 tasks | 2 files |
 | Phase 10.3 P07 | 1075 | 2 tasks | 5 files |
 | Phase 10.3 P08 | 15 | 2 tasks | 7 files |
+| 10.3-09 | 2m (127s) | 1 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -590,6 +591,9 @@ Recent decisions affecting current work:
 - [Phase 10.3]: kickoff_async() exists in CrewAI 1.8.1 — no need for sync wrapper (the plan's open question was confirmed)
 - [Phase 10.3]: Switch auth/municipal/ticket_status from gpt-4o-mini to DeepSeek V3.2 — empirical evals proved gpt-4o-mini ignores backstory/tools in 150-300 line prompts (0/3 tool calls correct); get_routing_llm kept only for IntakeFlow short-prompt classification
 - [Phase 10.3-08]: 19 pipeline integration tests cover HTTP -> crew_server -> IntakeFlow -> specialist -> response; 25-scenario eval framework with dry-run CLI; all 274 unit tests pass after LLM switch
+- [Phase 10.3-09]: PlaywrightJudge uses callback injection (send_message_fn, read_response_fn, reset_session_fn) — eval engine testable independently of Playwright MCP tools
+- [Phase 10.3-09]: tools_called passed as list[str] to format_rubric (not string) — matches judge_rubrics.format_rubric API signature exactly
+- [Phase 10.3-09]: GBV conversation content stripped at run_scenario() level (not post-hoc in _save_report) — SEC-05 compliance at source, never stored in memory between scenario steps
 
 ### Pending Todos
 
