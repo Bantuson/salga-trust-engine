@@ -1,8 +1,8 @@
 """Report submission API for web portal.
 
 Provides endpoints for citizens to submit reports via web with GPS/address,
-attach evidence photos, and track report status. Uses ManagerCrew.kickoff()
-for AI classification when category not specified.
+attach evidence photos, and track report status. Uses IntakeFlow for AI intent
+classification when category not specified.
 """
 import logging
 import os
@@ -15,7 +15,8 @@ from starlette.requests import Request
 
 from src.api.deps import get_current_user, get_db
 from src.middleware.rate_limit import REPORT_RATE_LIMIT, SENSITIVE_READ_RATE_LIMIT, limiter
-from src.agents.crews.manager_crew import ManagerCrew
+from src.agents.flows.intake_flow import IntakeFlow
+from src.agents.flows.state import IntakeState
 from src.guardrails.engine import guardrails_engine
 from src.models.media import MediaAttachment
 from src.models.ticket import Ticket, generate_tracking_number
@@ -51,7 +52,7 @@ async def submit_report(
     Flow:
     1. Validate description through guardrails
     2. If category provided, skip AI classification
-    3. If category not provided, run ManagerCrew.kickoff() for AI classification
+    3. If category not provided, run IntakeFlow._classify_raw_intent() for AI classification
     4. Create ticket with location data
     5. Link media attachments
     6. If GBV, trigger SAPS notification
@@ -84,31 +85,30 @@ async def submit_report(
     severity = "medium"  # Default severity
 
     if category is None:
-        # Run ManagerCrew for AI classification (single-shot, no conversation history)
+        # Use IntakeFlow for single-shot AI intent classification.
+        # IntakeFlow uses gpt-4o-mini via _classify_raw_intent() for reliable
+        # classification. We only need the intent -- not a full crew conversation.
         try:
-            manager_crew = ManagerCrew(language=report.language or "en")
-            agent_result = await manager_crew.kickoff({
-                "message": sanitized_description,
-                "user_id": str(current_user.id),
-                "tenant_id": str(current_user.tenant_id),
-                "language": report.language or "en",
-                "phone": "",
-                "session_status": "active",
-                "user_exists": "True",
-                "conversation_history": "(none)",
-                "pending_intent": "none",
-            })
+            flow = IntakeFlow()
+            flow.state = IntakeState(
+                message=sanitized_description,
+                language=report.language or "en",
+                session_status="active",  # Web portal users are authenticated
+                user_id=str(current_user.id),
+                routing_phase="manager",  # Trigger fresh classification
+            )
+            # Call _classify_raw_intent directly for lightweight single-shot classification.
+            # This makes one gpt-4o-mini LLM call -- no full crew invocation.
+            intent = flow._classify_raw_intent()
 
-            # Map routing_phase to a ticket category
-            routing_phase = agent_result.get("routing_phase", "other")
-            _PHASE_TO_CATEGORY = {
-                "municipal": "other",
+            # Map intent to ticket category
+            _INTENT_TO_CATEGORY = {
+                "municipal": "other",  # Municipal services -- specific sub-category determined by description
                 "gbv": "gbv",
                 "auth": "other",
-                "manager": "other",
                 "ticket_status": "other",
             }
-            category = _PHASE_TO_CATEGORY.get(routing_phase, "other")
+            category = _INTENT_TO_CATEGORY.get(intent, "other")
 
         except Exception as e:
             logger.error(f"AI classification failed: {e}", exc_info=True)
