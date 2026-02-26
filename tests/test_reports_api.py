@@ -120,7 +120,7 @@ class TestReportsAPI:
         }
 
         with patch('src.api.v1.reports.guardrails_engine') as mock_guardrails, \
-             patch('src.api.v1.reports.ManagerCrew') as mock_crew_class:
+             patch('src.api.v1.reports.IntakeFlow') as mock_flow_class:
 
             mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
                 is_safe=True,
@@ -139,11 +139,11 @@ class TestReportsAPI:
         data = response.json()
         assert data["category"] == "waste"
 
-        # Verify ManagerCrew was NOT called (category provided)
-        mock_crew_class.assert_not_called()
+        # Verify IntakeFlow was NOT instantiated (category provided)
+        mock_flow_class.assert_not_called()
 
     async def test_submit_report_without_category(self, client, citizen_token):
-        """Test AI classification when category is None."""
+        """Test AI classification via IntakeFlow when category is None."""
         # Arrange
         request_data = {
             "description": "The water is not working in my house",
@@ -153,17 +153,17 @@ class TestReportsAPI:
         }
 
         with patch('src.api.v1.reports.guardrails_engine') as mock_guardrails, \
-             patch('src.api.v1.reports.ManagerCrew') as mock_crew_class:
+             patch('src.api.v1.reports.IntakeFlow') as mock_flow_class:
 
             mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
                 is_safe=True,
                 sanitized_message="The water is not working in my house"
             ))
 
-            # Mock ManagerCrew with new pipeline pattern
-            mock_crew = MagicMock()
-            mock_crew.kickoff = AsyncMock(return_value={"routing_phase": "municipal"})
-            mock_crew_class.return_value = mock_crew
+            # Mock IntakeFlow instance and _classify_raw_intent
+            mock_flow = MagicMock()
+            mock_flow._classify_raw_intent = MagicMock(return_value="municipal")
+            mock_flow_class.return_value = mock_flow
 
             # Act
             response = await client.post(
@@ -175,7 +175,71 @@ class TestReportsAPI:
         # Assert
         assert response.status_code == 200
         data = response.json()
-        # "municipal" routing_phase maps to "other" via _PHASE_TO_CATEGORY
+        # "municipal" intent maps to "other" category
+        assert data["category"] == "other"
+
+    async def test_submit_report_ai_classifies_gbv(self, client, citizen_token):
+        """Test AI classification detects GBV from description content."""
+        request_data = {
+            "description": "My husband is beating me and I need help urgently",
+            "category": None,  # No explicit category -- AI must detect GBV
+            "manual_address": "Location withheld",
+            "language": "en"
+        }
+
+        with patch('src.api.v1.reports.guardrails_engine') as mock_guardrails, \
+             patch('src.api.v1.reports.IntakeFlow') as mock_flow_class, \
+             patch('src.agents.tools.saps_tool.notify_saps') as mock_saps:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="My husband is beating me and I need help urgently"
+            ))
+
+            mock_flow = MagicMock()
+            mock_flow._classify_raw_intent = MagicMock(return_value="gbv")
+            mock_flow_class.return_value = mock_flow
+
+            response = await client.post(
+                "/api/v1/reports/submit",
+                json=request_data,
+                headers={"Authorization": f"Bearer {citizen_token}"}
+            )
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["category"] == "gbv"
+
+    async def test_submit_report_ai_classification_fallback(self, client, citizen_token):
+        """Test AI classification failure defaults to 'other' category."""
+        request_data = {
+            "description": "Something is wrong in my neighborhood",
+            "category": None,
+            "manual_address": "456 Oak Avenue",
+            "language": "en"
+        }
+
+        with patch('src.api.v1.reports.guardrails_engine') as mock_guardrails, \
+             patch('src.api.v1.reports.IntakeFlow') as mock_flow_class:
+
+            mock_guardrails.process_input = AsyncMock(return_value=MagicMock(
+                is_safe=True,
+                sanitized_message="Something is wrong in my neighborhood"
+            ))
+
+            # Simulate IntakeFlow raising an exception
+            mock_flow = MagicMock()
+            mock_flow._classify_raw_intent = MagicMock(side_effect=Exception("LLM API timeout"))
+            mock_flow_class.return_value = mock_flow
+
+            response = await client.post(
+                "/api/v1/reports/submit",
+                json=request_data,
+                headers={"Authorization": f"Bearer {citizen_token}"}
+            )
+
+        assert response.status_code == 200
+        data = response.json()
         assert data["category"] == "other"
 
     async def test_submit_report_with_media(self, client, citizen_token, db_session):
