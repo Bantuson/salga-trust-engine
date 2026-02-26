@@ -2,13 +2,13 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: unknown
-last_updated: "2026-02-26T07:59:55Z"
+status: complete
+last_updated: "2026-02-26T10:45:30Z"
 progress:
   total_phases: 3
-  completed_phases: 2
+  completed_phases: 3
   total_plans: 13
-  completed_plans: 12
+  completed_plans: 13
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 09 Task 1 COMPLETE — Playwright+Claude-judge eval engine (PlaywrightJudge class, run_playwright_eval.py CLI). CHECKPOINT at Task 2: live Playwright eval loop requires running crew_server + Streamlit + real API keys.
+**Current focus:** Phase 10.3 COMPLETE — All 9/9 plans done. CrewAI agent rebuild finished, LLM eval framework operational. Playwright+Claude-judge eval loop confirmed all 3 medium issues resolved. System ready for production pilots.
 
 ## Current Position
 
-Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 9 of 9 in current phase (Task 1 complete, awaiting Task 2 live Playwright eval checkpoint)
-Status: CHECKPOINT — Phase 10.3 Plan 09 Task 1 complete. PlaywrightJudge eval engine built. Awaiting live Playwright+Claude-judge eval loop against running agents (Task 2).
-Last activity: 2026-02-26 — Phase 10.3 Plan 09: playwright_judge.py (PlaywrightJudge), run_playwright_eval.py CLI, conftest.py fixtures. 25 scenarios across 4 agents, dry-run verified.
+Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework) — COMPLETE
+Plan: 9 of 9 in current phase — COMPLETE
+Status: COMPLETE — Phase 10.3 Plan 09 fully done. PlaywrightJudge eval engine built, live eval run completed, Afrikaans error leak fixed (two-layer: tool + prompt). All 3 medium issues resolved and human-verified.
+Last activity: 2026-02-26 — Phase 10.3 Plan 09: Playwright eval engine (84770be), Afrikaans leak two-layer fix (5ba27b3, 0996494), live eval report playwright_retest_20260226_082018.json confirms 3/3 issues PASS.
 
-Progress: [█████████░] 94% (8.5/9 plans)
+Progress: [██████████] 100% (9/9 plans)
 
 ## Performance Metrics
 
@@ -176,7 +176,7 @@ Progress: [█████████░] 94% (8.5/9 plans)
 | Phase 10.3 P04 | 1709 | 2 tasks | 2 files |
 | Phase 10.3 P07 | 1075 | 2 tasks | 5 files |
 | Phase 10.3 P08 | 15 | 2 tasks | 7 files |
-| 10.3-09 | 2m (127s) | 1 tasks | 3 files |
+| 10.3-09 | ~90m | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -594,6 +594,9 @@ Recent decisions affecting current work:
 - [Phase 10.3-09]: PlaywrightJudge uses callback injection (send_message_fn, read_response_fn, reset_session_fn) — eval engine testable independently of Playwright MCP tools
 - [Phase 10.3-09]: tools_called passed as list[str] to format_rubric (not string) — matches judge_rubrics.format_rubric API signature exactly
 - [Phase 10.3-09]: GBV conversation content stripped at run_scenario() level (not post-hoc in _save_report) — SEC-05 compliance at source, never stored in memory between scenario steps
+- [Phase 10.3-09]: Two-layer Afrikaans error suppression: ticket_lookup_tool.py replaces raw str(e) with generic safe message (tool layer) + explicit SUPPRESS_TOOL_ERRORS rules added to EN/ZU/AF prompt constants (prompt layer)
+- [Phase 10.3-09]: Tool error returns must use generic safe messages (not raw str(e)) to prevent LLM faithfully translating Python exception text to citizens in any language
+- [Phase 10.3-09]: Live eval (playwright_retest_20260226_082018.json) confirms all 3 medium issues resolved: Zulu parse PASS, SQL injection PASS, Afrikaans leak PASS after two-layer fix
 
 ### Pending Todos
 
@@ -623,7 +626,7 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-26 (Phase 10.3 Plan 08 — integration tests, eval framework, LLM fix applied: 3 crews switched to DeepSeek, 274 tests pass, awaiting Streamlit checkpoint for Task 2)
+Last session: 2026-02-26 (Phase 10.3 Plan 09 — Playwright+Claude-judge eval engine built, live eval run, Afrikaans two-layer error-leak fix applied and human-verified, all 3 medium issues resolved. Phase 10.3 COMPLETE.)
 Stopped at: Completed 10.3-08-PLAN.md (Task 1 done + LLM fix applied; checkpoint Task 2 — Streamlit smoke-test)
 Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-08-SUMMARY.md
 

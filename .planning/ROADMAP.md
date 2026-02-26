@@ -241,15 +241,15 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 **Plans:** 9/9 plans complete
 
 Plans:
-- [ ] 10.3-01-PLAN.md -- Archive old agents, scaffold new directory structure, install deepeval, create test infrastructure
-- [ ] 10.3-02-PLAN.md -- Eval framework: scenarios for all 5 agents, trajectory eval harness, judge rubrics
-- [ ] 10.3-03-PLAN.md -- Auth agent rebuild (tools, prompts, crew) + crew_server.py rebuild from scratch
-- [ ] 10.3-04-PLAN.md -- Auth agent unit tests + crew server unit tests
-- [ ] 10.3-05-PLAN.md -- Municipal Intake + Ticket Status agents rebuild with tools, prompts, tests
-- [ ] 10.3-06-PLAN.md -- GBV agent rebuild with trauma-informed prompts, SAPS tool, SEC-05 boundary tests
-- [ ] 10.3-07-PLAN.md -- IntakeFlow @router rebuild, wire all specialists, update WhatsApp/messages endpoints
-- [ ] 10.3-08-PLAN.md -- Integration tests, eval runner, regression check, Streamlit smoke-test checkpoint
-- [ ] 10.3-09-PLAN.md -- Playwright+Claude-judge automated eval loop (dynamic Streamlit testing)
+- [x] 10.3-01-PLAN.md -- Archive old agents, scaffold new directory structure, install deepeval, create test infrastructure
+- [x] 10.3-02-PLAN.md -- Eval framework: scenarios for all 5 agents, trajectory eval harness, judge rubrics
+- [x] 10.3-03-PLAN.md -- Auth agent rebuild (tools, prompts, crew) + crew_server.py rebuild from scratch
+- [x] 10.3-04-PLAN.md -- Auth agent unit tests + crew server unit tests
+- [x] 10.3-05-PLAN.md -- Municipal Intake + Ticket Status agents rebuild with tools, prompts, tests
+- [x] 10.3-06-PLAN.md -- GBV agent rebuild with trauma-informed prompts, SAPS tool, SEC-05 boundary tests
+- [x] 10.3-07-PLAN.md -- IntakeFlow @router rebuild, wire all specialists, update WhatsApp/messages endpoints
+- [x] 10.3-08-PLAN.md -- Integration tests, eval runner, regression check, Streamlit smoke-test checkpoint
+- [x] 10.3-09-PLAN.md -- Playwright+Claude-judge automated eval loop (dynamic Streamlit testing)
 
 ### Phase 10.2: Auth system security hardening (INSERTED)
 
