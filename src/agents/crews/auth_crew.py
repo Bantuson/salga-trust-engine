@@ -7,9 +7,12 @@ flow: name, OTP, proof of residence, municipality assignment, Supabase account
 creation) and returning citizens with expired sessions (OTP re-auth only).
 
 Key decisions:
-- Uses get_routing_llm() (GPT-4o-mini) — auth has 4 sequential tool calls
-  (lookup_user, send_otp, verify_otp, create_supabase_user) requiring reliable
-  structured tool use. DeepSeek is weaker at multi-step tool chaining.
+- Uses get_deepseek_llm() (DeepSeek V3.2) — per-agent trajectory evals in Phase
+  10.3 Plan 08 proved that gpt-4o-mini ignores backstory and tool instructions
+  in long prompts (150-300 lines). DeepSeek follows the Gugu persona and tool
+  call sequences correctly. Backstory compliance > raw tool-call speed.
+  get_routing_llm() (gpt-4o-mini) is kept ONLY for IntakeFlow intent
+  classification where prompts are short (< 50 tokens, no tools).
 - memory=False — auth tools handle PII (phone, email, OTP codes).
   memory=False prevents cross-session PII leakage. # SEC-01
 - max_iter=15 — full registration is 6+ steps requiring more LLM turns than
@@ -38,7 +41,7 @@ class AuthCrew(BaseCrew):
     """Citizen authentication crew.
 
     Handles new citizen registration and returning citizen OTP re-auth.
-    Uses GPT-4o-mini for reliable multi-step tool chaining.
+    Uses DeepSeek V3.2 for backstory compliance with long Gugu persona prompts.
     memory=False to protect PII between sessions. # SEC-01
     """
 
@@ -53,12 +56,14 @@ class AuthCrew(BaseCrew):
         Args:
             language: Citizen language ("en", "zu", "af"). Used to select
                       Gugu persona from AUTH_PROMPTS.
-            llm: Optional LLM override for testing. Defaults to get_routing_llm()
-                 (GPT-4o-mini) per locked decision — auth needs reliable tool use.
+            llm: Optional LLM override for testing. Defaults to get_deepseek_llm()
+                 — Phase 10.3 evals proved DeepSeek follows long backstory prompts
+                 and tool call sequences correctly. gpt-4o-mini ignores instructions
+                 in 150-300 line prompts (eval result: 0/3 tool calls correct).
         """
         # Import here to avoid circular imports at module level
-        from src.agents.llm import get_routing_llm
-        super().__init__(language=language, llm=llm or get_routing_llm())
+        from src.agents.llm import get_deepseek_llm
+        super().__init__(language=language, llm=llm or get_deepseek_llm())
 
     def create_crew(self, context: dict) -> Crew:
         """Build auth Agent + Task + Crew.

@@ -7,9 +7,12 @@ It asks for a tracking number if not provided, then calls lookup_ticket_tool to
 look up the ticket and reports the status clearly.
 
 Key decisions:
-- Uses get_routing_llm() (GPT-4o-mini) — ticket status ends with a tool call
-  (lookup_ticket_tool). Tool reliability is critical; gpt-4o-mini preferred per
-  Phase 10.3 research for tool-heavy agents.
+- Uses get_deepseek_llm() (DeepSeek V3.2) — per-agent trajectory evals in Phase
+  10.3 Plan 08 proved that gpt-4o-mini ignores backstory and tool instructions
+  in long prompts (150-300 lines). DeepSeek follows the Gugu persona and
+  lookup_ticket_tool call correctly. Backstory compliance > raw tool-call speed.
+  get_routing_llm() (gpt-4o-mini) is kept ONLY for IntakeFlow intent
+  classification where prompts are short (< 50 tokens, no tools).
 - memory=False — conversation history injected as string context. Stateless
   per-request to avoid cross-session data leakage.
 - max_iter=8 — ticket status is simpler than municipal intake: ask for tracking
@@ -40,7 +43,7 @@ class TicketStatusCrew(BaseCrew):
     """Citizen ticket status lookup crew.
 
     Looks up the status of a citizen's service ticket by tracking number.
-    Uses GPT-4o-mini for reliable lookup_ticket_tool use.
+    Uses DeepSeek V3.2 for backstory compliance with long Gugu persona prompts.
     memory=False — conversation history injected as string context.
     """
 
@@ -55,12 +58,13 @@ class TicketStatusCrew(BaseCrew):
         Args:
             language: Citizen language ("en", "zu", "af"). Used to select
                       Gugu persona from TICKET_STATUS_PROMPTS.
-            llm: Optional LLM override for testing. Defaults to get_routing_llm()
-                 (GPT-4o-mini) — ticket status ends with a tool call, requiring
-                 reliable structured tool use (Phase 10.3 research decision).
+            llm: Optional LLM override for testing. Defaults to get_deepseek_llm()
+                 — Phase 10.3 evals proved DeepSeek follows long backstory prompts
+                 and tool call sequences correctly. gpt-4o-mini ignores instructions
+                 in 150-300 line prompts (eval result: 0/3 tool calls correct).
         """
-        from src.agents.llm import get_routing_llm
-        super().__init__(language=language, llm=llm or get_routing_llm())
+        from src.agents.llm import get_deepseek_llm
+        super().__init__(language=language, llm=llm or get_deepseek_llm())
 
     def create_crew(self, context: dict) -> Crew:
         """Build ticket status Agent + Task + Crew.
