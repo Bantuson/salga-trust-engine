@@ -1,3 +1,16 @@
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: milestone
+status: unknown
+last_updated: "2026-02-26T07:14:18.047Z"
+progress:
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 13
+  completed_plans: 12
+---
+
 # Project State
 
 ## Project Reference
@@ -5,16 +18,16 @@
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 Plan 07 COMPLETE — IntakeFlow capstone: @router dispatch to all 4 specialist crews, crew_server/messages/whatsapp updated to use IntakeFlow, GBV confirmation gate preserved, 35 routing unit tests (255 total in agents suite).
+**Current focus:** Phase 10.3 Plan 08 COMPLETE (partial — awaiting Task 2 Streamlit checkpoint) — 19 pipeline integration tests, 25-scenario eval framework, LLM fix: auth/municipal/ticket_status switched from gpt-4o-mini to DeepSeek V3.2 after per-agent evals proved 3/4 failing. 274 tests pass.
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework)
-Plan: 7 of 9 in current phase
-Status: IN PROGRESS — Phase 10.3 Plan 07 complete: IntakeFlow built with @router dispatch, all endpoints updated, 35 unit tests passing. Ready for Plan 08 (LLM evaluation framework).
-Last activity: 2026-02-25 — Phase 10.3 Plan 07 complete: intake_flow.py, crew_server.py (IntakeFlow routing), messages.py, whatsapp_service.py, test_intake_flow.py (35 tests)
+Plan: 8 of 9 in current phase (awaiting Task 2 Streamlit checkpoint before Plan 09)
+Status: CHECKPOINT — Phase 10.3 Plan 08 Task 1 complete + LLM fix applied. Awaiting manual Streamlit smoke-test (Task 2) before proceeding to Plan 09.
+Last activity: 2026-02-26 — Phase 10.3 Plan 08: test_full_pipeline.py (19 tests), run_evals.py CLI, LLM fix (auth/municipal/ticket_status -> DeepSeek), 274 tests pass
 
-Progress: [███████░░░] 78% (7/9 plans)
+Progress: [████████░░] 89% (8/9 plans)
 
 ## Performance Metrics
 
@@ -162,6 +175,7 @@ Progress: [███████░░░] 78% (7/9 plans)
 | Phase 10.3 P05 | 1557 | 2 tasks | 10 files |
 | Phase 10.3 P04 | 1709 | 2 tasks | 2 files |
 | Phase 10.3 P07 | 1075 | 2 tasks | 5 files |
+| Phase 10.3 P08 | 15 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -553,7 +567,7 @@ Recent decisions affecting current work:
 - [Phase 10.2-02]: Free Plan limitation documented — Supabase Dashboard password policy, HaveIBeenPwned, session management unavailable; backend + frontend is primary enforcement layer
 - [Phase 10.2-02]: email_confirm: True workaround stays in src/api/v1/auth.py until SMTP is configured — remaining hardening item for when SMTP is set up
 - [Phase 10.3]: Flow-as-router replaces Process.hierarchical — @router + sequential Crews pattern adopted
-- [Phase 10.3]: get_deepseek_llm() for conversation-heavy agents, get_routing_llm() (gpt-4o-mini) for tool-heavy agents and routing
+- [Phase 10.3]: get_deepseek_llm() for ALL specialist agents (auth/municipal/ticket_status/gbv) — Plan 08 eval result; get_routing_llm() (gpt-4o-mini) only for IntakeFlow intent classification
 - [Phase 10.3]: deepeval added as [eval] optional dependency (not dev) — eval runs require live LLM API keys
 - [Phase 10.3]: 25 total scenarios (Auth:7, Municipal:7, GBV:5, TicketStatus:6) within 20-28 target range
 - [Phase 10.3]: GBV scenarios: metadata_only=True strips ALL response content from eval reports (POPIA compliance)
@@ -563,7 +577,7 @@ Recent decisions affecting current work:
 - [Phase 10.3]: GBV agent uses get_deepseek_llm() — conversation-heavy with single notify_saps at end per research
 - [Phase 10.3]: GBVCrew memory=False enforced at class AND Crew() constructor level (defense-in-depth SEC-05)
 - [Phase 10.3]: GBV prompts injected from GBV_PROMPTS Python dict (not YAML backstory) — same pattern as AUTH_PROMPTS
-- [Phase 10.3]: gpt-4o-mini (get_routing_llm) for both MunicipalIntakeCrew and TicketStatusCrew — both end with a single tool call requiring reliable structured tool use (Phase 10.3 research decision)
+- [Phase 10.3]: gpt-4o-mini (get_routing_llm) was initial plan for MunicipalIntakeCrew and TicketStatusCrew — SUPERSEDED by Plan 08 eval results: both switched to get_deepseek_llm() (see Plan 08 LLM fix)
 - [Phase 10.3]: USE_POSTGIS guard in ticket_tool.py — try/except import of geoalchemy2/shapely prevents import errors in SQLite unit test environments
 - [Phase 10.3]: FAKE_LLM pattern: crewai.LLM(model='openai/test-model') required for create_crew() tests — MagicMock fails CrewAI Agent model string validation
 - [Phase 10.3]: ManagerCrew patch target is src.agents.crews.manager_crew.ManagerCrew (not crew_server module) — it's a local import inside chat() function body
@@ -574,6 +588,8 @@ Recent decisions affecting current work:
 - [Phase 10.3]: Lazy crew imports inside @listen handlers prevent circular imports at module level
 - [Phase 10.3]: category='gbv' forced in handle_gbv() result even if GBVCrew omits it (SEC-05 defense-in-depth)
 - [Phase 10.3]: kickoff_async() exists in CrewAI 1.8.1 — no need for sync wrapper (the plan's open question was confirmed)
+- [Phase 10.3]: Switch auth/municipal/ticket_status from gpt-4o-mini to DeepSeek V3.2 — empirical evals proved gpt-4o-mini ignores backstory/tools in 150-300 line prompts (0/3 tool calls correct); get_routing_llm kept only for IntakeFlow short-prompt classification
+- [Phase 10.3-08]: 19 pipeline integration tests cover HTTP -> crew_server -> IntakeFlow -> specialist -> response; 25-scenario eval framework with dry-run CLI; all 274 unit tests pass after LLM switch
 
 ### Pending Todos
 
@@ -603,10 +619,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-25 (Phase 10.3 Plan 07 complete — IntakeFlow capstone: @router dispatch, crew_server/messages/whatsapp updated, 35 routing unit tests, 255 total agents tests)
-Stopped at: Phase 10.3 Plan 07 complete
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-07-SUMMARY.md
+Last session: 2026-02-26 (Phase 10.3 Plan 08 — integration tests, eval framework, LLM fix applied: 3 crews switched to DeepSeek, 274 tests pass, awaiting Streamlit checkpoint for Task 2)
+Stopped at: Completed 10.3-08-PLAN.md (Task 1 done + LLM fix applied; checkpoint Task 2 — Streamlit smoke-test)
+Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-08-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-25 (Phase 10.3 Plan 07 COMPLETE — IntakeFlow capstone integration)*
+*Last updated: 2026-02-26 (Phase 10.3 Plan 08 — integration tests + eval framework + LLM fix applied)*
