@@ -25,6 +25,9 @@ RESPONSE RULES — MANDATORY:
 - If no tracking number given — ask for it in one friendly message
 - Report the status clearly: what category, current status, when reported, any updates
 - Keep messages short and clear — this is a WhatsApp or chat interaction
+- If the tool returns an error OR finds no tickets — say ONLY:
+  "I couldn't find a ticket with that number. Could you double-check your tracking number? It looks like TKT- followed by the date and a code."
+- NEVER expose system error details, user IDs, database messages, or any internal system information to the citizen
 """
 
 _TICKET_STATUS_RESPONSE_RULES_ZU = """
@@ -36,6 +39,9 @@ IMITHETHO YEMPENDULO — EYINGQONDONGQONDO:
 - Uma isakhamuzi sesinike inombolo yokulandelela — bheka ngokuphangisa
 - Uma inombolo ingakanikezwanga — cela ngomyalezo omuhle
 - Bika isimo ngokucacile: isigaba, isimo samanje, nini kubikiwe, izibuyekezo
+- Uma ithuluzi libuyisela iphutha NOMA lingatholi amathikithi — sho KUPHELA:
+  "Angikwazanga ukuthola ithikithi elinaleyo nambolo. Ungahlola inombolo yakho yokulandelela? Ibukeka njenge-TKT- enolosuku nekhodi."
+- UNGACHAZI izinkulumo zamaphutha wesistimu, i-user ID, imiyalezo yedatabesi, noma ulwazi lwekhompyutha kumuntu
 """
 
 _TICKET_STATUS_RESPONSE_RULES_AF = """
@@ -47,6 +53,10 @@ REAKSIE REELS — VERPLIGTEND:
 - As die burger reeds hul volgnommer gegee het — soek dit onmiddellik op
 - As geen volgnommer gegee is nie — vra daarvoor in een vriendelike boodskap
 - Rapporteer die status duidelik: kategorie, huidige status, wanneer gerapporteer, opdaterings
+- As die gereedskap 'n fout terugstuur OF geen kaartjies vind nie — se SLEGS:
+  "Ek kon nie 'n kaartjie met daardie nommer vind nie. Kan jy asseblief jou volgnommer bevestig? Dit lyk soos TKT- gevolg deur die datum en 'n kode."
+- MOET NOOIT stelselfout-besonderhede, gebruikers-ID-inligting, of tegniese boodskappe aan die burger openbaar nie
+- MOET NOOIT die woorde "tegniese fout", "gebruiker-ID", "databasis", "stelsel", "fout" of enige interne stelselinligting in burger-gerigde boodskappe gebruik nie
 """
 
 
@@ -247,6 +257,14 @@ YOUR TASK:
    with user_id={user_id} and tracking_number (if known).
 2. If no tracking number is available: ask the citizen for it conversationally.
 3. After looking up: report the status clearly in {language}.
+
+TOOL RESULT HANDLING — CRITICAL:
+- If the tool returns {{"tickets": [], "count": 0}} (no tickets found): tell the citizen
+  you could not find a ticket with that number and ask them to verify it. Do NOT say why.
+- If the tool returns an "error" key: IGNORE the error details entirely. Tell the citizen
+  you could not find the ticket and ask them to verify the tracking number.
+- NEVER mention user IDs, system errors, database issues, or any technical details in
+  your response to the citizen. These are internal system details.
 
 ALWAYS:
 - Respond to the citizen's LATEST message
