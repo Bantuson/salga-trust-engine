@@ -8,10 +8,12 @@ It collects description, location, and category before calling
 create_municipal_ticket to create the ticket in the database.
 
 Key decisions:
-- Uses get_routing_llm() (GPT-4o-mini) — municipal intake ends with a tool call
-  (create_municipal_ticket). Tool reliability is critical; gpt-4o-mini is preferred
-  per Phase 10.3 research for tool-heavy agents. DeepSeek used for conversation-heavy
-  agents, gpt-4o-mini for tool-heavy ones.
+- Uses get_deepseek_llm() (DeepSeek V3.2) — per-agent trajectory evals in Phase
+  10.3 Plan 08 proved that gpt-4o-mini ignores backstory and tool instructions
+  in long prompts (150-300 lines). DeepSeek follows the Gugu persona and
+  create_municipal_ticket call correctly. Backstory compliance > raw tool-call speed.
+  get_routing_llm() (gpt-4o-mini) is kept ONLY for IntakeFlow intent
+  classification where prompts are short (< 50 tokens, no tools).
 - memory=False — conversation history is injected as string context.
   Stateless per-request to avoid cross-session data leakage.
 - max_iter=10 — municipal intake typically needs 3-5 turns to collect description,
@@ -38,7 +40,7 @@ class MunicipalIntakeCrew(BaseCrew):
 
     Collects issue description, location, and category from citizen,
     then calls create_municipal_ticket to create the service ticket.
-    Uses GPT-4o-mini for reliable tool call at the end of conversation.
+    Uses DeepSeek V3.2 for backstory compliance with long Gugu persona prompts.
     memory=False — conversation history injected as string context.
     """
 
@@ -53,12 +55,13 @@ class MunicipalIntakeCrew(BaseCrew):
         Args:
             language: Citizen language ("en", "zu", "af"). Used to select
                       Gugu persona from MUNICIPAL_PROMPTS.
-            llm: Optional LLM override for testing. Defaults to get_routing_llm()
-                 (GPT-4o-mini) — municipal intake ends with a tool call, requiring
-                 reliable structured tool use (Phase 10.3 research decision).
+            llm: Optional LLM override for testing. Defaults to get_deepseek_llm()
+                 — Phase 10.3 evals proved DeepSeek follows long backstory prompts
+                 and tool call sequences correctly. gpt-4o-mini ignores instructions
+                 in 150-300 line prompts (eval result: 0/3 tool calls correct).
         """
-        from src.agents.llm import get_routing_llm
-        super().__init__(language=language, llm=llm or get_routing_llm())
+        from src.agents.llm import get_deepseek_llm
+        super().__init__(language=language, llm=llm or get_deepseek_llm())
 
     def create_crew(self, context: dict) -> Crew:
         """Build municipal Agent + Task + Crew.

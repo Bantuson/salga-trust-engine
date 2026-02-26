@@ -4,12 +4,15 @@ Architecture: Phase 10.3 rebuild — Flow-as-router + sequential specialist Crew
 
 Two factory functions:
   - get_deepseek_llm(): DeepSeek V3.2 via OpenAI-compatible API.
-    Used for conversation-heavy specialist agents (Municipal Intake, GBV).
-    Weaker at structured tool use — avoid for multi-tool-call agents.
+    Used for ALL specialist agents: Auth, Municipal Intake, Ticket Status, GBV.
+    Phase 10.3 Plan 08 trajectory evals proved DeepSeek correctly follows long
+    backstory prompts (150-300 lines) and Gugu persona identity. gpt-4o-mini
+    failed evals: 0/3 tool calls correct with long prompts — it ignores backstory
+    and tool instructions when the system prompt exceeds ~50 tokens.
 
   - get_routing_llm(): GPT-4o-mini.
-    Used for tool-heavy agents (Auth, Ticket Status) and Flow intent
-    classification. Reliable structured tool use.
+    Used ONLY for IntakeFlow intent classification (short prompt < 50 tokens,
+    no tools, simple 5-way classification). NOT used for specialist agents.
 
 Both use lazy instantiation (new LLM per call) per CrewAI 1.x guidance —
 do NOT cache LLM objects across Crew instances.
@@ -24,8 +27,10 @@ from src.core.config import settings
 def get_deepseek_llm() -> LLM:
     """Factory for DeepSeek V3.2 LLM.
 
-    Suitable for conversation-heavy specialist agents (Municipal Intake, GBV)
-    where tool use is minimal (single tool call at conversation end).
+    Used for ALL specialist agents (Auth, Municipal Intake, Ticket Status, GBV).
+    DeepSeek correctly follows long backstory prompts (150-300 lines) and
+    maintains the Gugu persona identity. Phase 10.3 evals confirmed: DeepSeek
+    passes all 4 agent evals; gpt-4o-mini fails 3/4 (ignores backstory/tools).
 
     Returns:
         crewai.LLM configured for DeepSeek V3.2 chat via OpenAI-compatible API
@@ -42,10 +47,13 @@ def get_deepseek_llm() -> LLM:
 def get_routing_llm() -> LLM:
     """Factory for GPT-4o-mini LLM.
 
-    Used for:
-    - Auth agent (multiple sequential tool calls: lookup_user, send_otp, verify_otp)
-    - Ticket Status agent (lookup_ticket tool call)
-    - Flow intent classification step (direct LLM.call() for routing)
+    Used ONLY for:
+    - IntakeFlow intent classification (short prompt < 50 tokens, no tools,
+      simple 5-way classification: auth/municipal/ticket_status/gbv/unknown)
+
+    NOT used for specialist agents — Phase 10.3 evals showed gpt-4o-mini
+    fails with long backstory prompts (150-300 lines), ignoring Gugu persona
+    and tool call instructions. Use get_deepseek_llm() for specialist agents.
 
     OPENAI_API_KEY is picked up from env by LiteLLM automatically.
 

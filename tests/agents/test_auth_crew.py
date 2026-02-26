@@ -65,21 +65,25 @@ class TestAuthCrewStructure:
         crew = AuthCrew(language="xx", llm=MagicMock())
         assert crew.language == "en"
 
-    def test_auth_crew_uses_routing_llm(self):
-        """AuthCrew (without llm kwarg) calls get_routing_llm() (gpt-4o-mini path)."""
-        # get_routing_llm is imported inside AuthCrew.__init__ from src.agents.llm
-        with patch("src.agents.llm.get_routing_llm", return_value=MagicMock()) as patched:
+    def test_auth_crew_uses_deepseek_llm(self):
+        """AuthCrew (without llm kwarg) calls get_deepseek_llm() (DeepSeek path).
+
+        Phase 10.3 Plan 08: switched from get_routing_llm() to get_deepseek_llm()
+        after evals proved gpt-4o-mini ignores backstory/tools in long prompts.
+        """
+        # get_deepseek_llm is imported inside AuthCrew.__init__ from src.agents.llm
+        with patch("src.agents.llm.get_deepseek_llm", return_value=MagicMock()) as patched:
             from src.agents.crews.auth_crew import AuthCrew
             # We must reload the module so the import inside __init__ picks up the patch
             import importlib
             import src.agents.crews.auth_crew as auth_crew_module
             importlib.reload(auth_crew_module)
             # The fact that AuthCrew can be constructed with no llm kwarg shows
-            # it falls through to get_routing_llm() in its parent __init__.
+            # it falls through to get_deepseek_llm() in its parent __init__.
             # Patch at the module level the import sees.
-            with patch("src.agents.llm.get_routing_llm", return_value=MagicMock()):
+            with patch("src.agents.llm.get_deepseek_llm", return_value=MagicMock()):
                 crew = auth_crew_module.AuthCrew()
-                # Crew was constructed — routing LLM factory was available
+                # Crew was constructed — DeepSeek LLM factory was available
                 assert crew is not None
 
     def test_auth_crew_has_correct_tools(self):
