@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: complete
-last_updated: "2026-02-26T10:45:30Z"
+last_updated: "2026-02-26T10:09:51Z"
 progress:
   total_phases: 3
   completed_phases: 3
-  total_plans: 13
-  completed_plans: 13
+  total_plans: 14
+  completed_plans: 14
 ---
 
 # Project State
@@ -18,16 +18,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-09)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — the core feedback loop that transforms opaque, reactive local government into transparent, accountable service delivery.
-**Current focus:** Phase 10.3 COMPLETE — All 9/9 plans done. CrewAI agent rebuild finished, LLM eval framework operational. Playwright+Claude-judge eval loop confirmed all 3 medium issues resolved. System ready for production pilots.
+**Current focus:** Phase 10.3 COMPLETE — All 10/10 plans done (including gap closure plan 10). CrewAI agent rebuild finished, LLM eval framework operational, UAT gap GBV-4 closed. System ready for production pilots.
 
 ## Current Position
 
 Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework) — COMPLETE
-Plan: 9 of 9 in current phase — COMPLETE
-Status: COMPLETE — Phase 10.3 Plan 09 fully done. PlaywrightJudge eval engine built, live eval run completed, Afrikaans error leak fixed (two-layer: tool + prompt). All 3 medium issues resolved and human-verified.
-Last activity: 2026-02-26 — Phase 10.3 Plan 09: Playwright eval engine (84770be), Afrikaans leak two-layer fix (5ba27b3, 0996494), live eval report playwright_retest_20260226_082018.json confirms 3/3 issues PASS.
+Plan: 10 of 10 in current phase — COMPLETE
+Status: COMPLETE — Phase 10.3 Plan 10 fully done. SAPS-context GBV routing heuristic (_is_saps_context) added to IntakeFlow, closing UAT gap GBV-4. 3 regression tests added, 277 total agent tests pass.
+Last activity: 2026-02-26 — Phase 10.3 Plan 10: _is_saps_context heuristic (ee32ebb), regression tests (35b6013). UAT gap GBV-4 closed: adversarial SAPS-phrased messages now route to GBV not ticket_status.
 
-Progress: [██████████] 100% (9/9 plans)
+Progress: [██████████] 100% (10/10 plans)
 
 ## Performance Metrics
 
@@ -177,6 +177,7 @@ Progress: [██████████] 100% (9/9 plans)
 | Phase 10.3 P07 | 1075 | 2 tasks | 5 files |
 | Phase 10.3 P08 | 15 | 2 tasks | 7 files |
 | 10.3-09 | ~90m | 2 tasks | 6 files |
+| 10.3-10 | 16m (960s) | 2 tasks | 2 files |
 
 ## Accumulated Context
 
@@ -597,6 +598,9 @@ Recent decisions affecting current work:
 - [Phase 10.3-09]: Two-layer Afrikaans error suppression: ticket_lookup_tool.py replaces raw str(e) with generic safe message (tool layer) + explicit SUPPRESS_TOOL_ERRORS rules added to EN/ZU/AF prompt constants (prompt layer)
 - [Phase 10.3-09]: Tool error returns must use generic safe messages (not raw str(e)) to prevent LLM faithfully translating Python exception text to citizens in any language
 - [Phase 10.3-09]: Live eval (playwright_retest_20260226_082018.json) confirms all 3 medium issues resolved: Zulu parse PASS, SQL injection PASS, Afrikaans leak PASS after two-layer fix
+- [Phase 10.3-10]: _is_saps_context() heuristic requires BOTH SAPS/officer term AND personal-case ownership term — AND logic prevents false positives on generic SAPS mentions
+- [Phase 10.3-10]: SEC-05 pre-classification runs before LLM import in _classify_raw_intent() — deterministic heuristics must precede any LLM call for safety-critical routing
+- [Phase 10.3-10]: Patch target for no-LLM-call verification is src.agents.llm.get_routing_llm (not src.agents.flows.intake_flow.get_routing_llm) — lazy import not bound to module until executed
 
 ### Pending Todos
 
