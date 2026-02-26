@@ -60,11 +60,9 @@ def _lookup_ticket_impl(user_id: str, tracking_number: str = "") -> dict[str, An
 
         client = get_supabase_admin()
         if client is None:
+            logger.error("lookup_ticket FAILED: Supabase admin client not configured")
             return {
-                "error": (
-                    "Supabase admin client not configured. "
-                    "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
-                ),
+                "error": "Ticket not found. Please verify the tracking number and try again.",
                 "tickets": [],
                 "count": 0,
             }
@@ -127,7 +125,13 @@ def _lookup_ticket_impl(user_id: str, tracking_number: str = "") -> dict[str, An
         raise  # Let security assertions propagate
     except Exception as e:
         logger.error("lookup_ticket FAILED: %s", str(e), exc_info=True)
-        return {"error": str(e), "tickets": [], "count": 0}
+        # Return a safe, generic error — never expose internal exception details to the LLM.
+        # The raw error is logged above for debugging; the agent sees only a safe fallback.
+        return {
+            "error": "Ticket not found. Please verify the tracking number and try again.",
+            "tickets": [],
+            "count": 0,
+        }
 
 
 class LookupTicketInput(BaseModel):
