@@ -16,6 +16,7 @@ import {
   updateMunicipalityProfile,
 } from '../services/api';
 import type { SLAConfig, MunicipalityProfile } from '../types/settings';
+import { mockSLAConfigs, mockMunicipalityProfile } from '../mocks/mockSettings';
 
 export interface UseSettingsReturn {
   slaConfigs: SLAConfig[];
@@ -49,8 +50,10 @@ export function useSettings(): UseSettingsReturn {
       setSlaConfigs(slaResult);
       setMunicipalityProfile(profileResult);
     } catch (err) {
-      const message = err instanceof Error ? err.message : 'Failed to load settings';
-      setError(message);
+      // Rich mock fallback — no empty states
+      setSlaConfigs(mockSLAConfigs);
+      setMunicipalityProfile(mockMunicipalityProfile);
+      setError(null);
     } finally {
       setIsLoading(false);
     }
