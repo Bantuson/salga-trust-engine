@@ -109,7 +109,7 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
 
       {/* Empty State */}
       {filteredReports.length === 0 && (
-        <GlassCard variant="default" style={{
+        <GlassCard variant="default" className="empty-state-card" style={{
           padding: 'var(--spacing-xl)',
           textAlign: 'center',
           marginTop: '0px',

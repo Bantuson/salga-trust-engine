@@ -49,7 +49,7 @@ export function CompletedTicketsPage() {
   }, [loadTickets]);
 
   return (
-    <div style={styles.container}>
+    <div className="page-container-responsive" style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.title}>Completed Tickets</h1>
         <span style={styles.subtitle}>Resolved tickets assigned to you</span>

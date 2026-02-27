@@ -23,7 +23,7 @@ export const CitizenPortalPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'reports' | 'details'>('reports');
 
   return (
-    <div style={{
+    <div className="citizen-portal-page" style={{
       position: 'relative',
       minHeight: '100vh',
       paddingTop: '120px',
@@ -68,7 +68,7 @@ export const CitizenPortalPage: React.FC = () => {
         )}
 
         {/* Header — tabs left, button right */}
-        <div style={{
+        <div className="citizen-portal-tabs" style={{
           display: 'flex',
           alignItems: 'center',
           justifyContent: 'space-between',
