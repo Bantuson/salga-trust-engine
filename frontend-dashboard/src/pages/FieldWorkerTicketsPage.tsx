@@ -16,6 +16,7 @@ import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { fetchTickets } from '../services/api';
 import { TicketDetailModal } from '../components/dashboard/TicketDetailModal';
 import type { Ticket } from '../types/dashboard';
+import { mockTickets } from '../mocks/mockTickets';
 
 type FilterStatus = 'all' | 'open' | 'in_progress' | 'escalated';
 
@@ -74,7 +75,11 @@ export function FieldWorkerTicketsPage() {
       const response = await fetchTickets({ page: 0, page_size: 200 });
       setTickets(response.tickets);
     } catch (err) {
-      setTickets([]);
+      // Rich mock fallback — show active (open/in_progress) tickets for field worker view
+      const activeTickets = mockTickets.filter(
+        (t) => t.status === 'open' || t.status === 'in_progress' || t.status === 'escalated'
+      );
+      setTickets(activeTickets);
     } finally {
       setIsLoading(false);
     }

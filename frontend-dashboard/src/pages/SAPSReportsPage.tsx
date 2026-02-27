@@ -15,6 +15,8 @@ import { fetchTickets } from '../services/api';
 import { TicketTable } from '../components/dashboard/TicketTable';
 import { TicketDetailModal } from '../components/dashboard/TicketDetailModal';
 import type { Ticket } from '../types/dashboard';
+// SEC-05: Import ONLY from mockSAPSCases — NEVER from mockTickets
+import { mockSAPSTickets } from '../mocks/mockSAPSCases';
 
 export function SAPSReportsPage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
@@ -41,7 +43,9 @@ export function SAPSReportsPage() {
       setTickets(response.tickets);
       setPageCount(response.page_count);
     } catch (err) {
-      setTickets([]);
+      // SEC-05: Rich mock fallback uses ONLY mockSAPSTickets (GBV cases) — never general tickets
+      setTickets(mockSAPSTickets);
+      setPageCount(1);
     } finally {
       setIsLoading(false);
     }

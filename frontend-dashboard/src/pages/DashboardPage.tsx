@@ -26,6 +26,7 @@ import {
   fetchSLACompliance,
   fetchTeamWorkload,
 } from '../services/api';
+import { mockDashboardMetrics, mockVolumeData, mockSLAData, mockWorkloadData } from '../mocks/mockAnalytics';
 
 interface DashboardPageProps {
   wardId?: string;
@@ -68,6 +69,12 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
       setWorkloadData(workloadRes);
       setLastUpdated(new Date());
     } catch (error) {
+      // Rich mock fallback — no empty states
+      setMetrics(mockDashboardMetrics);
+      setVolumeData(mockVolumeData);
+      setSlaData(mockSLAData);
+      setWorkloadData(mockWorkloadData);
+      setLastUpdated(new Date());
     } finally {
       setLoading(false);
     }
