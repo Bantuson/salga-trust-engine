@@ -67,21 +67,21 @@ export const CitizenPortalPage: React.FC = () => {
           </div>
         )}
 
-        {/* Header — tabs left, button right */}
+        {/* Header — tabs span full width on mobile, button centered below */}
         <div className="citizen-portal-tabs" style={{
           display: 'flex',
+          flexDirection: 'column',
           alignItems: 'center',
-          justifyContent: 'space-between',
           marginBottom: '48px',
-          flexWrap: 'wrap',
-          gap: 'var(--spacing-md)',
+          gap: '1rem',
         }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
+          <div style={{ display: 'flex', width: '100%', gap: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setActiveTab('reports')}
               className="filter-tab"
               style={{
-                padding: '8px 16px',
+                flex: 1,
+                padding: '10px 16px',
                 background: activeTab === 'reports' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
                 color: activeTab === 'reports' ? 'var(--color-coral)' : 'var(--text-secondary)',
                 border: 'none',
@@ -98,7 +98,8 @@ export const CitizenPortalPage: React.FC = () => {
               onClick={() => setActiveTab('details')}
               className="filter-tab"
               style={{
-                padding: '8px 16px',
+                flex: 1,
+                padding: '10px 16px',
                 background: activeTab === 'details' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
                 color: activeTab === 'details' ? 'var(--color-coral)' : 'var(--text-secondary)',
                 border: 'none',
