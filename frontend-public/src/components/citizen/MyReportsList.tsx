@@ -53,12 +53,14 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
         marginBottom: '20px',
         borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
         paddingBottom: 'var(--spacing-sm)',
+        width: '100%',
       }}>
         <button
           onClick={() => setActiveFilter('all')}
           className="filter-tab"
           style={{
-            padding: '8px 16px',
+            flex: 1,
+            padding: '10px 16px',
             background: activeFilter === 'all' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
             color: activeFilter === 'all' ? 'var(--color-teal)' : 'var(--text-secondary)',
             border: 'none',
@@ -75,7 +77,8 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
           onClick={() => setActiveFilter('open')}
           className="filter-tab"
           style={{
-            padding: '8px 16px',
+            flex: 1,
+            padding: '10px 16px',
             background: activeFilter === 'open' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
             color: activeFilter === 'open' ? 'var(--color-teal)' : 'var(--text-secondary)',
             border: 'none',
@@ -92,7 +95,8 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
           onClick={() => setActiveFilter('resolved')}
           className="filter-tab"
           style={{
-            padding: '8px 16px',
+            flex: 1,
+            padding: '10px 16px',
             background: activeFilter === 'resolved' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
             color: activeFilter === 'resolved' ? 'var(--color-teal)' : 'var(--text-secondary)',
             border: 'none',

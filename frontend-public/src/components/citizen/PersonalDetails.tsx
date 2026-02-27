@@ -155,16 +155,13 @@ export function PersonalDetails() {
 
       {/* Personal Information */}
       <GlassCard className="personal-details-card" style={{ marginBottom: '2rem' }}>
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
-          <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1a1a1a', whiteSpace: 'nowrap' }}>
-            Personal Information
-          </h2>
-          {!isEditing && (
-            <Button variant="secondary" size="sm" onClick={handleEdit} style={{ background: 'var(--color-coral)', color: '#fff', border: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
+        {!isEditing && (
+          <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
+            <Button variant="secondary" size="sm" onClick={handleEdit} style={{ background: 'var(--color-coral)', color: '#fff', border: 'none', width: '100%' }}>
               Edit Profile
             </Button>
-          )}
-        </div>
+          </div>
+        )}
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
           {/* Full Name */}
@@ -249,9 +246,9 @@ export function PersonalDetails() {
 
         {/* Edit mode buttons */}
         {isEditing && (
-          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '1rem', justifyContent: 'flex-end' }}>
-            <Button variant="ghost" onClick={handleCancel} disabled={isSaving}>Cancel</Button>
-            <Button variant="primary" onClick={handleSave} loading={isSaving} style={{ background: '#10b981' }}>
+          <div style={{ marginTop: '1.5rem', display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+            <Button variant="ghost" size="sm" onClick={handleCancel} disabled={isSaving}>Cancel</Button>
+            <Button variant="primary" size="sm" onClick={handleSave} loading={isSaving} style={{ background: '#10b981', whiteSpace: 'nowrap' }}>
               {isSaving ? 'Saving...' : 'Save Changes'}
             </Button>
           </div>
