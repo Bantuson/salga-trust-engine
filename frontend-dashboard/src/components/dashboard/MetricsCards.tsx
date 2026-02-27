@@ -77,7 +77,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
 
   if (isLoading) {
     return (
-      <div style={styles.container}>
+      <div className="metrics-grid-responsive" style={styles.container}>
         <SkeletonTheme>
           {[0, 1, 2, 3].map((i) => (
             <GlassCard key={i} variant="default">
@@ -94,7 +94,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
 
   if (!metrics) {
     return (
-      <div style={styles.container}>
+      <div className="metrics-grid-responsive" style={styles.container}>
         {['Open Tickets', 'Resolved', 'SLA Compliance', 'SLA Breaches'].map((title) => (
           <GlassCard key={title} variant="default" style={{ border: '1px solid rgba(255, 255, 255, 0.25)' }}>
             <div style={styles.cardTitle}>{title}</div>
@@ -112,7 +112,7 @@ export function MetricsCards({ metrics, isLoading }: MetricsCardsProps) {
     'var(--color-coral)'; // red
 
   return (
-    <div style={styles.container}>
+    <div className="metrics-grid-responsive" style={styles.container}>
       <AnimatedCard glowColor="coral" delay={0}>
         <MetricCard
           title="Open Tickets"
@@ -170,7 +170,7 @@ function MetricCard({ title, value, color, valueRef }: MetricCardProps) {
 const styles = {
   container: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 240px), 1fr))',
     gap: 'var(--space-lg)',
     marginBottom: 'var(--space-2xl)',
   } as React.CSSProperties,

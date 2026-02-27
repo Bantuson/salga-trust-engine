@@ -97,7 +97,7 @@ export function FieldWorkerTicketsPage() {
   ], [tickets]);
 
   return (
-    <div style={styles.container}>
+    <div className="page-container-responsive" style={styles.container}>
       <header style={styles.header}>
         <h1 style={styles.title}>My Tickets</h1>
         <span style={styles.count}>{filteredTickets.length} ticket{filteredTickets.length !== 1 ? 's' : ''}</span>
@@ -254,7 +254,7 @@ const styles = {
   } as React.CSSProperties,
   cardGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fill, minmax(min(100%, 320px), 1fr))',
     gap: '1rem',
   } as React.CSSProperties,
   cardHeader: {

@@ -154,13 +154,13 @@ export function PersonalDetails() {
       )}
 
       {/* Personal Information */}
-      <GlassCard style={{ marginBottom: '2rem' }}>
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 600, color: '#1a1a1a' }}>
+      <GlassCard className="personal-details-card" style={{ marginBottom: '2rem' }}>
+        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem' }}>
+          <h2 style={{ margin: 0, fontSize: '1.125rem', fontWeight: 600, color: '#1a1a1a', whiteSpace: 'nowrap' }}>
             Personal Information
           </h2>
           {!isEditing && (
-            <Button variant="secondary" onClick={handleEdit} style={{ background: 'var(--color-coral)', color: '#fff', border: 'none' }}>
+            <Button variant="secondary" size="sm" onClick={handleEdit} style={{ background: 'var(--color-coral)', color: '#fff', border: 'none', flexShrink: 0, whiteSpace: 'nowrap' }}>
               Edit Profile
             </Button>
           )}

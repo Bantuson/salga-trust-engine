@@ -111,9 +111,9 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
   }, [fetchAllData, isTabActive]);
 
   return (
-    <div style={styles.container}>
-      <header style={styles.header}>
-        <h1 style={styles.title}>Municipal Operations Dashboard</h1>
+    <div className="page-container-responsive" style={styles.container}>
+      <header className="dashboard-page-header" style={styles.header}>
+        <h1 className="dashboard-page-title" style={styles.title}>Municipal Operations Dashboard</h1>
         <RealtimeIndicator isConnected={connected} lastUpdated={lastUpdated} />
       </header>
 
@@ -165,6 +165,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap' as const,
+    gap: '0.5rem',
     marginBottom: '2rem',
   } as React.CSSProperties,
   title: {
@@ -175,7 +177,7 @@ const styles = {
   } as React.CSSProperties,
   chartsGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(400px, 1fr))',
+    gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 400px), 1fr))',
     gap: '1rem',
     marginBottom: '2rem',
   } as React.CSSProperties,

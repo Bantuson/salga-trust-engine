@@ -470,6 +470,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    flexWrap: 'wrap' as const,
+    gap: '0.5rem',
     width: '100%',
     padding: '1.5rem 5%',
     position: 'relative' as const,

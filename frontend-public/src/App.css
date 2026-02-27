@@ -686,11 +686,11 @@ body {
 }
 
 .mobile-signout {
-  color: var(--color-coral) !important;
+  color: #ef4444 !important;
   border: none;
   background: none;
   width: 100%;
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   font-size: inherit;
   padding: inherit;
@@ -1413,5 +1413,49 @@ textarea.error {
 /* Report form placeholder contrast */
 #description::placeholder {
   color: rgba(255, 255, 255, 0.5);
+}
+
+/* ===== MOBILE RESPONSIVE POLISH ===== */
+@media (max-width: 767px) {
+  /* Citizen portal page: reduce dead space below header */
+  .citizen-portal-page {
+    padding-top: 90px !important;
+  }
+
+  /* Citizen portal tabs: tighter gap to content */
+  .citizen-portal-tabs {
+    margin-bottom: 24px !important;
+  }
+
+  /* Empty state card: smaller on mobile */
+  .empty-state-card {
+    min-height: 200px !important;
+    max-width: 90% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Report form: tighter padding on mobile */
+  .report-form-wrapper {
+    padding: 1rem !important;
+    padding-top: 80px !important;
+    padding-bottom: 2rem !important;
+  }
+
+  .report-form-card {
+    padding: 24px 16px !important;
+  }
+
+  /* Personal details card: constrain width */
+  .personal-details-card {
+    max-width: 92% !important;
+    margin-left: auto !important;
+    margin-right: auto !important;
+  }
+
+  /* Mobile menu: reduce top padding before nav links */
+  .mobile-menu-content {
+    padding-top: var(--space-md) !important;
+  }
 }
 

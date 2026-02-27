@@ -402,6 +402,7 @@ export function ReportIssuePage() {
     <div className="auth-skyline-bg">
       <div className="auth-skyline-overlay">
         <div
+          className="report-form-wrapper"
           style={{
             minHeight: '100vh',
             padding: '2rem',
@@ -411,6 +412,7 @@ export function ReportIssuePage() {
         >
           <GlassCard
             variant="elevated"
+            className="report-form-card"
             style={{
               maxWidth: '700px',
               margin: '0 auto',
