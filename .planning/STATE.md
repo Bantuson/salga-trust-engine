@@ -2,8 +2,8 @@
 gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
-status: complete
-last_updated: "2026-02-26T11:18:25Z"
+status: in_progress
+last_updated: "2026-02-27T11:50:00Z"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -22,12 +22,12 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 10.3 of 10.3 (CrewAI Agent Rebuild and LLM Evaluation Framework) — COMPLETE
-Plan: 11 of 11 in current phase — COMPLETE
-Status: COMPLETE — Phase 10.3 Plan 11 fully done. Web portal reports.py now uses IntakeFlow._classify_raw_intent() instead of ManagerCrew stub, closing VERIFICATION Gap 1 (BLOCKER). SEC-05 _is_saps_context heuristic now active on both WhatsApp and web portal paths.
-Last activity: 2026-02-26 — Phase 10.3 Plan 11: IntakeFlow classification in reports.py (8412b04), updated tests (b36e50a). VERIFICATION Gap 1 closed: web portal AI classification functional.
+Phase: 10.4 of 10.4 (Rich Mocks Implementation for Public and Municipal Dashboards) — IN PROGRESS
+Plan: 2 of 2 in current phase — COMPLETE
+Status: IN PROGRESS — Phase 10.4 Plan 02 complete. Public transparency dashboard enriched from 2 to 5 real SA municipalities with improvement-arc resolution trends. Citizen portal demo mode now shows 5 SA-authentic tickets. Plan 01 and Plan 02 both done.
+Last activity: 2026-02-27 — Phase 10.4 Plan 02: mockDashboardData.ts enriched (cc8def5), mockCitizenTickets.ts created and wired (99cf787). TRNS-05 compliance verified.
 
-Progress: [██████████] 100% (11/11 plans)
+Progress: [██████████] 100% (2/2 plans)
 
 ## Performance Metrics
 
@@ -179,6 +179,8 @@ Progress: [██████████] 100% (11/11 plans)
 | 10.3-09 | ~90m | 2 tasks | 6 files |
 | 10.3-10 | 16m (960s) | 2 tasks | 2 files |
 | 10.3-11 | 12m (748s) | 2 tasks | 2 files |
+| 10.4-01 | 5m (300s) | 2 tasks | 3 files |
+| 10.4-02 | 5m (300s) | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -628,6 +630,10 @@ None - CrewAI successfully installed and integrated.
 - Phase 10.2 inserted after Phase 10: Auth system security hardening (URGENT)
 - Phase 10.3 inserted after Phase 10: CrewAI Agent Rebuild and LLM Evaluation Framework (URGENT)
 - Phase 10.4 inserted after Phase 10: Rich mocks implementation for public and municipal dashboards (URGENT)
+- [10.4-02]: Keep category key as 'roads' (not 'potholes') to match CATEGORY_CONFIG across the app
+- [10.4-02]: total_sensitive_tickets=0 in mockSystemSummary — TRNS-05 prohibits GBV counts on public dashboard
+- [10.4-02]: GBV demo ticket in DEMO_TICKETS is correct — SEC-05 allows citizens to see their own cases
+- [10.4-02]: Centralized mock data pattern: frontend-public/src/data/ holds all mock data files
 
 ### Blockers/Concerns
 
@@ -635,10 +641,10 @@ None yet.
 
 ## Session Continuity
 
-Last session: 2026-02-26 (Phase 10.3 Plan 11 — Web portal AI classification fixed: ManagerCrew stub replaced with IntakeFlow._classify_raw_intent() in reports.py. VERIFICATION Gap 1 (BLOCKER) closed. SEC-05 _is_saps_context now active on both intake paths.)
-Stopped at: Completed 10.3-08-PLAN.md (Task 1 done + LLM fix applied; checkpoint Task 2 — Streamlit smoke-test)
-Resume file: .planning/phases/10.3-crewai-agent-rebuild-and-llm-evaluation-framework/10.3-08-SUMMARY.md
+Last session: 2026-02-27 (Phase 10.4 Plan 02 — Enriched mockDashboardData.ts to 5 SA municipalities, created mockCitizenTickets.ts, wired useCitizenReports.ts import. TRNS-05 verified: zero GBV data in public mock. TypeScript passes with zero errors in frontend-public/src.)
+Stopped at: Completed 10.4-02-PLAN.md
+Resume file: .planning/phases/10.4-rich-mocks-implementation-for-public-and-municipal-dashboards/10.4-02-SUMMARY.md
 
 ---
 *State initialized: 2026-02-09*
-*Last updated: 2026-02-26 (Phase 10.3 Plan 08 — integration tests + eval framework + LLM fix applied)*
+*Last updated: 2026-02-27 (Phase 10.4 Plan 02 — Rich mocks implementation complete)*

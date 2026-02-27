@@ -233,6 +233,17 @@ Gap closure phases (7-10) are independent and can execute in parallel.
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-02-25 (Phase 10.2 planned: 2 plans for auth system security hardening)*
 
+### Phase 10.4: Rich mocks implementation for public and municipal dashboards (INSERTED)
+
+**Goal:** Replace placeholder/skeleton content across both dashboards with realistic, SA-authentic mock data. Populated tables, charts with real-looking numbers, filled cards, meaningful status distributions. Every page shows convincing South African municipal data — no empty states anywhere.
+**Requirements**: OPS-01, OPS-04, SEC-05, TRNS-01, TRNS-02, TRNS-03, TRNS-04, TRNS-05
+**Depends on:** Phase 10
+**Plans:** 2/2 plans complete
+
+Plans:
+- [x] 10.4-01-PLAN.md -- Municipal dashboard mock data files (users, tickets, teams, analytics, settings, SAPS cases) + wire fallbacks into all hooks and pages
+- [x] 10.4-02-PLAN.md -- Public dashboard mock data enrichment (5 municipalities, citizen tickets) + wire into hooks
+
 ### Phase 10.3: CrewAI Agent Rebuild and LLM Evaluation Framework (INSERTED)
 
 **Goal:** Rebuild the entire CrewAI agent system from scratch using Flow @router architecture (replacing broken Process.hierarchical). Archive existing code, rebuild each specialist agent (Auth, Municipal, TicketStatus, GBV) independently with proven end-to-end tests, then wire IntakeFlow routing. Establish LLM evaluation framework with trajectory evals (deepeval ToolCorrectnessMetric) and Claude-as-judge rubrics for regression prevention.
