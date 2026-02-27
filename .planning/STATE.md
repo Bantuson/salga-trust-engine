@@ -3,7 +3,7 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: milestone
 status: in_progress
-last_updated: "2026-02-27T11:50:00Z"
+last_updated: "2026-02-27T11:55:00Z"
 progress:
   total_phases: 3
   completed_phases: 3
@@ -22,10 +22,10 @@ See: .planning/PROJECT.md (updated 2026-02-09)
 
 ## Current Position
 
-Phase: 10.4 of 10.4 (Rich Mocks Implementation for Public and Municipal Dashboards) — IN PROGRESS
+Phase: 10.4 of 10.4 (Rich Mocks Implementation for Public and Municipal Dashboards) — COMPLETE
 Plan: 2 of 2 in current phase — COMPLETE
-Status: IN PROGRESS — Phase 10.4 Plan 02 complete. Public transparency dashboard enriched from 2 to 5 real SA municipalities with improvement-arc resolution trends. Citizen portal demo mode now shows 5 SA-authentic tickets. Plan 01 and Plan 02 both done.
-Last activity: 2026-02-27 — Phase 10.4 Plan 02: mockDashboardData.ts enriched (cc8def5), mockCitizenTickets.ts created and wired (99cf787). TRNS-05 compliance verified.
+Status: COMPLETE — Phase 10.4 both plans done. Plan 01: 7 SA-authentic mock data files for municipal ops dashboard + fallbacks wired in all hooks/pages. Plan 02: public dashboard enriched with 5 SA municipalities and citizen portal demo tickets.
+Last activity: 2026-02-27 — Phase 10.4 Plan 01: mock data files (f538a25), hook/page wiring (59ea7bc). SEC-05 GBV firewall maintained. Afrikaans apostrophe string fix applied.
 
 Progress: [██████████] 100% (2/2 plans)
 
@@ -179,7 +179,7 @@ Progress: [██████████] 100% (2/2 plans)
 | 10.3-09 | ~90m | 2 tasks | 6 files |
 | 10.3-10 | 16m (960s) | 2 tasks | 2 files |
 | 10.3-11 | 12m (748s) | 2 tasks | 2 files |
-| 10.4-01 | 5m (300s) | 2 tasks | 3 files |
+| 10.4-01 | 10m (642s) | 2 tasks | 15 files |
 | 10.4-02 | 5m (300s) | 2 tasks | 3 files |
 
 ## Accumulated Context
@@ -607,6 +607,9 @@ Recent decisions affecting current work:
 - [Phase 10.3-11]: Use flow._classify_raw_intent() directly (not flow.kickoff()) for web portal classification — single LLM call, no specialist crew dispatch needed
 - [Phase 10.3-11]: Set session_status="active" in IntakeState for web portal (authenticated users bypass auth gate in classify_intent())
 - [Phase 10.3-11]: _INTENT_TO_CATEGORY replaces _PHASE_TO_CATEGORY since IntakeFlow returns intent strings not routing_phase strings from old ManagerCrew
+- [Phase 10.4-01]: Mock data SEC-05 separation: mockTickets.ts (is_sensitive: false, no 'gbv' category) vs mockSAPSCases.ts (is_sensitive: true, category: 'gbv' only) mirrors backend firewall at mock layer
+- [Phase 10.4-01]: Afrikaans 'n contraction requires double-quote string delimiters in TypeScript (single-quote string would cause parse error)
+- [Phase 10.4-01]: Catch-block mock fallback pattern: on API error, inject mock data and setError(null) to suppress error and show rich data instead of empty states
 
 ### Pending Todos
 
