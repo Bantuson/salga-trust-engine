@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
+import { DEMO_TICKETS, DEMO_STATS } from '../data/mockCitizenTickets';
 
 /**
  * Custom hook for fetching citizen's personal reports and stats from backend API.
@@ -39,48 +40,6 @@ interface CitizenReportsResponse {
   tickets: CitizenTicket[];
   total: number;
 }
-
-const DEMO_TICKETS: CitizenTicket[] = [
-  {
-    tracking_number: 'TKT-20260211-DEMO01',
-    category: 'potholes',
-    status: 'in_progress',
-    created_at: new Date(Date.now() - 2 * 24 * 60 * 60 * 1000).toISOString(),
-    address: '123 Main St, Demo City',
-    severity: 'medium',
-    assigned_to_name: 'John Demo',
-    assigned_team_name: 'Road Maintenance Team',
-    media_count: 2,
-    is_sensitive: false,
-  },
-  {
-    tracking_number: 'TKT-20260209-DEMO02',
-    status: 'open',
-    is_sensitive: true,
-    assigned_officer_name: 'Officer Demo',
-    station_name: 'Demo SAPS Station',
-    station_phone: '012-345-6789',
-  },
-  {
-    tracking_number: 'TKT-20260205-DEMO03',
-    category: 'water',
-    status: 'resolved',
-    created_at: new Date(Date.now() - 6 * 24 * 60 * 60 * 1000).toISOString(),
-    address: '456 Oak Ave, Demo City',
-    severity: 'high',
-    assigned_to_name: 'Jane Demo',
-    assigned_team_name: 'Water Services Team',
-    media_count: 1,
-    is_sensitive: false,
-  },
-];
-
-const DEMO_STATS: CitizenStats = {
-  total_reports: 3,
-  resolved_count: 1,
-  avg_resolution_days: 2.3,
-  municipality_avg_resolution_days: 3.1,
-};
 
 export function useCitizenReports(statusFilter?: string) {
   const [reports, setReports] = useState<CitizenTicket[]>([]);
