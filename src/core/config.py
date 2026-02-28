@@ -97,6 +97,18 @@ class Settings(BaseSettings):
     TWILIO_WHATSAPP_NUMBER: str = Field(default="", description="Twilio WhatsApp sender number (whatsapp:+14155238886)")
     TWILIO_PHONE_NUMBER: str = Field(default="", description="Twilio phone number for SMS OTP (E.164 format, e.g. +1234567890)")
 
+    # ClamAV virus scanning (for evidence document uploads)
+    CLAMAV_HOST: str = Field(default="localhost", description="ClamAV daemon host")
+    CLAMAV_PORT: int = Field(default=3310, description="ClamAV daemon TCP port")
+    CLAMAV_ENABLED: bool = Field(
+        default=False,
+        description=(
+            "Enable ClamAV virus scanning for evidence uploads. "
+            "Disabled by default in development. Enable in production. "
+            "Fail-open in dev, fail-closed in production."
+        ),
+    )
+
     # Environment
     DEBUG: bool = Field(default=False, description="Debug mode")
     ENVIRONMENT: str = Field(default="development", description="Environment name")

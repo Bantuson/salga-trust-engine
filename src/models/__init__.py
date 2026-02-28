@@ -19,6 +19,7 @@ from src.models.sdbip import (
     SDBIPLayer,
     Quarter,
 )
+from src.models.evidence import EvidenceDocument
 
 __all__ = [
     "Base",
@@ -51,4 +52,5 @@ __all__ = [
     "SDBIPStatus",
     "SDBIPLayer",
     "Quarter",
+    "EvidenceDocument",
 ]
