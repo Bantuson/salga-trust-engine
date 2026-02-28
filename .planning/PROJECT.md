@@ -28,6 +28,22 @@ Citizens report a problem and the municipality visibly responds — the core fee
 
 ### Active
 
+#### v2.0 — Senior Municipal Roles & PMS Integration
+- [ ] Extend RBAC with 4-tier municipal role hierarchy (executive_mayor, municipal_manager, cfo, speaker, directors, pms_officer, audit/oversight roles)
+- [ ] Configurable municipal department structure per tenant (Section 56 manager mapping)
+- [ ] IDP management module (5-year strategic goals, objectives, annual review cycles, version control)
+- [ ] SDBIP management (Top Layer + Departmental scorecards, KPIs, quarterly targets, mSCOA budget linkages)
+- [ ] Performance monitoring with quarterly actuals submission and portfolio of evidence (POE) upload
+- [ ] Auto-population engine: ticket resolution data feeds SDBIP actuals automatically
+- [ ] Individual performance management for Section 57 managers (agreements, quarterly reviews, annual assessments)
+- [ ] Statutory reporting engine (Section 52/72/46/121 auto-generation with approval workflows)
+- [ ] CFO dashboard (budget execution, revenue collection, SDBIP achievement, statutory deadline tracking)
+- [ ] Municipal Manager, Mayor, and Council dashboards with role-appropriate views
+- [ ] Audit Committee, MPAC, and Internal Auditor oversight views
+- [ ] Risk register linked to SDBIP KPIs
+- [ ] Statutory reporting calendar with automated deadline tracking and escalating notifications
+
+#### Carried from v1.0 (tech debt)
 - [ ] Production deployment to Render staging with live Twilio WhatsApp
 - [ ] Live pilot municipality onboarding (3-5 municipalities)
 - [ ] Frontend code splitting for performance (907KB public, 1.25MB dashboard chunks)
@@ -46,6 +62,23 @@ Citizens report a problem and the municipality visibly responds — the core fee
 - Spending transparency on public dashboard — requires municipality budget data sharing; still valid
 - AI-generated responses to citizens — AI for routing only, human-written templates for responses; still valid
 
+## Current Milestone: v2.0 Senior Municipal Roles & PMS Integration
+
+**Goal:** Transform the Trust Engine from a citizen service delivery platform into a full-stack municipal operating system — connecting citizen complaints on the ground to Council reporting at the top — by adding Performance Management System (PMS) modules mandated by the Municipal Systems Act and MFMA.
+
+**Target features:**
+- 4-tier municipal role hierarchy (political, administrative, operational, oversight)
+- IDP management module (5-year strategic planning)
+- SDBIP management (annual operational plan with quarterly KPI targets and mSCOA budget linkages)
+- Performance monitoring with evidence management and auto-population from ticket data
+- Section 57 individual performance agreements
+- Statutory reporting engine (Section 52/72/46/121)
+- Role-specific dashboards (CFO, Municipal Manager, Mayor, Council, Audit Committee)
+- Risk register and deadline tracking
+- Configurable department structure per municipality tenant
+
+**Killer differentiator:** Ticket resolution data auto-populates SDBIP actuals — no other SA PMS vendor connects citizen complaints to performance reporting.
+
 ## Context
 
 Shipped v1.0 MVP with ~88K LOC (49K Python, 39K TypeScript) across 905 files in 19 days.
@@ -54,6 +87,8 @@ Tech stack: FastAPI + PostgreSQL/PostGIS + Supabase (Auth, Storage, Realtime) + 
 South African municipalities face systemic dysfunction: R100+ billion in debt, only 27 of 257 achieving clean audits. OUTA offered a free geolocation reporting app for three years — only Cape Town adopted it. This platform is SALGA-led to overcome adoption barriers through institutional authority.
 
 46/46 v1 requirements satisfied. 12 tech debt items accepted (non-blocking). LLM evaluation framework established with deepeval trajectory evals and Claude-as-judge rubrics.
+
+The Umsobomvu tender (UMS/CS/PMS/02/2026) revealed that senior municipal staff need tools for performance management, strategic planning, and statutory compliance. The MSA and MFMA mandate identical workflows, deadlines, and reporting for every municipality — only org charts vary. Integration plan document (`salga-pms-integration-plan.md`) defines the full 4-tier role hierarchy, feature-permission matrix, data model extensions (10+ new entities), and 24-week phased approach.
 
 ## Constraints
 
@@ -86,4 +121,4 @@ South African municipalities face systemic dysfunction: R100+ billion in debt, o
 | Rich mock data for demo (SA-authentic) | Dashboards need convincing data for pilot pitches | ✓ Good — 5 municipalities, realistic distributions |
 
 ---
-*Last updated: 2026-02-28 after v1.0 milestone*
+*Last updated: 2026-02-28 after v2.0 milestone start*
