@@ -25,6 +25,7 @@ from src.api.v1 import (
     public,
     reports,
     roles,
+    sdbip,
     settings as settings_api,
     teams,
     tickets,
@@ -137,3 +138,6 @@ app.include_router(roles.router)
 
 # Phase 28 routers: IDP (Integrated Development Plan) CRUD and state machine
 app.include_router(idp.router)
+
+# Phase 28 routers: SDBIP scorecard, KPI, quarterly targets, mSCOA reference lookup
+app.include_router(sdbip.router)
