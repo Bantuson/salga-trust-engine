@@ -9,6 +9,7 @@ from src.models.team import Team
 from src.models.assignment import TicketAssignment
 from src.models.sla_config import SLAConfig
 from src.models.whatsapp_session import WhatsAppSession
+from src.models.idp import IDPCycle, IDPGoal, IDPObjective, IDPVersion, IDPStatus, NationalKPA
 
 __all__ = [
     "Base",
@@ -28,4 +29,10 @@ __all__ = [
     "TicketAssignment",
     "SLAConfig",
     "WhatsAppSession",
+    "IDPCycle",
+    "IDPGoal",
+    "IDPObjective",
+    "IDPVersion",
+    "IDPStatus",
+    "NationalKPA",
 ]
