@@ -7,6 +7,8 @@
  * Data shape matches the organogram endpoint response:
  *   GET /api/v1/departments/organogram
  *
+ * Styling: uses CSS variables from @shared/design-tokens.css (no Tailwind).
+ *
  * Usage:
  *   <OrganogramTree data={rootNode} onNodeClick={(node) => console.log(node)} />
  */
@@ -33,7 +35,7 @@ interface OrganogramTreeProps {
  *
  * - Teal circle nodes with 3-letter abbreviations
  * - Department name below each node
- * - Director name (if present) shown in grey below department name
+ * - Director name (if present) shown in muted colour below department name
  * - Tree is centered horizontally in its container
  * - Nodes collapse/expand on click
  */
@@ -51,8 +53,15 @@ export function OrganogramTree({ data, onNodeClick }: OrganogramTreeProps) {
   return (
     <div
       ref={containerRef}
-      style={{ width: '100%', height: '600px', position: 'relative' }}
-      className="bg-gray-50 rounded-xl border border-gray-200"
+      style={{
+        width: '100%',
+        height: '600px',
+        position: 'relative',
+        background: 'var(--surface-elevated)',
+        borderRadius: 'var(--radius-lg)',
+        border: '1px solid var(--border-subtle)',
+        overflow: 'hidden',
+      }}
     >
       <Tree
         data={data}
@@ -71,8 +80,8 @@ export function OrganogramTree({ data, onNodeClick }: OrganogramTreeProps) {
             }}
             style={{ cursor: 'pointer' }}
           >
-            {/* Teal circle */}
-            <circle r={24} fill="#0D9488" stroke="#065F46" strokeWidth={2} />
+            {/* Teal circle matching --color-teal from design tokens */}
+            <circle r={24} fill="var(--color-teal)" stroke="rgba(0,191,165,0.4)" strokeWidth={2} />
 
             {/* 3-letter abbreviation (uppercase) */}
             <text
@@ -90,7 +99,7 @@ export function OrganogramTree({ data, onNodeClick }: OrganogramTreeProps) {
             <text
               dy="3.2em"
               textAnchor="middle"
-              fill="#111827"
+              fill="var(--text-primary)"
               fontSize={12}
               fontWeight={600}
               style={{ pointerEvents: 'none', userSelect: 'none' }}
@@ -103,7 +112,7 @@ export function OrganogramTree({ data, onNodeClick }: OrganogramTreeProps) {
               <text
                 dy="4.8em"
                 textAnchor="middle"
-                fill="#6B7280"
+                fill="var(--text-muted)"
                 fontSize={10}
                 style={{ pointerEvents: 'none', userSelect: 'none' }}
               >

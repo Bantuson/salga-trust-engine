@@ -10,12 +10,19 @@
  *  4. Map Ticket Categories  — route ticket categories to departments
  *  5. Review Organogram      — interactive tree + PMS readiness checklist
  *
+ * Styling: uses CSS variables from @shared/design-tokens.css (no Tailwind).
+ * Components: GlassCard, Button, Input, AnimatedGradientBg from @shared.
+ *
  * State is local (useState). Each step validates before "Next" is enabled.
  * API calls use Supabase session token (getAccessToken).
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
+import { GlassCard } from '@shared/components/ui/GlassCard';
+import { Button } from '@shared/components/ui/Button';
+import { Input } from '@shared/components/ui/Input';
 import { useAuth } from '../hooks/useAuth';
 import { OrganogramTree } from '../components/organogram/OrganogramTree';
 import type { OrgNode } from '../components/organogram/OrganogramTree';
@@ -66,7 +73,7 @@ const SCORING_METHODS = ['percentage', 'absolute', 'binary', 'composite'];
 const SDBIP_LAYER_OPTIONS = [1, 2, 3, 4, 5];
 
 // ---------------------------------------------------------------------------
-// Sub-components
+// StepIndicator sub-component
 // ---------------------------------------------------------------------------
 
 /** Horizontal stepper indicator shown at the top of the wizard. */
@@ -78,52 +85,64 @@ function StepIndicator({
   currentIndex: number;
 }) {
   return (
-    <div className="flex items-center justify-between mb-8">
+    <div style={stepStyles.container}>
       {steps.map((step, i) => {
         const isCompleted = i < currentIndex;
         const isCurrent = i === currentIndex;
 
         return (
-          <div key={step.id} className="flex items-center flex-1">
-            {/* Circle */}
-            <div className="flex flex-col items-center">
+          <div key={step.id} style={stepStyles.stepWrapper}>
+            {/* Circle + label */}
+            <div style={stepStyles.stepColumn}>
               <div
-                className={`
-                  w-9 h-9 rounded-full flex items-center justify-center text-sm font-bold
-                  transition-all duration-300
-                  ${isCompleted
-                    ? 'bg-teal-600 text-white'
+                style={{
+                  ...stepStyles.circle,
+                  background: isCompleted
+                    ? 'var(--color-teal)'
                     : isCurrent
-                    ? 'bg-teal-100 text-teal-700 ring-2 ring-teal-600'
-                    : 'bg-gray-100 text-gray-400'
-                  }
-                `}
+                    ? 'rgba(0, 191, 165, 0.15)'
+                    : 'var(--surface-elevated)',
+                  border: isCurrent
+                    ? '2px solid var(--color-teal)'
+                    : isCompleted
+                    ? '2px solid var(--color-teal)'
+                    : '2px solid var(--border-subtle)',
+                  color: isCompleted
+                    ? 'white'
+                    : isCurrent
+                    ? 'var(--color-teal)'
+                    : 'var(--text-muted)',
+                }}
               >
                 {isCompleted ? (
-                  <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
                     <polyline points="20 6 9 17 4 12" />
                   </svg>
                 ) : (
-                  <span>{i + 1}</span>
+                  <span style={{ fontSize: '12px', fontWeight: 700 }}>{i + 1}</span>
                 )}
               </div>
               <span
-                className={`
-                  mt-1.5 text-xs font-medium text-center whitespace-nowrap
-                  ${isCurrent ? 'text-teal-700' : isCompleted ? 'text-teal-600' : 'text-gray-400'}
-                `}
+                style={{
+                  ...stepStyles.label,
+                  color: isCurrent
+                    ? 'var(--color-teal)'
+                    : isCompleted
+                    ? 'var(--text-secondary)'
+                    : 'var(--text-muted)',
+                }}
               >
                 {step.label}
               </span>
             </div>
 
-            {/* Connector line */}
+            {/* Connector line (not after last step) */}
             {i < steps.length - 1 && (
               <div
-                className={`
-                  flex-1 h-0.5 mx-2 transition-all duration-300
-                  ${isCompleted ? 'bg-teal-600' : 'bg-gray-200'}
-                `}
+                style={{
+                  ...stepStyles.connector,
+                  background: isCompleted ? 'var(--color-teal)' : 'var(--border-subtle)',
+                }}
               />
             )}
           </div>
@@ -132,6 +151,211 @@ function StepIndicator({
     </div>
   );
 }
+
+const stepStyles: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: 'var(--space-xl)',
+    gap: '4px',
+  },
+  stepWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
+    flexShrink: 0,
+  },
+  circle: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'var(--transition-base)',
+    flexShrink: 0,
+  },
+  label: {
+    fontSize: '11px',
+    fontWeight: 500,
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+    transition: 'var(--transition-base)',
+  },
+  connector: {
+    flex: 1,
+    height: '2px',
+    margin: '0 4px',
+    marginBottom: '18px',
+    transition: 'var(--transition-base)',
+    borderRadius: '1px',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Shared form field styles
+// ---------------------------------------------------------------------------
+
+const fieldStyles: Record<string, React.CSSProperties> = {
+  group: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    marginBottom: 'var(--space-md)',
+  },
+  label: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 500,
+    color: 'var(--text-secondary)',
+  },
+  required: {
+    color: 'var(--color-coral)',
+    marginLeft: '4px',
+  },
+  select: {
+    width: '100%',
+    padding: '12px 16px',
+    fontSize: 'var(--text-base)',
+    fontFamily: 'var(--font-body)',
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-md)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    cursor: 'pointer',
+    transition: 'var(--transition-base)',
+  },
+  successMsg: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-teal)',
+    fontWeight: 500,
+    margin: '8px 0',
+  },
+  saveButton: {
+    marginTop: '4px',
+  },
+  subSection: {
+    padding: 'var(--space-md)',
+    background: 'var(--surface-higher)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border-subtle)',
+    marginTop: 'var(--space-md)',
+  },
+  subSectionTitle: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    margin: '0 0 var(--space-sm) 0',
+  },
+  deptGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: 'var(--space-sm)',
+    marginBottom: 'var(--space-sm)',
+  },
+  deptList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: '0 0 var(--space-md) 0',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  deptItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px var(--space-md)',
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border-subtle)',
+  },
+  deptName: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  deptCode: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+    fontFamily: 'monospace',
+  },
+  infoText: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-secondary)',
+    margin: '0 0 var(--space-md) 0',
+    lineHeight: 'var(--leading-relaxed)',
+  },
+  warningBox: {
+    padding: '10px var(--space-md)',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.25)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-gold)',
+  },
+  categoryRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-md)',
+    padding: '10px 0',
+    borderBottom: '1px solid var(--border-subtle)',
+  },
+  categoryLabel: {
+    flex: 1,
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-primary)',
+    fontWeight: 500,
+    textTransform: 'capitalize',
+  },
+  sectionTitle: {
+    fontSize: 'var(--text-base)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    margin: '0 0 var(--space-sm) 0',
+    fontFamily: 'var(--font-display)',
+  },
+  readyBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-md)',
+    padding: 'var(--space-md)',
+    background: 'rgba(0, 191, 165, 0.1)',
+    border: '1px solid rgba(0, 191, 165, 0.25)',
+    borderRadius: 'var(--radius-md)',
+  },
+  readyIcon: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    background: 'rgba(0, 191, 165, 0.15)',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    flexShrink: 0,
+  },
+  readyTitle: {
+    fontSize: 'var(--text-sm)',
+    fontWeight: 600,
+    color: 'var(--color-teal)',
+    margin: '0 0 2px 0',
+  },
+  readySubtitle: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-secondary)',
+    margin: 0,
+  },
+};
 
 // ---------------------------------------------------------------------------
 // Main wizard page
@@ -160,13 +384,10 @@ export function PmsSetupWizardPage() {
   const [newDeptCode, setNewDeptCode] = useState('');
 
   // Step 3 state — director assignments
-  // directorMap: { [departmentId]: userId }
   const [directorMap, setDirectorMap] = useState<Record<string, string>>({});
-  // Available directors (users with section56_director or higher)
   const [availableDirectors, setAvailableDirectors] = useState<{ id: string; full_name: string }[]>([]);
 
   // Step 4 state — ticket category mapping
-  // categoryMap: { [category]: departmentId }
   const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
 
   // Step 5 state — organogram + readiness
@@ -213,7 +434,6 @@ export function PmsSetupWizardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Update settings
       await apiCall('/municipalities/settings', {
         method: 'PUT',
         body: JSON.stringify({
@@ -223,7 +443,6 @@ export function PmsSetupWizardPage() {
           scoring_method: settings.scoring_method,
         }),
       });
-      // Lock settings
       await apiCall('/municipalities/settings/lock', { method: 'POST' });
       setSettingsSaved(true);
     } catch (err) {
@@ -273,14 +492,8 @@ export function PmsSetupWizardPage() {
 
   async function loadDirectors() {
     try {
-      // Fetch users — in a real implementation this would filter by Tier 2+ roles.
-      // For the wizard we simply use the members endpoint as a source of users.
       const data = await apiCall('/departments/');
-      // We only need existing departments list for the map; directors come from a separate endpoint.
-      // Since there is no dedicated "list users by role" endpoint yet, we use empty list as default
-      // and let admins type an ID. This is a Phase 27 placeholder.
       setAvailableDirectors([]);
-      // Populate directorMap from already-assigned directors
       const map: Record<string, string> = {};
       (data as Department[]).forEach((dept: Department) => {
         if (dept.assigned_director_id) {
@@ -289,7 +502,7 @@ export function PmsSetupWizardPage() {
       });
       setDirectorMap(map);
     } catch {
-      // Non-critical: wizard still usable without director list
+      // Non-critical
     }
   }
 
@@ -297,7 +510,6 @@ export function PmsSetupWizardPage() {
     setIsLoading(true);
     setError(null);
     try {
-      // Update each department that has a director selection
       const updates = Object.entries(directorMap).filter(([, dirId]) => dirId);
       await Promise.all(
         updates.map(([deptId, dirId]) =>
@@ -307,7 +519,6 @@ export function PmsSetupWizardPage() {
           }),
         ),
       );
-      // Refresh departments list
       const refreshed: Department[] = await apiCall('/departments/');
       setDepartments(refreshed);
     } catch (err) {
@@ -326,7 +537,6 @@ export function PmsSetupWizardPage() {
     setError(null);
     try {
       const mappings = Object.entries(categoryMap).filter(([, deptId]) => deptId);
-      // Save each mapping individually (endpoint enforces 1:1 per tenant)
       await Promise.all(
         mappings.map(([category, departmentId]) =>
           apiCall('/departments/ticket-category-map', {
@@ -357,9 +567,6 @@ export function PmsSetupWizardPage() {
         apiCall('/departments/pms-readiness'),
       ]);
 
-      // Convert backend OrganogramNode to react-d3-tree OrgNode
-      // Backend: [{id, name, code, director_name, director_role, children:[...]}]
-      // react-d3-tree: {name, attributes:{...}, children:[...]}
       function toD3Node(node: {
         name: string;
         director_name?: string | null;
@@ -378,7 +585,6 @@ export function PmsSetupWizardPage() {
         };
       }
 
-      // Wrap multiple roots in a virtual "Municipality" root for the tree
       const roots = Array.isArray(orgData) ? orgData : [orgData];
       const d3Root: OrgNode =
         roots.length === 1
@@ -398,14 +604,12 @@ export function PmsSetupWizardPage() {
     }
   }
 
-  // Load organogram when reaching Step 5
   useEffect(() => {
     if (currentStep === 4) {
       loadOrganogramAndReadiness();
     }
   }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // Load directors list when reaching Step 3
   useEffect(() => {
     if (currentStep === 2) {
       loadDirectors();
@@ -420,22 +624,18 @@ export function PmsSetupWizardPage() {
     setError(null);
 
     if (currentStep === 0) {
-      // Must save settings before advancing
       if (!settingsSaved) {
         await handleSaveSettings();
         if (error) return;
       }
     } else if (currentStep === 1) {
-      // Must have at least 1 department
       if (departments.length === 0) {
         setError('Please create at least one department before proceeding.');
         return;
       }
     } else if (currentStep === 2) {
-      // Save director assignments (non-blocking — partial saves are ok)
       await handleAssignDirectors();
     } else if (currentStep === 3) {
-      // Save category mappings (best-effort)
       await handleSaveCategoryMappings();
     }
 
@@ -453,15 +653,15 @@ export function PmsSetupWizardPage() {
 
   function renderStep() {
     switch (currentStep) {
-      // -----------------------------------------------------------------------
+
       // Step 1: Municipality Settings
-      // -----------------------------------------------------------------------
       case 0:
         return (
-          <div className="space-y-5">
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Municipality Category <span className="text-red-500">*</span>
+          <div>
+            <div style={fieldStyles.group}>
+              <label style={fieldStyles.label}>
+                Municipality Category
+                <span style={fieldStyles.required}>*</span>
               </label>
               <select
                 value={settings.category}
@@ -469,7 +669,7 @@ export function PmsSetupWizardPage() {
                   setSettings((s) => ({ ...s, category: e.target.value as 'A' | 'B' | 'C' }));
                   setSettingsSaved(false);
                 }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                style={fieldStyles.select}
               >
                 <option value="">Select category...</option>
                 <option value="A">A — Metro Municipality</option>
@@ -478,11 +678,9 @@ export function PmsSetupWizardPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Demarcation Code
-              </label>
-              <input
+            <div style={fieldStyles.group}>
+              <Input
+                label="Demarcation Code"
                 type="text"
                 placeholder="e.g. WC011"
                 value={settings.demarcation_code}
@@ -490,21 +688,18 @@ export function PmsSetupWizardPage() {
                   setSettings((s) => ({ ...s, demarcation_code: e.target.value }));
                   setSettingsSaved(false);
                 }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
               />
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                SDBIP Layers
-              </label>
+            <div style={fieldStyles.group}>
+              <label style={fieldStyles.label}>SDBIP Layers</label>
               <select
                 value={settings.sdbip_layers}
                 onChange={(e) => {
                   setSettings((s) => ({ ...s, sdbip_layers: parseInt(e.target.value, 10) }));
                   setSettingsSaved(false);
                 }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                style={fieldStyles.select}
               >
                 {SDBIP_LAYER_OPTIONS.map((n) => (
                   <option key={n} value={n}>
@@ -514,17 +709,15 @@ export function PmsSetupWizardPage() {
               </select>
             </div>
 
-            <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Scoring Method
-              </label>
+            <div style={fieldStyles.group}>
+              <label style={fieldStyles.label}>Scoring Method</label>
               <select
                 value={settings.scoring_method}
                 onChange={(e) => {
                   setSettings((s) => ({ ...s, scoring_method: e.target.value }));
                   setSettingsSaved(false);
                 }}
-                className="w-full rounded-lg border border-gray-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
+                style={fieldStyles.select}
               >
                 {SCORING_METHODS.map((m) => (
                   <option key={m} value={m}>
@@ -535,44 +728,42 @@ export function PmsSetupWizardPage() {
             </div>
 
             {settingsSaved && (
-              <div className="flex items-center gap-2 text-sm text-green-600 font-medium">
-                <svg className="w-4 h-4" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+              <div style={fieldStyles.successMsg}>
+                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
                   <polyline points="20 6 9 17 4 12" />
                 </svg>
                 Settings saved and locked
               </div>
             )}
 
-            <button
+            <Button
+              variant="secondary"
+              size="sm"
               onClick={handleSaveSettings}
               disabled={isLoading || !settings.category}
-              className="px-4 py-2 bg-gray-100 text-gray-700 rounded-lg hover:bg-gray-200 text-sm font-medium disabled:opacity-50"
+              loading={isLoading}
+              style={fieldStyles.saveButton}
             >
-              {isLoading ? 'Saving...' : settingsSaved ? 'Saved' : 'Save Settings'}
-            </button>
+              {settingsSaved ? 'Saved' : 'Save Settings'}
+            </Button>
           </div>
         );
 
-      // -----------------------------------------------------------------------
       // Step 2: Create Departments
-      // -----------------------------------------------------------------------
       case 1:
         return (
-          <div className="space-y-5">
+          <div>
             {/* Existing departments list */}
             {departments.length > 0 && (
-              <div className="space-y-2">
-                <p className="text-sm font-medium text-gray-700">
+              <div style={{ marginBottom: 'var(--space-md)' }}>
+                <p style={{ ...fieldStyles.label, marginBottom: '8px' }}>
                   Departments added ({departments.length}):
                 </p>
-                <ul className="space-y-1">
+                <ul style={fieldStyles.deptList}>
                   {departments.map((dept) => (
-                    <li
-                      key={dept.id}
-                      className="flex items-center justify-between px-3 py-2 bg-gray-50 rounded-lg text-sm"
-                    >
-                      <span className="font-medium text-gray-800">{dept.name}</span>
-                      <span className="text-xs text-gray-500 font-mono">{dept.code}</span>
+                    <li key={dept.id} style={fieldStyles.deptItem}>
+                      <span style={fieldStyles.deptName}>{dept.name}</span>
+                      <span style={fieldStyles.deptCode}>{dept.code}</span>
                     </li>
                   ))}
                 </ul>
@@ -580,63 +771,58 @@ export function PmsSetupWizardPage() {
             )}
 
             {/* Add department form */}
-            <div className="p-4 bg-gray-50 rounded-lg border border-gray-200">
-              <p className="text-sm font-medium text-gray-700 mb-3">Add Department</p>
-              <div className="grid grid-cols-2 gap-3 mb-3">
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Department Name</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. Finance"
-                    value={newDeptName}
-                    onChange={(e) => setNewDeptName(e.target.value)}
-                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
-                <div>
-                  <label className="block text-xs text-gray-500 mb-1">Code (uppercase)</label>
-                  <input
-                    type="text"
-                    placeholder="e.g. FIN"
-                    value={newDeptCode}
-                    onChange={(e) => setNewDeptCode(e.target.value.toUpperCase())}
-                    className="w-full rounded-md border border-gray-300 px-3 py-1.5 text-sm font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
-                  />
-                </div>
+            <div style={fieldStyles.subSection}>
+              <p style={fieldStyles.subSectionTitle}>Add Department</p>
+              <div style={fieldStyles.deptGrid}>
+                <Input
+                  label="Department Name"
+                  type="text"
+                  placeholder="e.g. Finance"
+                  value={newDeptName}
+                  onChange={(e) => setNewDeptName(e.target.value)}
+                />
+                <Input
+                  label="Code (uppercase)"
+                  type="text"
+                  placeholder="e.g. FIN"
+                  value={newDeptCode}
+                  onChange={(e) => setNewDeptCode(e.target.value.toUpperCase())}
+                  style={{ fontFamily: 'monospace' }}
+                />
               </div>
-              <button
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={handleCreateDepartment}
                 disabled={isLoading || !newDeptName.trim() || !newDeptCode.trim()}
-                className="px-4 py-1.5 bg-teal-600 text-white rounded-md text-sm font-medium hover:bg-teal-700 disabled:opacity-50"
+                loading={isLoading}
               >
-                {isLoading ? 'Adding...' : '+ Add Department'}
-              </button>
+                + Add Department
+              </Button>
             </div>
           </div>
         );
 
-      // -----------------------------------------------------------------------
       // Step 3: Assign Directors
-      // -----------------------------------------------------------------------
       case 2:
         return (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
+          <div>
+            <p style={fieldStyles.infoText}>
               Assign a Section 56 Director to each department. Enter the user ID of the director.
               {availableDirectors.length > 0 && ' Or select from the list below.'}
             </p>
 
             {departments.length === 0 ? (
-              <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">
+              <div style={fieldStyles.warningBox}>
                 No departments found. Go back and create departments first.
-              </p>
+              </div>
             ) : (
-              <ul className="space-y-3">
+              <ul style={fieldStyles.deptList}>
                 {departments.map((dept) => (
-                  <li key={dept.id} className="flex items-center gap-3 p-3 bg-gray-50 rounded-lg">
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-medium text-gray-800">{dept.name}</p>
-                      <p className="text-xs text-gray-500 font-mono">{dept.code}</p>
+                  <li key={dept.id} style={{ ...fieldStyles.deptItem, flexWrap: 'wrap', gap: '8px' }}>
+                    <div style={{ flex: 1, minWidth: '120px' }}>
+                      <p style={fieldStyles.deptName}>{dept.name}</p>
+                      <p style={fieldStyles.deptCode}>{dept.code}</p>
                     </div>
                     {availableDirectors.length > 0 ? (
                       <select
@@ -644,7 +830,7 @@ export function PmsSetupWizardPage() {
                         onChange={(e) =>
                           setDirectorMap((prev) => ({ ...prev, [dept.id]: e.target.value }))
                         }
-                        className="text-sm rounded-md border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        style={{ ...fieldStyles.select, width: 'auto', minWidth: '200px' }}
                       >
                         <option value="">No director assigned</option>
                         {availableDirectors.map((dir) => (
@@ -654,14 +840,14 @@ export function PmsSetupWizardPage() {
                         ))}
                       </select>
                     ) : (
-                      <input
+                      <Input
                         type="text"
                         placeholder="Director User ID (UUID)"
                         value={directorMap[dept.id] ?? ''}
                         onChange={(e) =>
                           setDirectorMap((prev) => ({ ...prev, [dept.id]: e.target.value }))
                         }
-                        className="text-sm rounded-md border border-gray-300 px-2 py-1.5 w-64 font-mono focus:outline-none focus:ring-2 focus:ring-teal-500"
+                        style={{ fontFamily: 'monospace', minWidth: '260px' }}
                       />
                     )}
                   </li>
@@ -671,26 +857,23 @@ export function PmsSetupWizardPage() {
           </div>
         );
 
-      // -----------------------------------------------------------------------
       // Step 4: Map Ticket Categories
-      // -----------------------------------------------------------------------
       case 3:
         return (
-          <div className="space-y-4">
-            <p className="text-sm text-gray-600">
-              Map each ticket category to a department. Unmapped categories will be routed to
-              the default queue.
+          <div>
+            <p style={fieldStyles.infoText}>
+              Map each ticket category to a department. Unmapped categories will be routed to the default queue.
             </p>
 
             {departments.length === 0 ? (
-              <p className="text-sm text-amber-700 bg-amber-50 p-3 rounded-lg">
+              <div style={fieldStyles.warningBox}>
                 No departments found. Go back and create departments first.
-              </p>
+              </div>
             ) : (
-              <ul className="space-y-2">
+              <div>
                 {TICKET_CATEGORIES.map((cat) => (
-                  <li key={cat} className="flex items-center gap-3 p-2.5 bg-gray-50 rounded-lg">
-                    <span className="flex-1 text-sm text-gray-800 font-medium capitalize">
+                  <div key={cat} style={fieldStyles.categoryRow}>
+                    <span style={fieldStyles.categoryLabel}>
                       {cat.replace(/_/g, ' ')}
                     </span>
                     <select
@@ -698,7 +881,7 @@ export function PmsSetupWizardPage() {
                       onChange={(e) =>
                         setCategoryMap((prev) => ({ ...prev, [cat]: e.target.value }))
                       }
-                      className="text-sm rounded-md border border-gray-300 px-2 py-1.5 focus:outline-none focus:ring-2 focus:ring-teal-500"
+                      style={{ ...fieldStyles.select, width: 'auto', minWidth: '160px' }}
                     >
                       <option value="">Not mapped</option>
                       {departments.map((dept) => (
@@ -707,53 +890,67 @@ export function PmsSetupWizardPage() {
                         </option>
                       ))}
                     </select>
-                  </li>
+                  </div>
                 ))}
-              </ul>
+              </div>
             )}
           </div>
         );
 
-      // -----------------------------------------------------------------------
       // Step 5: Review Organogram
-      // -----------------------------------------------------------------------
       case 4:
         return (
-          <div className="space-y-6">
+          <div>
             {/* Organogram */}
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-3">
-                Department Organogram
-              </h3>
+            <div style={{ marginBottom: 'var(--space-xl)' }}>
+              <h3 style={fieldStyles.sectionTitle}>Department Organogram</h3>
               {isLoading ? (
-                <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                <div style={{
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: 'var(--text-sm)',
+                  background: 'var(--surface-elevated)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
+                }}>
                   Loading organogram...
                 </div>
               ) : organogramData ? (
                 <OrganogramTree data={organogramData} />
               ) : (
-                <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+                <div style={{
+                  height: '200px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: 'var(--text-muted)',
+                  fontSize: 'var(--text-sm)',
+                  background: 'var(--surface-elevated)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
+                }}>
                   No departments to display.
                 </div>
               )}
             </div>
 
             {/* PMS Readiness */}
-            <div>
-              <h3 className="text-base font-semibold text-gray-800 mb-3">
-                PMS Readiness
-              </h3>
+            <div style={{ marginBottom: 'var(--space-xl)' }}>
+              <h3 style={fieldStyles.sectionTitle}>PMS Readiness</h3>
               {readiness ? (
                 readiness.is_ready ? (
-                  <div className="flex items-center gap-3 p-4 bg-green-50 rounded-xl border border-green-200">
-                    <div className="w-8 h-8 bg-green-100 rounded-full flex items-center justify-center">
-                      <svg className="w-5 h-5 text-green-600" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
+                  <div style={fieldStyles.readyBox}>
+                    <div style={fieldStyles.readyIcon}>
+                      <svg width="18" height="18" fill="none" stroke="var(--color-teal)" strokeWidth={2.5} viewBox="0 0 24 24">
                         <polyline points="20 6 9 17 4 12" />
                       </svg>
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-green-800">PMS Ready</p>
-                      <p className="text-xs text-green-600">All configuration requirements are met.</p>
+                      <p style={fieldStyles.readyTitle}>PMS Ready</p>
+                      <p style={fieldStyles.readySubtitle}>All configuration requirements are met.</p>
                     </div>
                   </div>
                 ) : (
@@ -763,18 +960,21 @@ export function PmsSetupWizardPage() {
                   />
                 )
               ) : (
-                <div className="text-sm text-gray-400">Loading readiness status...</div>
+                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-muted)' }}>
+                  Loading readiness status...
+                </div>
               )}
             </div>
 
             {/* Complete Setup button */}
             {readiness?.is_ready && (
-              <button
+              <Button
+                variant="primary"
                 onClick={() => navigate('/settings')}
-                className="w-full py-3 bg-teal-600 text-white rounded-xl hover:bg-teal-700 font-semibold text-sm transition-colors"
+                style={{ width: '100%' }}
               >
                 Complete Setup
-              </button>
+              </Button>
             )}
           </div>
         );
@@ -789,58 +989,136 @@ export function PmsSetupWizardPage() {
   // ---------------------------------------------------------------------------
 
   return (
-    <div className="max-w-3xl mx-auto py-8 px-4">
-      {/* Page header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-gray-900">PMS Department Setup</h1>
-        <p className="text-gray-500 text-sm mt-1">
-          Configure your municipality's department structure for Performance Management.
-        </p>
-      </div>
+    <div style={pageStyles.container}>
+      <AnimatedGradientBg />
 
-      {/* Stepper */}
-      <StepIndicator steps={STEPS} currentIndex={currentStep} />
-
-      {/* Card */}
-      <div className="bg-white rounded-2xl shadow-sm border border-gray-100 p-8">
-        {/* Step header */}
-        <div className="mb-6">
-          <h2 className="text-lg font-semibold text-gray-900">
-            Step {currentStep + 1}: {STEPS[currentStep].label}
-          </h2>
+      <div style={pageStyles.content}>
+        {/* Page header */}
+        <div style={pageStyles.header}>
+          <h1 style={pageStyles.title}>PMS Department Setup</h1>
+          <p style={pageStyles.subtitle}>
+            Configure your municipality's department structure for Performance Management.
+          </p>
         </div>
 
-        {/* Step content */}
-        {renderStep()}
+        {/* Stepper */}
+        <StepIndicator steps={STEPS} currentIndex={currentStep} />
 
-        {/* Error */}
-        {error && (
-          <div className="mt-4 p-3 bg-red-50 rounded-lg border border-red-200">
-            <p className="text-sm text-red-700">{error}</p>
+        {/* Wizard card */}
+        <GlassCard style={pageStyles.card}>
+          {/* Step header */}
+          <div style={pageStyles.stepHeader}>
+            <h2 style={pageStyles.stepTitle}>
+              Step {currentStep + 1}: {STEPS[currentStep].label}
+            </h2>
           </div>
-        )}
 
-        {/* Navigation buttons */}
-        <div className="flex justify-between mt-8 pt-6 border-t border-gray-100">
-          <button
-            onClick={handleBack}
-            disabled={currentStep === 0}
-            className="px-5 py-2 border border-gray-300 text-gray-700 rounded-lg hover:bg-gray-50 text-sm font-medium disabled:opacity-40 disabled:cursor-not-allowed"
-          >
-            Back
-          </button>
+          {/* Step content */}
+          <div style={pageStyles.stepContent}>
+            {renderStep()}
+          </div>
 
-          {currentStep < STEPS.length - 1 ? (
-            <button
-              onClick={handleNext}
-              disabled={isLoading}
-              className="px-6 py-2 bg-teal-600 text-white rounded-lg hover:bg-teal-700 text-sm font-semibold disabled:opacity-50"
+          {/* Error message */}
+          {error && (
+            <div style={pageStyles.errorBox}>
+              <p style={pageStyles.errorText}>{error}</p>
+            </div>
+          )}
+
+          {/* Navigation buttons */}
+          <div style={pageStyles.navigation}>
+            <Button
+              variant="ghost"
+              onClick={handleBack}
+              disabled={currentStep === 0}
             >
-              {isLoading ? 'Please wait...' : 'Next'}
-            </button>
-          ) : null}
-        </div>
+              Back
+            </Button>
+
+            {currentStep < STEPS.length - 1 && (
+              <Button
+                variant="primary"
+                onClick={handleNext}
+                disabled={isLoading}
+                loading={isLoading}
+              >
+                {isLoading ? 'Please wait...' : 'Next'}
+              </Button>
+            )}
+          </div>
+        </GlassCard>
       </div>
     </div>
   );
 }
+
+const pageStyles: Record<string, React.CSSProperties> = {
+  container: {
+    minHeight: '100vh',
+    position: 'relative',
+    overflow: 'hidden',
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'center',
+    padding: 'var(--space-2xl) var(--space-lg)',
+  },
+  content: {
+    width: '100%',
+    maxWidth: '800px',
+    position: 'relative',
+    zIndex: 10,
+  },
+  header: {
+    marginBottom: 'var(--space-xl)',
+  },
+  title: {
+    fontSize: 'var(--text-h3)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: '0 0 8px 0',
+  },
+  subtitle: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-secondary)',
+    margin: 0,
+  },
+  card: {
+    padding: 'var(--space-xl) var(--space-2xl)',
+  },
+  stepHeader: {
+    marginBottom: 'var(--space-lg)',
+    paddingBottom: 'var(--space-md)',
+    borderBottom: '1px solid var(--border-subtle)',
+  },
+  stepTitle: {
+    fontSize: 'var(--text-h4)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    margin: 0,
+  },
+  stepContent: {
+    minHeight: '300px',
+    marginBottom: 'var(--space-lg)',
+  },
+  errorBox: {
+    padding: '10px var(--space-md)',
+    background: 'rgba(255, 107, 74, 0.1)',
+    border: '1px solid rgba(255, 107, 74, 0.25)',
+    borderRadius: 'var(--radius-sm)',
+    marginBottom: 'var(--space-md)',
+  },
+  errorText: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-coral)',
+    margin: 0,
+  },
+  navigation: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    paddingTop: 'var(--space-lg)',
+    borderTop: '1px solid var(--border-subtle)',
+  },
+};

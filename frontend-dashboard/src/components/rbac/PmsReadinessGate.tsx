@@ -7,9 +7,16 @@
  * Shows a visual checklist with green/red indicators for each condition and
  * a "Configure Now" button that navigates to the PMS setup wizard.
  *
+ * Styling: uses CSS variables from @shared/design-tokens.css (no Tailwind).
+ * Components: uses Button from @shared/components/ui/Button.
+ *
  * Usage:
  *   <PmsReadinessGate checklist={readinessData} onConfigureClick={() => navigate('/pms-setup')} />
  */
+
+import React from 'react';
+import { GlassCard } from '@shared/components/ui/GlassCard';
+import { Button } from '@shared/components/ui/Button';
 
 /** Matches PmsReadinessStatus from src/services/pms_readiness.py */
 export interface PmsChecklist {
@@ -30,7 +37,7 @@ interface PmsReadinessGateProps {
 }
 
 /**
- * PmsReadinessGate renders a centered card with a three-item checklist.
+ * PmsReadinessGate renders a centered GlassCard with a three-item checklist.
  *
  * Each item shows a green checkmark or red cross:
  * - Municipality settings configured (settings_locked=True)
@@ -57,32 +64,27 @@ export function PmsReadinessGate({ checklist, onConfigureClick }: PmsReadinessGa
   ];
 
   return (
-    <div className="flex flex-col items-center justify-center min-h-[400px] p-8">
-      <div className="bg-white rounded-xl shadow-lg p-8 max-w-md w-full border border-gray-100">
+    <div style={styles.wrapper}>
+      <GlassCard style={styles.card}>
         {/* Header */}
-        <div className="mb-6">
-          <h2 className="text-xl font-semibold text-gray-900 mb-2">
-            PMS Setup Required
-          </h2>
-          <p className="text-gray-500 text-sm">
+        <div style={styles.header}>
+          <h2 style={styles.title}>PMS Setup Required</h2>
+          <p style={styles.subtitle}>
             Complete the following steps to enable Performance Management System features.
           </p>
         </div>
 
         {/* Checklist */}
-        <ul className="space-y-3 mb-6">
+        <ul style={styles.list}>
           {items.map((item, i) => (
-            <li key={i} className="flex items-center gap-3">
+            <li key={i} style={styles.listItem}>
               {/* Status indicator */}
               <span
-                className={`
-                  flex-shrink-0 w-6 h-6 rounded-full flex items-center justify-center
-                  text-xs font-bold
-                  ${item.done
-                    ? 'bg-green-100 text-green-600'
-                    : 'bg-red-100 text-red-600'
-                  }
-                `}
+                style={{
+                  ...styles.indicator,
+                  background: item.done ? 'rgba(0, 191, 165, 0.15)' : 'rgba(255, 107, 74, 0.15)',
+                  color: item.done ? 'var(--color-teal)' : 'var(--color-coral)',
+                }}
                 aria-hidden="true"
               >
                 {item.done ? '\u2713' : '\u2717'}
@@ -90,11 +92,12 @@ export function PmsReadinessGate({ checklist, onConfigureClick }: PmsReadinessGa
 
               {/* Label */}
               <span
-                className={`text-sm ${
-                  item.done
-                    ? 'text-gray-400 line-through'
-                    : 'text-gray-800 font-medium'
-                }`}
+                style={{
+                  fontSize: 'var(--text-sm)',
+                  color: item.done ? 'var(--text-muted)' : 'var(--text-primary)',
+                  textDecoration: item.done ? 'line-through' : 'none',
+                  fontWeight: item.done ? 400 : 500,
+                }}
               >
                 {item.label}
               </span>
@@ -104,13 +107,11 @@ export function PmsReadinessGate({ checklist, onConfigureClick }: PmsReadinessGa
 
         {/* Missing directors warning */}
         {checklist.missing_directors.length > 0 && (
-          <div className="mb-6 p-3 bg-amber-50 rounded-lg border border-amber-200">
-            <p className="text-sm text-amber-800 font-semibold mb-1">
-              Departments missing directors:
-            </p>
-            <ul className="text-sm text-amber-700 space-y-0.5">
+          <div style={styles.warningBox}>
+            <p style={styles.warningTitle}>Departments missing directors:</p>
+            <ul style={styles.warningList}>
               {checklist.missing_directors.map((deptName) => (
-                <li key={deptName} className="flex items-center gap-1">
+                <li key={deptName} style={styles.warningItem}>
                   <span aria-hidden="true">-</span>
                   <span>{deptName}</span>
                 </li>
@@ -120,13 +121,96 @@ export function PmsReadinessGate({ checklist, onConfigureClick }: PmsReadinessGa
         )}
 
         {/* CTA */}
-        <button
-          onClick={onConfigureClick}
-          className="w-full py-2.5 px-4 bg-teal-600 text-white rounded-lg hover:bg-teal-700 active:bg-teal-800 transition-colors font-medium text-sm"
-        >
+        <Button variant="primary" onClick={onConfigureClick} style={styles.ctaButton}>
           Configure Now
-        </button>
-      </div>
+        </Button>
+      </GlassCard>
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  wrapper: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: 'var(--space-xl)',
+  },
+  card: {
+    maxWidth: '480px',
+    width: '100%',
+    padding: 'var(--space-xl)',
+  },
+  header: {
+    marginBottom: 'var(--space-lg)',
+  },
+  title: {
+    fontSize: 'var(--text-h4)',
+    fontFamily: 'var(--font-display)',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    margin: '0 0 8px 0',
+  },
+  subtitle: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--text-secondary)',
+    margin: 0,
+    lineHeight: 'var(--leading-relaxed)',
+  },
+  list: {
+    listStyle: 'none',
+    padding: 0,
+    margin: '0 0 var(--space-lg) 0',
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '12px',
+  },
+  listItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '12px',
+  },
+  indicator: {
+    flexShrink: 0,
+    width: '24px',
+    height: '24px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '12px',
+    fontWeight: 700,
+  },
+  warningBox: {
+    marginBottom: 'var(--space-lg)',
+    padding: 'var(--space-sm) var(--space-md)',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.25)',
+    borderRadius: 'var(--radius-sm)',
+  },
+  warningTitle: {
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-gold)',
+    fontWeight: 600,
+    margin: '0 0 6px 0',
+  },
+  warningList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '4px',
+  },
+  warningItem: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    fontSize: 'var(--text-sm)',
+    color: 'var(--color-gold)',
+  },
+  ctaButton: {
+    width: '100%',
+  },
+};

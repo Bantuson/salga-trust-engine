@@ -7,6 +7,8 @@
  *
  * Single-role users see nothing (component returns null) — cleaner nav.
  *
+ * Styling: uses CSS variables from @shared/design-tokens.css (no Tailwind).
+ *
  * Usage:
  *   <RoleSwitcher
  *     allRoles={user.allRoles}
@@ -14,6 +16,8 @@
  *     onRoleSwitch={(role) => setViewRole(role)}
  *   />
  */
+
+import React from 'react';
 
 /** Human-readable labels for all 18 roles in the RBAC hierarchy. */
 const ROLE_LABELS: Record<string, string> = {
@@ -60,18 +64,16 @@ export function RoleSwitcher({ allRoles, activeRole, onRoleSwitch }: RoleSwitche
   if (allRoles.length <= 1) return null;
 
   return (
-    <div className="flex items-center gap-2 px-3 py-1.5 rounded-lg bg-white/10 backdrop-blur-sm border border-white/20">
-      <span className="text-xs text-gray-400 whitespace-nowrap font-medium">
-        View as:
-      </span>
+    <div style={styles.container}>
+      <span style={styles.label}>View as:</span>
       <select
         value={activeRole}
         onChange={(e) => onRoleSwitch(e.target.value)}
-        className="text-sm bg-transparent border-none outline-none cursor-pointer text-white font-medium"
+        style={styles.select}
         aria-label="Switch dashboard view role"
       >
         {allRoles.map((role) => (
-          <option key={role} value={role} className="text-gray-900 bg-white">
+          <option key={role} value={role} style={styles.option}>
             {ROLE_LABELS[role] ?? role}
           </option>
         ))}
@@ -79,3 +81,37 @@ export function RoleSwitcher({ allRoles, activeRole, onRoleSwitch }: RoleSwitche
     </div>
   );
 }
+
+const styles: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '8px',
+    padding: '6px 12px',
+    borderRadius: 'var(--radius-md)',
+    background: 'var(--surface-elevated)',
+    backdropFilter: 'blur(var(--glass-blur-subtle))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-subtle))',
+    border: '1px solid var(--border-subtle)',
+  },
+  label: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+    whiteSpace: 'nowrap',
+    fontWeight: 500,
+  },
+  select: {
+    fontSize: 'var(--text-sm)',
+    background: 'transparent',
+    border: 'none',
+    outline: 'none',
+    cursor: 'pointer',
+    color: 'var(--text-primary)',
+    fontFamily: 'var(--font-body)',
+    fontWeight: 500,
+  },
+  option: {
+    background: 'var(--color-rose-deep)',
+    color: 'var(--text-primary)',
+  },
+};
