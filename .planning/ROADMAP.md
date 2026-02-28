@@ -54,7 +54,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Transform the Trust Engine from a citizen service delivery platform into a full-stack municipal operating system — connecting citizen complaints on the ground to Council statutory reporting at the top — by implementing the Performance Management System (PMS) modules mandated by the Municipal Systems Act (MSA) and Municipal Finance Management Act (MFMA).
 
-- [ ] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality
+- [x] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality (completed 2026-02-28)
 - [ ] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine
 - [ ] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments
 - [ ] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking
@@ -172,7 +172,7 @@ Plans:
 | Phase | Milestone | Plans Complete | Status | Completed |
 |-------|-----------|----------------|--------|-----------|
 | 1-10.4 (26 phases) | v1.0 | ~127/~127 | Complete | 2026-02-28 |
-| 27. RBAC Foundation & Tenant Configuration | v2.0 | 0/3 | Not started | - |
+| 27. RBAC Foundation & Tenant Configuration | 3/3 | Complete   | 2026-02-28 | - |
 | 28. IDP, SDBIP Core & Performance Monitoring | v2.0 | 0/7 | Not started | - |
 | 29. Individual Performance Agreements | v2.0 | 0/2 | Not started | - |
 | 30. Statutory Reporting & Approval Workflows | v2.0 | 0/4 | Not started | - |

@@ -1,5 +1,18 @@
 ---
 gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
+last_updated: "2026-02-28T19:06:34.318Z"
+progress:
+  total_phases: 1
+  completed_phases: 1
+  total_plans: 3
+  completed_plans: 3
+---
+
+---
+gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: active
@@ -23,9 +36,9 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 27 of 32 (RBAC Foundation & Tenant Configuration)
-Plan: 3 of 3 in current phase (2 plans remain in phase: 27-03)
-Status: In progress
-Last activity: 2026-02-28 — Completed Plan 27-01 (18-role RBAC hierarchy, Redis JWT blacklist, role assignment API)
+Plan: 3 of 3 in current phase — at checkpoint:human-verify (Task 3)
+Status: Checkpoint — awaiting human verification
+Last activity: 2026-02-28 — 27-03 Tasks 1+2 committed, design system fix committed (47308cd), SUMMARY.md written, at Task 3 human-verify checkpoint
 
 Progress: [░░░░░░░░░░] 14%
 
@@ -71,6 +84,8 @@ From Phase 27 execution (Plans 27-01, 27-02):
 - Tier 1 approval required for executive_mayor, municipal_manager, cfo, speaker only — admin and salga_admin bypass (assigned directly)
 - assign_role does NOT auto-blacklist tokens (caller's responsibility for Tier 2-4 assignments)
 - DB-coupled integration tests use set_tenant_context()/clear_tenant_context() with try/finally to satisfy RLS tenant filter
+- [Phase 27-03]: CSS variables over Tailwind for all dashboard frontend components — no Tailwind config exists in frontend-dashboard; use inline styles with design-tokens.css variables and @shared/components
+- [Phase 27-03]: require_pms_ready() factory pattern for PMS endpoint gating — returns 403 + structured PMS_NOT_READY checklist dict when municipality configuration incomplete
 
 ### Pending Todos
 
@@ -86,5 +101,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 27-01-PLAN.md — 18-role RBAC hierarchy, Redis JWT blacklist, role assignment API, tier hierarchy tests committed (2f58fa7). Next: 27-03 (PMS readiness gate, department wizard, frontend components)
+Stopped at: Phase 27 Plan 27-03 checkpoint:human-verify (Task 3) — Tasks 1+2 complete and design system fix committed (47308cd). Awaiting human visual verification of PMS wizard at /pms-setup (wizard steps, organogram tree, role switcher). SUMMARY.md created at .planning/phases/27-rbac-foundation-tenant-configuration/27-03-SUMMARY.md.
 Resume file: None
