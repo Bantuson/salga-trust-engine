@@ -90,16 +90,16 @@ Plans:
   3. Director can submit quarterly actual values against KPI targets, upload portfolio of evidence documents, and see the system calculate achievement percentage and traffic-light status (green/amber/red) automatically
   4. After each quarter closes, the system's Celery auto-population task fills SDBIP actuals for service-delivery KPIs from resolved ticket data, and each auto-populated actual is clearly labeled with its source query reference and is never a GBV ticket
   5. Once a PMS officer validates a quarterly actual, it becomes immutable — corrections require a new submission record with a full audit trail, and the original validated value remains visible
-**Plans**: TBD
+**Plans**: 7 plans
 
 Plans:
-- [ ] 28-01: IDP data models (`IDPCycle`, `IDPGoal`, `IDPObjective`, `IDPVersion`), approval state machine, API routes, IDP frontend pages
-- [ ] 28-02: SDBIP data models (`SDBIPScorecard`, `SDBIPKpi`, `SDBIPQuarterlyTarget`, `mscoa_reference` seeded table), KPI creation API, mSCOA code lookup endpoint
-- [ ] 28-03: SDBIP approval workflow (draft → approved → revised) with Mayor sign-off; mid-year target adjustment endpoint (SDBIP-09)
-- [ ] 28-04: Quarterly actuals submission (`SDBIPActual`), achievement percentage calculation, traffic-light status (EVID-01, EVID-02, EVID-06); immutability enforcement and correction record pattern (EVID-05)
-- [ ] 28-05: Portfolio of evidence upload with ClamAV virus scanning, per-municipality Supabase Storage buckets, signed URL serving; PMS officer validation workflow (EVID-03, EVID-04, EVID-07)
-- [ ] 28-06: Auto-population engine — `SDBIPTicketAggregationRule` model, Celery beat task with SEC-05 GBV exclusion (`is_sensitive = FALSE`), quarter boundary logic (`resolved_at BETWEEN`), auto-populated flag and source query logging (SDBIP-07, SDBIP-08, EVID-08)
-- [ ] 28-07: IDP and SDBIP frontend pages — golden thread view, scorecard grid, evidence upload forms, quarterly actuals table
+- [ ] 28-01-PLAN.md — IDP models (IDPCycle, IDPGoal, IDPObjective, IDPVersion), IDPWorkflow state machine, IDP CRUD API, Pydantic schemas, unit tests [Wave 1]
+- [ ] 28-02-PLAN.md — SDBIP models (SDBIPScorecard, SDBIPKpi, SDBIPQuarterlyTarget), MscoaReference NonTenantModel with 30-row seed, SDBIP CRUD API, mSCOA lookup endpoint [Wave 2]
+- [ ] 28-03-PLAN.md — SDBIPWorkflow state machine (draft/approved/revised) with Mayor sign-off, mid-year target adjustment endpoint (no draft reset), audit logging [Wave 3]
+- [ ] 28-04-PLAN.md — SDBIPActual model, compute_achievement helper, traffic-light status (green/amber/red), immutability enforcement, correction record pattern, actuals submission API [Wave 3]
+- [ ] 28-05-PLAN.md — EvidenceDocument model, ClamAV virus scanning pipeline, per-municipality Supabase Storage buckets, PMS officer actual validation endpoint, signed URL serving [Wave 4]
+- [ ] 28-06-PLAN.md — SDBIPTicketAggregationRule model, AutoPopulationEngine service with SEC-05 GBV exclusion, Celery beat task (daily 01:00 SAST), quarter boundary logic, idempotency [Wave 4]
+- [ ] 28-07-PLAN.md — 7 frontend pages (IDP, SDBIP, Actuals, Evidence, GoldenThread), TrafficLightBadge component, golden thread API, sidebar PMS navigation [Wave 5]
 
 ### Phase 29: Individual Performance Agreements
 **Goal**: PMS officers can create Section 57 performance agreements for senior managers, link them to SDBIP KPIs, and conduct quarterly reviews and annual assessments through a signed workflow
