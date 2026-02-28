@@ -18,6 +18,8 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.deps import get_current_user, get_db, require_min_tier
 from src.models.user import User
 from src.schemas.sdbip import (
+    AggregationRuleCreate,
+    AggregationRuleResponse,
     MscoaSearchResponse,
     QuarterlyTargetBulkCreate,
     QuarterlyTargetResponse,
@@ -30,6 +32,7 @@ from src.schemas.sdbip import (
     SDBIPScorecardResponse,
     SDBIPTransitionRequest,
 )
+from src.models.sdbip import SDBIPTicketAggregationRule
 from src.services.pms_readiness import require_pms_ready
 from src.services.sdbip_service import SDBIPService
 
@@ -446,6 +449,135 @@ async def patch_actual(
             detail="Validated actuals are immutable. Submit a correction record.",
         )
     return SDBIPActualResponse.model_validate(actual)
+
+
+# ---------------------------------------------------------------------------
+# Aggregation Rules (auto-population configuration)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/kpis/{kpi_id}/aggregation-rules",
+    response_model=AggregationRuleResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(2))],
+    summary="Create an aggregation rule for a KPI (auto-population configuration)",
+)
+async def create_aggregation_rule(
+    kpi_id: UUID,
+    payload: AggregationRuleCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AggregationRuleResponse:
+    """Create an aggregation rule that configures auto-population for a KPI.
+
+    The auto-population engine (Celery beat, daily 01:00 SAST) will use this rule
+    to count resolved tickets of the specified category and store the result as
+    an SDBIPActual with is_auto_populated=True.
+
+    SEC-05: The GBV exclusion filter (is_sensitive=FALSE) is applied unconditionally
+    by the auto-population engine — it is NOT configurable here.
+
+    Returns 409 if an active rule already exists for this (kpi_id, ticket_category) pair.
+    """
+    from sqlalchemy import select
+    from sqlalchemy.exc import IntegrityError
+
+    kpi = await _service.get_kpi(kpi_id, db)
+    if kpi is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"SDBIP KPI {kpi_id} not found",
+        )
+
+    rule = SDBIPTicketAggregationRule(
+        tenant_id=current_user.tenant_id,
+        kpi_id=kpi_id,
+        ticket_category=payload.ticket_category,
+        aggregation_type=payload.aggregation_type,
+        formula_description=payload.formula_description,
+        is_active=True,
+        created_by=str(current_user.id),
+    )
+    db.add(rule)
+    try:
+        await db.commit()
+        await db.refresh(rule)
+    except IntegrityError:
+        await db.rollback()
+        raise HTTPException(
+            status_code=status.HTTP_409_CONFLICT,
+            detail=(
+                f"An aggregation rule for KPI {kpi_id} and "
+                f"category '{payload.ticket_category}' already exists."
+            ),
+        )
+    return AggregationRuleResponse.model_validate(rule)
+
+
+@router.get(
+    "/kpis/{kpi_id}/aggregation-rules",
+    response_model=list[AggregationRuleResponse],
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(3))],
+    summary="List aggregation rules for a KPI",
+)
+async def list_aggregation_rules(
+    kpi_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> list[AggregationRuleResponse]:
+    """Return all aggregation rules for a KPI (active and inactive).
+
+    Active rules are used by the daily auto-population engine.
+    Inactive rules (is_active=False) have been deactivated via DELETE.
+    """
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(SDBIPTicketAggregationRule).where(
+            SDBIPTicketAggregationRule.kpi_id == kpi_id
+        )
+    )
+    rules = list(result.scalars().all())
+    return [AggregationRuleResponse.model_validate(r) for r in rules]
+
+
+@router.delete(
+    "/aggregation-rules/{rule_id}",
+    response_model=AggregationRuleResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(2))],
+    summary="Deactivate an aggregation rule (soft delete)",
+)
+async def deactivate_aggregation_rule(
+    rule_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> AggregationRuleResponse:
+    """Deactivate an aggregation rule (set is_active=False).
+
+    Deactivated rules are skipped by the auto-population engine on subsequent runs.
+    Existing auto-populated actuals are NOT affected.
+
+    Returns 404 if the rule does not exist.
+    """
+    from sqlalchemy import select
+
+    result = await db.execute(
+        select(SDBIPTicketAggregationRule).where(
+            SDBIPTicketAggregationRule.id == rule_id
+        )
+    )
+    rule = result.scalar_one_or_none()
+    if rule is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Aggregation rule {rule_id} not found",
+        )
+    rule.is_active = False
+    rule.updated_by = str(current_user.id)
+    await db.commit()
+    await db.refresh(rule)
+    return AggregationRuleResponse.model_validate(rule)
 
 
 # ---------------------------------------------------------------------------

@@ -16,7 +16,7 @@ from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
 
-from src.models.sdbip import Quarter, SDBIPLayer, SDBIPStatus
+from src.models.sdbip import AggregationType, Quarter, SDBIPLayer, SDBIPStatus
 
 
 # Financial year format: YYYY/YY (e.g., "2025/26")
@@ -282,6 +282,52 @@ class SDBIPActualCorrectionCreate(BaseModel):
         min_length=10,
         description="Reason for the correction (minimum 10 characters for audit trail)",
     )
+
+
+# ---------------------------------------------------------------------------
+# Aggregation rules (auto-population)
+# ---------------------------------------------------------------------------
+
+
+class AggregationRuleCreate(BaseModel):
+    """Schema for creating an SDBIP ticket aggregation rule.
+
+    Aggregation rules configure how the AutoPopulationEngine derives SDBIP actuals
+    from resolved ticket counts. Each rule maps a KPI to a ticket category and
+    aggregation type.
+
+    SEC-05: The is_sensitive=FALSE GBV exclusion filter is enforced unconditionally
+    by the engine — it is NOT configurable here.
+    """
+
+    ticket_category: str = Field(
+        ...,
+        max_length=50,
+        description="Ticket category to aggregate (e.g., 'water', 'roads', 'electricity')",
+    )
+    aggregation_type: AggregationType = Field(
+        ...,
+        description="Aggregation function: 'count', 'sum', or 'avg'",
+    )
+    formula_description: str | None = Field(
+        default=None,
+        description="Human-readable description of what this rule measures",
+    )
+
+
+class AggregationRuleResponse(BaseModel):
+    """Schema for SDBIP aggregation rule API responses."""
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    kpi_id: UUID
+    ticket_category: str
+    aggregation_type: str
+    formula_description: str | None
+    source_query_ref: str | None
+    is_active: bool
+    created_at: datetime
 
 
 # ---------------------------------------------------------------------------
