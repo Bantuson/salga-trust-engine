@@ -11,15 +11,15 @@
  *  5. Review Organogram      — interactive tree + PMS readiness checklist
  *
  * Styling: uses CSS variables from @shared/design-tokens.css (no Tailwind).
- * Components: GlassCard, Button, Input, AnimatedGradientBg from @shared.
+ * Components: GlassCard, Button, Input from @shared.
+ * Background: inherits skyline from DashboardLayout (no AnimatedGradientBg).
  *
- * State is local (useState). Each step validates before "Next" is enabled.
+ * State is saved to localStorage on each step. API submission only on final step.
  * API calls use Supabase session token (getAccessToken).
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
@@ -224,13 +224,25 @@ const fieldStyles: Record<string, React.CSSProperties> = {
     padding: '12px 16px',
     fontSize: 'var(--text-base)',
     fontFamily: 'var(--font-body)',
-    background: 'var(--surface-elevated)',
+    background: 'rgba(163, 72, 102, 0.6)',
     border: '1px solid var(--border-subtle)',
     borderRadius: 'var(--radius-md)',
     color: 'var(--text-primary)',
     outline: 'none',
     cursor: 'pointer',
     transition: 'var(--transition-base)',
+    WebkitAppearance: 'none' as never,
+    MozAppearance: 'none' as never,
+    appearance: 'none' as never,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e0d4d8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 14px center',
+    paddingRight: '38px',
+  },
+  selectOption: {
+    background: 'rgba(163, 72, 102, 0.95)',
+    color: 'var(--text-primary)',
+    padding: '8px',
   },
   successMsg: {
     display: 'flex',
@@ -358,6 +370,50 @@ const fieldStyles: Record<string, React.CSSProperties> = {
 };
 
 // ---------------------------------------------------------------------------
+// LocalStorage persistence key
+// ---------------------------------------------------------------------------
+
+const STORAGE_KEY = 'pms-setup-wizard-draft';
+
+interface WizardDraft {
+  currentStep: number;
+  settings: {
+    category: 'A' | 'B' | 'C' | '';
+    demarcation_code: string;
+    sdbip_layers: number;
+    scoring_method: string;
+  };
+  departments: Department[];
+  directorMap: Record<string, string>;
+  categoryMap: Record<string, string>;
+}
+
+function loadDraft(): WizardDraft | null {
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY);
+    return raw ? (JSON.parse(raw) as WizardDraft) : null;
+  } catch {
+    return null;
+  }
+}
+
+function saveDraft(draft: WizardDraft) {
+  try {
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(draft));
+  } catch {
+    // Storage full or unavailable — non-critical
+  }
+}
+
+function clearDraft() {
+  try {
+    localStorage.removeItem(STORAGE_KEY);
+  } catch {
+    // Non-critical
+  }
+}
+
+// ---------------------------------------------------------------------------
 // Main wizard page
 // ---------------------------------------------------------------------------
 
@@ -365,34 +421,44 @@ export function PmsSetupWizardPage() {
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(0);
+  // Restore draft from localStorage on mount
+  const draft = loadDraft();
+
+  const [currentStep, setCurrentStep] = useState(draft?.currentStep ?? 0);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
   // Step 1 state — municipality settings
-  const [settings, setSettings] = useState({
+  const [settings, setSettings] = useState(draft?.settings ?? {
     category: '' as 'A' | 'B' | 'C' | '',
     demarcation_code: '',
     sdbip_layers: 2,
     scoring_method: 'percentage',
   });
-  const [settingsSaved, setSettingsSaved] = useState(false);
 
   // Step 2 state — departments
-  const [departments, setDepartments] = useState<Department[]>([]);
+  const [departments, setDepartments] = useState<Department[]>(draft?.departments ?? []);
   const [newDeptName, setNewDeptName] = useState('');
   const [newDeptCode, setNewDeptCode] = useState('');
 
   // Step 3 state — director assignments
-  const [directorMap, setDirectorMap] = useState<Record<string, string>>({});
+  const [directorMap, setDirectorMap] = useState<Record<string, string>>(draft?.directorMap ?? {});
   const [availableDirectors, setAvailableDirectors] = useState<{ id: string; full_name: string }[]>([]);
 
   // Step 4 state — ticket category mapping
-  const [categoryMap, setCategoryMap] = useState<Record<string, string>>({});
+  const [categoryMap, setCategoryMap] = useState<Record<string, string>>(draft?.categoryMap ?? {});
 
   // Step 5 state — organogram + readiness
   const [organogramData, setOrganogramData] = useState<OrgNode | null>(null);
   const [readiness, setReadiness] = useState<PmsChecklist | null>(null);
+
+  // ---------------------------------------------------------------------------
+  // Auto-save to localStorage whenever wizard state changes
+  // ---------------------------------------------------------------------------
+
+  useEffect(() => {
+    saveDraft({ currentStep, settings, departments, directorMap, categoryMap });
+  }, [currentStep, settings, departments, directorMap, categoryMap]);
 
   // ---------------------------------------------------------------------------
   // API helpers
@@ -422,38 +488,7 @@ export function PmsSetupWizardPage() {
   );
 
   // ---------------------------------------------------------------------------
-  // Step 1: Save municipality settings
-  // ---------------------------------------------------------------------------
-
-  async function handleSaveSettings() {
-    if (!settings.category) {
-      setError('Please select a municipality category (A, B, or C).');
-      return;
-    }
-
-    setIsLoading(true);
-    setError(null);
-    try {
-      await apiCall('/municipalities/settings', {
-        method: 'PUT',
-        body: JSON.stringify({
-          category: settings.category,
-          demarcation_code: settings.demarcation_code || null,
-          sdbip_layers: settings.sdbip_layers,
-          scoring_method: settings.scoring_method,
-        }),
-      });
-      await apiCall('/municipalities/settings/lock', { method: 'POST' });
-      setSettingsSaved(true);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save settings');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 2: Create department
+  // Step 2: Create department (live API call — departments need server IDs)
   // ---------------------------------------------------------------------------
 
   async function handleCreateDepartment() {
@@ -487,7 +522,7 @@ export function PmsSetupWizardPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 3: Load available directors and save assignments
+  // Step 3: Load available directors
   // ---------------------------------------------------------------------------
 
   async function loadDirectors() {
@@ -500,57 +535,9 @@ export function PmsSetupWizardPage() {
           map[dept.id] = dept.assigned_director_id;
         }
       });
-      setDirectorMap(map);
+      setDirectorMap((prev) => ({ ...map, ...prev }));
     } catch {
       // Non-critical
-    }
-  }
-
-  async function handleAssignDirectors() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const updates = Object.entries(directorMap).filter(([, dirId]) => dirId);
-      await Promise.all(
-        updates.map(([deptId, dirId]) =>
-          apiCall(`/departments/${deptId}`, {
-            method: 'PUT',
-            body: JSON.stringify({ assigned_director_id: dirId }),
-          }),
-        ),
-      );
-      const refreshed: Department[] = await apiCall('/departments/');
-      setDepartments(refreshed);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to assign directors');
-    } finally {
-      setIsLoading(false);
-    }
-  }
-
-  // ---------------------------------------------------------------------------
-  // Step 4: Save category-to-department mappings
-  // ---------------------------------------------------------------------------
-
-  async function handleSaveCategoryMappings() {
-    setIsLoading(true);
-    setError(null);
-    try {
-      const mappings = Object.entries(categoryMap).filter(([, deptId]) => deptId);
-      await Promise.all(
-        mappings.map(([category, departmentId]) =>
-          apiCall('/departments/ticket-category-map', {
-            method: 'POST',
-            body: JSON.stringify({ ticket_category: category, department_id: departmentId }),
-          }).catch(() => {
-            // Ignore 409 conflicts (already mapped)
-          }),
-        ),
-      );
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save category mappings');
-    } finally {
-      setIsLoading(false);
     }
   }
 
@@ -617,26 +604,74 @@ export function PmsSetupWizardPage() {
   }, [currentStep]); // eslint-disable-line react-hooks/exhaustive-deps
 
   // ---------------------------------------------------------------------------
-  // Navigation
+  // Final submission — all API calls happen here
   // ---------------------------------------------------------------------------
 
-  async function handleNext() {
+  async function handleCompleteSetup() {
+    setIsLoading(true);
+    setError(null);
+    try {
+      // 1. Save municipality settings & lock
+      await apiCall('/municipalities/settings', {
+        method: 'PUT',
+        body: JSON.stringify({
+          category: settings.category,
+          demarcation_code: settings.demarcation_code || null,
+          sdbip_layers: settings.sdbip_layers,
+          scoring_method: settings.scoring_method,
+        }),
+      });
+      await apiCall('/municipalities/settings/lock', { method: 'POST' });
+
+      // 2. Assign directors
+      const directorUpdates = Object.entries(directorMap).filter(([, dirId]) => dirId);
+      await Promise.all(
+        directorUpdates.map(([deptId, dirId]) =>
+          apiCall(`/departments/${deptId}`, {
+            method: 'PUT',
+            body: JSON.stringify({ assigned_director_id: dirId }),
+          }),
+        ),
+      );
+
+      // 3. Save category mappings
+      const mappings = Object.entries(categoryMap).filter(([, deptId]) => deptId);
+      await Promise.all(
+        mappings.map(([category, departmentId]) =>
+          apiCall('/departments/ticket-category-map', {
+            method: 'POST',
+            body: JSON.stringify({ ticket_category: category, department_id: departmentId }),
+          }).catch(() => {
+            // Ignore 409 conflicts (already mapped)
+          }),
+        ),
+      );
+
+      // Clear draft on successful submission
+      clearDraft();
+      navigate('/settings');
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to complete setup');
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Navigation — saves to localStorage only, no API calls
+  // ---------------------------------------------------------------------------
+
+  function handleNext() {
     setError(null);
 
-    if (currentStep === 0) {
-      if (!settingsSaved) {
-        await handleSaveSettings();
-        if (error) return;
-      }
-    } else if (currentStep === 1) {
-      if (departments.length === 0) {
-        setError('Please create at least one department before proceeding.');
-        return;
-      }
-    } else if (currentStep === 2) {
-      await handleAssignDirectors();
-    } else if (currentStep === 3) {
-      await handleSaveCategoryMappings();
+    // Step-specific validation (local only)
+    if (currentStep === 0 && !settings.category) {
+      setError('Please select a municipality category (A, B, or C).');
+      return;
+    }
+    if (currentStep === 1 && departments.length === 0) {
+      setError('Please create at least one department before proceeding.');
+      return;
     }
 
     setCurrentStep((prev) => Math.min(prev + 1, STEPS.length - 1));
@@ -646,6 +681,12 @@ export function PmsSetupWizardPage() {
     setError(null);
     setCurrentStep((prev) => Math.max(prev - 1, 0));
   }
+
+  // ---------------------------------------------------------------------------
+  // Styled select helper — applies option styling inline
+  // ---------------------------------------------------------------------------
+
+  const optStyle = fieldStyles.selectOption as React.CSSProperties;
 
   // ---------------------------------------------------------------------------
   // Render steps
@@ -665,16 +706,13 @@ export function PmsSetupWizardPage() {
               </label>
               <select
                 value={settings.category}
-                onChange={(e) => {
-                  setSettings((s) => ({ ...s, category: e.target.value as 'A' | 'B' | 'C' }));
-                  setSettingsSaved(false);
-                }}
+                onChange={(e) => setSettings((s) => ({ ...s, category: e.target.value as 'A' | 'B' | 'C' }))}
                 style={fieldStyles.select}
               >
-                <option value="">Select category...</option>
-                <option value="A">A — Metro Municipality</option>
-                <option value="B">B — Local Municipality</option>
-                <option value="C">C — District Municipality</option>
+                <option value="" style={optStyle}>Select category...</option>
+                <option value="A" style={optStyle}>A — Metro Municipality</option>
+                <option value="B" style={optStyle}>B — Local Municipality</option>
+                <option value="C" style={optStyle}>C — District Municipality</option>
               </select>
             </div>
 
@@ -684,10 +722,7 @@ export function PmsSetupWizardPage() {
                 type="text"
                 placeholder="e.g. WC011"
                 value={settings.demarcation_code}
-                onChange={(e) => {
-                  setSettings((s) => ({ ...s, demarcation_code: e.target.value }));
-                  setSettingsSaved(false);
-                }}
+                onChange={(e) => setSettings((s) => ({ ...s, demarcation_code: e.target.value }))}
               />
             </div>
 
@@ -695,14 +730,11 @@ export function PmsSetupWizardPage() {
               <label style={fieldStyles.label}>SDBIP Layers</label>
               <select
                 value={settings.sdbip_layers}
-                onChange={(e) => {
-                  setSettings((s) => ({ ...s, sdbip_layers: parseInt(e.target.value, 10) }));
-                  setSettingsSaved(false);
-                }}
+                onChange={(e) => setSettings((s) => ({ ...s, sdbip_layers: parseInt(e.target.value, 10) }))}
                 style={fieldStyles.select}
               >
                 {SDBIP_LAYER_OPTIONS.map((n) => (
-                  <option key={n} value={n}>
+                  <option key={n} value={n} style={optStyle}>
                     {n} layer{n !== 1 ? 's' : ''}
                   </option>
                 ))}
@@ -713,39 +745,16 @@ export function PmsSetupWizardPage() {
               <label style={fieldStyles.label}>Scoring Method</label>
               <select
                 value={settings.scoring_method}
-                onChange={(e) => {
-                  setSettings((s) => ({ ...s, scoring_method: e.target.value }));
-                  setSettingsSaved(false);
-                }}
+                onChange={(e) => setSettings((s) => ({ ...s, scoring_method: e.target.value }))}
                 style={fieldStyles.select}
               >
                 {SCORING_METHODS.map((m) => (
-                  <option key={m} value={m}>
+                  <option key={m} value={m} style={optStyle}>
                     {m.charAt(0).toUpperCase() + m.slice(1)}
                   </option>
                 ))}
               </select>
             </div>
-
-            {settingsSaved && (
-              <div style={fieldStyles.successMsg}>
-                <svg width="16" height="16" fill="none" stroke="currentColor" strokeWidth={2.5} viewBox="0 0 24 24">
-                  <polyline points="20 6 9 17 4 12" />
-                </svg>
-                Settings saved and locked
-              </div>
-            )}
-
-            <Button
-              variant="secondary"
-              size="sm"
-              onClick={handleSaveSettings}
-              disabled={isLoading || !settings.category}
-              loading={isLoading}
-              style={fieldStyles.saveButton}
-            >
-              {settingsSaved ? 'Saved' : 'Save Settings'}
-            </Button>
           </div>
         );
 
@@ -832,9 +841,9 @@ export function PmsSetupWizardPage() {
                         }
                         style={{ ...fieldStyles.select, width: 'auto', minWidth: '200px' }}
                       >
-                        <option value="">No director assigned</option>
+                        <option value="" style={optStyle}>No director assigned</option>
                         {availableDirectors.map((dir) => (
-                          <option key={dir.id} value={dir.id}>
+                          <option key={dir.id} value={dir.id} style={optStyle}>
                             {dir.full_name}
                           </option>
                         ))}
@@ -883,9 +892,9 @@ export function PmsSetupWizardPage() {
                       }
                       style={{ ...fieldStyles.select, width: 'auto', minWidth: '160px' }}
                     >
-                      <option value="">Not mapped</option>
+                      <option value="" style={optStyle}>Not mapped</option>
                       {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id}>
+                        <option key={dept.id} value={dept.id} style={optStyle}>
                           {dept.name}
                         </option>
                       ))}
@@ -966,16 +975,16 @@ export function PmsSetupWizardPage() {
               )}
             </div>
 
-            {/* Complete Setup button */}
-            {readiness?.is_ready && (
-              <Button
-                variant="primary"
-                onClick={() => navigate('/settings')}
-                style={{ width: '100%' }}
-              >
-                Complete Setup
-              </Button>
-            )}
+            {/* Complete Setup button — final submission */}
+            <Button
+              variant="primary"
+              onClick={handleCompleteSetup}
+              disabled={isLoading}
+              loading={isLoading}
+              style={{ width: '100%' }}
+            >
+              {isLoading ? 'Submitting...' : 'Complete Setup'}
+            </Button>
           </div>
         );
 
@@ -990,8 +999,6 @@ export function PmsSetupWizardPage() {
 
   return (
     <div style={pageStyles.container}>
-      <AnimatedGradientBg />
-
       <div style={pageStyles.content}>
         {/* Page header */}
         <div style={pageStyles.header}>
@@ -1042,7 +1049,7 @@ export function PmsSetupWizardPage() {
                 disabled={isLoading}
                 loading={isLoading}
               >
-                {isLoading ? 'Please wait...' : 'Next'}
+                Next
               </Button>
             )}
           </div>
@@ -1054,22 +1061,20 @@ export function PmsSetupWizardPage() {
 
 const pageStyles: Record<string, React.CSSProperties> = {
   container: {
-    minHeight: '100vh',
-    position: 'relative',
-    overflow: 'hidden',
     display: 'flex',
     alignItems: 'flex-start',
     justifyContent: 'center',
-    padding: 'var(--space-2xl) var(--space-lg)',
+    padding: 'var(--space-xl) var(--space-lg)',
   },
   content: {
     width: '100%',
-    maxWidth: '800px',
+    maxWidth: '720px',
     position: 'relative',
-    zIndex: 10,
+    zIndex: 1,
   },
   header: {
     marginBottom: 'var(--space-xl)',
+    textAlign: 'center',
   },
   title: {
     fontSize: 'var(--text-h3)',
@@ -1090,6 +1095,7 @@ const pageStyles: Record<string, React.CSSProperties> = {
     marginBottom: 'var(--space-lg)',
     paddingBottom: 'var(--space-md)',
     borderBottom: '1px solid var(--border-subtle)',
+    textAlign: 'center',
   },
   stepTitle: {
     fontSize: 'var(--text-h4)',
