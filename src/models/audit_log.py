@@ -22,6 +22,8 @@ class OperationType(str, Enum):
     AUTH_OTP_SEND = "AUTH_OTP_SEND"
     AUTH_OTP_VERIFY = "AUTH_OTP_VERIFY"
     AUTH_TOKEN_REFRESH = "AUTH_TOKEN_REFRESH"
+    # RBAC events (Phase 27)
+    ROLE_CHANGE = "ROLE_CHANGE"
 
 
 class AuditLog(NonTenantModel):

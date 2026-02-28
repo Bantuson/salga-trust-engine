@@ -10,14 +10,40 @@ from src.models.base import TenantAwareModel
 
 
 class UserRole(str, Enum):
-    """User roles for RBAC."""
+    """User roles for RBAC — 4-tier hierarchy (18 roles).
 
-    CITIZEN = "citizen"
-    FIELD_WORKER = "field_worker"
-    MANAGER = "manager"
-    WARD_COUNCILLOR = "ward_councillor"
-    ADMIN = "admin"
-    SAPS_LIAISON = "saps_liaison"
+    Tier 1 (Executive): executive_mayor, municipal_manager, cfo, speaker, admin, salga_admin
+    Tier 2 (Directors): section56_director, ward_councillor
+    Tier 3 (Operational): department_manager, pms_officer, audit_committee_member,
+                          internal_auditor, mpac_member, saps_liaison, manager
+    Tier 4 (Frontline): field_worker, citizen
+    """
+
+    # --- Tier 1: Executive ---
+    EXECUTIVE_MAYOR = "executive_mayor"
+    MUNICIPAL_MANAGER = "municipal_manager"
+    CFO = "cfo"
+    SPEAKER = "speaker"
+    ADMIN = "admin"              # existing — kept identical
+    SALGA_ADMIN = "salga_admin"
+
+    # --- Tier 2: Directors ---
+    SECTION56_DIRECTOR = "section56_director"
+    WARD_COUNCILLOR = "ward_councillor"   # existing — kept identical
+    CHIEF_WHIP = "chief_whip"
+
+    # --- Tier 3: Operational ---
+    DEPARTMENT_MANAGER = "department_manager"
+    PMS_OFFICER = "pms_officer"
+    AUDIT_COMMITTEE_MEMBER = "audit_committee_member"
+    INTERNAL_AUDITOR = "internal_auditor"
+    MPAC_MEMBER = "mpac_member"
+    SAPS_LIAISON = "saps_liaison"         # existing — kept identical
+    MANAGER = "manager"                   # existing — kept identical
+
+    # --- Tier 4: Frontline ---
+    FIELD_WORKER = "field_worker"         # existing — kept identical
+    CITIZEN = "citizen"                   # existing — kept identical
 
 
 class User(TenantAwareModel):
