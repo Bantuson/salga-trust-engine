@@ -26,16 +26,16 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### SDBIP Management
 
-- [ ] **SDBIP-01**: PMS officer can create Top Layer SDBIP for a financial year with organizational KPIs
-- [ ] **SDBIP-02**: Director can create Departmental SDBIP KPIs for their department linked to IDP objectives
-- [ ] **SDBIP-03**: Each KPI includes description, unit of measurement, baseline, annual target, weight, and responsible director
-- [ ] **SDBIP-04**: Each KPI has quarterly targets (Q1–Q4) that align to the annual target
-- [ ] **SDBIP-05**: Each KPI links to a validated mSCOA budget code from seeded reference table (not free-text)
+- [x] **SDBIP-01**: PMS officer can create Top Layer SDBIP for a financial year with organizational KPIs
+- [x] **SDBIP-02**: Director can create Departmental SDBIP KPIs for their department linked to IDP objectives
+- [x] **SDBIP-03**: Each KPI includes description, unit of measurement, baseline, annual target, weight, and responsible director
+- [x] **SDBIP-04**: Each KPI has quarterly targets (Q1–Q4) that align to the annual target
+- [x] **SDBIP-05**: Each KPI links to a validated mSCOA budget code from seeded reference table (not free-text)
 - [ ] **SDBIP-06**: SDBIP supports approval workflow (draft → approved → revised) with Mayor sign-off
 - [ ] **SDBIP-07**: System auto-populates SDBIP actuals from ticket resolution data for service-delivery KPIs
 - [ ] **SDBIP-08**: Auto-population rules are configurable per KPI (ticket category, aggregation type, formula description)
 - [ ] **SDBIP-09**: Authorized user can adjust SDBIP targets at mid-year when adjustments budget is approved
-- [ ] **SDBIP-10**: mSCOA reference table is seeded from National Treasury classification and queryable by segment
+- [x] **SDBIP-10**: mSCOA reference table is seeded from National Treasury classification and queryable by segment
 
 ### Performance Monitoring & Evidence
 
@@ -145,16 +145,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 | IDP-03 | Phase 28 | Complete |
 | IDP-04 | Phase 28 | Pending |
 | IDP-05 | Phase 28 | Complete |
-| SDBIP-01 | Phase 28 | Pending |
-| SDBIP-02 | Phase 28 | Pending |
-| SDBIP-03 | Phase 28 | Pending |
-| SDBIP-04 | Phase 28 | Pending |
-| SDBIP-05 | Phase 28 | Pending |
+| SDBIP-01 | Phase 28 | Complete |
+| SDBIP-02 | Phase 28 | Complete |
+| SDBIP-03 | Phase 28 | Complete |
+| SDBIP-04 | Phase 28 | Complete |
+| SDBIP-05 | Phase 28 | Complete |
 | SDBIP-06 | Phase 28 | Pending |
 | SDBIP-07 | Phase 28 | Pending |
 | SDBIP-08 | Phase 28 | Pending |
 | SDBIP-09 | Phase 28 | Pending |
-| SDBIP-10 | Phase 28 | Pending |
+| SDBIP-10 | Phase 28 | Complete |
 | EVID-01 | Phase 28 | Pending |
 | EVID-02 | Phase 28 | Pending |
 | EVID-03 | Phase 28 | Pending |

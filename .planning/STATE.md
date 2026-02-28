@@ -36,25 +36,25 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
-Plan: 2 of 7 in current phase (28-01 complete, starting 28-02)
-Status: Active — 28-01 complete
-Last activity: 2026-02-28 — 28-01 complete (IDP backbone: models, service, API, 21 tests)
+Plan: 3 of 7 in current phase (28-02 complete, starting 28-03)
+Status: Active — 28-02 complete
+Last activity: 2026-02-28 — 28-02 complete (SDBIP KPI backbone: 4 models, 9 API endpoints, 25 tests, 30 mSCOA seed codes)
 
-Progress: [░░░░░░░░░░] 19%
+Progress: [░░░░░░░░░░] 23%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 4 (v2.0)
-- Average duration: ~35 min/plan
-- Total execution time: ~2.33 hours
+- Total plans completed: 5 (v2.0)
+- Average duration: ~38 min/plan
+- Total execution time: ~2.75 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 27-rbac-foundation-tenant-configuration | 3/3 plans done (excl. 27-03) | ~90 min | ~30 min |
-| 28-idp-sdbip-core-performance-monitoring | 1/7 plans done | ~35 min | ~35 min |
+| 28-idp-sdbip-core-performance-monitoring | 2/7 plans done | ~80 min | ~40 min |
 
 *Updated after each plan completion*
 
@@ -94,6 +94,13 @@ From Phase 28 execution (Plan 28-01):
 - IDP tests use real SQLite db_session + set_tenant_context/clear_tenant_context pattern — mocks insufficient for selectinload golden thread tests
 - idp_versions uniqueness via DB UniqueConstraint + service-layer IntegrityError catch (409 Conflict)
 
+From Phase 28 execution (Plan 28-02):
+- MscoaReference uses NonTenantModel (no tenant_id) — mSCOA v5.5 codes are National Treasury reference data shared globally; do_orm_execute event listener skips filtering when hasattr(class, 'tenant_id') is False
+- QuarterlyTargetBulkCreate enforces all 4 quarters at once (min_length/max_length=4 + model_validator) — preventing partial quarterly target sets that corrupt reporting
+- Quarterly target upsert: DELETE + INSERT (not ON CONFLICT) for SQLite compatibility in unit tests
+- mSCOA code and IDP objective FK validation at service layer (SELECT then 422) rather than DB FK violation (opaque 500 in SQLite)
+- mscoa-codes endpoint has no PMS readiness gate — reference data accessible to Tier 3+ users before PMS configuration is complete
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -108,5 +115,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed Phase 28 Plan 28-01 (IDP backbone). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-01-SUMMARY.md. Next: 28-02 SDBIP KPI backbone.
+Stopped at: Completed Phase 28 Plan 28-02 (SDBIP KPI backbone). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-02-SUMMARY.md. Next: 28-03 (performance actuals recording).
 Resume file: None
