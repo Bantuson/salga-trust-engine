@@ -20,6 +20,12 @@ export default defineConfig({
   },
   server: {
     port: 5173, // Municipal dashboard
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+      },
+    },
     fs: {
       // Allow serving files from shared folder
       allow: ['..'],

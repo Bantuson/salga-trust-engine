@@ -224,7 +224,7 @@ const fieldStyles: Record<string, React.CSSProperties> = {
     padding: '12px 16px',
     fontSize: 'var(--text-base)',
     fontFamily: 'var(--font-body)',
-    background: 'rgba(163, 72, 102, 0.6)',
+    background: 'rgba(255, 255, 255, 0.18)',
     border: '1px solid var(--border-subtle)',
     borderRadius: 'var(--radius-md)',
     color: 'var(--text-primary)',
@@ -240,8 +240,8 @@ const fieldStyles: Record<string, React.CSSProperties> = {
     paddingRight: '38px',
   },
   selectOption: {
-    background: 'rgba(163, 72, 102, 0.95)',
-    color: 'var(--text-primary)',
+    background: 'rgba(255, 255, 255, 0.92)',
+    color: '#1a1a2e',
     padding: '8px',
   },
   successMsg: {

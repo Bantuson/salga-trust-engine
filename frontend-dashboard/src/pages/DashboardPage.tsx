@@ -27,13 +27,15 @@ import {
   fetchTeamWorkload,
 } from '../services/api';
 import { mockDashboardMetrics, mockVolumeData, mockSLAData, mockWorkloadData } from '../mocks/mockAnalytics';
+import { PmsSetupBanner } from '../components/rbac/PmsSetupBanner';
 
 interface DashboardPageProps {
   wardId?: string;
 }
 
 export function DashboardPage({ wardId }: DashboardPageProps) {
-  const { getTenantId } = useAuth();
+  const { getTenantId, getUserRole } = useAuth();
+  const userRole = getUserRole();
   const {
     metrics,
     volumeData,
@@ -123,6 +125,8 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
         <h1 className="dashboard-page-title" style={styles.title}>Municipal Operations Dashboard</h1>
         <RealtimeIndicator isConnected={connected} lastUpdated={lastUpdated} />
       </header>
+
+      <PmsSetupBanner userRole={userRole} />
 
       <MetricsCards metrics={metrics} isLoading={isLoading} />
 

@@ -85,6 +85,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Departments', path: '/departments', icon: 'building' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
           { label: 'PMS', path: '/pms', icon: 'chart' },
+          { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
@@ -107,6 +108,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Tickets', path: '/tickets', icon: 'ticket' },
           { label: 'Teams', path: '/teams', icon: 'users' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
+          { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 

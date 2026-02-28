@@ -14,6 +14,11 @@ import { NavLink } from 'react-router-dom';
 import { useRoleBasedNav } from '../../hooks/useRoleBasedNav';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import { Badge } from '@shared/components/ui/Badge';
+// TODO: Wire RoleSwitcher when multi-role auth is available
+// The user auth system does not yet return multiple roles via JWT all_roles claim.
+// Once it does, import and render RoleSwitcher in the sidebar-bottom section,
+// above the user profile, to let multi-role users switch their dashboard view.
+// import { RoleSwitcher } from '../rbac/RoleSwitcher';
 import './Sidebar.css';
 
 interface SidebarProps {
@@ -145,6 +150,8 @@ export function Sidebar({ userEmail, userPhone, userRole, onSignOut }: SidebarPr
 
       {/* Sign Out + User Profile Section */}
       <div className="sidebar-bottom">
+        {/* TODO: Render <RoleSwitcher /> here when multi-role auth is available */}
+
         <button
           onClick={onSignOut}
           className="sidebar-logout"

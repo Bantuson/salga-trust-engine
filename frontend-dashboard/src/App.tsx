@@ -23,6 +23,7 @@ import { FieldWorkerTicketsPage } from './pages/FieldWorkerTicketsPage';
 import { FieldWorkerTeamPage } from './pages/FieldWorkerTeamPage';
 import { CompletedTicketsPage } from './pages/CompletedTicketsPage';
 import { PmsSetupWizardPage } from './pages/PmsSetupWizardPage';
+import { OrganogramPage } from './pages/OrganogramPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
@@ -82,6 +83,7 @@ function AppRoutes() {
         <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
+        <Route path="/departments/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
         <Route path="/municipalities" element={<DashboardLayout><div style={styles.placeholder}>Municipalities (Coming Soon)</div></DashboardLayout>} />
         <Route path="/teams" element={<DashboardLayout><TeamsPage /></DashboardLayout>} />
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
