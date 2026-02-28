@@ -14,17 +14,15 @@ import { NavLink } from 'react-router-dom';
 import { useRoleBasedNav } from '../../hooks/useRoleBasedNav';
 import { useReducedMotion } from '@shared/hooks/useReducedMotion';
 import { Badge } from '@shared/components/ui/Badge';
-// TODO: Wire RoleSwitcher when multi-role auth is available
-// The user auth system does not yet return multiple roles via JWT all_roles claim.
-// Once it does, import and render RoleSwitcher in the sidebar-bottom section,
-// above the user profile, to let multi-role users switch their dashboard view.
-// import { RoleSwitcher } from '../rbac/RoleSwitcher';
+import { RoleSwitcher } from '../rbac/RoleSwitcher';
 import './Sidebar.css';
 
 interface SidebarProps {
   userEmail?: string;
   userPhone?: string;
   userRole: string;
+  allRoles?: string[];
+  onRoleSwitch?: (role: string) => void;
   onSignOut: () => void;
 }
 
@@ -81,6 +79,30 @@ const icons = {
       <line x1="12" y1="3" x2="12" y2="15" />
     </svg>
   ),
+  target: (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" />
+      <circle cx="12" cy="12" r="6" />
+      <circle cx="12" cy="12" r="2" />
+    </svg>
+  ),
+  link: (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" />
+      <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
+    </svg>
+  ),
+  organogram: (
+    <svg width="20" height="20" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="7" y="1" width="6" height="4" rx="1" />
+      <rect x="1" y="15" width="6" height="4" rx="1" />
+      <rect x="13" y="15" width="6" height="4" rx="1" />
+      <line x1="10" y1="5" x2="10" y2="9" />
+      <line x1="4" y1="9" x2="16" y2="9" />
+      <line x1="4" y1="9" x2="4" y2="15" />
+      <line x1="16" y1="9" x2="16" y2="15" />
+    </svg>
+  ),
   menu: (
     <svg width="24" height="24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <line x1="3" y1="12" x2="21" y2="12" />
@@ -96,7 +118,7 @@ const icons = {
   ),
 };
 
-export function Sidebar({ userEmail, userPhone, userRole, onSignOut }: SidebarProps) {
+export function Sidebar({ userEmail, userPhone, userRole, allRoles, onRoleSwitch, onSignOut }: SidebarProps) {
   const navItems = useRoleBasedNav(userRole);
   const prefersReducedMotion = useReducedMotion();
   const [mobileOpen, setMobileOpen] = useState(false);
@@ -131,26 +153,37 @@ export function Sidebar({ userEmail, userPhone, userRole, onSignOut }: SidebarPr
     <>
       {/* Navigation Items */}
       <nav className="sidebar-nav">
-        {navItems.map((item) => (
-          <NavLink
-            key={item.path}
-            to={item.path}
-            className={({ isActive }) =>
-              `sidebar-nav-item ${isActive ? 'active' : ''} ${prefersReducedMotion ? 'no-motion' : ''}`
-            }
-            onClick={() => isMobile && setMobileOpen(false)}
-          >
-            <span className="sidebar-icon">
-              {icons[item.icon as keyof typeof icons] || icons.home}
-            </span>
-            <span className="sidebar-label">{item.label}</span>
-          </NavLink>
+        {navItems.map((item, idx) => (
+          <span key={item.path}>
+            {/* Section header — render when item has a section label that differs from previous item */}
+            {item.section && (idx === 0 || navItems[idx - 1].section !== item.section) && (
+              <span className="sidebar-section-header sidebar-label">{item.section}</span>
+            )}
+            <NavLink
+              to={item.path}
+              className={({ isActive }) =>
+                `sidebar-nav-item ${isActive ? 'active' : ''} ${prefersReducedMotion ? 'no-motion' : ''}`
+              }
+              onClick={() => isMobile && setMobileOpen(false)}
+            >
+              <span className="sidebar-icon">
+                {icons[item.icon as keyof typeof icons] || icons.home}
+              </span>
+              <span className="sidebar-label">{item.label}</span>
+            </NavLink>
+          </span>
         ))}
       </nav>
 
       {/* Sign Out + User Profile Section */}
       <div className="sidebar-bottom">
-        {/* TODO: Render <RoleSwitcher /> here when multi-role auth is available */}
+        {allRoles && allRoles.length > 1 && onRoleSwitch && (
+          <RoleSwitcher
+            allRoles={allRoles}
+            activeRole={userRole}
+            onRoleSwitch={onRoleSwitch}
+          />
+        )}
 
         <button
           onClick={onSignOut}
