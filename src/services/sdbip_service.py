@@ -1,38 +1,51 @@
 """SDBIP (Service Delivery and Budget Implementation Plan) service layer.
 
 Provides CRUD operations for the SDBIP hierarchy:
-    SDBIPScorecard -> SDBIPKpi -> SDBIPQuarterlyTarget
+    SDBIPScorecard -> SDBIPKpi -> SDBIPQuarterlyTarget -> SDBIPActual
 
 Key responsibilities:
 - Scorecard creation (top-layer vs departmental validation)
 - KPI creation with mSCOA code and IDP objective FK validation
 - Quarterly target upsert (delete-then-insert to enforce exactly 4 per KPI)
+- SDBIP approval state machine transitions (draft -> approved -> revised)
+- Mid-year target adjustment (SDBIP-09: update targets without draft reset)
+- Quarterly actuals submission with auto-computed achievement and traffic light
+- Correction records for validated actuals (immutability chain)
 - mSCOA reference search (segment filter + description ilike)
 
 The mSCOA reference table is a NonTenantModel — queries bypass the
 do_orm_execute tenant filter (no tenant_id column). This is intentional:
 mSCOA codes are global National Treasury reference data.
 """
+import json
 import logging
+from datetime import datetime, timezone
 from uuid import UUID
 
 from fastapi import HTTPException, status
 from sqlalchemy import delete, func, or_, select
 from sqlalchemy.ext.asyncio import AsyncSession
+from statemachine.exceptions import TransitionNotAllowed
 
+from src.models.audit_log import AuditLog, OperationType
 from src.models.idp import IDPObjective
 from src.models.mscoa_reference import MscoaReference
 from src.models.sdbip import (
     Quarter,
+    SDBIPActual,
     SDBIPKpi,
     SDBIPLayer,
     SDBIPQuarterlyTarget,
     SDBIPScorecard,
     SDBIPStatus,
+    SDBIPWorkflow,
+    compute_achievement,
 )
-from src.models.user import User
+from src.models.user import User, UserRole
 from src.schemas.sdbip import (
     QuarterlyTargetBulkCreate,
+    SDBIPActualCorrectionCreate,
+    SDBIPActualCreate,
     SDBIPKpiCreate,
     SDBIPScorecardCreate,
 )
@@ -41,7 +54,7 @@ logger = logging.getLogger(__name__)
 
 
 class SDBIPService:
-    """Service class for SDBIP scorecard, KPI, and quarterly target CRUD."""
+    """Service class for SDBIP scorecard, KPI, quarterly target, and actuals CRUD."""
 
     # ------------------------------------------------------------------
     # Scorecards
@@ -129,6 +142,186 @@ class SDBIPService:
             stmt = stmt.where(SDBIPScorecard.financial_year == financial_year)
         result = await db.execute(stmt)
         return list(result.scalars().all())
+
+    async def transition_scorecard(
+        self,
+        scorecard_id: UUID,
+        event: str,
+        user: User,
+        db: AsyncSession,
+    ) -> SDBIPScorecard:
+        """Apply a state machine transition to an SDBIP scorecard.
+
+        Valid events: "submit", "revise", "resubmit"
+
+        The "submit" event (draft -> approved) requires the Executive Mayor role.
+        Admin and salga_admin bypass this restriction.
+
+        Args:
+            scorecard_id: UUID of the scorecard to transition.
+            event:        Event name to send to the state machine.
+            user:         Requesting user (for role check + audit trail).
+            db:           Async database session.
+
+        Returns:
+            Updated SDBIPScorecard with new status.
+
+        Raises:
+            HTTPException 404: Scorecard not found.
+            HTTPException 403: Non-Mayor user attempted 'submit'.
+            HTTPException 409: Transition not allowed in current state.
+        """
+        scorecard = await self.get_scorecard(scorecard_id, db)
+        if scorecard is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDBIP scorecard {scorecard_id} not found",
+            )
+
+        # Mayor sign-off gate: only executive_mayor, admin, or salga_admin
+        # may submit a scorecard for approval.
+        _mayor_roles = {
+            UserRole.EXECUTIVE_MAYOR,
+            UserRole.ADMIN,
+            UserRole.SALGA_ADMIN,
+        }
+        if event == "submit" and user.role not in _mayor_roles:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail="Mayor sign-off required for SDBIP approval",
+            )
+
+        try:
+            machine = SDBIPWorkflow(
+                model=scorecard,
+                state_field="status",
+                start_value=scorecard.status,
+            )
+            machine.send(event)
+        except TransitionNotAllowed as exc:
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Cannot '{event}' from status '{scorecard.status}'",
+            ) from exc
+        except Exception as exc:
+            logger.warning(
+                "SDBIPWorkflow error for scorecard %s event=%s: %s",
+                scorecard_id, event, exc,
+            )
+            raise HTTPException(
+                status_code=status.HTTP_409_CONFLICT,
+                detail=f"Invalid transition event '{event}': {exc}",
+            ) from exc
+
+        scorecard.updated_by = str(user.id)
+        await db.commit()
+        await db.refresh(scorecard)
+        logger.info(
+            "SDBIPScorecard %s transitioned via '%s' to '%s' by %s",
+            scorecard_id, event, scorecard.status, user.id,
+        )
+        return scorecard
+
+    async def adjust_targets(
+        self,
+        kpi_id: UUID,
+        targets: QuarterlyTargetBulkCreate,
+        user: User,
+        db: AsyncSession,
+    ) -> list[SDBIPQuarterlyTarget]:
+        """Mid-year target adjustment (SDBIP-09).
+
+        Updates quarterly targets for a KPI on an APPROVED scorecard without
+        resetting the scorecard back to draft status. Creates an audit log entry
+        with the old and new target values.
+
+        Args:
+            kpi_id:  UUID of the KPI whose targets are being adjusted.
+            targets: Validated QuarterlyTargetBulkCreate (exactly 4 quarters).
+            user:    Requesting user (Tier 2+ enforced at API layer).
+            db:      Async database session.
+
+        Returns:
+            List of 4 newly created SDBIPQuarterlyTarget instances.
+
+        Raises:
+            HTTPException 404: KPI not found.
+            HTTPException 422: Scorecard is not in 'approved' status.
+        """
+        kpi = await self.get_kpi(kpi_id, db)
+        if kpi is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDBIP KPI {kpi_id} not found",
+            )
+
+        scorecard = await self.get_scorecard(kpi.scorecard_id, db)
+        if scorecard is None or scorecard.status != SDBIPStatus.APPROVED:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Mid-year adjustments only allowed on approved SDBIPs",
+            )
+
+        # Capture old targets for audit log
+        old_targets_result = await db.execute(
+            select(SDBIPQuarterlyTarget)
+            .where(SDBIPQuarterlyTarget.kpi_id == kpi_id)
+            .order_by(SDBIPQuarterlyTarget.quarter)
+        )
+        old_targets = [
+            {"quarter": t.quarter, "target_value": str(t.target_value)}
+            for t in old_targets_result.scalars().all()
+        ]
+
+        # Delete existing quarterly targets (upsert pattern)
+        await db.execute(
+            delete(SDBIPQuarterlyTarget).where(SDBIPQuarterlyTarget.kpi_id == kpi_id)
+        )
+
+        # Insert new targets
+        new_target_objs = []
+        for target_data in targets.targets:
+            target = SDBIPQuarterlyTarget(
+                kpi_id=kpi_id,
+                quarter=target_data.quarter.value,
+                target_value=target_data.target_value,
+                tenant_id=kpi.tenant_id,
+                created_by=str(user.id),
+            )
+            db.add(target)
+            new_target_objs.append(target)
+
+        # Scorecard status MUST remain 'approved' — SDBIP-09 requirement
+        # (do NOT change scorecard.status here)
+
+        # Audit log entry for mid-year adjustment (POPIA-compliant)
+        new_targets_data = [
+            {"quarter": t.quarter.value, "target_value": str(t.target_value)}
+            for t in targets.targets
+        ]
+        audit_entry = AuditLog(
+            tenant_id=str(kpi.tenant_id),
+            user_id=str(user.id),
+            operation=OperationType.UPDATE,
+            table_name="sdbip_quarterly_targets",
+            record_id=str(kpi_id),
+            changes=json.dumps({
+                "action": "midyear_adjustment",
+                "old_targets": old_targets,
+                "new_targets": new_targets_data,
+            }),
+        )
+        db.add(audit_entry)
+
+        await db.commit()
+        for t in new_target_objs:
+            await db.refresh(t)
+
+        logger.info(
+            "Mid-year target adjustment for kpi=%s by %s; scorecard status unchanged",
+            kpi_id, user.id,
+        )
+        return new_target_objs
 
     # ------------------------------------------------------------------
     # KPIs
@@ -310,6 +503,200 @@ class SDBIPService:
             .order_by(SDBIPQuarterlyTarget.quarter)
         )
         return list(result.scalars().all())
+
+    # ------------------------------------------------------------------
+    # Quarterly Actuals
+    # ------------------------------------------------------------------
+
+    async def submit_actual(
+        self,
+        data: SDBIPActualCreate,
+        user: User,
+        db: AsyncSession,
+    ) -> SDBIPActual:
+        """Submit a quarterly actual performance value for a KPI.
+
+        Automatically computes achievement percentage and traffic-light status
+        based on the quarterly target for the specified KPI and quarter.
+
+        Args:
+            data: Validated SDBIPActualCreate payload.
+            user: Authenticated director/manager submitting the actual.
+            db:   Async database session.
+
+        Returns:
+            Newly created SDBIPActual with computed achievement_pct and traffic_light_status.
+
+        Raises:
+            HTTPException 404: KPI not found.
+            HTTPException 422: No quarterly target set for the specified quarter.
+        """
+        # Load KPI — validates it belongs to the tenant (TenantAwareModel filter)
+        kpi = await self.get_kpi(data.kpi_id, db)
+        if kpi is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDBIP KPI {data.kpi_id} not found",
+            )
+
+        # Load quarterly target for this KPI and quarter
+        target_result = await db.execute(
+            select(SDBIPQuarterlyTarget).where(
+                SDBIPQuarterlyTarget.kpi_id == data.kpi_id,
+                SDBIPQuarterlyTarget.quarter == data.quarter.value,
+            )
+        )
+        target = target_result.scalar_one_or_none()
+        if target is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"No quarterly target set for {data.quarter.value}",
+            )
+
+        # Compute achievement percentage and traffic-light status
+        pct, traffic = compute_achievement(data.actual_value, target.target_value)
+
+        actual = SDBIPActual(
+            kpi_id=data.kpi_id,
+            quarter=data.quarter.value,
+            financial_year=data.financial_year,
+            actual_value=data.actual_value,
+            achievement_pct=pct,
+            traffic_light_status=traffic,
+            submitted_by=str(user.id),
+            submitted_at=datetime.now(timezone.utc),
+            is_validated=False,
+            is_auto_populated=False,
+            tenant_id=kpi.tenant_id,
+            created_by=str(user.id),
+        )
+        db.add(actual)
+        await db.commit()
+        await db.refresh(actual)
+        logger.info(
+            "SDBIPActual submitted: kpi=%s %s/%s actual=%s pct=%s [%s] by %s",
+            data.kpi_id, data.quarter, data.financial_year,
+            data.actual_value, pct, traffic, user.id,
+        )
+        return actual
+
+    async def get_actual(
+        self,
+        actual_id: UUID,
+        db: AsyncSession,
+    ) -> SDBIPActual | None:
+        """Fetch a single SDBIPActual by ID.
+
+        Returns None if not found (callers should raise 404 as needed).
+        """
+        result = await db.execute(
+            select(SDBIPActual).where(SDBIPActual.id == actual_id)
+        )
+        return result.scalar_one_or_none()
+
+    async def list_actuals(
+        self,
+        kpi_id: UUID,
+        db: AsyncSession,
+    ) -> list[SDBIPActual]:
+        """Return all actuals for a KPI ordered by quarter.
+
+        Args:
+            kpi_id: UUID of the parent SDBIP KPI.
+            db:     Async database session.
+
+        Returns:
+            List of SDBIPActual instances for the KPI, ordered by quarter ascending.
+        """
+        result = await db.execute(
+            select(SDBIPActual)
+            .where(SDBIPActual.kpi_id == kpi_id)
+            .order_by(SDBIPActual.quarter)
+        )
+        return list(result.scalars().all())
+
+    async def submit_correction(
+        self,
+        actual_id: UUID,
+        data: SDBIPActualCorrectionCreate,
+        user: User,
+        db: AsyncSession,
+    ) -> SDBIPActual:
+        """Submit a correction for a validated (immutable) actual.
+
+        Creates a new SDBIPActual record with corrects_actual_id pointing to the
+        original. The original validated record is NOT modified — it remains
+        permanently immutable as part of the audit chain.
+
+        Args:
+            actual_id: UUID of the original validated actual to correct.
+            data:      Validated SDBIPActualCorrectionCreate payload (new value + reason).
+            user:      Authenticated user submitting the correction.
+            db:        Async database session.
+
+        Returns:
+            Newly created correction SDBIPActual (is_validated=False initially).
+
+        Raises:
+            HTTPException 404: Original actual not found.
+            HTTPException 422: Original actual is not validated (use update instead).
+        """
+        # Load original actual
+        original = await self.get_actual(actual_id, db)
+        if original is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDBIPActual {actual_id} not found",
+            )
+
+        # Corrections only allowed on validated actuals
+        if not original.is_validated:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Only validated actuals require corrections — update the original instead",
+            )
+
+        # Load quarterly target for computing achievement on the correction
+        target_result = await db.execute(
+            select(SDBIPQuarterlyTarget).where(
+                SDBIPQuarterlyTarget.kpi_id == original.kpi_id,
+                SDBIPQuarterlyTarget.quarter == original.quarter,
+            )
+        )
+        target = target_result.scalar_one_or_none()
+        if target is None:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail=f"No quarterly target found for KPI {original.kpi_id} {original.quarter}",
+            )
+
+        # Compute achievement for the corrected value
+        pct, traffic = compute_achievement(data.actual_value, target.target_value)
+
+        correction = SDBIPActual(
+            kpi_id=original.kpi_id,
+            quarter=original.quarter,
+            financial_year=original.financial_year,
+            actual_value=data.actual_value,
+            achievement_pct=pct,
+            traffic_light_status=traffic,
+            submitted_by=str(user.id),
+            submitted_at=datetime.now(timezone.utc),
+            is_validated=False,
+            is_auto_populated=False,
+            corrects_actual_id=original.id,
+            source_query_ref=f"Correction: {data.reason}",
+            tenant_id=original.tenant_id,
+            created_by=str(user.id),
+        )
+        db.add(correction)
+        await db.commit()
+        await db.refresh(correction)
+        logger.info(
+            "SDBIPActual correction submitted: original=%s correction=%s pct=%s [%s] by %s",
+            actual_id, correction.id, pct, traffic, user.id,
+        )
+        return correction
 
     # ------------------------------------------------------------------
     # mSCOA Reference Search
