@@ -76,7 +76,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 **Plans**: 3 plans
 
 Plans:
-- [x] 27-01-PLAN.md — Extend UserRole enum (18 roles, 4 tiers), create user_role_assignments and tier1_approval_requests models, update Supabase custom_access_token_hook for multi-role, add require_min_tier() dependency, Redis JWT blacklist, ROLE_CHANGE audit logging, role assignment API [Wave 1]
+- [x] 27-01-PLAN.md — Extend UserRole enum (18 roles, 4 tiers), create user_role_assignments and tier1_approval_requests models, update Supabase custom_access_token_hook for multi-role, add require_min_tier() dependency, Redis JWT blacklist, ROLE_CHANGE audit logging, role assignment API [Wave 1] — completed 2026-02-28
 - [x] 27-02-PLAN.md — Department and DepartmentTicketCategoryMap models, extend Municipality with PMS settings, department CRUD API with organogram endpoint, ticket category mapping, municipality settings lock/unlock, RLS policies [Wave 1] — completed 2026-02-28
 - [ ] 27-03-PLAN.md — PMS readiness gate service and endpoint, department setup wizard (5-step), OrganogramTree (react-d3-tree), RoleSwitcher component, PmsReadinessGate overlay, updated useRoleBasedNav for all 18 roles [Wave 2]
 

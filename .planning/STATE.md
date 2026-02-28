@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: active
-last_updated: "2026-02-28T16:10:27Z"
+last_updated: "2026-02-28T20:00:00Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 21
-  completed_plans: 2
+  completed_plans: 3
 ---
 
 # Project State
@@ -23,24 +23,24 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 27 of 32 (RBAC Foundation & Tenant Configuration)
-Plan: 2 of 3 in current phase
+Plan: 3 of 3 in current phase (2 plans remain in phase: 27-03)
 Status: In progress
-Last activity: 2026-02-28 — Completed Plan 27-02 (Department CRUD API, organogram, municipality PMS settings)
+Last activity: 2026-02-28 — Completed Plan 27-01 (18-role RBAC hierarchy, Redis JWT blacklist, role assignment API)
 
-Progress: [░░░░░░░░░░] 10%
+Progress: [░░░░░░░░░░] 14%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 2 (v2.0)
-- Average duration: ~15 min/plan
-- Total execution time: 0.5 hours
+- Total plans completed: 3 (v2.0)
+- Average duration: ~35 min/plan
+- Total execution time: ~1.75 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| 27-rbac-foundation-tenant-configuration | 2/3 | ~30 min | ~15 min |
+| 27-rbac-foundation-tenant-configuration | 3/3 plans done (excl. 27-03) | ~90 min | ~30 min |
 
 *Updated after each plan completion*
 
@@ -67,6 +67,10 @@ From Phase 27 execution (Plans 27-01, 27-02):
 - Organogram built from flat list in Python (not recursive CTE SQL) — SQLite-compatible for unit tests
 - TIER_ORDER dict in deps.py (not database) — roles are static, DB lookup adds latency for no benefit
 - 18-role 4-tier hierarchy: Tier 1 Executive (6 roles), Tier 2 Director (3), Tier 3 Operational (7), Tier 4 Frontline (2)
+- Redis JWT blacklist: fail-open (outage logs warning, allows request) — fail-closed would lock out users on Redis unavailability
+- Tier 1 approval required for executive_mayor, municipal_manager, cfo, speaker only — admin and salga_admin bypass (assigned directly)
+- assign_role does NOT auto-blacklist tokens (caller's responsibility for Tier 2-4 assignments)
+- DB-coupled integration tests use set_tenant_context()/clear_tenant_context() with try/finally to satisfy RLS tenant filter
 
 ### Pending Todos
 
@@ -82,5 +86,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed 27-02-PLAN.md — Department CRUD API, organogram, municipality PMS settings committed (2b33881)
+Stopped at: Completed 27-01-PLAN.md — 18-role RBAC hierarchy, Redis JWT blacklist, role assignment API, tier hierarchy tests committed (2f58fa7). Next: 27-03 (PMS readiness gate, department wizard, frontend components)
 Resume file: None
