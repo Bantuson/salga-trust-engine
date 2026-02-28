@@ -485,3 +485,100 @@ class SDBIPActual(TenantAwareModel):
             f"actual={self.actual_value} [{self.traffic_light_status}] "
             f"validated={self.is_validated}>"
         )
+
+
+# ---------------------------------------------------------------------------
+# Auto-population aggregation rule
+# ---------------------------------------------------------------------------
+
+
+class AggregationType(StrEnum):
+    """Aggregation type for auto-population queries.
+
+    COUNT: count resolved tickets matching the category
+    SUM:   sum of a numeric field across matching tickets (for numeric KPIs)
+    AVG:   average of a numeric field across matching tickets
+    """
+
+    COUNT = "count"
+    SUM = "sum"
+    AVG = "avg"
+
+
+class SDBIPTicketAggregationRule(TenantAwareModel):
+    """Configurable rule mapping a KPI to an auto-population query on the ticket table.
+
+    Each rule specifies which ticket_category to aggregate and how to aggregate it.
+    The AutoPopulationEngine reads these rules at scheduled run-time and populates
+    SDBIPActual records for the current quarter.
+
+    SEC-05 CRITICAL: The auto-population engine MUST include is_sensitive=FALSE in
+    every aggregation query derived from these rules. This field is NOT stored here —
+    it is enforced unconditionally in AutoPopulationEngine.populate_quarter().
+
+    Idempotency:
+        Deduplication is handled by the engine at run-time (checks for existing
+        non-validated auto-populated actuals before inserting). No unique constraint
+        is needed on this model itself.
+
+    Uniqueness:
+        (kpi_id, ticket_category) must be unique per tenant — each KPI should have
+        at most one aggregation rule per ticket category.
+    """
+
+    __tablename__ = "sdbip_ticket_aggregation_rules"
+    __table_args__ = (
+        UniqueConstraint(
+            "kpi_id",
+            "ticket_category",
+            name="uq_agg_rule_kpi_category",
+        ),
+    )
+
+    kpi_id: Mapped[UUID] = mapped_column(
+        ForeignKey("sdbip_kpis.id"),
+        nullable=False,
+        index=True,
+        comment="FK to the SDBIP KPI this rule populates",
+    )
+    ticket_category: Mapped[str] = mapped_column(
+        String(50),
+        nullable=False,
+        comment="TicketCategory value to filter tickets (e.g., 'water', 'roads')",
+    )
+    aggregation_type: Mapped[str] = mapped_column(
+        String(10),
+        nullable=False,
+        comment="Aggregation function: 'count', 'sum', or 'avg'",
+    )
+    formula_description: Mapped[str | None] = mapped_column(
+        Text,
+        nullable=True,
+        comment="Human-readable description of what this rule measures",
+    )
+    source_query_ref: Mapped[str | None] = mapped_column(
+        String(500),
+        nullable=True,
+        comment="Auto-generated query reference string (set by engine at run-time)",
+    )
+    is_active: Mapped[bool] = mapped_column(
+        Boolean,
+        nullable=False,
+        default=True,
+        server_default="true",
+        comment="Inactive rules are skipped by the auto-population engine",
+    )
+
+    # Relationships
+    kpi: Mapped["SDBIPKpi"] = relationship(
+        "SDBIPKpi",
+        foreign_keys=[kpi_id],
+        lazy="select",
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return (
+            f"<SDBIPTicketAggregationRule kpi={self.kpi_id} "
+            f"category={self.ticket_category} type={self.aggregation_type} "
+            f"active={self.is_active}>"
+        )
