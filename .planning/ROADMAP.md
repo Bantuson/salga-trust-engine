@@ -73,12 +73,12 @@ Full details: `milestones/v1.0-ROADMAP.md`
   3. A user with a senior role (e.g., cfo) automatically inherits access to endpoints accessible by subordinate roles (e.g., manager) without additional configuration
   4. Every role change is visible in the audit log with the actor, timestamp, and previous/new role
   5. PMS feature endpoints return 403 until department configuration is complete, enforced by the PMS readiness gate
-**Plans**: TBD
+**Plans**: 3 plans
 
 Plans:
-- [ ] 27-01: Extend UserRole enum and Supabase custom access token hook with 14 new roles; add `require_minimum_tier()` dependency; DB CHECK constraint and startup assertion
-- [ ] 27-02: Department structure CRUD API and models (`Department`, `MunicipalityConfig`, `financial_year`); per-tenant organogram endpoint; RLS policies on all new tables
-- [ ] 27-03: PMS readiness checklist endpoint; placeholder PMS navigation in `useRoleBasedNav.ts`; Supabase Redis force-logout on role change
+- [ ] 27-01-PLAN.md — Extend UserRole enum (18 roles, 4 tiers), create user_role_assignments and tier1_approval_requests models, update Supabase custom_access_token_hook for multi-role, add require_min_tier() dependency, Redis JWT blacklist, ROLE_CHANGE audit logging, role assignment API [Wave 1]
+- [ ] 27-02-PLAN.md — Department and DepartmentTicketCategoryMap models, extend Municipality with PMS settings, department CRUD API with organogram endpoint, ticket category mapping, municipality settings lock/unlock, RLS policies [Wave 1]
+- [ ] 27-03-PLAN.md — PMS readiness gate service and endpoint, department setup wizard (5-step), OrganogramTree (react-d3-tree), RoleSwitcher component, PmsReadinessGate overlay, updated useRoleBasedNav for all 18 roles [Wave 2]
 
 ### Phase 28: IDP, SDBIP Core & Performance Monitoring
 **Goal**: Authorized staff can define strategic goals (IDP), create KPIs with quarterly targets (SDBIP), submit quarterly actuals with evidence, and the system auto-populates actuals from resolved ticket data
