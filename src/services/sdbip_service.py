@@ -698,6 +698,58 @@ class SDBIPService:
         )
         return correction
 
+    async def validate_actual(
+        self,
+        actual_id: UUID,
+        user: User,
+        db: AsyncSession,
+    ) -> SDBIPActual:
+        """Validate a quarterly actual — freeze it as immutable (is_validated=True).
+
+        Once validated, the actual becomes immutable. Subsequent PUT/PATCH requests
+        return 422. Corrections require a new SDBIPActual via submit_correction().
+
+        This is the trigger for EVID-05 immutability: PMS officer validation
+        permanently locks the actual and its portfolio of evidence.
+
+        Args:
+            actual_id: UUID of the SDBIPActual to validate.
+            user:      Authenticated PMS officer (Tier 3+) or admin.
+            db:        Async database session.
+
+        Returns:
+            Updated SDBIPActual with is_validated=True, validated_by, validated_at.
+
+        Raises:
+            HTTPException 404: Actual not found.
+            HTTPException 422: Actual is already validated (idempotency guard).
+        """
+        actual = await self.get_actual(actual_id, db)
+        if actual is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"SDBIPActual {actual_id} not found",
+            )
+
+        if actual.is_validated:
+            raise HTTPException(
+                status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                detail="Actual is already validated",
+            )
+
+        actual.is_validated = True
+        actual.validated_by = str(user.id)
+        actual.validated_at = datetime.now(timezone.utc)
+        actual.updated_by = str(user.id)
+        await db.commit()
+        await db.refresh(actual)
+
+        logger.info(
+            "SDBIPActual validated: actual=%s by pms_officer=%s at=%s",
+            actual_id, user.id, actual.validated_at,
+        )
+        return actual
+
     # ------------------------------------------------------------------
     # mSCOA Reference Search
     # ------------------------------------------------------------------

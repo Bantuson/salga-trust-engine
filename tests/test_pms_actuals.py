@@ -795,3 +795,147 @@ def test_actuals_imports():
     assert "/api/v1/sdbip/actuals/{actual_id}" in paths
     assert "/api/v1/sdbip/kpis/{kpi_id}/actuals" in paths
     assert "/api/v1/sdbip/actuals/{actual_id}/correct" in paths
+    # 28-05: evidence and validation endpoints
+    assert "/api/v1/sdbip/actuals/{actual_id}/evidence" in paths
+    assert "/api/v1/sdbip/evidence/{doc_id}/download" in paths
+    assert "/api/v1/sdbip/actuals/{actual_id}/validate" in paths
+
+
+# ---------------------------------------------------------------------------
+# Test 13: PMS officer validates actual
+# ---------------------------------------------------------------------------
+
+
+class TestPmsOfficerValidatesActual:
+    """Tests for SDBIPService.validate_actual() PMS officer validation."""
+
+    async def test_pms_officer_validates_actual(self, db_session: AsyncSession):
+        """PMS officer validation sets is_validated=True, validated_by, and validated_at."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        director = make_mock_director(tenant_id=tenant_id)
+        pms_officer = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            kpi, _ = await _create_kpi_with_targets(db_session, tenant_id, director)
+
+            # Director submits actual
+            actual = await service.submit_actual(
+                SDBIPActualCreate(
+                    kpi_id=kpi.id,
+                    quarter=Quarter.Q1,
+                    financial_year="2025/26",
+                    actual_value=Decimal("85"),
+                ),
+                director, db_session,
+            )
+
+            # Pre-validation assertions
+            assert actual.is_validated is False
+            assert actual.validated_by is None
+            assert actual.validated_at is None
+
+            # PMS officer validates
+            validated = await service.validate_actual(actual.id, pms_officer, db_session)
+        finally:
+            clear_tenant_context()
+
+        # Post-validation assertions
+        assert validated.is_validated is True
+        assert validated.validated_by == str(pms_officer.id)
+        assert validated.validated_at is not None
+        # Actual values preserved after validation
+        assert validated.actual_value == Decimal("85")
+        assert validated.achievement_pct is not None
+        assert validated.traffic_light_status is not None
+
+    async def test_validate_preserves_achievement_data(self, db_session: AsyncSession):
+        """Validation does not alter achievement_pct or traffic_light_status."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        director = make_mock_director(tenant_id=tenant_id)
+        pms_officer = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            kpi, _ = await _create_kpi_with_targets(db_session, tenant_id, director, Decimal("100"))
+
+            actual = await service.submit_actual(
+                SDBIPActualCreate(
+                    kpi_id=kpi.id,
+                    quarter=Quarter.Q2,
+                    financial_year="2025/26",
+                    actual_value=Decimal("60"),  # 60% -> amber
+                ),
+                director, db_session,
+            )
+            pre_pct = actual.achievement_pct
+            pre_traffic = actual.traffic_light_status
+
+            validated = await service.validate_actual(actual.id, pms_officer, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert validated.achievement_pct == pre_pct
+        assert validated.traffic_light_status == pre_traffic
+        assert validated.is_validated is True
+
+
+# ---------------------------------------------------------------------------
+# Test 14: Already-validated actual returns 422
+# ---------------------------------------------------------------------------
+
+
+class TestAlreadyValidatedReturns422:
+    """Tests for idempotency guard in SDBIPService.validate_actual()."""
+
+    async def test_already_validated_returns_422(self, db_session: AsyncSession):
+        """Validating an already-validated actual returns 422."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        director = make_mock_director(tenant_id=tenant_id)
+        pms_officer = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            kpi, _ = await _create_kpi_with_targets(db_session, tenant_id, director)
+
+            # Submit and validate
+            actual = await service.submit_actual(
+                SDBIPActualCreate(
+                    kpi_id=kpi.id,
+                    quarter=Quarter.Q3,
+                    financial_year="2025/26",
+                    actual_value=Decimal("90"),
+                ),
+                director, db_session,
+            )
+            # First validation — should succeed
+            validated = await service.validate_actual(actual.id, pms_officer, db_session)
+            assert validated.is_validated is True
+
+            # Second validation — should fail 422
+            with pytest.raises(HTTPException) as exc_info:
+                await service.validate_actual(actual.id, pms_officer, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 422
+        assert "already validated" in exc_info.value.detail.lower()
+
+    async def test_validate_nonexistent_actual_returns_404(self, db_session: AsyncSession):
+        """Validating a non-existent actual returns 404."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        pms_officer = make_mock_pms_officer(tenant_id=tenant_id)
+        fake_actual_id = uuid4()
+
+        set_tenant_context(tenant_id)
+        try:
+            with pytest.raises(HTTPException) as exc_info:
+                await service.validate_actual(fake_actual_id, pms_officer, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 404

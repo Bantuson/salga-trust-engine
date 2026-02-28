@@ -12,11 +12,16 @@ Endpoint prefix: /api/v1/sdbip
 """
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Query, status
+from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from src.api.deps import get_current_user, get_db, require_min_tier
-from src.models.user import User
+from src.api.deps import get_current_user, get_db, require_min_tier, require_role
+from src.models.user import User, UserRole
+from src.schemas.evidence import (
+    EvidenceDownloadResponse,
+    EvidenceListResponse,
+    EvidenceUploadResponse,
+)
 from src.schemas.sdbip import (
     AggregationRuleCreate,
     AggregationRuleResponse,
@@ -33,6 +38,7 @@ from src.schemas.sdbip import (
     SDBIPTransitionRequest,
 )
 from src.models.sdbip import SDBIPTicketAggregationRule
+from src.services.evidence_service import EvidenceService
 from src.services.pms_readiness import require_pms_ready
 from src.services.sdbip_service import SDBIPService
 
@@ -42,6 +48,7 @@ router = APIRouter(
 )
 
 _service = SDBIPService()
+_evidence_service = EvidenceService()
 
 
 def _pms_deps() -> list:
@@ -578,6 +585,127 @@ async def deactivate_aggregation_rule(
     await db.commit()
     await db.refresh(rule)
     return AggregationRuleResponse.model_validate(rule)
+
+
+# ---------------------------------------------------------------------------
+# Portfolio of Evidence (POE) Upload and Download (28-05)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/actuals/{actual_id}/evidence",
+    response_model=EvidenceUploadResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(2))],
+    summary="Upload portfolio of evidence document for a quarterly actual",
+)
+async def upload_evidence(
+    actual_id: UUID,
+    file: UploadFile = File(...),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> EvidenceUploadResponse:
+    """Upload a portfolio of evidence (POE) document for a quarterly actual.
+
+    Files are virus-scanned with ClamAV before storage:
+    - Clean files: accepted and stored in per-municipality Supabase bucket
+    - Infected files: rejected with 422 and virus name
+    - ClamAV unavailable: fail-open in dev, fail-closed (422) in production
+
+    Maximum file size: 50 MB. All MIME types accepted.
+
+    Returns 422 if file infected or exceeds size limit.
+    Returns 201 with document metadata on success.
+    """
+    file_content = await file.read()
+    doc = await _evidence_service.scan_and_upload(
+        file_content=file_content,
+        filename=file.filename or "upload",
+        content_type=file.content_type or "application/octet-stream",
+        actual_id=actual_id,
+        user=current_user,
+        db=db,
+    )
+    return EvidenceUploadResponse.model_validate(doc)
+
+
+@router.get(
+    "/actuals/{actual_id}/evidence",
+    response_model=EvidenceListResponse,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(3))],
+    summary="List evidence documents for a quarterly actual",
+)
+async def list_evidence(
+    actual_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> EvidenceListResponse:
+    """List all portfolio of evidence documents attached to a quarterly actual.
+
+    Returns documents ordered by upload time (oldest first).
+    Returns empty list if no documents have been uploaded.
+    """
+    docs = await _evidence_service.list_evidence(actual_id, db)
+    return EvidenceListResponse(
+        documents=[EvidenceUploadResponse.model_validate(d) for d in docs],
+        total=len(docs),
+    )
+
+
+@router.get(
+    "/evidence/{doc_id}/download",
+    response_model=EvidenceDownloadResponse,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(3))],
+    summary="Get signed download URL for an evidence document",
+)
+async def get_evidence_download_url(
+    doc_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> EvidenceDownloadResponse:
+    """Generate a signed URL for secure evidence document download.
+
+    URL expires in 1 hour. Returns a Supabase Storage signed URL in production,
+    or a fallback API path in development/test environments.
+
+    Returns 404 if document not found.
+    """
+    signed_url = await _evidence_service.get_signed_url(doc_id, db)
+    return EvidenceDownloadResponse(signed_url=signed_url, expires_in=3600)
+
+
+# ---------------------------------------------------------------------------
+# PMS Officer Actual Validation (28-05)
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/actuals/{actual_id}/validate",
+    response_model=SDBIPActualResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[
+        Depends(require_pms_ready()),
+        Depends(require_role(UserRole.PMS_OFFICER, UserRole.ADMIN, UserRole.SALGA_ADMIN)),
+    ],
+    summary="PMS officer validates a quarterly actual (immutable thereafter)",
+)
+async def validate_actual(
+    actual_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> SDBIPActualResponse:
+    """PMS officer validates a quarterly actual, making it permanently immutable.
+
+    Once validated:
+    - is_validated=True, validated_by=<user_id>, validated_at=<timestamp>
+    - PUT/PATCH on this actual return 422 (use /correct endpoint instead)
+    - Portfolio of evidence is locked with the actual
+
+    Returns 404 if actual not found.
+    Returns 422 if already validated (idempotency guard).
+
+    Requires PMS Officer, Admin, or SALGA Admin role.
+    """
+    actual = await _service.validate_actual(actual_id, current_user, db)
+    return SDBIPActualResponse.model_validate(actual)
 
 
 # ---------------------------------------------------------------------------
