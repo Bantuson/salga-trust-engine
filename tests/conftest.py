@@ -405,3 +405,83 @@ def citizen_token(citizen_user: User) -> str:
     }
     secret = settings.SUPABASE_JWT_SECRET or "test-supabase-jwt-secret"
     return pyjwt.encode(payload, secret, algorithm="HS256")
+
+
+# ---------------------------------------------------------------------------
+# Phase 27: RBAC hierarchy user fixtures
+# ---------------------------------------------------------------------------
+
+@pytest_asyncio.fixture(scope="function")
+async def executive_mayor_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create an executive mayor (Tier 1) user for RBAC tests."""
+    user = User(
+        email="executive_mayor@example.com",
+        hashed_password="supabase_managed",
+        full_name="Executive Mayor User",
+        phone="+27100000001",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.EXECUTIVE_MAYOR,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def section56_director_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create a Section 56 director (Tier 2) user for RBAC tests."""
+    user = User(
+        email="section56_director@example.com",
+        hashed_password="supabase_managed",
+        full_name="Section 56 Director User",
+        phone="+27100000002",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.SECTION56_DIRECTOR,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def pms_officer_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create a PMS officer (Tier 3) user for RBAC tests."""
+    user = User(
+        email="pms_officer@example.com",
+        hashed_password="supabase_managed",
+        full_name="PMS Officer User",
+        phone="+27100000003",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.PMS_OFFICER,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user
+
+
+@pytest_asyncio.fixture(scope="function")
+async def department_manager_user(db_session: AsyncSession, test_municipality: Municipality) -> User:
+    """Create a department manager (Tier 3) user for RBAC tests."""
+    user = User(
+        email="department_manager@example.com",
+        hashed_password="supabase_managed",
+        full_name="Department Manager User",
+        phone="+27100000004",
+        tenant_id=str(test_municipality.id),
+        municipality_id=test_municipality.id,
+        role=UserRole.DEPARTMENT_MANAGER,
+        is_active=True,
+    )
+    db_session.add(user)
+    await db_session.commit()
+    await db_session.refresh(user)
+    return user

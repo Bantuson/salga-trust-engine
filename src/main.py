@@ -14,6 +14,7 @@ from src.api.v1 import (
     consent,
     dashboard,
     data_rights,
+    departments,
     events,
     export,
     invitations,
@@ -22,6 +23,7 @@ from src.api.v1 import (
     onboarding,
     public,
     reports,
+    roles,
     settings as settings_api,
     teams,
     tickets,
@@ -124,3 +126,10 @@ app.include_router(citizen.router, prefix="/api/v1")
 app.include_router(teams.router, prefix="/api/v1")
 app.include_router(settings_api.router, prefix="/api/v1")
 app.include_router(audit_logs.router, prefix="/api/v1")
+
+# Phase 27 routers: Department CRUD, organogram, ticket category mapping, municipality PMS settings
+app.include_router(departments.router)
+app.include_router(departments.municipality_router)
+
+# Phase 27 routers: Role assignment CRUD and Tier 1 approval workflow
+app.include_router(roles.router)

@@ -1,4 +1,5 @@
 """API dependencies for FastAPI routes."""
+import logging
 from typing import Callable
 
 from fastapi import Depends, HTTPException, Request, status
@@ -12,7 +13,46 @@ from src.core.security import verify_supabase_token
 from src.core.tenant import set_tenant_context
 from src.models.user import User, UserRole
 
-__all__ = ["get_db", "get_current_user", "get_current_active_user", "require_role"]
+logger = logging.getLogger(__name__)
+
+__all__ = [
+    "get_db",
+    "get_current_user",
+    "get_current_active_user",
+    "require_role",
+    "require_min_tier",
+    "TIER_ORDER",
+]
+
+# ---------------------------------------------------------------------------
+# Role tier hierarchy (Phase 27).
+# Lower number = higher authority.  Tier 1 = Executive, Tier 4 = Frontline.
+# Used by require_min_tier() to support inheritance-style permission checks.
+# ---------------------------------------------------------------------------
+TIER_ORDER: dict[str, int] = {
+    # Tier 1 — Executive
+    "executive_mayor": 1,
+    "municipal_manager": 1,
+    "cfo": 1,
+    "speaker": 1,
+    "admin": 1,
+    "salga_admin": 1,
+    # Tier 2 — Directors
+    "section56_director": 2,
+    "ward_councillor": 2,
+    "chief_whip": 2,
+    # Tier 3 — Operational
+    "department_manager": 3,
+    "pms_officer": 3,
+    "audit_committee_member": 3,
+    "internal_auditor": 3,
+    "mpac_member": 3,
+    "saps_liaison": 3,
+    "manager": 3,
+    # Tier 4 — Frontline
+    "field_worker": 4,
+    "citizen": 4,
+}
 
 # HTTPBearer security scheme for JWT token extraction
 security = HTTPBearer()
@@ -47,6 +87,21 @@ async def get_current_user(
             detail="Invalid authentication credentials",
             headers={"WWW-Authenticate": "Bearer"},
         )
+
+    # Check Redis JWT blacklist (Phase 27 — force-logout on role change).
+    # Fail-open on Redis connection errors: a Redis outage must not lock out users.
+    try:
+        from src.services.rbac_service import is_token_blacklisted  # noqa: PLC0415
+        if await is_token_blacklisted(token):
+            raise HTTPException(
+                status_code=status.HTTP_401_UNAUTHORIZED,
+                detail="Token has been revoked",
+                headers={"WWW-Authenticate": "Bearer"},
+            )
+    except HTTPException:
+        raise  # re-raise our own 401
+    except Exception as exc:  # noqa: BLE001 — Redis connection failure
+        logger.warning("Redis blacklist check failed (fail-open): %s", exc)
 
     # Extract user_id from "sub" claim (Supabase Auth user ID)
     user_id: str | None = payload.get("sub")
@@ -152,3 +207,54 @@ def require_role(*allowed_roles: UserRole) -> Callable:
         return current_user
 
     return role_checker
+
+
+def require_min_tier(min_tier: int) -> Callable:
+    """Create a dependency that enforces tier-based permission inheritance.
+
+    Tier hierarchy (ascending privilege): 1=Executive, 2=Director, 3=Operational, 4=Frontline.
+
+    A user passes if `TIER_ORDER[user.role] <= min_tier`.
+    This means a Tier 1 user always passes a require_min_tier(3) check (inheriting
+    access downward), but a Tier 4 citizen always fails require_min_tier(1).
+
+    CRITICAL: Do NOT use this for SEC-05 GBV firewall checks.  Use require_role()
+    with explicit UserRole.SAPS_LIAISON / UserRole.ADMIN for those endpoints.
+
+    Args:
+        min_tier: Minimum tier level required (1-4).  Lower = more restrictive.
+
+    Returns:
+        Async dependency function that validates the user's tier level.
+
+    Example:
+        @app.get("/pms/kpi", dependencies=[Depends(require_min_tier(3))])
+        async def kpi_endpoint():
+            # Accessible by Tier 1, 2, and 3 users
+            ...
+    """
+
+    async def tier_checker(current_user: User = Depends(get_current_user)) -> User:
+        """Check if current user's role tier is within the allowed range.
+
+        Args:
+            current_user: User from get_current_user dependency
+
+        Returns:
+            User object if tier check passes
+
+        Raises:
+            HTTPException: 403 if user's tier is higher (less privileged) than min_tier
+        """
+        user_tier = TIER_ORDER.get(current_user.role.value, 99)
+        if user_tier > min_tier:
+            raise HTTPException(
+                status_code=status.HTTP_403_FORBIDDEN,
+                detail=(
+                    f"Requires tier {min_tier} or higher "
+                    f"(Executive=1, Director=2, Operational=3, Frontline=4)"
+                ),
+            )
+        return current_user
+
+    return tier_checker
