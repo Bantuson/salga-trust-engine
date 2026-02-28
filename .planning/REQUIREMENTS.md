@@ -18,11 +18,11 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### IDP Management
 
-- [ ] **IDP-01**: Authorized user can create a 5-year IDP cycle with title, vision, mission, and status
-- [ ] **IDP-02**: Authorized user can add strategic goals and objectives under an IDP cycle with National KPA alignment
-- [ ] **IDP-03**: Authorized user can create annual IDP review versions within a cycle with version control
+- [x] **IDP-01**: Authorized user can create a 5-year IDP cycle with title, vision, mission, and status
+- [x] **IDP-02**: Authorized user can add strategic goals and objectives under an IDP cycle with National KPA alignment
+- [x] **IDP-03**: Authorized user can create annual IDP review versions within a cycle with version control
 - [ ] **IDP-04**: User can view alignment mapping from IDP objectives down to linked SDBIP KPIs (golden thread)
-- [ ] **IDP-05**: IDP cycle supports approval workflow (draft → approved → under_review)
+- [x] **IDP-05**: IDP cycle supports approval workflow (draft → approved → under_review)
 
 ### SDBIP Management
 
@@ -140,11 +140,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RBAC-04 | Phase 27 | Complete |
 | RBAC-05 | Phase 27 | Complete |
 | RBAC-06 | Phase 27 | Complete |
-| IDP-01 | Phase 28 | Pending |
-| IDP-02 | Phase 28 | Pending |
-| IDP-03 | Phase 28 | Pending |
+| IDP-01 | Phase 28 | Complete |
+| IDP-02 | Phase 28 | Complete |
+| IDP-03 | Phase 28 | Complete |
 | IDP-04 | Phase 28 | Pending |
-| IDP-05 | Phase 28 | Pending |
+| IDP-05 | Phase 28 | Complete |
 | SDBIP-01 | Phase 28 | Pending |
 | SDBIP-02 | Phase 28 | Pending |
 | SDBIP-03 | Phase 28 | Pending |

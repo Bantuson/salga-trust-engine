@@ -31,29 +31,30 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 — Phase 27: RBAC Foundation & Tenant Configuration
+**Current focus:** v2.0 — Phase 28: IDP SDBIP Core Performance Monitoring
 
 ## Current Position
 
-Phase: 27 of 32 (RBAC Foundation & Tenant Configuration)
-Plan: 3 of 3 in current phase — at checkpoint:human-verify (Task 3)
-Status: Checkpoint — awaiting human verification
-Last activity: 2026-02-28 — 27-03 Tasks 1+2 committed, design system fix committed (47308cd), SUMMARY.md written, at Task 3 human-verify checkpoint
+Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
+Plan: 2 of 7 in current phase (28-01 complete, starting 28-02)
+Status: Active — 28-01 complete
+Last activity: 2026-02-28 — 28-01 complete (IDP backbone: models, service, API, 21 tests)
 
-Progress: [░░░░░░░░░░] 14%
+Progress: [░░░░░░░░░░] 19%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 3 (v2.0)
+- Total plans completed: 4 (v2.0)
 - Average duration: ~35 min/plan
-- Total execution time: ~1.75 hours
+- Total execution time: ~2.33 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 27-rbac-foundation-tenant-configuration | 3/3 plans done (excl. 27-03) | ~90 min | ~30 min |
+| 28-idp-sdbip-core-performance-monitoring | 1/7 plans done | ~35 min | ~35 min |
 
 *Updated after each plan completion*
 
@@ -87,6 +88,12 @@ From Phase 27 execution (Plans 27-01, 27-02):
 - [Phase 27-03]: CSS variables over Tailwind for all dashboard frontend components — no Tailwind config exists in frontend-dashboard; use inline styles with design-tokens.css variables and @shared/components
 - [Phase 27-03]: require_pms_ready() factory pattern for PMS endpoint gating — returns 403 + structured PMS_NOT_READY checklist dict when municipality configuration incomplete
 
+From Phase 28 execution (Plan 28-01):
+- SDBIPKpi forward relationship NOT declared on IDPObjective in Wave 1 — SQLAlchemy raises InvalidRequestError at startup; Plan 28-04 adds relationship after SDBIPKpi model exists
+- IDPWorkflow uses start_value parameter (python-statemachine 3.0.0) for model binding to non-initial states — critical for transition_cycle when cycle.status != "draft"
+- IDP tests use real SQLite db_session + set_tenant_context/clear_tenant_context pattern — mocks insufficient for selectinload golden thread tests
+- idp_versions uniqueness via DB UniqueConstraint + service-layer IntegrityError catch (409 Conflict)
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -101,5 +108,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Phase 27 Plan 27-03 checkpoint:human-verify (Task 3) — Tasks 1+2 complete and design system fix committed (47308cd). Awaiting human visual verification of PMS wizard at /pms-setup (wizard steps, organogram tree, role switcher). SUMMARY.md created at .planning/phases/27-rbac-foundation-tenant-configuration/27-03-SUMMARY.md.
+Stopped at: Completed Phase 28 Plan 28-01 (IDP backbone). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-01-SUMMARY.md. Next: 28-02 SDBIP KPI backbone.
 Resume file: None
