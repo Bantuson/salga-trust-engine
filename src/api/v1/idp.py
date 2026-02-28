@@ -238,3 +238,28 @@ async def list_versions(
     """Return all annual review versions for an IDP cycle."""
     versions = await _service.list_versions(cycle_id, db)
     return [IDPVersionResponse.model_validate(v) for v in versions]
+
+
+# ---------------------------------------------------------------------------
+# Golden Thread
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/cycles/{cycle_id}/golden-thread",
+    dependencies=_pms_deps(),
+    summary="Get the full IDP -> Goals -> Objectives -> KPIs golden thread",
+)
+async def get_golden_thread(
+    cycle_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Return the full golden thread hierarchy for an IDP cycle.
+
+    The golden thread represents statutory traceability from high-level
+    IDP strategy (goals, objectives) down to measurable SDBIP KPIs.
+
+    Uses selectinload eager loading for efficient single-query fetching.
+    Returns 404 if the cycle does not exist.
+    """
+    return await _service.get_golden_thread(cycle_id, db)

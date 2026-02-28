@@ -166,9 +166,14 @@ class IDPObjective(TenantAwareModel):
 
     # Relationships
     goal: Mapped["IDPGoal"] = relationship("IDPGoal", back_populates="objectives")
-    # TODO: sdbip_kpis relationship populated after Plan 28-04 when SDBIPKpi model is created.
-    # Do NOT add the relationship here — SDBIPKpi does not exist in Wave 1 and SQLAlchemy
-    # will raise InvalidRequestError at startup when the referenced class is missing.
+    # Plan 28-07 (Wave 5): SDBIPKpi now exists (added in Plan 28-02/04); safe to declare
+    # back-reference here for golden thread eager loading.
+    sdbip_kpis: Mapped[list["SDBIPKpi"]] = relationship(  # type: ignore[name-defined]
+        "SDBIPKpi",
+        back_populates="objective",
+        foreign_keys="SDBIPKpi.idp_objective_id",
+        lazy="select",
+    )
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<IDPObjective {self.title}>"

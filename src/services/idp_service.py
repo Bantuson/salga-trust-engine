@@ -345,24 +345,26 @@ class IDPService:
         The "golden thread" represents the statutory traceability chain from
         high-level IDP strategy down to measurable SDBIP KPIs.
 
-        In Wave 1, KPIs are not yet linked (empty list).
-        SDBIP KPI linking is implemented in Plan 28-04.
+        Uses selectinload for eager loading to avoid N+1 queries.
 
         Args:
             cycle_id: UUID of the IDP cycle to fetch.
             db:       Async database session.
 
         Returns:
-            Dict with keys: id, title, status, goals (nested with objectives).
+            Dict with keys: id, title, status, goals (nested with objectives and KPIs).
 
         Raises:
             HTTPException 404: Cycle not found.
         """
+        from src.models.sdbip import SDBIPKpi  # local import to avoid circular dependency at module level
         result = await db.execute(
             select(IDPCycle)
             .where(IDPCycle.id == cycle_id)
             .options(
-                selectinload(IDPCycle.goals).selectinload(IDPGoal.objectives)
+                selectinload(IDPCycle.goals)
+                .selectinload(IDPGoal.objectives)
+                .selectinload(IDPObjective.sdbip_kpis)
             )
         )
         cycle = result.scalar_one_or_none()
@@ -385,8 +387,16 @@ class IDPService:
                         {
                             "id": str(obj.id),
                             "title": obj.title,
-                            # TODO: populated after 28-04 (SDBIP KPI models)
-                            "kpis": [],
+                            "kpis": [
+                                {
+                                    "id": str(kpi.id),
+                                    "kpi_number": kpi.kpi_number,
+                                    "description": kpi.description,
+                                    "unit_of_measurement": kpi.unit_of_measurement,
+                                    "annual_target": str(kpi.annual_target),
+                                }
+                                for kpi in (obj.sdbip_kpis or [])
+                            ],
                         }
                         for obj in goal.objectives
                     ],
