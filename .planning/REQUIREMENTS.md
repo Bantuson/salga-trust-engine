@@ -10,10 +10,10 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 ### RBAC & Tenant Configuration
 
 - [ ] **RBAC-01**: Platform supports 4-tier role hierarchy with 14 roles (executive_mayor, municipal_manager, cfo, speaker, councillor, section56_director, department_manager, pms_officer, audit_committee_member, internal_auditor, mpac_member, salga_admin + existing citizen, field_worker, saps_liaison, manager, admin)
-- [ ] **RBAC-02**: Admin can configure municipal department structure (name, code, hierarchy, assigned director) per tenant
-- [ ] **RBAC-03**: Admin can configure municipality settings (category, province, demarcation code, SDBIP layers, scoring method)
+- [x] **RBAC-02**: Admin can configure municipal department structure (name, code, hierarchy, assigned director) per tenant
+- [x] **RBAC-03**: Admin can configure municipality settings (category, province, demarcation code, SDBIP layers, scoring method)
 - [ ] **RBAC-04**: Platform enforces role hierarchy inheritance so senior roles inherit access of subordinate roles
-- [ ] **RBAC-05**: Admin can view municipal organogram showing reporting structure
+- [x] **RBAC-05**: Admin can view municipal organogram showing reporting structure
 - [ ] **RBAC-06**: Role changes and permission checks are fully audit-logged
 
 ### IDP Management
@@ -135,10 +135,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | Requirement | Phase | Status |
 |-------------|-------|--------|
 | RBAC-01 | Phase 27 | Pending |
-| RBAC-02 | Phase 27 | Pending |
-| RBAC-03 | Phase 27 | Pending |
+| RBAC-02 | Phase 27 | Complete |
+| RBAC-03 | Phase 27 | Complete |
 | RBAC-04 | Phase 27 | Pending |
-| RBAC-05 | Phase 27 | Pending |
+| RBAC-05 | Phase 27 | Complete |
 | RBAC-06 | Phase 27 | Pending |
 | IDP-01 | Phase 28 | Pending |
 | IDP-02 | Phase 28 | Pending |

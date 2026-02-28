@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: active
-last_updated: "2026-02-28T12:00:00Z"
+last_updated: "2026-02-28T16:10:27Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 21
-  completed_plans: 0
+  completed_plans: 2
 ---
 
 # Project State
@@ -23,24 +23,24 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 27 of 32 (RBAC Foundation & Tenant Configuration)
-Plan: 0 of 3 in current phase
-Status: Ready to plan
-Last activity: 2026-02-28 — v2.0 roadmap created (6 phases, 21 plans, 60 requirements)
+Plan: 2 of 3 in current phase
+Status: In progress
+Last activity: 2026-02-28 — Completed Plan 27-02 (Department CRUD API, organogram, municipality PMS settings)
 
-Progress: [░░░░░░░░░░] 0%
+Progress: [░░░░░░░░░░] 10%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 0 (v2.0)
-- Average duration: TBD
-- Total execution time: 0 hours
+- Total plans completed: 2 (v2.0)
+- Average duration: ~15 min/plan
+- Total execution time: 0.5 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
-| - | - | - | - |
+| 27-rbac-foundation-tenant-configuration | 2/3 | ~30 min | ~15 min |
 
 *Updated after each plan completion*
 
@@ -60,6 +60,14 @@ From research:
 - clamav-client against ClamAV Docker sidecar on port 3310 for evidence virus scanning
 - Auto-population SEC-05 extension: `AND is_sensitive = FALSE` on every aggregation query
 
+From Phase 27 execution (Plans 27-01, 27-02):
+- Department soft-delete (is_active=False) instead of hard delete — preserves historical KPI/SDBIP linkage for Phase 28+
+- municipality_router as second APIRouter in departments.py module — no extra file needed
+- Settings lock enforced at API layer (403 when locked) with explicit unlock confirmation body
+- Organogram built from flat list in Python (not recursive CTE SQL) — SQLite-compatible for unit tests
+- TIER_ORDER dict in deps.py (not database) — roles are static, DB lookup adds latency for no benefit
+- 18-role 4-tier hierarchy: Tier 1 Executive (6 roles), Tier 2 Director (3), Tier 3 Operational (7), Tier 4 Frontline (2)
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -69,10 +77,10 @@ From research:
 
 ### Blockers/Concerns
 
-None yet.
+None.
 
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Roadmap created — all 6 phases written, 60 requirements mapped, STATE.md initialized
+Stopped at: Completed 27-02-PLAN.md — Department CRUD API, organogram, municipality PMS settings committed (2b33881)
 Resume file: None
