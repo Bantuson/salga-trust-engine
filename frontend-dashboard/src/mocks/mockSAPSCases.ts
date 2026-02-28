@@ -5,6 +5,8 @@
  * This data is ONLY imported by SAPSReportsPage — NEVER by general ticket pages.
  * Descriptions are sensitively worded and non-graphic.
  * Assigned to SAPS Liaison Unit (team-006-saps) and saps_liaison-role users.
+ *
+ * Location: Colesberg, Emthanjeni Local Municipality, Northern Cape. Wards 1-4.
  */
 
 import type { Ticket } from '../types/dashboard';
@@ -17,13 +19,13 @@ const daysAgo = (days: number, hoursOffset = 0) =>
 export const mockSAPSTickets: Ticket[] = [
   {
     id: 'saps-001-gbv',
-    tracking_number: 'TKT-20260225-SAPS001',
+    tracking_number: 'TKT-20260225-COL-SAP001',
     category: 'gbv',
     description: 'GBV case referred — complainant seeking protection order. Safe house referral in progress.',
     status: 'in_progress',
     severity: 'high',
     language: 'en',
-    address: 'Ward 15, Berea, eThekwini',
+    address: 'Ward 1, Colesberg Central',
     user_id: 'u-006-lindiwe-zulu',
     is_sensitive: true,
     created_at: daysAgo(2, 4),
@@ -36,13 +38,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-002-gbv',
-    tracking_number: 'TKT-20260224-SAPS002',
+    tracking_number: 'TKT-20260224-COL-SAP002',
     category: 'gbv',
-    description: 'Domestic incident reported — safe house referral requested. Case opened with Berea SAPS.',
+    description: 'Domestic incident reported — safe house referral requested. Case opened with Colesberg SAPS.',
     status: 'open',
     severity: 'critical',
     language: 'en',
-    address: 'Ward 7, KwaMashu, eThekwini',
+    address: 'Ward 2, Kuyasa, Colesberg',
     user_id: 'u-008-nompumelelo-sithole',
     is_sensitive: true,
     created_at: daysAgo(3, 6),
@@ -55,13 +57,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-003-gbv',
-    tracking_number: 'TKT-20260223-SAPS003',
+    tracking_number: 'TKT-20260223-COL-SAP003',
     category: 'gbv',
     description: 'Udaba lwasekhaya — isicelo sokuvikelwa sikhishiwe. Izincwadi ze-protection order zilungiswa.',
     status: 'in_progress',
     severity: 'high',
     language: 'zu',
-    address: 'Ward 12, Ntuzuma, eThekwini',
+    address: 'Ward 2, Kuyasa, Colesberg',
     user_id: 'u-010-ayanda-mthembu',
     is_sensitive: true,
     created_at: daysAgo(4, 3),
@@ -74,13 +76,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-004-gbv',
-    tracking_number: 'TKT-20260220-SAPS004',
+    tracking_number: 'TKT-20260220-COL-SAP004',
     category: 'gbv',
     description: 'Huishoudelike voorval — veilige plek versoek. Kennisgewing aan maatskaplike werker gestuur.',
     status: 'resolved',
     severity: 'high',
     language: 'af',
-    address: 'Ward 9, Westville, eThekwini',
+    address: 'Ward 3, Lowryville, Colesberg',
     user_id: 'u-002-nomsa-khumalo',
     is_sensitive: true,
     created_at: daysAgo(7, 5),
@@ -93,13 +95,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-005-gbv',
-    tracking_number: 'TKT-20260215-SAPS005',
+    tracking_number: 'TKT-20260215-COL-SAP005',
     category: 'gbv',
     description: 'Case referred via social worker — complainant connected with victim support services. Follow-up scheduled.',
     status: 'resolved',
     severity: 'critical',
     language: 'en',
-    address: 'Ward 23, Inanda, eThekwini',
+    address: 'Ward 4, Koleshoogte, Colesberg',
     user_id: 'u-001-sipho-ndlovu',
     is_sensitive: true,
     created_at: daysAgo(12, 7),
@@ -112,13 +114,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-006-gbv',
-    tracking_number: 'TKT-20260210-SAPS006',
+    tracking_number: 'TKT-20260210-COL-SAP006',
     category: 'gbv',
     description: 'GBV hotline referral — case registered. Complainant placed in temporary shelter. Ongoing monitoring.',
     status: 'in_progress',
     severity: 'high',
     language: 'en',
-    address: 'Ward 18, Chatsworth, eThekwini',
+    address: 'Ward 1, Colesberg Central',
     user_id: 'u-007-siyabonga-mbeki',
     is_sensitive: true,
     created_at: daysAgo(17, 4),
@@ -131,13 +133,13 @@ export const mockSAPSTickets: Ticket[] = [
   },
   {
     id: 'saps-007-gbv',
-    tracking_number: 'TKT-20260205-SAPS007',
+    tracking_number: 'TKT-20260205-COL-SAP007',
     category: 'gbv',
     description: 'Isicelo sokuvikelwa siphothulwe — indlu ekhuselekile itholakele ngokusebenzisa iNdlunkulu Yosizo.',
     status: 'resolved',
     severity: 'high',
     language: 'zu',
-    address: 'Ward 28, Umlazi, eThekwini',
+    address: 'Ward 4, Koleshoogte, Colesberg',
     user_id: 'u-004-zanele-dlamini',
     is_sensitive: true,
     created_at: daysAgo(22, 6),

@@ -1,6 +1,6 @@
 /**
  * Mock settings data for municipal dashboard fallback rendering.
- * Includes SLA configs for all service categories and eThekwini municipality profile.
+ * Includes SLA configs for all service categories and Emthanjeni municipality profile.
  */
 
 import type { SLAConfig, MunicipalityProfile } from '../types/settings';
@@ -62,11 +62,11 @@ export const mockSLAConfigs: SLAConfig[] = [
 
 // ─── Municipality Profile ──────────────────────────────────────────────────
 export const mockMunicipalityProfile: MunicipalityProfile = {
-  id: 'muni-eth-001',
-  name: 'eThekwini Metropolitan Municipality',
-  code: 'ETH',
-  province: 'KwaZulu-Natal',
-  contact_email: 'info@ethekwini.gov.za',
-  contact_phone: '031-311-1111',
+  id: 'muni-emt-001',
+  name: 'Emthanjeni Local Municipality',
+  code: 'EMT',
+  province: 'Northern Cape',
+  contact_email: 'info@emthanjeni.gov.za',
+  contact_phone: '051-753-0777',
   logo_url: null,
 };

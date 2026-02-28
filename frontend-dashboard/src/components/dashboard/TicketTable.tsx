@@ -24,9 +24,9 @@ interface TicketTableProps {
 
 function getStatusBadgeColor(status: string): string {
   switch (status) {
-    case 'open': return 'var(--color-teal)';
-    case 'in_progress': return '#FBBF24'; // amber
-    case 'escalated': return 'var(--color-coral)';
+    case 'open': return '#22c55e';
+    case 'in_progress': return '#f97316';
+    case 'escalated': return '#ef4444';
     case 'resolved': return 'var(--color-teal)';
     case 'closed': return 'var(--text-muted)';
     default: return 'var(--text-muted)';
@@ -103,6 +103,7 @@ export function TicketTable({
                 color: 'white',
                 backgroundColor: getStatusBadgeColor(status),
                 textTransform: 'capitalize',
+                whiteSpace: 'nowrap',
               }}
             >
               {status.replace('_', ' ')}

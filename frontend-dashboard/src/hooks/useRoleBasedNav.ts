@@ -50,6 +50,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'field_worker':
         return [
           { label: 'My Tickets', path: '/', icon: 'ticket' },
+          { label: 'Team', path: '/field-worker/team', icon: 'users' },
           { label: 'Completed', path: '/completed', icon: 'chart' },
         ];
       case 'saps_liaison':

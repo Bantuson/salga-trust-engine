@@ -10,7 +10,6 @@
 
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
-import { GlassCard } from '@shared/components/ui/GlassCard';
 import { useAuth } from '../../hooks/useAuth';
 import {
   fetchTicketDetail,
@@ -32,9 +31,9 @@ interface TicketDetailModalProps {
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'open': return 'var(--color-teal)';
-    case 'in_progress': return '#FBBF24';
-    case 'escalated': return 'var(--color-coral)';
+    case 'open': return '#22c55e';
+    case 'in_progress': return '#f97316';
+    case 'escalated': return '#ef4444';
     case 'resolved': return 'var(--color-teal)';
     case 'closed': return 'var(--text-muted)';
     default: return 'var(--text-muted)';
@@ -103,16 +102,36 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
         const teamsRes = await fetchTeams().catch(() => [] as Team[]);
         setTeams(teamsRes);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load ticket details');
+    } catch {
+      // Gracefully fall back to ticket prop data — no error banner needed
+      setDetail({
+        ...ticket,
+        description: ticket.description ?? '',
+        severity: ticket.severity ?? 'medium',
+        sla_response_deadline: null,
+        sla_resolution_deadline: ticket.sla_resolution_deadline ?? null,
+        sla_status: null,
+        escalation_reason: null,
+        assignment_history: [],
+      } as TicketDetailResponse);
+      setHistory([]);
     } finally {
       setLoading(false);
     }
-  }, [ticket.id, canManage]);
+  }, [ticket, canManage]);
 
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Body scroll lock while modal is open
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
 
   // Close on Escape
   useEffect(() => {
@@ -190,7 +209,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
   const currentStatus = detail?.status ?? ticket.status;
 
   return (
-    <div style={styles.overlay} onClick={onClose}>
+    <div style={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label={`Ticket ${ticket.tracking_number} details`}>
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={styles.header}>
@@ -204,7 +223,12 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
             </span>
             <span style={styles.categoryLabel}>{ticket.category}</span>
           </div>
-          <button style={styles.closeBtn} onClick={onClose}>X</button>
+          <button style={styles.closeBtn} onClick={onClose} aria-label="Close">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
         </div>
 
         {/* Tabs */}
@@ -238,12 +262,12 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
             <div style={styles.detailsGrid}>
               {/* Left: Info */}
               <div style={styles.infoSection}>
-                <GlassCard variant="default" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                <div style={{ ...styles.innerCard, padding: '1.25rem', marginBottom: '1rem' }}>
                   <h3 style={styles.sectionTitle}>Description</h3>
                   <p style={styles.description}>{detail?.description ?? ticket.description}</p>
-                </GlassCard>
+                </div>
 
-                <GlassCard variant="default" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                <div style={{ ...styles.innerCard, padding: '1.25rem', marginBottom: '1rem' }}>
                   <h3 style={styles.sectionTitle}>Details</h3>
                   <div style={styles.detailRow}>
                     <span style={styles.detailLabel}>Address</span>
@@ -271,7 +295,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                       <span style={styles.detailValue}>{detail.escalation_reason}</span>
                     </div>
                   )}
-                </GlassCard>
+                </div>
               </div>
 
               {/* Right: Actions */}
@@ -279,7 +303,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                 <div style={styles.actionsSection}>
                   {/* Manager/Admin: Assignment */}
                   {canManage && (
-                    <GlassCard variant="default" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                    <div style={{ ...styles.innerCard, padding: '1.25rem', marginBottom: '1rem' }}>
                       <h3 style={styles.sectionTitle}>Assign Ticket</h3>
                       <div style={styles.formGroup}>
                         <label style={styles.formLabel}>Team</label>
@@ -301,11 +325,11 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                       >
                         {actionLoading ? 'Assigning...' : 'Assign'}
                       </button>
-                    </GlassCard>
+                    </div>
                   )}
 
                   {/* Status Update */}
-                  <GlassCard variant="default" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                  <div style={{ ...styles.innerCard, padding: '1.25rem', marginBottom: '1rem' }}>
                     <h3 style={styles.sectionTitle}>Update Status</h3>
                     <div style={styles.statusButtons}>
                       {canFieldWork ? (
@@ -361,11 +385,11 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                         </>
                       )}
                     </div>
-                  </GlassCard>
+                  </div>
 
                   {/* Escalate */}
                   {currentStatus !== 'escalated' && currentStatus !== 'resolved' && currentStatus !== 'closed' && (
-                    <GlassCard variant="default" style={{ padding: '1.25rem', marginBottom: '1rem' }}>
+                    <div style={{ ...styles.innerCard, padding: '1.25rem', marginBottom: '1rem' }}>
                       {!showEscalate ? (
                         <button
                           style={{ ...styles.actionBtn, backgroundColor: 'var(--color-coral)' }}
@@ -377,6 +401,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                         <>
                           <h3 style={styles.sectionTitle}>Escalate</h3>
                           <textarea
+                            className="modal-textarea"
                             style={styles.textarea}
                             placeholder="Reason for escalation (min 10 chars)..."
                             value={escalateReason}
@@ -400,14 +425,15 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                           </div>
                         </>
                       )}
-                    </GlassCard>
+                    </div>
                   )}
 
                   {/* Add Note */}
                   {(canFieldWork || canSAPS || canManage) && (
-                    <GlassCard variant="default" style={{ padding: '1.25rem' }}>
+                    <div style={{ ...styles.innerCard, padding: '1.25rem' }}>
                       <h3 style={styles.sectionTitle}>Add Note</h3>
                       <textarea
+                        className="modal-textarea"
                         style={styles.textarea}
                         placeholder="Write a note..."
                         value={noteContent}
@@ -421,7 +447,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                       >
                         {actionLoading ? 'Saving...' : 'Save Note'}
                       </button>
-                    </GlassCard>
+                    </div>
                   )}
                 </div>
               )}
@@ -435,7 +461,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                 </p>
               ) : (
                 history.map((entry, i) => (
-                  <GlassCard key={i} variant="default" style={{ padding: '1rem', marginBottom: '0.75rem' }}>
+                  <div key={i} style={{ ...styles.innerCard, padding: '1rem', marginBottom: '0.75rem' }}>
                     <div style={styles.historyHeader}>
                       <span style={{
                         ...styles.badge,
@@ -454,7 +480,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                     ) : (
                       <p style={styles.historyContent}>{entry.changes ?? '-'}</p>
                     )}
-                  </GlassCard>
+                  </div>
                 ))
               )}
             </div>
@@ -480,13 +506,15 @@ const styles = {
   modal: {
     width: '100%',
     maxWidth: '900px',
-    maxHeight: '90vh',
+    maxHeight: '85vh',
     display: 'flex',
     flexDirection: 'column' as const,
-    background: 'var(--surface-base)',
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
     borderRadius: 'var(--radius-xl)',
     border: '1px solid var(--glass-border)',
-    overflow: 'hidden',
+    overflow: 'hidden' as const,
   },
   header: {
     display: 'flex',
@@ -494,7 +522,12 @@ const styles = {
     alignItems: 'center',
     padding: '1.25rem 1.5rem',
     borderBottom: '1px solid var(--glass-border)',
-    background: 'var(--surface-elevated)',
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    position: 'sticky' as const,
+    top: 0,
+    zIndex: 1,
   },
   headerLeft: {
     display: 'flex',
@@ -523,19 +556,22 @@ const styles = {
     textTransform: 'capitalize' as const,
   },
   closeBtn: {
+    flexShrink: 0,
     background: 'none',
     border: 'none',
-    color: 'var(--text-secondary)',
-    fontSize: '1.25rem',
+    color: 'var(--text-muted)',
     cursor: 'pointer',
-    fontWeight: '600' as const,
-    padding: '0.25rem 0.5rem',
-    fontFamily: 'inherit',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--radius-sm)',
+    transition: 'color 0.15s ease',
   },
   tabs: {
     display: 'flex',
     borderBottom: '1px solid var(--glass-border)',
-    background: 'var(--surface-elevated)',
+    background: 'rgba(255, 255, 255, 0.05)',
   },
   tab: {
     padding: '0.75rem 1.5rem',
@@ -567,6 +603,7 @@ const styles = {
   },
   content: {
     flex: 1,
+    minHeight: 0,
     overflowY: 'auto' as const,
     padding: '1.5rem',
   },
@@ -594,13 +631,20 @@ const styles = {
   } as React.CSSProperties,
   infoSection: {} as React.CSSProperties,
   actionsSection: {} as React.CSSProperties,
+  innerCard: {
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    borderRadius: 'var(--radius-lg)',
+  } as React.CSSProperties,
   sectionTitle: {
     fontSize: '0.875rem',
     fontWeight: '600' as const,
-    color: 'var(--text-primary)',
+    color: 'var(--color-accent-gold)',
     marginBottom: '0.75rem',
     textTransform: 'uppercase' as const,
     letterSpacing: '0.04em',
+    paddingBottom: '0.5rem',
+    borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
   },
   description: {
     fontSize: '0.9375rem',
@@ -677,7 +721,7 @@ const styles = {
     padding: '0.5rem 1rem',
     borderRadius: 'var(--radius-sm)',
     border: 'none',
-    background: '#FBBF24',
+    background: '#f97316',
     color: '#fff',
     fontSize: '0.875rem',
     fontWeight: '600' as const,

@@ -22,9 +22,9 @@ type FilterStatus = 'all' | 'open' | 'in_progress' | 'escalated';
 
 function getStatusColor(status: string): string {
   switch (status) {
-    case 'open': return 'var(--color-teal)';
-    case 'in_progress': return '#FBBF24';
-    case 'escalated': return 'var(--color-coral)';
+    case 'open': return '#22c55e';
+    case 'in_progress': return '#f97316';
+    case 'escalated': return '#ef4444';
     case 'resolved': return 'var(--color-teal)';
     case 'closed': return 'var(--text-muted)';
     default: return 'var(--text-muted)';
@@ -73,7 +73,15 @@ export function FieldWorkerTicketsPage() {
     try {
       // Backend auto-filters by assigned_to for field workers
       const response = await fetchTickets({ page: 0, page_size: 200 });
-      setTickets(response.tickets);
+      if (response.tickets.length === 0) {
+        // API succeeded but returned empty — use rich mock fallback
+        const activeTickets = mockTickets.filter(
+          (t) => t.status === 'open' || t.status === 'in_progress' || t.status === 'escalated'
+        );
+        setTickets(activeTickets);
+      } else {
+        setTickets(response.tickets);
+      }
     } catch (err) {
       // Rich mock fallback — show active (open/in_progress) tickets for field worker view
       const activeTickets = mockTickets.filter(
@@ -272,7 +280,7 @@ const styles = {
     fontFamily: 'monospace',
     fontWeight: '600' as const,
     fontSize: '0.9375rem',
-    color: 'var(--text-primary)',
+    color: 'var(--text-secondary)',
   } as React.CSSProperties,
   badge: {
     display: 'inline-block',
@@ -322,6 +330,6 @@ const styles = {
   } as React.CSSProperties,
   dateText: {
     fontSize: '0.75rem',
-    color: 'var(--text-muted)',
+    color: 'var(--text-secondary)',
   } as React.CSSProperties,
 };

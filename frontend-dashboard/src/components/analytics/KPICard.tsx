@@ -5,16 +5,12 @@
  * (Stripe/Linear dashboard style)"
  *
  * Features:
- * - Large animated counter (anime.js, matching MetricsCards pattern)
+ * - Large static counter value
  * - Optional unit suffix in smaller font
  * - SparkLine positioned right-aligned with trend arrow + percentage label
- * - AnimatedCard wrapper with staggered entrance delay
- * - Cleanup of anime.js animation on unmount (Pitfall 5)
+ * - GlassCard wrapper (no AnimatedCard to avoid double backgrounds)
  */
 
-import { useEffect, useRef } from 'react';
-import { animate, type JSAnimation } from 'animejs';
-import { AnimatedCard } from '../AnimatedCard';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import SparkLine from './SparkLine';
 
@@ -35,35 +31,8 @@ export function KPICard({
   trend,
   trendDirection = 'neutral',
   color,
-  index,
 }: KPICardProps) {
-  const valueRef = useRef<HTMLSpanElement>(null);
-  const animRef = useRef<JSAnimation | null>(null);
-
   const numericValue = typeof value === 'number' ? value : parseFloat(String(value)) || 0;
-
-  useEffect(() => {
-    if (!valueRef.current) return;
-
-    // Cancel any existing animation
-    if (animRef.current) {
-      animRef.current.pause();
-    }
-
-    animRef.current = animate(valueRef.current, {
-      innerHTML: [0, numericValue],
-      round: numericValue % 1 === 0 ? 1 : 10,
-      duration: 1800,
-      ease: 'outExpo',
-    });
-
-    return () => {
-      if (animRef.current) {
-        animRef.current.pause();
-        animRef.current = null;
-      }
-    };
-  }, [numericValue]);
 
   const trendColor =
     trendDirection === 'up'
@@ -87,33 +56,31 @@ export function KPICard({
   }
 
   return (
-    <AnimatedCard glowColor="teal" delay={index * 0.05}>
-      <GlassCard variant="default" style={styles.card}>
-        {/* Label row */}
-        <div style={styles.label}>{label}</div>
+    <GlassCard variant="default" style={styles.card}>
+      {/* Label row */}
+      <div style={styles.label}>{label}</div>
 
-        {/* Value row */}
-        <div style={styles.valueRow}>
-          <div style={{ ...styles.value, color }}>
-            <span ref={valueRef}>{Math.round(numericValue)}</span>
-            {unit && <span style={styles.unit}>{unit}</span>}
-          </div>
+      {/* Value row */}
+      <div style={styles.valueRow}>
+        <div style={{ ...styles.value, color }}>
+          <span>{numericValue % 1 === 0 ? numericValue : numericValue.toFixed(1)}</span>
+          {unit && <span style={styles.unit}>{unit}</span>}
         </div>
+      </div>
 
-        {/* Sparkline + trend indicator row */}
-        {trend && trend.length >= 2 && (
-          <div style={styles.sparkRow}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-              <span style={{ ...styles.trendArrow, color: trendColor }}>{trendArrow}</span>
-              {trendPct && (
-                <span style={{ ...styles.trendPct, color: trendColor }}>{trendPct}</span>
-              )}
-            </div>
-            <SparkLine data={trend} width={80} height={28} color={color} />
+      {/* Sparkline + trend indicator row */}
+      {trend && trend.length >= 2 && (
+        <div style={styles.sparkRow}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+            <span style={{ ...styles.trendArrow, color: trendColor }}>{trendArrow}</span>
+            {trendPct && (
+              <span style={{ ...styles.trendPct, color: trendColor }}>{trendPct}</span>
+            )}
           </div>
-        )}
-      </GlassCard>
-    </AnimatedCard>
+          <SparkLine data={trend} width={80} height={28} color={color} />
+        </div>
+      )}
+    </GlassCard>
   );
 }
 

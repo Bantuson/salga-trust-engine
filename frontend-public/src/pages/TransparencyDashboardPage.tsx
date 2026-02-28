@@ -3,7 +3,6 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import { MunicipalitySelector } from '../components/MunicipalitySelector';
 import { ServicePerformanceStats } from '../components/ServicePerformanceStats';
 import {
-  useSystemSummary,
   useResponseTimes,
   useResolutionRates,
   useCategoryBreakdown,
@@ -11,9 +10,6 @@ import {
 
 export function TransparencyDashboardPage() {
   const [selectedMunicipality, setSelectedMunicipality] = useState<string | null>(null);
-
-  // Load system summary
-  const { summary } = useSystemSummary();
 
   // Load metrics based on selected municipality
   const { data: responseTimes, isLoading: isLoadingResponse } = useResponseTimes(selectedMunicipality || undefined);
@@ -33,25 +29,6 @@ export function TransparencyDashboardPage() {
       </div>
 
       <div className="dashboard-content">
-        {/* System Summary Cards */}
-        <div className="dashboard-summary-grid">
-          <GlassCard variant="elevated">
-            <div className="metric-label">Total Municipalities</div>
-            <div className="metric-value">{summary.total_municipalities}</div>
-          </GlassCard>
-
-          <GlassCard variant="elevated">
-            <div className="metric-label">Total Service Requests</div>
-            <div className="metric-value">{summary.total_tickets.toLocaleString()}</div>
-          </GlassCard>
-
-          <GlassCard variant="elevated">
-            <div className="metric-label">Sensitive Reports (System-wide)</div>
-            <div className="metric-value">{summary.total_sensitive_tickets.toLocaleString()}</div>
-            <div className="metric-note">GBV reports excluded from location data</div>
-          </GlassCard>
-        </div>
-
         {/* Municipality Selector */}
         <MunicipalitySelector
           selectedId={selectedMunicipality}
