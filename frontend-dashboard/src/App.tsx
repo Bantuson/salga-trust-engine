@@ -22,6 +22,7 @@ import { SAPSReportsPage } from './pages/SAPSReportsPage';
 import { FieldWorkerTicketsPage } from './pages/FieldWorkerTicketsPage';
 import { FieldWorkerTeamPage } from './pages/FieldWorkerTeamPage';
 import { CompletedTicketsPage } from './pages/CompletedTicketsPage';
+import { PmsSetupWizardPage } from './pages/PmsSetupWizardPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
@@ -73,6 +74,9 @@ function AppRoutes() {
       <Routes>
         {/* Onboarding wizard (full-screen, no layout) */}
         <Route path="/onboarding" element={<OnboardingWizardPage />} />
+
+        {/* PMS setup wizard (admin only, full-page within layout) */}
+        <Route path="/pms-setup" element={<DashboardLayout><PmsSetupWizardPage /></DashboardLayout>} />
 
         {/* Dashboard routes (wrapped in DashboardLayout) */}
         <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
