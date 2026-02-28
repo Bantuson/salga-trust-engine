@@ -16,12 +16,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: active
-last_updated: "2026-02-28T20:00:00Z"
+last_updated: "2026-02-28T21:49:00Z"
 progress:
   total_phases: 6
   completed_phases: 0
   total_plans: 21
-  completed_plans: 3
+  completed_plans: 4
 ---
 
 # Project State
@@ -36,25 +36,25 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
-Plan: 4 of 7 in current phase (28-03 complete, starting 28-04)
-Status: Active — 28-03 complete
-Last activity: 2026-02-28 — 28-03 complete (SDBIP approval workflow: SDBIPWorkflow state machine, Mayor sign-off gate, SDBIP-09 mid-year adjustment, 7 tests)
+Plan: 5 of 7 in current phase (28-04 complete, starting 28-05)
+Status: Active — 28-04 complete
+Last activity: 2026-02-28 — 28-04 complete (quarterly actuals submission: SDBIPActual model, compute_achievement helper, TrafficLight enum, immutability enforcement, correction chain, 30 tests)
 
-Progress: [░░░░░░░░░░] 26%
+Progress: [░░░░░░░░░░] 29%
 
 ## Performance Metrics
 
 **Velocity:**
-- Total plans completed: 5 (v2.0)
-- Average duration: ~38 min/plan
-- Total execution time: ~2.75 hours
+- Total plans completed: 6 (v2.0)
+- Average duration: ~35 min/plan
+- Total execution time: ~3.1 hours
 
 **By Phase:**
 
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 27-rbac-foundation-tenant-configuration | 3/3 plans done (excl. 27-03) | ~90 min | ~30 min |
-| 28-idp-sdbip-core-performance-monitoring | 2/7 plans done | ~80 min | ~40 min |
+| 28-idp-sdbip-core-performance-monitoring | 4/7 plans done | ~120 min | ~30 min |
 
 *Updated after each plan completion*
 
@@ -107,6 +107,14 @@ From Phase 28 execution (Plan 28-03):
 - ID capture before commit: save UUID to local variable before any service call that commits; SQLAlchemy expires all ORM objects after commit, including primary key access triggers MissingGreenlet in async context
 - SDBIPWorkflow uses start_value= model binding (same pattern as IDPWorkflow from 28-01) — critical for non-initial states
 
+From Phase 28 execution (Plan 28-04):
+- TrafficLight thresholds: green >= 80%, amber 50-79%, red < 50% — matches MFMA Section 52/72 reporting standards
+- Division by zero (target=0) returns (Decimal('0'), 'red') — graceful degradation, not exception; enables KPIs with zero targets to still record actuals
+- Correction chain: new SDBIPActual with corrects_actual_id FK (not soft-delete) — full audit trail; original validated record never modified
+- Immutability at API layer (not DB constraint) — PUT/PATCH return 422 when is_validated=True; DB stays mutable for PMS officer validation in 28-05
+- SDBIPActual.actuals relationship on SDBIPKpi uses explicit foreign_keys=[SDBIPActual.kpi_id] — avoids SQLAlchemy ambiguity with self-referencing corrects_actual_id FK
+- Correction reason stored in source_query_ref field — reuses existing column rather than adding new reason column (correction context already logged)
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -121,5 +129,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed Phase 28 Plan 28-03 (SDBIP approval workflow + SDBIP-09). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-03-SUMMARY.md. Next: 28-04 (performance actuals recording — SDBIPActual model pre-committed by linter, tests pending).
+Stopped at: Completed Phase 28 Plan 28-04 (quarterly actuals submission system). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-04-SUMMARY.md. Next: 28-05 (PMS officer validation of actuals — is_validated flag, validation workflow).
 Resume file: None
