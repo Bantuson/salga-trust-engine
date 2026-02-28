@@ -173,7 +173,7 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-10.4 (26 phases) | v1.0 | ~127/~127 | Complete | 2026-02-28 |
 | 27. RBAC Foundation & Tenant Configuration | 3/3 | Complete   | 2026-02-28 | - |
-| 28. IDP, SDBIP Core & Performance Monitoring | 2/7 | In Progress|  | - |
+| 28. IDP, SDBIP Core & Performance Monitoring | 4/7 | In Progress|  | - |
 | 29. Individual Performance Agreements | v2.0 | 0/2 | Not started | - |
 | 30. Statutory Reporting & Approval Workflows | v2.0 | 0/4 | Not started | - |
 | 31. Role-Specific Dashboards | v2.0 | 0/4 | Not started | - |

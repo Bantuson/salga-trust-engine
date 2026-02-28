@@ -36,11 +36,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
-Plan: 3 of 7 in current phase (28-02 complete, starting 28-03)
-Status: Active — 28-02 complete
-Last activity: 2026-02-28 — 28-02 complete (SDBIP KPI backbone: 4 models, 9 API endpoints, 25 tests, 30 mSCOA seed codes)
+Plan: 4 of 7 in current phase (28-03 complete, starting 28-04)
+Status: Active — 28-03 complete
+Last activity: 2026-02-28 — 28-03 complete (SDBIP approval workflow: SDBIPWorkflow state machine, Mayor sign-off gate, SDBIP-09 mid-year adjustment, 7 tests)
 
-Progress: [░░░░░░░░░░] 23%
+Progress: [░░░░░░░░░░] 26%
 
 ## Performance Metrics
 
@@ -101,6 +101,12 @@ From Phase 28 execution (Plan 28-02):
 - mSCOA code and IDP objective FK validation at service layer (SELECT then 422) rather than DB FK violation (opaque 500 in SQLite)
 - mscoa-codes endpoint has no PMS readiness gate — reference data accessible to Tier 3+ users before PMS configuration is complete
 
+From Phase 28 execution (Plan 28-03):
+- resubmit event (revised->approved) requires same Mayor role gate as submit — governance consistency: re-approval requires executive sign-off
+- OperationType.UPDATE used for mid-year adjustment audit log — avoids introducing new audit operation types in this plan
+- ID capture before commit: save UUID to local variable before any service call that commits; SQLAlchemy expires all ORM objects after commit, including primary key access triggers MissingGreenlet in async context
+- SDBIPWorkflow uses start_value= model binding (same pattern as IDPWorkflow from 28-01) — critical for non-initial states
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -115,5 +121,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed Phase 28 Plan 28-02 (SDBIP KPI backbone). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-02-SUMMARY.md. Next: 28-03 (performance actuals recording).
+Stopped at: Completed Phase 28 Plan 28-03 (SDBIP approval workflow + SDBIP-09). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-03-SUMMARY.md. Next: 28-04 (performance actuals recording — SDBIPActual model pre-committed by linter, tests pending).
 Resume file: None

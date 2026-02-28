@@ -31,10 +31,10 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **SDBIP-03**: Each KPI includes description, unit of measurement, baseline, annual target, weight, and responsible director
 - [x] **SDBIP-04**: Each KPI has quarterly targets (Q1–Q4) that align to the annual target
 - [x] **SDBIP-05**: Each KPI links to a validated mSCOA budget code from seeded reference table (not free-text)
-- [ ] **SDBIP-06**: SDBIP supports approval workflow (draft → approved → revised) with Mayor sign-off
+- [x] **SDBIP-06**: SDBIP supports approval workflow (draft → approved → revised) with Mayor sign-off
 - [ ] **SDBIP-07**: System auto-populates SDBIP actuals from ticket resolution data for service-delivery KPIs
 - [ ] **SDBIP-08**: Auto-population rules are configurable per KPI (ticket category, aggregation type, formula description)
-- [ ] **SDBIP-09**: Authorized user can adjust SDBIP targets at mid-year when adjustments budget is approved
+- [x] **SDBIP-09**: Authorized user can adjust SDBIP targets at mid-year when adjustments budget is approved
 - [x] **SDBIP-10**: mSCOA reference table is seeded from National Treasury classification and queryable by segment
 
 ### Performance Monitoring & Evidence
@@ -150,10 +150,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SDBIP-03 | Phase 28 | Complete |
 | SDBIP-04 | Phase 28 | Complete |
 | SDBIP-05 | Phase 28 | Complete |
-| SDBIP-06 | Phase 28 | Pending |
+| SDBIP-06 | Phase 28 | Complete |
 | SDBIP-07 | Phase 28 | Pending |
 | SDBIP-08 | Phase 28 | Pending |
-| SDBIP-09 | Phase 28 | Pending |
+| SDBIP-09 | Phase 28 | Complete |
 | SDBIP-10 | Phase 28 | Complete |
 | EVID-01 | Phase 28 | Pending |
 | EVID-02 | Phase 28 | Pending |
