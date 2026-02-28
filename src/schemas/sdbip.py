@@ -4,6 +4,7 @@ These schemas validate API request/response payloads for:
 - SDBIP Scorecards (top-layer and departmental)
 - SDBIP KPIs (with IDP objective links and mSCOA budget codes)
 - Quarterly Targets (must be set for all 4 quarters at once)
+- Quarterly Actuals (submission, correction, response)
 - mSCOA reference lookup results
 
 Request schemas validate incoming data; Response schemas serialize ORM objects.
@@ -49,6 +50,15 @@ class SDBIPScorecardCreate(BaseModel):
         if not _FINANCIAL_YEAR_PATTERN.match(v):
             raise ValueError("financial_year must match pattern YYYY/YY (e.g., '2025/26')")
         return v
+
+
+class SDBIPTransitionRequest(BaseModel):
+    """Schema for SDBIP scorecard state machine transition requests."""
+
+    event: str = Field(
+        ...,
+        description="State machine event: 'submit' (draft->approved), 'revise' (approved->revised), 'resubmit' (revised->approved)",
+    )
 
 
 class SDBIPScorecardResponse(BaseModel):
@@ -192,6 +202,86 @@ class QuarterlyTargetResponse(BaseModel):
     kpi_id: UUID
     quarter: str
     target_value: Decimal
+
+
+# ---------------------------------------------------------------------------
+# Quarterly Actuals
+# ---------------------------------------------------------------------------
+
+
+class SDBIPActualCreate(BaseModel):
+    """Schema for submitting a quarterly actual performance value against a KPI target.
+
+    The achievement percentage and traffic-light status are computed server-side
+    on submission — do not include them in the request body.
+    """
+
+    kpi_id: UUID = Field(..., description="UUID of the SDBIP KPI this actual is submitted for")
+    quarter: Quarter = Field(..., description="Quarter the actual covers: Q1, Q2, Q3, or Q4")
+    financial_year: str = Field(
+        ...,
+        description="Financial year in YYYY/YY format (e.g., '2025/26')",
+    )
+    actual_value: Decimal = Field(
+        ...,
+        description="Actual performance value achieved by the department this quarter",
+    )
+
+    @field_validator("financial_year")
+    @classmethod
+    def validate_financial_year(cls, v: str) -> str:
+        """Validate YYYY/YY pattern (e.g., '2025/26')."""
+        if not _FINANCIAL_YEAR_PATTERN.match(v):
+            raise ValueError("financial_year must match pattern YYYY/YY (e.g., '2025/26')")
+        return v
+
+
+class SDBIPActualResponse(BaseModel):
+    """Schema for quarterly actual API responses.
+
+    Includes auto-computed fields (achievement_pct, traffic_light_status) and
+    the full audit trail (submitted_by/at, validated_by/at, correction chain).
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    kpi_id: UUID
+    quarter: str
+    financial_year: str
+    actual_value: Decimal
+    achievement_pct: Decimal | None
+    traffic_light_status: str | None
+    submitted_by: str | None
+    submitted_at: datetime | None
+    is_validated: bool
+    validated_by: str | None
+    validated_at: datetime | None
+    corrects_actual_id: UUID | None
+    is_auto_populated: bool
+    source_query_ref: str | None
+    created_at: datetime
+
+
+class SDBIPActualCorrectionCreate(BaseModel):
+    """Schema for submitting a correction to a validated actual.
+
+    Corrections create a new SDBIPActual record with corrects_actual_id pointing
+    to the original. The original validated record remains immutable.
+
+    A reason (min 10 characters) is required to maintain an audit trail
+    of why the correction was necessary.
+    """
+
+    actual_value: Decimal = Field(
+        ...,
+        description="Corrected actual performance value",
+    )
+    reason: str = Field(
+        ...,
+        min_length=10,
+        description="Reason for the correction (minimum 10 characters for audit trail)",
+    )
 
 
 # ---------------------------------------------------------------------------
