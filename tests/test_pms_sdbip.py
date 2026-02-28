@@ -29,6 +29,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from unittest.mock import MagicMock
 
 from src.core.tenant import clear_tenant_context, set_tenant_context
+from src.models.audit_log import AuditLog
 from src.models.idp import IDPCycle, IDPGoal, IDPObjective, NationalKPA
 from src.models.mscoa_reference import MscoaReference
 from src.models.sdbip import (
@@ -38,6 +39,7 @@ from src.models.sdbip import (
     SDBIPQuarterlyTarget,
     SDBIPScorecard,
     SDBIPStatus,
+    SDBIPWorkflow,
 )
 from src.models.user import User, UserRole
 from src.schemas.sdbip import (
@@ -63,6 +65,20 @@ def make_mock_user(tenant_id: str | None = None) -> MagicMock:
     user.email = "pms@test.gov.za"
     user.full_name = "PMS Officer"
     user.role = UserRole.PMS_OFFICER
+    user.tenant_id = tenant_id or str(uuid4())
+    user.municipality_id = uuid4()
+    user.is_active = True
+    user.is_deleted = False
+    return user
+
+
+def make_mock_mayor(tenant_id: str | None = None) -> MagicMock:
+    """Create a mock Executive Mayor user for SDBIP approval tests."""
+    user = MagicMock(spec=User)
+    user.id = uuid4()
+    user.email = "mayor@test.gov.za"
+    user.full_name = "Executive Mayor"
+    user.role = UserRole.EXECUTIVE_MAYOR
     user.tenant_id = tenant_id or str(uuid4())
     user.municipality_id = uuid4()
     user.is_active = True
@@ -766,3 +782,280 @@ def test_quarterly_target_bulk_create_validation():
                 QuarterlyTargetCreate(quarter=Quarter.Q3, target_value=Decimal("25")),
             ]
         )
+
+
+# ---------------------------------------------------------------------------
+# Tests 11-17: SDBIP Approval Workflow & Mid-Year Adjustment (28-03)
+# ---------------------------------------------------------------------------
+
+
+class TestSDBIPApprovalWorkflow:
+    """Tests for SDBIPService.transition_scorecard() — state machine and role gate."""
+
+    async def test_sdbip_approval_draft_to_approved(self, db_session: AsyncSession):
+        """Test 11: submit transition by Mayor succeeds — draft -> approved."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            scorecard = await service.create_scorecard(
+                SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+                mayor, db_session,
+            )
+            assert scorecard.status == SDBIPStatus.DRAFT
+
+            approved = await service.transition_scorecard(
+                scorecard.id, "submit", mayor, db_session
+            )
+        finally:
+            clear_tenant_context()
+
+        assert approved.status == SDBIPStatus.APPROVED
+
+    async def test_sdbip_approval_role_gate(self, db_session: AsyncSession):
+        """Test 12: Non-Mayor user attempting submit gets 403."""
+        from fastapi import HTTPException
+
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        pms_officer = make_mock_user(tenant_id=tenant_id)
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            scorecard = await service.create_scorecard(
+                SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+                mayor, db_session,
+            )
+
+            with pytest.raises(HTTPException) as exc_info:
+                await service.transition_scorecard(
+                    scorecard.id, "submit", pms_officer, db_session
+                )
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 403
+        assert "mayor" in exc_info.value.detail.lower() or "sign-off" in exc_info.value.detail.lower()
+
+    async def test_sdbip_invalid_transition(self, db_session: AsyncSession):
+        """Test 13: approved -> submit returns 409 (invalid transition)."""
+        from fastapi import HTTPException
+
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            scorecard = await service.create_scorecard(
+                SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+                mayor, db_session,
+            )
+            # Submit to approved
+            await service.transition_scorecard(scorecard.id, "submit", mayor, db_session)
+
+            # Try to submit again from approved — invalid
+            with pytest.raises(HTTPException) as exc_info:
+                await service.transition_scorecard(scorecard.id, "submit", mayor, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 409
+
+    async def test_sdbip_full_workflow(self, db_session: AsyncSession):
+        """Test 14: Full cycle — draft -> approved -> revised -> approved."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+        pms_officer = make_mock_user(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            scorecard = await service.create_scorecard(
+                SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+                mayor, db_session,
+            )
+            assert scorecard.status == SDBIPStatus.DRAFT
+
+            # draft -> approved (Mayor)
+            sc = await service.transition_scorecard(scorecard.id, "submit", mayor, db_session)
+            assert sc.status == SDBIPStatus.APPROVED
+
+            # approved -> revised (any Tier 2+ user)
+            sc = await service.transition_scorecard(scorecard.id, "revise", pms_officer, db_session)
+            assert sc.status == SDBIPStatus.REVISED
+
+            # revised -> approved (Mayor)
+            sc = await service.transition_scorecard(scorecard.id, "resubmit", mayor, db_session)
+            assert sc.status == SDBIPStatus.APPROVED
+        finally:
+            clear_tenant_context()
+
+
+class TestMidYearAdjustment:
+    """Tests for SDBIPService.adjust_targets() — SDBIP-09 mid-year adjustment."""
+
+    async def _setup_approved_kpi(
+        self,
+        db_session: AsyncSession,
+        tenant_id: str,
+        mayor: MagicMock,
+        service: "SDBIPService",
+    ) -> tuple["SDBIPKpi", "SDBIPScorecard"]:
+        """Create scorecard + KPI + approve scorecard for mid-year test setup.
+
+        Returns (kpi, scorecard) — both freshly fetched after all commits so callers
+        can safely access any attribute.
+        """
+        scorecard = await service.create_scorecard(
+            SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+            mayor, db_session,
+        )
+        # Capture IDs immediately after each create (before next commit expires objects)
+        scorecard_id = scorecard.id
+
+        kpi = await service.create_kpi(
+            scorecard_id,
+            SDBIPKpiCreate(
+                kpi_number="KPI-001",
+                description="Water access",
+                unit_of_measurement="percentage",
+                baseline=Decimal("70"),
+                annual_target=Decimal("90"),
+                weight=Decimal("30"),
+            ),
+            mayor, db_session,
+        )
+        kpi_id = kpi.id  # capture before set_quarterly_targets commit expires kpi
+
+        # Set initial quarterly targets (commits internally — kpi is now expired)
+        await service.set_quarterly_targets(
+            kpi_id, make_quarterly_targets_payload(), mayor, db_session
+        )
+
+        # Approve the scorecard (commits internally)
+        scorecard = await service.transition_scorecard(scorecard_id, "submit", mayor, db_session)
+
+        # Reload KPI fresh after all commits
+        kpi = await service.get_kpi(kpi_id, db_session)
+        return kpi, scorecard
+
+    async def test_midyear_adjustment_no_draft_reset(self, db_session: AsyncSession):
+        """Test 15: adjust targets on approved SDBIP; status remains 'approved'."""
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            kpi, scorecard = await self._setup_approved_kpi(db_session, tenant_id, mayor, service)
+            kpi_id = kpi.id
+            scorecard_id = scorecard.id
+
+            new_payload = QuarterlyTargetBulkCreate(
+                targets=[
+                    QuarterlyTargetCreate(quarter=Quarter.Q1, target_value=Decimal("30")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q2, target_value=Decimal("30")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q3, target_value=Decimal("20")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q4, target_value=Decimal("20")),
+                ]
+            )
+            new_targets = await service.adjust_targets(kpi_id, new_payload, mayor, db_session)
+
+            # Re-fetch scorecard to verify status is still approved
+            scorecard = await service.get_scorecard(scorecard_id, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert len(new_targets) == 4
+        assert scorecard is not None
+        assert scorecard.status == SDBIPStatus.APPROVED  # SDBIP-09: no draft reset
+
+        q1 = next(t for t in new_targets if t.quarter == "Q1")
+        assert q1.target_value == Decimal("30.0000")
+
+    async def test_midyear_adjustment_only_on_approved(self, db_session: AsyncSession):
+        """Test 16: attempt adjust_targets on draft scorecard returns 422."""
+        from fastapi import HTTPException
+
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            # Create scorecard in DRAFT (do NOT approve)
+            scorecard = await service.create_scorecard(
+                SDBIPScorecardCreate(financial_year="2025/26", layer=SDBIPLayer.TOP),
+                mayor, db_session,
+            )
+            scorecard_id = scorecard.id  # capture before next commit expires it
+            kpi = await service.create_kpi(
+                scorecard_id,
+                SDBIPKpiCreate(
+                    kpi_number="KPI-001",
+                    description="Draft KPI",
+                    unit_of_measurement="number",
+                    baseline=Decimal("0"),
+                    annual_target=Decimal("10"),
+                    weight=Decimal("10"),
+                ),
+                mayor, db_session,
+            )
+            kpi_id = kpi.id  # capture before next access would trigger lazy load
+
+            with pytest.raises(HTTPException) as exc_info:
+                await service.adjust_targets(
+                    kpi_id, make_quarterly_targets_payload(), mayor, db_session
+                )
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 422
+        assert "approved" in exc_info.value.detail.lower()
+
+    async def test_midyear_adjustment_creates_audit_log(self, db_session: AsyncSession):
+        """Test 17: adjust_targets creates AuditLog with midyear_adjustment action."""
+        from sqlalchemy import select as sa_select
+
+        service = SDBIPService()
+        tenant_id = str(uuid4())
+        mayor = make_mock_mayor(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            kpi, _scorecard = await self._setup_approved_kpi(db_session, tenant_id, mayor, service)
+            kpi_id = kpi.id  # capture before any further commits expire the object
+
+            new_payload = QuarterlyTargetBulkCreate(
+                targets=[
+                    QuarterlyTargetCreate(quarter=Quarter.Q1, target_value=Decimal("40")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q2, target_value=Decimal("30")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q3, target_value=Decimal("20")),
+                    QuarterlyTargetCreate(quarter=Quarter.Q4, target_value=Decimal("10")),
+                ]
+            )
+            await service.adjust_targets(kpi_id, new_payload, mayor, db_session)
+
+            # Query audit log for midyear_adjustment entry
+            result = await db_session.execute(
+                sa_select(AuditLog).where(
+                    AuditLog.table_name == "sdbip_quarterly_targets",
+                    AuditLog.record_id == str(kpi_id),
+                )
+            )
+            audit_entries = result.scalars().all()
+        finally:
+            clear_tenant_context()
+
+        assert len(audit_entries) >= 1
+        latest = audit_entries[-1]
+        import json as _json
+        changes = _json.loads(latest.changes)
+        assert changes["action"] == "midyear_adjustment"
+        assert "old_targets" in changes
+        assert "new_targets" in changes
+        assert len(changes["new_targets"]) == 4
