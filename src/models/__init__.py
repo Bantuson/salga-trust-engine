@@ -10,6 +10,15 @@ from src.models.assignment import TicketAssignment
 from src.models.sla_config import SLAConfig
 from src.models.whatsapp_session import WhatsAppSession
 from src.models.idp import IDPCycle, IDPGoal, IDPObjective, IDPVersion, IDPStatus, NationalKPA
+from src.models.mscoa_reference import MscoaReference
+from src.models.sdbip import (
+    SDBIPScorecard,
+    SDBIPKpi,
+    SDBIPQuarterlyTarget,
+    SDBIPStatus,
+    SDBIPLayer,
+    Quarter,
+)
 
 __all__ = [
     "Base",
@@ -35,4 +44,11 @@ __all__ = [
     "IDPVersion",
     "IDPStatus",
     "NationalKPA",
+    "MscoaReference",
+    "SDBIPScorecard",
+    "SDBIPKpi",
+    "SDBIPQuarterlyTarget",
+    "SDBIPStatus",
+    "SDBIPLayer",
+    "Quarter",
 ]
