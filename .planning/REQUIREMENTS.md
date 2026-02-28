@@ -41,11 +41,11 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 - [x] **EVID-01**: Director or department manager can submit quarterly actual values against SDBIP KPI targets
 - [x] **EVID-02**: System calculates achievement percentage for each KPI per quarter automatically
-- [ ] **EVID-03**: User can upload portfolio of evidence (documents, photos, spreadsheets) per quarterly actual
-- [ ] **EVID-04**: PMS officer can validate submitted quarterly actuals via validation workflow
+- [x] **EVID-03**: User can upload portfolio of evidence (documents, photos, spreadsheets) per quarterly actual
+- [x] **EVID-04**: PMS officer can validate submitted quarterly actuals via validation workflow
 - [x] **EVID-05**: Validated actuals are immutable — corrections require new submission with full audit trail
 - [x] **EVID-06**: System flags KPIs with traffic-light status (green ≥80%, amber 50-79%, red <50% achievement)
-- [ ] **EVID-07**: Evidence documents are virus-scanned on upload before storage
+- [x] **EVID-07**: Evidence documents are virus-scanned on upload before storage
 - [x] **EVID-08**: Auto-populated actuals are clearly marked with source query reference and distinguishable from manual entries
 
 ### Individual Performance Agreements
@@ -157,11 +157,11 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SDBIP-10 | Phase 28 | Complete |
 | EVID-01 | Phase 28 | Complete |
 | EVID-02 | Phase 28 | Complete |
-| EVID-03 | Phase 28 | Pending |
-| EVID-04 | Phase 28 | Pending |
+| EVID-03 | Phase 28 | Complete |
+| EVID-04 | Phase 28 | Complete |
 | EVID-05 | Phase 28 | Complete |
 | EVID-06 | Phase 28 | Complete |
-| EVID-07 | Phase 28 | Pending |
+| EVID-07 | Phase 28 | Complete |
 | EVID-08 | Phase 28 | Complete |
 | PA-01 | Phase 29 | Pending |
 | PA-02 | Phase 29 | Pending |

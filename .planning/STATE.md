@@ -132,6 +132,13 @@ From Phase 28 execution (Plan 28-04):
 - [Phase 28]: Raw SQL text() for tenant_id discovery bypasses ORM do_orm_execute event — required for cross-tenant iteration without pre-existing context
 - [Phase 28]: Idempotency via pre-check SELECT before INSERT (not UPSERT) — SQLite compatible for unit tests
 
+From Phase 28 execution (Plan 28-05):
+- pyclamd over python-clamd: python-clamd 0.0.2.dev0 fails on Windows Python 3.12 (ImportError: sendfds); pyclamd 0.4.0 works with ClamdNetworkSocket.scan_stream()
+- pyclamd module-level import pattern: inline imports cannot be patched via unittest.mock.patch at module path; must be at module level with try/except ImportError fallback
+- pyclamd.scan_stream() returns None (clean) or {'stream': ('FOUND', 'name')} — differs from clamd.instream() plan reference; adapted accordingly
+- EvidenceDocument no cascade delete from SDBIPActual: evidence is permanent audit trail
+- validate_actual() requires PMS_OFFICER, ADMIN, or SALGA_ADMIN — admin/salga_admin bypass for platform management
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -145,6 +152,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-02-28
-Stopped at: Completed Phase 28 Plan 28-06 (SDBIP auto-population engine). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-06-SUMMARY.md. Next: 28-07 (final plan in phase).
+Last session: 2026-03-01
+Stopped at: Completed Phase 28 Plan 28-05 (Portfolio of Evidence upload + PMS officer validation). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-05-SUMMARY.md. Next: 28-06 (SDBIP auto-population engine).
 Resume file: None
