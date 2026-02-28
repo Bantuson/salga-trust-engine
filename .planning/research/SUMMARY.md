@@ -1,421 +1,267 @@
 # Project Research Summary
 
-**Project:** SALGA Trust Engine - Municipal Service Management Platform
-**Domain:** Civic Tech / AI-Powered Municipal Service Management (South African Context)
-**Researched:** 2026-02-09
-**Confidence:** MEDIUM-HIGH
+**Project:** SALGA Trust Engine v2.0 — Municipal PMS Integration
+**Domain:** South African Municipal Performance Management System (PMS) — IDP/SDBIP management, statutory reporting, approval workflows, evidence storage, senior-role dashboards
+**Researched:** 2026-02-28
+**Confidence:** HIGH
 
 ## Executive Summary
 
-The SALGA Trust Engine is an AI-powered municipal service management platform designed to rebuild citizen trust in South African local government through transparency and operational efficiency. Expert civic tech implementations globally follow a 311-style service request pattern, but succeed in the South African context only when they address three unique constraints: poor connectivity infrastructure (requiring offline-first architecture), multilingual populations (isiZulu/Afrikaans/English with code-switching), and WhatsApp as the primary citizen engagement channel (70%+ adoption). The "trust engine" thesis demands that transparency features are not bolt-ons but foundational—public dashboards showing response times, resolution rates, and spending must be paired with accountability mechanisms to avoid documenting failure without driving improvement.
+The SALGA Trust Engine v2.0 adds a legislatively-mandated strategic layer on top of the operational v1.0 platform. South African municipalities are legally required under the Municipal Systems Act (MSA, Act 32 of 2000) and Municipal Finance Management Act (MFMA, Act 56 of 2003) to maintain Integrated Development Plans (IDPs), Service Delivery and Budget Implementation Plans (SDBIPs), individual Section 56/57 performance agreements, and to produce at minimum four statutory report types per year — all subject to Auditor-General scrutiny. The product feature set is therefore not market-researched but legislatively defined, making BCX SOLAR (the incumbent SA municipal PMS vendor used in 60+ municipalities) the clear benchmark to beat. The unique competitive moat is the auto-population engine: ticket resolution data from v1.0 feeds SDBIP actuals automatically, a connection no competitor can replicate without building a citizen reporting platform from scratch.
 
-The recommended approach uses Python 3.12+ with FastAPI for async API handling, PostgreSQL+PostGIS for geospatial routing, Redis+Celery for background AI processing, and React for dashboards. WhatsApp integration via Twilio requires webhook-based event-driven architecture to meet the 5-second response requirement. Multi-tenancy uses shared-schema row-level isolation (simplest for 3-5 pilot municipalities), with tenant_id middleware preventing cross-contamination. The mobile field worker app must be offline-first from day one—retrofitting is nearly impossible and field adoption depends on this.
+The recommended build approach is a clean six-phase dependency sequence: RBAC and tenant config first (gates everything else), then IDP and SDBIP data structures, then actuals submission and the auto-population engine, then performance agreements, then statutory reports and role-specific dashboards, and finally risk register and public transparency enhancement. The existing stack is largely sufficient — only four new libraries are required (WeasyPrint for PDF generation, docxtpl for DOCX generation, python-statemachine for approval workflows, and clamav-client for evidence virus scanning), plus a recharts upgrade to 3.x for hierarchical visualization components. All 13 new data entities should inherit from the existing `TenantAwareModel` base class, ensuring multi-tenant isolation and audit logging are automatic rather than bolted on.
 
-Critical risks center on infrastructure assumptions (designing for Cape Town metro instead of rural Mthatha), POPIA compliance as a legal/trust requirement, multilingual NLP accuracy (97% of African languages lack training data), and procurement timelines (18-24 months can kill projects). Mitigation requires piloting in Category B municipalities with actual connectivity constraints, POPIA impact assessment before data collection begins, starting with keyword-based categorization before investing in sophisticated NLP, and formalizing SALGA partnership before development completes.
+The highest risks in this build are data integrity issues that could produce Auditor-General findings: GBV ticket data leaking into service-delivery KPIs (a SEC-05 firewall extension), auto-populated actuals with incorrect quarter-boundary logic, retroactive corrections to validated actuals that destroy the audit trail, and statutory reports that fail AG format compliance expectations. Each of these must be addressed at the phase where the underlying data is first created — not as a later hardening pass. The existing POPIA-compliant audit log and RLS infrastructure from v1.0 provide a strong foundation, but every new PMS table requires explicit RLS policy statements and the UserRole enum extension must be deployed atomically with the Supabase custom access token hook update.
+
+---
 
 ## Key Findings
 
 ### Recommended Stack
 
-Python/FastAPI is the clear choice for this domain: best AI/NLP ecosystem (spaCy, transformers), async-native for WhatsApp webhooks requiring sub-5-second responses, and auto-generated OpenAPI docs for multi-tenant API. PostgreSQL+PostGIS handles both relational ticket data and geospatial routing (sub-100ms polygon containment for municipality boundaries). Redis serves dual purpose as Celery message broker and WebSocket pub/sub for real-time dashboard updates. React with Vite provides the data-heavy dashboard capabilities needed, with Leaflet for open-source maps (no Mapbox licensing fees).
+The v1.0 stack (FastAPI 0.128, SQLAlchemy 2.0, Alembic, Celery + Redis, Supabase Auth/Storage, React 19 + Vite + Tailwind + Zustand, Recharts 2.x) is fully operational and sufficient for v2.0 with four targeted additions. PDF generation uses WeasyPrint 68.1 (HTML+CSS to PDF via Jinja2 templates already in the project; runs in Celery workers, never in request handlers). DOCX generation uses docxtpl 0.20.2 + python-docx 1.2.0 (Jinja2 placeholders inside municipality-branded Word templates; gives CFOs and AGs editable native Word files). Approval workflows use python-statemachine 3.0.0 (auto-detects async callbacks; state persisted in PostgreSQL status columns, not in memory). Evidence virus scanning uses clamav-client connected to a ClamAV Docker sidecar on port 3310. Recharts upgrades from 2.15.4 to 3.7.0 to unlock `SunburstChart` (IDP-to-KPI hierarchy) and improved `Treemap` (SDBIP scorecard grid); the upgrade is backward-compatible. react-d3-tree is added for the municipal organogram (node-link tree graphs Recharts cannot render). The mSCOA National Treasury reference data is loaded via openpyxl (already installed) into a seeded `mscoa_reference` lookup table — no ERP integration is in scope for v2.0.
 
-**Core technologies:**
-- **Python 3.12+ / FastAPI 0.128.x**: Async runtime for webhook handling, auto-docs, WebSocket support — 200-300% faster development than Flask
-- **PostgreSQL 16+ / PostGIS 3.4+**: Multi-tenant shared schema with geospatial routing — sub-100ms queries for municipality boundary matching
-- **Redis 7.x / Celery 5.6.x**: Message queue for async AI processing + pub/sub for real-time updates — decouples webhook responsiveness from AI latency
-- **Twilio WhatsApp Business API**: Webhook receiver pattern — official Meta BSP with reliable delivery, fits async architecture
-- **spaCy 3.8.x**: NLP for issue categorization — custom training for domain-specific models, supports isiZulu/Afrikaans with Lelapa AI VulaVula integration path
-- **React 18+ / Vite 5.x**: Manager and public dashboards — rich ecosystem for maps, charts, WebSocket real-time updates
+**Core technologies (new additions only):**
+- **WeasyPrint 68.1**: HTML-to-PDF statutory report generation — Python-native, Jinja2-compatible, no headless browser needed
+- **docxtpl 0.20.2 + python-docx 1.2.0**: DOCX report generation from municipality-branded Word templates — CFOs annotate and sign native Word files
+- **python-statemachine 3.0.0**: Declarative approval workflow state machine — async-native, transitions persisted in PostgreSQL status columns
+- **clamav-client**: Virus scanning on every evidence upload before Supabase Storage write — runs against ClamAV Docker sidecar on port 3310
+- **recharts 3.7.0**: Upgrade from 2.x — adds SunburstChart and improved Treemap for IDP-to-KPI hierarchical visualization
+- **react-d3-tree 3.x**: Municipal organogram node-link tree — hierarchical org charts Recharts cannot render
 
-**Critical version dependencies:**
-- GeoAlchemy2 0.18.x requires Python 3.10+ and PostGIS 3.x
-- FastAPI 0.128.x requires Pydantic 2.x
-- Celery 5.6.x supports Python 3.13, fixes memory leaks from 5.x
-
-**What to avoid:**
-- Flask (no async support, critical for WhatsApp webhooks)
-- create-react-app (deprecated 2023, use Vite)
-- MongoDB (poor fit for relational data, multi-tenant isolation, and geospatial polygon queries)
-- Synchronous AI processing in webhook handlers (causes Twilio timeouts and duplicate tickets)
+**Critical version constraints:**
+- WeasyPrint 68.1 requires Python 3.10+ (project uses 3.12 — compatible) and GTK/Pango system deps on Linux deploy (add to Dockerfile/render.yaml build step)
+- docxtpl 0.20.2 must be pinned alongside python-docx 1.2.0 for version alignment
+- python-statemachine 3.0.0 (released 2026-02-24) introduces auto-async detection — do not use 2.x for this project
 
 ### Expected Features
 
-The feature landscape is dominated by standard 311 civic tech patterns (multi-channel reporting, status tracking, GIS mapping, field worker apps) but differentiates through WhatsApp-first design, multilingual NLP, and public transparency dashboards that make government performance visible and verifiable.
+**Must have — v2.0 launch (Umsobomvu tender UMS/CS/PMS/02/2026 compliance):**
+- 4-tier role hierarchy extension (14+ roles vs current 6) — the gate for all PMS features; nothing else can be built until this is deployed
+- Configurable department structure per tenant — SDBIP KPIs require a responsible department; NOT NULL FK enforced
+- IDP module: 5-year strategic plan management with annual reviews and version control (MSA s25-36)
+- SDBIP management: Top Layer and Departmental scorecards with KPI definition and quarterly targets (MFMA s53)
+- Quarterly actuals submission with Portfolio of Evidence (POE) upload — replaces spreadsheet-and-email workflows in 90%+ of Category B municipalities
+- Auto-population engine: ticket data feeds SDBIP actuals — the killer differentiator; no SA competitor offers this connection
+- Section 57/56 individual performance agreements (create, sign, quarterly review, annual assessment) — AG checks signing deadlines against July 31 each year
+- Section 52 quarterly and Section 72 mid-year report generation in PDF and DOCX — must match AG-accepted National Treasury formats
+- Report approval workflow: drafting to internal_review to mm_approved to submitted to tabled — required for AG audit trail
+- Statutory reporting calendar with escalating deadline notifications (30/14/7/3 days) — 40%+ of municipalities miss statutory deadlines
+- CFO dashboard and Municipal Manager dashboard — the primary sales tools for procurement decision-makers
+- Audit trail on all PMS data — extend existing v1.0 SQLAlchemy event listeners to all new TenantAwareModel subclasses
 
-**Must have (table stakes):**
-- **Multi-channel issue reporting**: WhatsApp (primary), web portal, SMS fallback — users expect flexibility
-- **Photo/video upload with reports**: Visual evidence is standard in civic tech, essential for verification
-- **Automatic geolocation/GPS tagging**: Users won't manually enter coordinates, map-based is expected
-- **Status tracking + notifications**: "Where is my request?" is the #1 user question — SMS/WhatsApp updates on status change
-- **Manager dashboard (web)**: Centralized view with filtering, assignment, search — standard CRM-style interface
-- **Field worker mobile app (offline-first)**: Must work without connectivity in rural areas — non-negotiable for SA infrastructure gaps
-- **GIS mapping/heatmaps**: Spatial visualization is expected, supports resource allocation
-- **SLA tracking**: Response/resolution time tracking vs targets, automated escalation on breach
-- **Issue categorization + routing**: Auto-route to correct department based on category/location
+**Should have — v2.1 (post-validation, 3-6 months post-launch):**
+- Section 46 annual performance report and Section 121 annual report — triggered after first financial year on platform
+- Mayor and Council dashboard — triggered after political buy-in secured
+- Risk register linked to SDBIP KPIs — auto-surface risks when KPIs trend red
+- AG audit finding tracker — remediation tracking currently done in spreadsheets
+- Organogram view with performance status — visual accountability map for Municipal Manager
+- Digital signature workflow for performance agreements — removes paper-based signing friction
 
-**Should have (competitive differentiators):**
-- **Public transparency dashboard**: Shows aggregate performance (response times, resolution rates, spending) — core to "trust engine" thesis
-- **WhatsApp-first hybrid bot**: SA context validates WhatsApp mass adoption; Tamil Nadu's Namma Arasu (51 government services via WhatsApp) proves feasibility
-- **Multilingual NLP (English/Zulu/Afrikaans)**: AI auto-categorization handles code-switching — reduces manual triage, improves response times
-- **Offline-first field worker app**: Workers in rural areas with poor connectivity capture updates, sync when connection restored
-- **Spending transparency by issue**: Cost per resolved issue, budget allocation — builds trust by showing "where the money goes"
-- **Community upvoting**: Citizens signal priority (simple like/upvote), informs (doesn't dictate) municipal planning
-- **Automated escalation chains**: Issues unresolved after X days auto-escalate to higher authority — enforces accountability
+**Defer — v2.2 and beyond (12+ months):**
+- Cross-municipality benchmarking SALGA admin view — requires 5+ municipalities for statistical significance
+- Enhanced public dashboard (IDP progress, budget execution) — defer until SDBIP data proven accurate over 2+ quarters
+- ERP/financial system integration (Sebata, Munsoft) — multi-year effort; document as v3.0 milestone
+- AI-assisted KPI performance prediction — requires 3+ years of actuals data for meaningful training
 
-**Defer (v2+):**
-- **Advanced multilingual NLP**: Voice input, sentiment analysis — high complexity, incremental value over basic NLP
-- **Predictive analytics**: ML models for service delivery bottlenecks — premature before product-market fit
-- **ESRI/municipal GIS integration**: Plugs into existing asset management — defer until scale, avoid vendor lock-in initially
-- **Two-way SMS (USSD)**: Expands reach to feature phones — complex, WhatsApp sufficient for MVP
-- **API for third-party apps**: Open API for developers — security/privacy risks before product-market fit
-
-**Anti-features (explicitly avoid):**
-- **Real-time everything**: Over-engineering; batch status updates every 4-6 hours sufficient (issues take days to resolve)
-- **Citizen-to-citizen messaging**: Becomes unmoderated social network with liability/abuse risks
-- **AI-generated responses to citizens**: Erodes trust if responses feel robotic; use AI for categorization, not citizen communication
-- **Blockchain for "immutable audit trail"**: Over-engineering; standard database audit logs + third-party backups sufficient
+**Anti-features (explicitly excluded from v2.0):**
+- Full Section 71 financial report auto-generation — requires live ERP trial balance data not accessible in v2.0
+- PMDS for all staff — Section 56/57 managers only (5-8 people per municipality); full HR PMDS is a separate product
+- Automated AI KPI target setting — targets are politically sensitive and set by Council, not algorithm
+- Blockchain evidence integrity — AGSA does not accept it; SHA-256 hashing plus immutable audit log is sufficient
 
 ### Architecture Approach
 
-Event-driven webhook processing decouples Twilio's 5-second response requirement from AI classification latency (2-10 seconds). WhatsApp messages are validated and immediately enqueued to Redis; Celery workers handle async AI pipeline (language detection, categorization, geospatial routing). Multi-tenant row-level isolation uses shared schema with tenant_id column and middleware-injected filtering (simplest for 3-5 municipalities; revisit at 10+). PostGIS polygon containment maps citizen GPS coordinates to municipality boundaries in sub-100ms. Real-time dashboard updates via Redis pub/sub push WebSocket notifications to connected clients.
+The v2.0 PMS layer integrates as a clean namespace addition to the existing ~88K LOC codebase without restructuring any existing modules. All 13 new SQLAlchemy models live under `src/models/pms/`, all new API routes under `src/api/v1/pms/`, all new services under `src/services/pms/`, and new Celery tasks in `src/tasks/pms_auto_populate.py` and `src/tasks/statutory_deadlines.py`. Only three existing models need modification (User, Municipality, Ticket) and all changes are additive. The single most important architectural pattern is that every new PMS model inherits from `TenantAwareModel` — this gives automatic tenant_id filtering, audit logging, and timestamps without additional code. All approval workflows (SDBIP, performance agreements, statutory reports) use a centralised state machine service rather than inline status updates scattered across handlers. PDF and DOCX generation always runs in Celery workers, never in FastAPI request handlers. The ticket-to-SDBIP boundary is strictly one-directional: the auto-population engine is a periodic Celery task that reads tickets as a read-only consumer, never writing back to the tickets table.
 
 **Major components:**
-1. **Webhook Receiver Service** — Validates Twilio signatures, enqueues to Redis queue, responds <5s (prevents timeouts/retries)
-2. **Message Queue (Redis + Celery)** — Async task processing for AI classification, WhatsApp messaging, notifications; horizontal scaling of workers
-3. **AI Pipeline Worker** — NLP categorization (spaCy/LLM), language detection, sentiment analysis; processes 2-10s per message without blocking webhooks
-4. **Geospatial Router (PostGIS)** — Maps GPS coordinates to municipality boundaries via polygon containment, assigns to field teams
-5. **Ticket API (FastAPI)** — CRUD operations with tenant-scoped SQLAlchemy sessions, SLA tracking, assignment logic
-6. **Dashboard API (FastAPI)** — Aggregated metrics, real-time WebSocket updates via Redis pub/sub, public transparency data
-7. **Multi-tenant Database (PostgreSQL)** — Shared schema with tenant_id filtering at middleware layer; GeoAlchemy2 for spatial queries
-
-**Key architectural patterns:**
-- **Event-driven webhook processing**: Twilio → Webhook (validate) → Redis Queue → Celery Worker → AI Pipeline → Database
-- **Multi-tenant row-level isolation**: Middleware extracts tenant_id from JWT/subdomain, all queries automatically filtered
-- **Geospatial routing**: PostGIS GIST indexes on municipality boundaries enable sub-100ms point-in-polygon queries
-- **Real-time updates**: Ticket status change → Redis pub/sub → WebSocket server → Dashboard clients (React state update)
-
-**Build order implications (from ARCHITECTURE.md):**
-- Phase 1: PostgreSQL+PostGIS, FastAPI with tenant middleware, basic Ticket CRUD (no external dependencies)
-- Phase 2: Twilio webhook receiver, Redis+Celery, simple message queueing (test with Sandbox before production)
-- Phase 3: AI classification worker, language detection, geospatial routing (requires Phase 2 message queue)
-- Phase 4: Redis pub/sub, WebSocket endpoint, dashboard real-time updates (enhances Phase 1 dashboard)
-- Phase 5: Public-facing analytics API, transparency dashboard (requires sufficient ticket data, can defer to v2)
+1. **IDP Module** (`src/models/pms/idp.py`, `src/api/v1/pms/idp.py`) — 5-year strategic cycles and objectives; every SDBIP KPI must reference an IDP objective (enforced as NOT NULL FK)
+2. **SDBIP Module** (`src/models/pms/sdbip.py`, `src/api/v1/pms/sdbip.py`) — KPI definition, quarterly targets, actuals submission, mSCOA linkage via FK to `mscoa_reference` reference table
+3. **Auto-Population Engine** (`src/services/pms/auto_population_service.py`, `src/tasks/pms_auto_populate.py`) — Celery beat task aggregates ticket data by category/quarter/tenant into `sdbip_actual` records; `auto_populated=True` flag and logged `source_query` for AG traceability
+4. **Approval Workflow Engine** (`src/services/pms/approval_workflow.py`) — centralised state machine for all PMS workflow entities; validates transitions, checks roles, dispatches Celery notifications; all status changes route through this service
+5. **Document Generation** (`src/services/pms/document_generation.py`, Celery tasks) — WeasyPrint for PDF, docxtpl for DOCX; triggered by state transitions; output stored in Supabase Storage; source data snapshotted at generation time
+6. **Evidence / POE Storage** — per-municipality Supabase Storage buckets (`salga-evidence-{municipality_id}`); metadata in `EvidenceDocument` PostgreSQL table; ClamAV scan before any write; signed 1-hour URLs served on demand, never stored as full URLs
+7. **Role-Scoped Dashboards** (`src/api/v1/pms/pms_dashboards.py`, React pages) — CFO, Municipal Manager, Mayor, Oversight dashboards assembled from multiple PMS services in dedicated FastAPI routes
+8. **Deadline Calendar** (`src/services/pms/deadline_service.py`, `src/tasks/statutory_deadlines.py`) — per-tenant `financial_year` model drives all deadline computations; Celery beat iterates over active financial years per tenant; no hardcoded date literals
 
 ### Critical Pitfalls
 
-Research identified 10 critical pitfalls with prevention strategies mapped to specific phases:
+1. **Role enum and Supabase hook deployed non-atomically** — If the Python UserRole enum extension and Supabase custom access token hook update are not deployed as a single atomic step, users with new roles receive 403 until forced re-login. For senior officials (CFO, Municipal Manager, Mayor) using persistent sessions, this gap can last hours. Inversely, demoted officials retain elevated JWT permissions until token expiry — a governance risk in politically turbulent SA municipalities. Prevention: atomic deployment script; DB CHECK constraint on `users.role`; startup assertion in `main.py` validating enum vs constraint; Redis force-logout on any role change in the admin API. (Phase 1)
 
-1. **Building for Cape Town instead of Mthatha** — Platforms designed for metros fail in rural municipalities due to infrastructure assumptions. Prevention: offline-first architecture from day one, pilot in Category B municipality, test on R1500 phones with 2G. Address in Phase 1 (Architecture) — retrofitting offline support is nearly impossible.
+2. **Auto-population produces AG-adverse data** — Quarter date boundary errors (filtering by `status = 'resolved'` without `resolved_at BETWEEN quarter_start AND quarter_end`), GBV ticket inclusion (`is_sensitive = True`), and double-counting re-opened tickets all produce mathematically wrong SDBIP actuals that appear credible until the AG runs their own count. The 2023-24 AGSA report found 48% of municipalities submitted unreliable performance data. Prevention: mandatory `resolved_at BETWEEN` date bounds; explicit `AND is_sensitive = FALSE` in every aggregation rule (SEC-05 firewall extension); point-in-time snapshot when a quarter closes; reconciliation job 24 hours after auto-population comparing counts to stored actual. (Phase 2)
 
-2. **POPIA compliance as afterthought** — Citizen PII collection without compliance risks R10M fines + 10 years imprisonment. Prevention: POPIA impact assessment before data collection, purpose limitation, explicit consent in home language, anonymize public dashboards, encryption at rest/transit, audit logs. Address in Phase 1 (Architecture) — data model determines compliance.
+3. **Retroactive corrections destroy audit trail** — In-place UPDATE to a validated `sdbip_actual` leaves the database value inconsistent with Council-tabled reports. The AG asks "what was reported to Council on date X?" and the answer has changed. Prevention: validated actuals are immutable at the database level; corrections require a `sdbip_actual_correction` record with its own approval workflow; statutory report generation snapshots all source data into a `statutory_report_snapshot` table (JSON blob) at `mm_approved` status so the generated document always matches the snapshot regardless of subsequent corrections. (Phase 2)
 
-3. **WhatsApp bot like 1990s IVR** — Complex menu trees frustrate users; Meta banned general-purpose AI chatbots (Jan 2026). Prevention: text-only design, shallow menu depth (max 2 levels), keyword recognition, human escalation option, SMS fallback. Address in Phase 2 (WhatsApp Bot) — UX testing with real citizens in pilot municipalities before launch.
+4. **RLS policies missing on new PMS tables** — New tables not covered by explicit `CREATE POLICY` statements default to allowing all rows when no policy matches, creating cross-tenant data exposure. Application-level `WHERE tenant_id = :tenant_id` filtering creates false confidence. Prevention: CI check queries `pg_policies` and fails if any TenantAwareModel table lacks a tenant isolation policy; shared Alembic migration helper function creates the standard tenant isolation policy per new table. (Phase 1 and every subsequent phase)
 
-4. **Multilingual NLP only works in English** — 97% of African languages lack training data; isiZulu has 0.02% of English's digital footprint. Prevention: keyword-based categorization for v1, language-specific dictionaries, confidence scoring for human review, collect training data from real municipal requests. Address in Phase 3 (AI Categorization) — if it fails in isiZulu/Afrikaans, 60%+ of citizens excluded.
+5. **Statutory reports failing AG format compliance** — Reports with incorrect section numbering, missing mandatory columns (baseline, annual target, quarterly target, actual, variance, reason for deviation — six required in SDBIP tables), or inconsistent number formatting (R 1.23M vs R 1,234,567.00) receive compliance findings even when the underlying data is correct. Prevention: obtain National Treasury Section 52 and Section 46 official templates before writing any Jinja2 template; static section numbering in templates (not auto-incremented); mandatory field completeness check before generation (refuse to generate if mandatory columns are NULL); draft watermark until `mm_approved` status. (Phase 4)
 
-5. **Geospatial data doesn't reflect reality** — Municipal GIS excludes informal settlements, shows incorrect boundaries. Prevention: audit pilot municipality's GIS data quality first, use OpenStreetMap as fallback, allow pin-drop instead of address dropdown, build correction workflow. Address in Phase 3 (Routing) — validate data quality or routing fails at launch.
-
-6. **Government procurement death march** — 18-24 month procurement kills projects. Prevention: SALGA as implementing partner (bypasses per-municipality procurement), subscription model not custom contracts, free 3-6 month pilot to build champions, align to existing frameworks. Address in Phase 0 (Strategic Planning) — formalize SALGA partnership before development starts.
-
-7. **Dashboard transparency without accountability** — Public dashboards showing poor performance breed cynicism without improvement mechanisms. Prevention: internal analytics first to drive improvements, graduated transparency, trend lines not just absolutes, SLA escalation workflows, immutable data. Address in Phase 5 (Public Dashboard) — build internal tools first (Phase 4), then make results public.
-
-8. **Field worker app ignores connectivity reality** — Cloud-only apps fail in rural areas. Prevention: offline-first mobile app, sync engines with conflict resolution, queue photos for background upload, test in actual field conditions. Address in Phase 4 (Mobile App) — offline must be core architecture.
-
-9. **Treating all municipalities as equally capable** — Capacity disparities between metros and rural municipalities. Prevention: tier support/pricing by SALGA maturity framework, hands-on training for rural, hosted service option, municipal champion role. Address in Phase 0 (Planning) + Phase 6 (Rollout).
-
-10. **Civic tech never reaches citizens** — Low digital literacy, distrust, insufficient awareness. Prevention: launch through trusted community structures (ward councillors, community radio), quick wins, multi-channel intake, measure adoption by ward. Address in Phase 6 (Rollout) — budget 30% of effort on community engagement.
+---
 
 ## Implications for Roadmap
 
-Based on research synthesis, suggested phase structure follows dependency chains and risk mitigation priorities:
+Based on combined research, the dependency graph is clear and unambiguous. The feature dependency tree in FEATURES.md and the build order in ARCHITECTURE.md converge on the same six-phase sequence. Every phase is blocked by the prior phase's outputs, with one parallelism opportunity: Phase 3 (Performance Agreements) can begin while Phase 2 actuals workflow is being validated.
 
-### Phase 1: Architecture Foundation & Tenant Infrastructure
-**Rationale:** Data model and multi-tenancy decisions are irreversible. POPIA compliance depends on database design. Offline-first architecture must be designed in, not retrofitted. This phase validates core patterns (tenant scoping, geospatial queries) before external dependencies.
+### Phase 1: RBAC Foundation and Tenant Configuration
 
-**Delivers:**
-- PostgreSQL + PostGIS setup with spatial indexes
-- FastAPI scaffolding with tenant middleware and authentication
-- Multi-tenant Ticket CRUD API (create, read, update, status)
-- Basic Manager dashboard (React app, no real-time yet)
-- POPIA compliance architecture (encryption, retention policies, audit logs)
+**Rationale:** Every subsequent PMS feature uses role-gated endpoints. The 4-tier role hierarchy (14+ roles), configurable department structure per tenant, and `MunicipalityConfig` plus `financial_year` models must all exist before any PMS data can be created. The Supabase custom access token hook must recognise all new roles before any user is assigned one. This phase has no PMS feature dependencies — everything else depends on it.
 
-**Addresses:**
-- POPIA compliance (Pitfall 2) — encryption, anonymization, retention logic in database design
-- Multi-tenant isolation foundation for scaling to 50+ municipalities
-- Geospatial foundation for routing (PostGIS indexes, GeoAlchemy2 queries)
+**Delivers:** Extended UserRole enum (executive_mayor, municipal_manager, cfo, director, pms_officer, audit_committee_member, internal_auditor, mpac_member, salga_admin), `require_minimum_tier()` dependency alongside existing `require_role()`, configurable department structure CRUD, PMS readiness checklist endpoint (`GET /api/v1/municipalities/{id}/pms-readiness`), `financial_year` model (foundational for Phase 4 deadline calculations), placeholder PMS navigation for new roles in `useRoleBasedNav.ts`.
 
-**Avoids:**
-- POPIA violations by designing data model with privacy first
-- Multi-tenant data leakage via middleware-enforced filtering
-- Performance traps via spatial indexes from start
+**Addresses:** 4-tier role hierarchy, configurable department structure per tenant (FEATURES.md).
 
-**Research needs:** NONE — standard FastAPI + PostgreSQL patterns well-documented
+**Avoids:** Role enum/Supabase hook sync failure; stale JWT after role changes; flat role checking that cannot express hierarchical access; department config gate (block PMS creation until departments configured); RLS missing on new tables.
+
+**Research flag:** Standard patterns. Supabase RBAC, PostgreSQL RLS, and SQLAlchemy enum extension are well-documented. Skip research phase.
 
 ---
 
-### Phase 2: WhatsApp Intake Bot
-**Rationale:** Citizen intake is the value entry point. WhatsApp validation is the SA-specific thesis. Must prove bot UX works before investing in AI sophistication. Twilio webhook pattern establishes async architecture for all subsequent integrations.
+### Phase 2: IDP, SDBIP Core, and Auto-Population Engine
 
-**Delivers:**
-- Twilio webhook receiver with signature validation
-- Redis + Celery worker setup for async processing
-- WhatsApp hybrid bot (structured flows with keyword recognition)
-- SMS fallback for non-WhatsApp users
-- Basic message queueing (stores messages, creates tickets manually categorized)
+**Rationale:** IDP objectives are the legislative parent of SDBIP KPIs — KPIs cannot be created without an IDP linkage (NOT NULL FK enforced at data model level). SDBIP KPIs must exist before actuals can be submitted. The auto-population engine is the product's killer differentiator and must be built with forensic-grade query logging from day one, not retrofitted. Evidence storage bucket architecture (per-municipality buckets, virus scanning, signed URLs) must be right before the first upload — retrofitting thousands of files across bucket boundaries is a costly migration.
 
-**Addresses:**
-- WhatsApp-first thesis validation (Feature differentiator)
-- Multi-channel reporting (table stakes feature)
-- Event-driven webhook pattern (Architecture foundation)
+**Delivers:** IDP cycle and objective management (5-year with version control), SDBIP KPI creation and quarterly target setting, `mscoa_reference` table seeded from National Treasury Excel, `SDBIPTicketAggregationRule` model for configuring auto-population rules, `SDBIPActual` with immutability enforcement after validation, evidence document upload with ClamAV scanning, Celery beat tasks for weekly monitoring and quarterly auto-population, frontend IDP and SDBIP pages.
 
-**Avoids:**
-- WhatsApp bot UX pitfall (Pitfall 3) — text-only design, shallow menus, user testing in pilot
-- Synchronous webhook anti-pattern — enqueue immediately, respond <5s
+**Uses:** clamav-client + ClamAV Docker sidecar; JSONB `mscoa_tags` on `sdbip_kpi`; composite index on `(tenant_id, category, created_at, status)` in tickets migration (STACK.md).
 
-**Research needs:** LOW — Twilio WhatsApp API documented; UX testing required with real citizens in isiZulu/Afrikaans
+**Implements:** IDP Module, SDBIP Module, Auto-Population Engine, Evidence/POE Storage (ARCHITECTURE.md).
+
+**Avoids:** Auto-population GBV data leakage (SEC-05 extension, `AND is_sensitive = FALSE` in every aggregation rule); quarter date boundary errors (`resolved_at BETWEEN`); immutable validated actuals (correction records not UPDATE); RLS on all new tables; mSCOA as free-text (FK to reference table from day one); per-municipality evidence buckets from day one.
+
+**Research flag:** Auto-population rule schema design is novel — how municipalities configure ticket category-to-KPI mappings has no established template. Consider a targeted research session before Phase 2 planning begins. ClamAV Docker sidecar integration pattern is community-validated but warrants a spike.
 
 ---
 
-### Phase 3: AI Categorization & Geospatial Routing
-**Rationale:** AI classification is core value prop but requires training data. Phase 2 collects real municipal service requests for training. Geospatial routing depends on validated GIS data quality (audited in Phase 0/1). This phase automates manual categorization from Phase 2.
+### Phase 3: Performance Agreements
 
-**Delivers:**
-- AI classification worker (NLP categorization using spaCy)
-- Multilingual language detection (English/isiZulu/Afrikaans)
-- Keyword-based categorization with confidence scoring
-- Geospatial router using PostGIS polygon containment
-- Municipality boundary data loading and validation
-- Human-in-the-loop review for low-confidence classifications
+**Rationale:** Section 56/57 performance agreements link directly to SDBIP KPIs (Phase 2) and are reviewed against quarterly actuals (Phase 2). They cannot be created without KPIs existing. They are legislatively mandatory (AG checks signing deadlines against July 31 each year) but do not block Phase 4 reporting — they can run in parallel with Phase 2 final testing or sequentially with minimal risk.
 
-**Addresses:**
-- AI auto-categorization (competitive differentiator)
-- Multilingual support (table stakes for SA context)
-- Geospatial routing (table stakes feature)
+**Delivers:** PerformanceAgreement and PerformanceAgreementKpi models, create/sign/quarterly-review/annual-assessment workflow using the centralised approval state machine from Phase 2, frontend performance agreements page with review forms, Celery notifications to evaluators (Municipal Manager or Mayor) on submission.
 
-**Avoids:**
-- Multilingual NLP pitfall (Pitfall 4) — start with keywords, not sophisticated NLP; native speaker validation
-- Geospatial data quality pitfall (Pitfall 5) — audit GIS data, OpenStreetMap fallback, pin-drop alternative
-- AI accuracy gaps via confidence thresholds and human review
+**Addresses:** Section 57 performance agreements (FEATURES.md).
 
-**Research needs:** MEDIUM — Lelapa AI VulaVula integration for isiZulu/Afrikaans; municipal GIS data quality assessment per pilot municipality
+**Avoids:** Political roles (executive_mayor, mayor) are read-only on all performance data; only the assessed official, evaluator, municipal_manager, and pms_officer can view individual scores; MPAC sees aggregate scores only; performance agreements carry a POPIA retention period for data deletion rights on departure.
+
+**Research flag:** Standard patterns. SQLAlchemy models, FastAPI CRUD, and the approval state machine (already built in Phase 2) are well-established. Skip research phase.
 
 ---
 
-### Phase 4: Field Worker Mobile App (Offline-First)
-**Rationale:** Field workers are operational bottleneck. Offline capability is non-negotiable given SA connectivity. This phase must be built with offline-first from architecture, not added later. Internal operational efficiency before public transparency.
+### Phase 4: Statutory Reports, Approval Workflows, and Role-Specific Dashboards
 
-**Delivers:**
-- React Native mobile app with offline-first sync engine
-- Core functions work without connectivity (view assigned issues, update status, capture photos)
-- Background photo upload queue with compression
-- Conflict resolution for offline edits
-- Offline map tiles for service areas
-- Manual sync triggering and status visibility
+**Rationale:** Statutory report generation aggregates data from all three prior phases (IDP objectives, SDBIP actuals, performance agreement scores). Role-specific dashboards display cross-phase data. Building last means all data sources are available and testable. The deadline calendar engine uses the `financial_year` model created in Phase 1 — model exists, notification engine is new in this phase.
 
-**Addresses:**
-- Field worker mobile app (table stakes feature)
-- Offline-first requirement (SA infrastructure reality)
-- Internal operational efficiency (enables Phase 5 transparency)
+**Delivers:** Section 52 quarterly and Section 72 mid-year report generation (WeasyPrint PDF + docxtpl DOCX), report approval workflow (drafting to submitted to tabled), `statutory_report_snapshot` table capturing source data at generation time, deadline calendar Celery beat with escalating notifications (30/14/7/3 days), CFO dashboard, Municipal Manager dashboard, Mayor and Oversight Committee dashboards (read-only), statutory reports frontend page with download and approval actions, deadline calendar widget with traffic-light status.
 
-**Avoids:**
-- Connectivity assumption pitfall (Pitfall 1) — test in rural areas, airplane mode, R1500 Android devices
-- Field worker app connectivity pitfall (Pitfall 8) — offline-first architecture, sync engines, field testing
+**Uses:** WeasyPrint 68.1 (PDF), docxtpl 0.20.2 (DOCX), python-statemachine 3.0.0 (approval workflow), recharts 3.7.0 SunburstChart and Treemap (dashboards) (STACK.md).
 
-**Research needs:** MEDIUM — React Native offline sync patterns (CouchDB/PouchDB); field testing logistics in pilot municipality
+**Implements:** Reporting Layer, Document Generation, Approval Workflow Engine, Deadline Calendar, Role-Scoped Dashboards (ARCHITECTURE.md).
+
+**Avoids:** Obtain official National Treasury Section 52/46 templates before writing any Jinja2 template; static section numbering; mandatory completeness check before generation; snapshot source data at `mm_approved` (do not re-query at submission); financial year model drives all deadline calculations (no hardcoded date literals); report generation always in Celery worker; store generated files (do not re-generate on every download).
+
+**Research flag:** Needs a research session for report format compliance before planning begins. The exact National Treasury Section 52/72/46 format requirements must be sourced from official circular guidance and validated against a real municipality's submitted report before template design starts.
 
 ---
 
-### Phase 5: Manager Analytics & Internal Dashboards
-**Rationale:** Transparency without improvement mechanisms breeds cynicism (Pitfall 7). Internal analytics must drive operational improvements before public launch. This phase builds accountability tools (SLA escalation, bottleneck identification) that managers use to improve performance, making public dashboard (Phase 6) show progress not just failure.
+### Phase 5: Risk Register and v2.1 Enhancements
 
-**Delivers:**
-- Redis pub/sub for real-time updates
-- WebSocket endpoint for dashboard live updates
-- Manager dashboard enhancements (real-time issue feed, drill-downs)
-- Analytics API (resolution rate by category/ward, SLA compliance trends, bottleneck identification)
-- Automated SLA escalation workflows
-- Reporting and exports (Excel/PDF)
+**Rationale:** Risk register is a competitive differentiator that enhances but does not block statutory reporting. AG audit finding tracker and organogram view are post-validation additions triggered by explicit municipality requests. Section 46 annual performance report and Section 121 annual report require a completed financial year of actuals data — naturally suited to this phase.
 
-**Addresses:**
-- Real-time dashboard updates (competitive feature)
-- SLA tracking and escalation (table stakes)
-- Internal improvement tools (prerequisite for public transparency)
+**Delivers:** Risk register CRUD with KPI-to-risk linkage, risk status dashboard widget (KPIs in red auto-surface as risk items), AG audit finding tracker (finding to responsible department to remediation status), Section 46 and Section 121 report templates extending Phase 4 generation service, organogram view using react-d3-tree, Mayor and Council dashboard.
 
-**Avoids:**
-- Dashboard transparency without accountability pitfall (Pitfall 7) — internal tools first, drive improvements
-- Polling anti-pattern — WebSocket/SSE for real-time, not 5-second polling
+**Addresses:** Risk register, AG audit finding tracker, Section 46/121 annual reports, organogram view, Mayor and Council dashboard (FEATURES.md).
 
-**Research needs:** NONE — WebSocket + Redis pub/sub is standard pattern
+**Research flag:** Standard patterns building on Phase 4 report generation infrastructure. Skip research phase.
 
 ---
 
-### Phase 6: Public Transparency Dashboard & Pilot Rollout
-**Rationale:** Public dashboard is "trust engine" core but only effective after operational improvements (Phase 5). This phase combines public-facing transparency with pilot municipality rollout, community awareness campaigns, and validation of full workflow. Success metrics: adoption by ward, resolution improvements, citizen satisfaction.
+### Phase 6: Public Transparency Enhancement and SALGA Admin View (v2.2)
 
-**Delivers:**
-- Public transparency dashboard (React app, anonymous aggregate data)
-- Response time trends, resolution rates by category/ward, spending transparency
-- Anonymized issue maps and heatmaps
-- Pilot municipality rollout (3-5 municipalities)
-- Community awareness campaign (ward councillors, community radio, printed materials)
-- Ward-level adoption tracking and quick wins documentation
+**Rationale:** Cross-municipality benchmarking conflicts directly with tenant data isolation and requires careful de-identification design. The enhanced public dashboard with IDP progress requires 2+ quarters of proven accurate SDBIP data before public exposure. Both are deferred until product-market fit is established with multiple municipalities (5+ recommended for statistical significance in benchmarking).
 
-**Addresses:**
-- Public transparency dashboard (core differentiator, "trust engine" thesis)
-- Pilot validation with diverse municipality types (metro + rural)
-- Community adoption and awareness
+**Delivers:** SDBIP achievement stats added to public transparency dashboard (plain-language translations, not raw figures), IDP progress section on public dashboard, `salga_admin` cross-municipality benchmarking view with de-identified aggregations by KPA category and municipality size.
 
-**Avoids:**
-- Dashboard transparency pitfall (Pitfall 7) — show trends and context, not just raw numbers; immutable data
-- Municipal capacity mismatch pitfall (Pitfall 9) — tiered support, hands-on training, municipal champions
-- Low citizen adoption pitfall (Pitfall 10) — community engagement plan, trusted structures, multi-channel intake
+**Addresses:** Cross-municipality benchmarking, enhanced public dashboard (FEATURES.md).
 
-**Research needs:** HIGH — Community engagement strategies specific to pilot municipalities; SALGA Smart City Maturity Framework assessment; ward councillor partnership protocols
+**Avoids:** `salga_admin` accesses aggregated data only via a dedicated `SALGAAdmin` dependency; individual municipality data requires explicit `municipality_id` scope enforced in every query; raw SDBIP percentages never exposed publicly (plain-language translation required).
+
+**Research flag:** Cross-tenant data aggregation without tenant data leakage in a multi-tenant PostgreSQL RLS architecture is a novel pattern for this codebase. Consider a targeted research session before Phase 6 planning.
 
 ---
 
 ### Phase Ordering Rationale
 
-**Dependency chains:**
-- Phases 1 → 2 → 3: Foundation → Intake → Intelligence (each requires previous)
-- Phases 4-5 parallel track: Operational efficiency (can start after Phase 3)
-- Phase 6 requires all: Full workflow validated before public launch
+- **Role hierarchy is the unconditional first step:** Every PMS endpoint uses `require_role()`. No PMS feature can be built until the 4-tier hierarchy and Supabase hook are deployed and validated. This is the single non-negotiable ordering constraint identified across all four research files.
+- **IDP before SDBIP, legislatively and architecturally:** SDBIP KPIs must reference an IDP objective at creation time. The data model enforces this with a NOT NULL FK. The legislative chain is IDP → SDBIP → actuals → reports, and the architecture follows the same sequence.
+- **Auto-population engine must be correct from day one:** Data integrity pitfalls (GBV exclusion, date boundaries, immutability) cannot be retroactively added to an auto-population engine that has already generated production data used in AG submissions.
+- **Performance agreements parallel with late Phase 2:** Section 57 agreements reference KPIs (Phase 2 output) but do not gate reporting. Phase 3 can begin while Phase 2 actuals workflow is being validated in the last weeks of that phase.
+- **Dashboards last:** Role-specific dashboards assemble data from all prior phases. Building them last means all data sources are available and the dashboard layer is a pure aggregation concern, not blocked by missing data.
+- **Risk register and annual reports deferred to Phase 5:** Section 46/121 reports require a completed financial year of actuals data (a timeline constraint, not a technical dependency). Risk register is a competitive feature, not a compliance requirement, and is lower priority than the reporting engine.
+- **Cross-tenant features isolated to final phase:** SALGA benchmarking has architectural tension with tenant isolation that must be resolved carefully. Deferring to Phase 6 means the isolation patterns are proven before the exception is built.
 
-**Risk mitigation sequence:**
-- Phase 1 addresses irreversible decisions (POPIA, multi-tenancy, offline architecture)
-- Phase 2 validates SA-specific thesis (WhatsApp adoption)
-- Phase 3 proves AI value proposition (categorization accuracy)
-- Phases 4-5 build operational capabilities before transparency (Pitfall 7)
-- Phase 6 validates market fit with diverse pilots
-
-**Feature prioritization:**
-- Table stakes first (Phases 1-3): reporting, tracking, categorization, routing
-- Differentiators after foundation (Phases 4-6): offline-first, transparency, community adoption
-- Anti-features explicitly deferred (no real-time everything, no citizen messaging, no blockchain)
+---
 
 ### Research Flags
 
-**Phases needing deeper research during planning:**
-- **Phase 3:** Lelapa AI VulaVula integration architecture; municipal GIS data quality varies by municipality (requires per-pilot assessment)
-- **Phase 4:** React Native offline sync patterns; conflict resolution strategies; field testing logistics and device procurement
-- **Phase 6:** Community engagement protocols specific to pilot municipalities; SALGA partnership formalization; procurement framework alignment
+**Needs research-phase before planning:**
+- **Phase 2:** Auto-population aggregation rule schema design — how municipalities configure ticket category-to-KPI mappings is novel with no established template in the SA PMS market. Also: ClamAV Docker sidecar deployment configuration for the target infrastructure (Render/Fly.io).
+- **Phase 4:** Report format compliance — National Treasury Section 52/72/46 official template requirements must be sourced and reviewed before any Jinja2 report template is designed.
+- **Phase 6:** Cross-tenant de-identification patterns — aggregating SDBIP data across municipality tenants without leaking individual tenant data in a PostgreSQL RLS architecture.
 
-**Phases with standard patterns (skip research-phase):**
-- **Phase 1:** FastAPI + PostgreSQL + PostGIS well-documented; multi-tenant row-level isolation is established pattern
-- **Phase 2:** Twilio WhatsApp API official docs comprehensive; webhook validation patterns standard
-- **Phase 5:** Redis pub/sub + WebSocket is standard real-time pattern; analytics dashboards well-documented
+**Standard patterns (skip research-phase):**
+- **Phase 1:** Supabase RBAC, PostgreSQL RLS, SQLAlchemy enum extension — extensively documented with official guides.
+- **Phase 3:** Performance agreement CRUD and state machine approval workflow — same patterns as Phase 2; well-established.
+- **Phase 5:** Risk register CRUD and report template extension — builds directly on Phase 4 infrastructure with no novel patterns.
+
+---
 
 ## Confidence Assessment
 
 | Area | Confidence | Notes |
 |------|------------|-------|
-| Stack | HIGH | Python/FastAPI for AI+async is industry standard; PostgreSQL+PostGIS validated for geospatial civic tech; version compatibility verified via PyPI |
-| Features | MEDIUM-HIGH | Core 311 features validated by SeeClickFix/FixMyStreet; WhatsApp-first validated by Namma Arasu (Tamil Nadu 51 services); spending transparency unique (no competitor precedent) |
-| Architecture | HIGH | Event-driven webhook, multi-tenant row-level, PostGIS routing are proven patterns; build order based on dependency analysis; scaling considerations from 3 to 50+ municipalities documented |
-| Pitfalls | MEDIUM-HIGH | SA civic tech failure patterns well-researched (OUTA case, rural connectivity, POPIA); multilingual NLP challenges documented (97% African languages lack data); procurement challenges verified by government sources |
+| Stack | HIGH | All library versions verified against PyPI and npm registries as of 2026-02-28. WeasyPrint, docxtpl, python-statemachine, recharts 3.x all production-stable with multiple dependents. clamav-client integration is MEDIUM — community-validated pattern, not official documentation. |
+| Features | HIGH | Legislative requirements sourced from official MSA and MFMA texts via AGSA and National Treasury. Competitor analysis (BCX SOLAR) is MEDIUM — based on public product pages and white papers; no hands-on evaluation. |
+| Architecture | HIGH | Based on direct codebase inspection of the ~88K LOC v1.0 system and `salga-pms-integration-plan.md`. All integration points (TenantAwareModel, require_role, Supabase Storage, Celery beat) verified against existing code. |
+| Pitfalls | HIGH | Cross-verified against AGSA 2022-24 consolidated audit reports, MFMA primary legislation, PostgreSQL RLS official documentation, Supabase auth documentation, and SA municipal PMS academic literature. |
 
-**Overall confidence:** MEDIUM-HIGH
-
-**Strengths:**
-- Core technical stack is proven and well-documented
-- WhatsApp-first thesis validated by international examples (Namma Arasu)
-- Pitfall patterns sourced from actual SA civic tech failures
-- Architecture patterns standard in 311 civic tech domain
-
-**Weaknesses:**
-- Spending transparency feature has no competitor precedent (HIGH risk/HIGH reward)
-- Multilingual NLP accuracy for isiZulu/Afrikaans less proven than claimed (technical demos exist, government-scale adoption limited)
-- Municipal capacity variance requires per-pilot assessment (cannot generalize across 257 municipalities)
-- Community adoption strategies need validation in specific pilot municipalities
+**Overall confidence:** HIGH
 
 ### Gaps to Address
 
-**During strategic planning (Phase 0):**
-- Validate SALGA partnership formalization timeline and procurement framework alignment
-- Conduct SALGA Smart City Maturity Framework assessment on shortlisted pilot municipalities
-- Clarify municipality willingness to share budget/spending data for transparency features (political/legal challenge)
+- **mSCOA reference data file:** The National Treasury mSCOA v5.5 Excel file must be obtained and its column structure reviewed before the Phase 2 migration schema is designed. This is a pre-Phase 2 task for the product owner to procure.
+- **National Treasury statutory report templates:** Official Section 52/72/46/121 report templates must be obtained from treasury.gov.za before Phase 4 template design begins. Without them, generated reports risk format non-compliance findings.
+- **Supabase Storage per-municipality bucket limits:** Supabase Pro plan limits on bucket count per project must be verified before committing to the per-municipality bucket architecture. At full scale (257 municipalities), this could be binding. An alternative (single bucket with per-municipality RLS folder policies) needs design if limits are binding.
+- **ClamAV sidecar on deployment target:** The exact Render or Fly.io configuration for ClamAV as a Background Worker (Docker image, resource requirements, TCP port 3310 exposure) must be validated against the actual deployment infrastructure before Phase 2 implementation.
+- **Digital signature workflow (v2.1):** DocuSign or a South African equivalent (SignFlow, Acrobat Sign) must be evaluated for Section 56 performance agreement digital signing — API costs, POPIA compliance of external providers, and AGSA acceptance of digital signatures need verification before Phase 5 planning.
 
-**During Phase 2 (WhatsApp Bot):**
-- WhatsApp Business API pricing at scale needs calculation for 3-5 municipalities (per-message costs, conversation windows, template message approvals)
-- User testing protocol with real citizens in isiZulu/Afrikaans required before launch
-- SMS fallback gateway selection and cost comparison
-
-**During Phase 3 (AI Categorization):**
-- Lelapa AI VulaVula API integration architecture and pricing model (vs spaCy with custom training)
-- Per-pilot GIS data quality audit and OpenStreetMap coverage assessment
-- Training data collection strategy for domain-specific categorization (municipal service requests are niche)
-
-**During Phase 4 (Mobile App):**
-- React Native offline sync engine evaluation (CouchDB vs PouchDB vs custom)
-- Conflict resolution strategy for two workers editing same issue offline
-- Device procurement for field workers (budget, specs, management)
-
-**During Phase 6 (Rollout):**
-- Community radio booking confirmations and advertising costs per pilot municipality
-- Ward councillor partnership protocols and incentive structures
-- Quick wins identification and prioritization (which issues to fast-track for visible success)
+---
 
 ## Sources
 
 ### Primary (HIGH confidence)
-
-**Stack and Architecture:**
-- PyPI (fastapi, celery, spacy, geoalchemy2, twilio) — version verification and compatibility
-- Twilio WhatsApp Business API official docs — webhook patterns, message pricing, signature validation
-- PostGIS official documentation — geospatial query patterns, spatial indexes
-- FastAPI official docs — WebSocket and async patterns, Pydantic 2.x integration
-- Celery 5.6 release notes — Python 3.13 support, memory leak fixes
-
-**Features and Civic Tech Patterns:**
-- SeeClickFix 311 CRM features (Capterra) — standard civic tech feature baseline
-- FixMyStreet Pro (UK Digital Marketplace) — transparency dashboard precedents
-- Tamil Nadu Namma Arasu WhatsApp chatbot (51 government services) — WhatsApp government service validation
-- Open311 standard for civic issue tracking — API patterns, data models
-
-**POPIA and Legal:**
-- Protection of Personal Information Act official documentation (popia.co.za)
-- POPIA comprehensive compliance guide (CaptainCompliance) — implementation requirements
-- SecurePrivacy POPIA guide — encryption, consent, retention requirements
+- [Municipal Systems Act 32 of 2000 — SAFLII](https://www.saflii.org/za/legis/consol_act/lgmsa2000384.pdf) — IDP, SDBIP, Section 56/57 requirements
+- [Municipal Finance Management Act 56 of 2003 — AGSA](https://www.agsa.co.za/Portals/0/Legislation/Municipal_Finance_Management_Act_MFMA.pdf) — Section 52, 71, 72, 121 statutory reporting requirements
+- [AGSA Consolidated Local Government Audit Outcomes 2023-24](https://mfma-2024.agsareports.co.za/) — pitfall validation from real AG findings (48% unreliable performance data)
+- [National Treasury mSCOA Regulations](https://mfma.treasury.gov.za/RegulationsandGazettes/MunicipalRegulationsOnAStandardChartOfAccountsFinal/Pages/default.aspx) — mSCOA v5.5 reference
+- [WeasyPrint PyPI v68.1](https://pypi.org/project/weasyprint/) — PDF generation library, Python 3.10+ requirement confirmed
+- [python-statemachine PyPI v3.0.0](https://pypi.org/project/python-statemachine/) — async-native state machine, released 2026-02-24
+- [docxtpl PyPI v0.20.2](https://pypi.org/project/docxtpl/) — Jinja2 inside DOCX templates, released 2025-11-13
+- [recharts npm v3.7.0](https://www.npmjs.com/package/recharts) — SunburstChart and Treemap confirmed in 3.x; 3,608 dependents
+- [Supabase Custom Access Token Hook](https://supabase.com/docs/guides/auth/auth-hooks/custom-access-token-hook) — RBAC integration pattern
+- [PostgreSQL RLS Implementation Guide — Permit.io](https://www.permit.io/blog/postgres-rls-implementation-guide) — pitfall validation
+- `salga-pms-integration-plan.md` — project-specific integration strategy; primary source for data model and role hierarchy design
 
 ### Secondary (MEDIUM confidence)
+- [BCX SOLAR Municipal Solutions — Product Page](https://www.bcx.co.za/industries/government-sector/solar-municipal-solutions/) — competitor feature benchmark
+- [Steve Tshwete LM PMDS Framework 2024-25](https://stlm.gov.za/wp-content/uploads/2024/12/ANNEXURE-B-STLM-IPMS-vol2-PMDS-framework-review-2024-2025.pdf) — real municipal PMS practice
+- [clamav-client PyPI](https://pypi.org/project/clamav-client/) — ClamAV Python client; community integration pattern
+- [Recharts 3.0 migration guide](https://github.com/recharts/recharts/wiki/3.0-migration-guide) — backward compatibility details for 2.x to 3.x
+- [SALGA Guide and Toolkit for MPAC](https://www.salga.org.za/event/mmf/Documents/Guide%20and%20Toolkit%20for%20Municipal%20Public%20Accounts%20Committees.pdf) — oversight role requirements
 
-**South African Civic Tech Context:**
-- Intersections between civic technology and governance in South Africa (scielo.org.za) — civic tech adoption challenges
-- Civic Tech in South Africa (Civic Tech Guide) — platform landscape, OUTA case study
-- GovChat and South African Civic Tech Platforms (Medium) — SALGA partnerships, WhatsApp adoption
-- SALGA Smart City Development Maturity Framework — municipal capability tiers
-
-**Municipal Technology Implementation:**
-- Challenges and best practices for e-municipalities (apsdpr.org) — capacity constraints
-- Assessing the impact of digital technologies on service delivery (jolgri.org) — implementation pitfalls
-- Municipal capacity constraints research (journals.co.za) — skill gaps, training needs
-
-**Multilingual NLP:**
-- Lelapa AI VulaVula documentation — multilingual South African language NLP API
-- Botlhale AI — African language NLP capabilities
-- Natural Language Processing Technologies for Public Health in Africa (PMC) — 97% of African languages lack digitized texts
-- InkubaLM: A small language model for low-resource African languages (Lelapa AI) — technical feasibility
-
-**Government Procurement:**
-- Procurement challenges in South African public sector (ResearchGate) — systemic issues, timelines
-- Public Procurement in South Africa (IMF) — bureaucratic inefficiency, fraud risks
-- SITA and ICT Procurement Paradox — centralized procurement bottlenecks
-
-### Tertiary (LOW confidence, needs validation)
-
-**Spending Transparency:**
-- Government Dashboards: Transparency, Trust & Public Accountability (Spider Strategies) — conceptual frameworks, no SA municipal precedents
-- From transparency to accountability through citizen engagement (World Bank) — theoretical models, needs local validation
-
-**Geospatial Data Quality:**
-- How geospatial insights can transform service delivery (AfriGIS) — potential, not validated accuracy of municipal GIS data
-- Service delivery inequality in South African municipalities (SAGE Journals) — infrastructure gaps, informal settlement exclusion
-
-**Trust and Democracy:**
-- Citizens' perceptions of trust and corruption in South Africa (IJR) — satisfaction dropped from 60% to 39% (2011-2024)
-- Trust in Government (DPME Policy Brief) — general trust metrics, not civic tech specific
+### Tertiary (informing context)
+- AGSA 2022-23 MFMA consolidated report — 48% of municipalities submitted unreliable performance data; basis for auto-population data quality pitfalls
+- [Strengthening PMS Implementation in SA Municipalities — ResearchGate](https://www.researchgate.net/publication/320377855_Strengthening_Performance_Management_System_Implementation_in_South_African_Municipalities) — gap between legislative requirements and actual practice
 
 ---
 
-*Research completed: 2026-02-09*
-*Ready for roadmap: YES*
+*Research completed: 2026-02-28*
+*Ready for roadmap: yes*
