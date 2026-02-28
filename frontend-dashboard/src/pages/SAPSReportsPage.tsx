@@ -40,8 +40,14 @@ export function SAPSReportsPage() {
         sort_by: sorting[0]?.id,
         sort_order: sorting[0]?.desc ? 'desc' : 'asc',
       });
-      setTickets(response.tickets);
-      setPageCount(response.page_count);
+      if (response.tickets.length === 0) {
+        // SEC-05: API succeeded but returned empty — use ONLY mockSAPSTickets (GBV cases)
+        setTickets(mockSAPSTickets);
+        setPageCount(1);
+      } else {
+        setTickets(response.tickets);
+        setPageCount(response.page_count);
+      }
     } catch (err) {
       // SEC-05: Rich mock fallback uses ONLY mockSAPSTickets (GBV cases) — never general tickets
       setTickets(mockSAPSTickets);
@@ -121,7 +127,7 @@ export function SAPSReportsPage() {
             <KPISimple label="Avg Response (hrs)" value={kpis.avgResponseHours} color="var(--color-coral)" />
           </div>
 
-          {/* Two-column: Donut + Table */}
+          {/* Status Distribution Donut Chart */}
           <div style={styles.twoCol}>
             <GlassCard variant="default" style={{ padding: '1.5rem' }}>
               <h2 style={styles.sectionTitle}>Status Distribution</h2>
@@ -171,7 +177,7 @@ export function SAPSReportsPage() {
 function KPISimple({ label, value, color }: { label: string; value: number; color: string }) {
   return (
     <GlassCard variant="default" style={{ padding: '1.25rem' }}>
-      <div style={{ fontSize: '0.75rem', fontWeight: '500', color: 'var(--text-secondary)', textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
+      <div style={{ fontSize: '0.75rem', fontWeight: '500', color: 'var(--text-secondary)', textTransform: 'uppercase' as const, letterSpacing: '0.06em', marginBottom: '0.5rem' }}>
         {label}
       </div>
       <div style={{ fontSize: '2rem', fontWeight: '700', color }}>{value}</div>

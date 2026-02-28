@@ -32,24 +32,24 @@ export const mockUsers: MockUser[] = [
   { id: 'u-018-michael-oconnor', email: 'michael.oconnor@gmail.com', full_name: "Michael O'Connor", role: 'citizen' },
 
   // Managers (~4)
-  { id: 'u-019-thandi-dube', email: 'thandi.dube@ethekwini.gov.za', full_name: 'Thandi Dube', role: 'manager' },
-  { id: 'u-020-johan-du-plessis', email: 'johan.duplessis@ethekwini.gov.za', full_name: 'Johan du Plessis', role: 'manager' },
-  { id: 'u-021-riana-venter', email: 'riana.venter@ethekwini.gov.za', full_name: 'Riana Venter', role: 'manager' },
-  { id: 'u-022-nkosinathi-gumede', email: 'nkosinathi.gumede@ethekwini.gov.za', full_name: 'Nkosinathi Gumede', role: 'manager' },
+  { id: 'u-019-thandi-dube', email: 'thandi.dube@emthanjeni.gov.za', full_name: 'Thandi Dube', role: 'manager' },
+  { id: 'u-020-johan-du-plessis', email: 'johan.duplessis@emthanjeni.gov.za', full_name: 'Johan du Plessis', role: 'manager' },
+  { id: 'u-021-riana-venter', email: 'riana.venter@emthanjeni.gov.za', full_name: 'Riana Venter', role: 'manager' },
+  { id: 'u-022-nkosinathi-gumede', email: 'nkosinathi.gumede@emthanjeni.gov.za', full_name: 'Nkosinathi Gumede', role: 'manager' },
 
   // Admins (~2)
-  { id: 'u-023-priya-govender', email: 'priya.govender@ethekwini.gov.za', full_name: 'Priya Govender', role: 'admin' },
-  { id: 'u-024-hendrik-pretorius', email: 'hendrik.pretorius@ethekwini.gov.za', full_name: 'Hendrik Pretorius', role: 'admin' },
+  { id: 'u-023-priya-govender', email: 'priya.govender@emthanjeni.gov.za', full_name: 'Priya Govender', role: 'admin' },
+  { id: 'u-024-hendrik-pretorius', email: 'hendrik.pretorius@emthanjeni.gov.za', full_name: 'Hendrik Pretorius', role: 'admin' },
 
   // Field workers (~8)
-  { id: 'u-025-lungelo-sithole', email: 'lungelo.sithole@ethekwini.gov.za', full_name: 'Lungelo Sithole', role: 'field_worker' },
-  { id: 'u-026-musa-hadebe', email: 'musa.hadebe@ethekwini.gov.za', full_name: 'Musa Hadebe', role: 'field_worker' },
-  { id: 'u-027-zodwa-ntuli', email: 'zodwa.ntuli@ethekwini.gov.za', full_name: 'Zodwa Ntuli', role: 'field_worker' },
-  { id: 'u-028-siphamandla-zungu', email: 'siphamandla.zungu@ethekwini.gov.za', full_name: 'Siphamandla Zungu', role: 'field_worker' },
-  { id: 'u-029-jabulani-shabalala', email: 'jabulani.shabalala@ethekwini.gov.za', full_name: 'Jabulani Shabalala', role: 'field_worker' },
-  { id: 'u-030-andile-dlamini', email: 'andile.dlamini@ethekwini.gov.za', full_name: 'Andile Dlamini', role: 'field_worker' },
-  { id: 'u-031-nomvula-ngcobo', email: 'nomvula.ngcobo@ethekwini.gov.za', full_name: 'Nomvula Ngcobo', role: 'field_worker' },
-  { id: 'u-032-sifiso-mthethwa', email: 'sifiso.mthethwa@ethekwini.gov.za', full_name: 'Sifiso Mthethwa', role: 'field_worker' },
+  { id: 'u-025-lungelo-sithole', email: 'lungelo.sithole@emthanjeni.gov.za', full_name: 'Lungelo Sithole', role: 'field_worker' },
+  { id: 'u-026-musa-hadebe', email: 'musa.hadebe@emthanjeni.gov.za', full_name: 'Musa Hadebe', role: 'field_worker' },
+  { id: 'u-027-zodwa-ntuli', email: 'zodwa.ntuli@emthanjeni.gov.za', full_name: 'Zodwa Ntuli', role: 'field_worker' },
+  { id: 'u-028-siphamandla-zungu', email: 'siphamandla.zungu@emthanjeni.gov.za', full_name: 'Siphamandla Zungu', role: 'field_worker' },
+  { id: 'u-029-jabulani-shabalala', email: 'jabulani.shabalala@emthanjeni.gov.za', full_name: 'Jabulani Shabalala', role: 'field_worker' },
+  { id: 'u-030-andile-dlamini', email: 'andile.dlamini@emthanjeni.gov.za', full_name: 'Andile Dlamini', role: 'field_worker' },
+  { id: 'u-031-nomvula-ngcobo', email: 'nomvula.ngcobo@emthanjeni.gov.za', full_name: 'Nomvula Ngcobo', role: 'field_worker' },
+  { id: 'u-032-sifiso-mthethwa', email: 'sifiso.mthethwa@emthanjeni.gov.za', full_name: 'Sifiso Mthethwa', role: 'field_worker' },
 
   // SAPS Liaison (~3)
   { id: 'u-033-colonel-bhengu', email: 'n.bhengu@saps.gov.za', full_name: 'Colonel Nozipho Bhengu', role: 'saps_liaison' },
@@ -57,8 +57,8 @@ export const mockUsers: MockUser[] = [
   { id: 'u-035-sergeant-jacobs', email: 'd.jacobs@saps.gov.za', full_name: 'Sergeant Desiree Jacobs', role: 'saps_liaison' },
 
   // Ward Councillors (~4)
-  { id: 'u-036-cllr-moloi', email: 'cllr.moloi@ethekwini.gov.za', full_name: 'Cllr Busisiwe Moloi', role: 'ward_councillor' },
-  { id: 'u-037-cllr-du-toit', email: 'cllr.dutoit@ethekwini.gov.za', full_name: 'Cllr Francois du Toit', role: 'ward_councillor' },
-  { id: 'u-038-cllr-naidoo', email: 'cllr.naidoo@ethekwini.gov.za', full_name: 'Cllr Samantha Naidoo', role: 'ward_councillor' },
-  { id: 'u-039-cllr-mnguni', email: 'cllr.mnguni@ethekwini.gov.za', full_name: 'Cllr Bonginkosi Mnguni', role: 'ward_councillor' },
+  { id: 'u-036-cllr-moloi', email: 'cllr.moloi@emthanjeni.gov.za', full_name: 'Cllr Busisiwe Moloi', role: 'ward_councillor' },
+  { id: 'u-037-cllr-du-toit', email: 'cllr.dutoit@emthanjeni.gov.za', full_name: 'Cllr Francois du Toit', role: 'ward_councillor' },
+  { id: 'u-038-cllr-naidoo', email: 'cllr.naidoo@emthanjeni.gov.za', full_name: 'Cllr Samantha Naidoo', role: 'ward_councillor' },
+  { id: 'u-039-cllr-mnguni', email: 'cllr.mnguni@emthanjeni.gov.za', full_name: 'Cllr Bonginkosi Mnguni', role: 'ward_councillor' },
 ];

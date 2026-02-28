@@ -20,6 +20,7 @@ import { AnalyticsPage } from './pages/AnalyticsPage';
 import { SettingsPage } from './pages/SettingsPage';
 import { SAPSReportsPage } from './pages/SAPSReportsPage';
 import { FieldWorkerTicketsPage } from './pages/FieldWorkerTicketsPage';
+import { FieldWorkerTeamPage } from './pages/FieldWorkerTeamPage';
 import { CompletedTicketsPage } from './pages/CompletedTicketsPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
@@ -85,6 +86,7 @@ function AppRoutes() {
         <Route path="/reports" element={<DashboardLayout><SAPSReportsPage /></DashboardLayout>} />
         <Route path="/completed" element={<DashboardLayout><CompletedTicketsPage /></DashboardLayout>} />
         <Route path="/field-worker" element={<DashboardLayout><FieldWorkerTicketsPage /></DashboardLayout>} />
+        <Route path="/field-worker/team" element={<DashboardLayout><FieldWorkerTeamPage /></DashboardLayout>} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PageTransition>
@@ -100,7 +102,7 @@ function RoleBasedDashboard() {
   const role = getUserRole();
 
   if (role === 'field_worker') return <FieldWorkerTicketsPage />;
-  if (role === 'saps_liaison') return <TicketListPage />;
+  if (role === 'saps_liaison') return <SAPSReportsPage />;
   return <DashboardPage />;
 }
 

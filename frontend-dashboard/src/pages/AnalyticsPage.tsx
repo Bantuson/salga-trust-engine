@@ -298,6 +298,7 @@ const slaStatStyles = {
   block: {
     display: 'flex',
     flexDirection: 'column' as const,
+    alignItems: 'center',
     gap: '0.375rem',
   },
   label: {
@@ -357,7 +358,7 @@ const styles = {
   } as React.CSSProperties,
   kpiGrid: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+    gridTemplateColumns: 'repeat(4, 1fr)',
     gap: '1rem',
     marginBottom: '1.5rem',
   } as React.CSSProperties,
@@ -384,6 +385,7 @@ const styles = {
     display: 'grid',
     gridTemplateColumns: 'repeat(auto-fit, minmax(160px, 1fr))',
     gap: '2rem',
+    textAlign: 'center' as const,
   } as React.CSSProperties,
   emptyState: {
     padding: '3rem',

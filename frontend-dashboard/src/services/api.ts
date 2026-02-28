@@ -7,7 +7,7 @@
 import axios, { AxiosError } from 'axios';
 import { supabase } from '../lib/supabase';
 import type { TicketFilters, PaginatedTicketResponse, DashboardMetrics, CategoryVolume, SLACompliance, TeamWorkload, TicketDetailResponse, HistoryEntry } from '../types/dashboard';
-import type { Team, TeamCreate, TeamMember, TeamInvitation, InvitationCreate, BulkInvitationCreate } from '../types/teams';
+import type { Team, TeamCreate, TeamMember, TeamInvitation, InvitationCreate, BulkInvitationCreate, TeamSchedule, TeamReview, TicketRoleAssignment } from '../types/teams';
 import type { AnalyticsData } from '../types/analytics';
 import type { SLAConfig, MunicipalityProfile, PaginatedAuditLogs } from '../types/settings';
 
@@ -668,6 +668,128 @@ export async function fetchAnalyticsData(
   } catch (error) {
     if (error instanceof AxiosError) {
       throw new Error(error.response?.data?.detail || 'Failed to fetch analytics data');
+    }
+    throw error;
+  }
+}
+
+// ---------------------------------------------------------------------------
+// Supervisor / Team Management API
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch team schedules.
+ */
+export async function fetchTeamSchedules(teamId: string): Promise<TeamSchedule[]> {
+  try {
+    const response = await api.get(`/teams/${teamId}/schedules`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch schedules');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create a team schedule entry.
+ */
+export async function createTeamSchedule(
+  teamId: string,
+  data: Omit<TeamSchedule, 'id'>
+): Promise<TeamSchedule> {
+  try {
+    const response = await api.post(`/teams/${teamId}/schedules`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to create schedule');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Update a team schedule entry.
+ */
+export async function updateTeamSchedule(
+  teamId: string,
+  scheduleId: string,
+  data: Partial<TeamSchedule>
+): Promise<TeamSchedule> {
+  try {
+    const response = await api.patch(`/teams/${teamId}/schedules/${scheduleId}`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to update schedule');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch team reviews.
+ */
+export async function fetchTeamReviews(teamId: string): Promise<TeamReview[]> {
+  try {
+    const response = await api.get(`/teams/${teamId}/reviews`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch reviews');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Create a team review.
+ */
+export async function createTeamReview(
+  teamId: string,
+  data: Omit<TeamReview, 'id'>
+): Promise<TeamReview> {
+  try {
+    const response = await api.post(`/teams/${teamId}/reviews`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to create review');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Fetch ticket role assignments for a team.
+ */
+export async function fetchTicketRoleAssignments(teamId: string): Promise<TicketRoleAssignment[]> {
+  try {
+    const response = await api.get(`/teams/${teamId}/assignments`);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to fetch assignments');
+    }
+    throw error;
+  }
+}
+
+/**
+ * Assign a role to a team member for a ticket.
+ */
+export async function assignTicketRole(
+  teamId: string,
+  data: Omit<TicketRoleAssignment, 'id' | 'assigned_at'>
+): Promise<TicketRoleAssignment> {
+  try {
+    const response = await api.post(`/teams/${teamId}/assignments`, data);
+    return response.data;
+  } catch (error) {
+    if (error instanceof AxiosError) {
+      throw new Error(error.response?.data?.detail || 'Failed to assign role');
     }
     throw error;
   }

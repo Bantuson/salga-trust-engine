@@ -57,9 +57,9 @@ export function CategoryComparison({ volume, title = 'Category Breakdown' }: Cat
               <div
                 style={{
                   ...styles.badge,
-                  background: config.bgColor,
-                  color: config.color,
-                  borderColor: `${config.color}44`,
+                  background: 'rgba(255, 255, 255, 0.1)',
+                  color: 'rgba(255, 255, 255, 0.85)',
+                  borderColor: 'rgba(255, 255, 255, 0.15)',
                 }}
               >
                 {config.label}

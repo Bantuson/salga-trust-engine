@@ -195,6 +195,14 @@ input::placeholder {
   color: var(--text-muted);
 }
 
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+.modal-textarea::placeholder {
+  color: rgba(255, 150, 180, 0.6);
+}
+
 /* Status Badges */
 .status-badge {
   padding: var(--space-xs) var(--space-sm);

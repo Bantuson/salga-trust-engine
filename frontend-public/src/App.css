@@ -870,33 +870,6 @@ body {
   z-index: 2;
 }
 
-.dashboard-summary-grid {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: var(--space-lg);
-  margin-bottom: var(--space-xl);
-}
-
-.metric-label {
-  font-size: 0.875rem;
-  color: #555;
-  text-transform: uppercase;
-  letter-spacing: 0.05em;
-  margin-bottom: var(--space-sm);
-}
-
-.metric-value {
-  font-size: 2.5rem;
-  font-weight: 700;
-  color: #1a1a1a;
-  margin-bottom: var(--space-xs);
-}
-
-.metric-note {
-  font-size: 0.75rem;
-  color: #888;
-}
-
 .dashboard-charts-grid {
   display: grid;
   gap: var(--space-xl);
@@ -912,10 +885,6 @@ body {
 }
 
 @media (min-width: 768px) {
-  .dashboard-summary-grid {
-    grid-template-columns: repeat(3, 1fr);
-  }
-
   .dashboard-title {
     font-size: 2.25rem;
   }

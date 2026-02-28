@@ -64,23 +64,26 @@ export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: 
       onClick={onClose}
       role="dialog"
       aria-modal="true"
-      aria-label={`${team.name} details`}
+      aria-label={`${team.manager_name || 'Team'} details`}
     >
       {/* Modal content — stop propagation so clicks inside don't close */}
       <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
-            <h2 style={styles.teamName}>{team.name}</h2>
-            <span
-              style={{
-                ...styles.categoryBadge,
-                backgroundColor: categoryConfig.bgColor,
-                color: categoryConfig.color,
-              }}
-            >
-              {categoryConfig.label}
-            </span>
+            <div style={styles.headerTopRow}>
+              <h2 style={styles.teamName}>{team.manager_name || 'Unassigned Supervisor'}</h2>
+              <span
+                style={{
+                  ...styles.categoryBadge,
+                  backgroundColor: categoryConfig.bgColor,
+                  color: categoryConfig.color,
+                }}
+              >
+                {categoryConfig.label}
+              </span>
+            </div>
+            <p style={styles.teamSubtitle}>{team.name}</p>
           </div>
 
           {/* Close button */}
@@ -104,8 +107,8 @@ export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: 
         {/* Metadata row */}
         <div style={styles.metadataRow}>
           <span style={styles.metaItem}>
-            <span style={styles.metaLabel}>Manager:</span>
-            <span style={styles.metaValue}>{team.manager_name || 'Unassigned'}</span>
+            <span style={styles.metaLabel}>Team:</span>
+            <span style={styles.metaValue}>{team.name}</span>
           </span>
           <span style={styles.metaDivider} />
           <span style={styles.metaItem}>
@@ -198,11 +201,15 @@ const styles = {
   } as React.CSSProperties,
   headerLeft: {
     display: 'flex',
-    alignItems: 'center',
-    gap: 'var(--space-md)',
-    flexWrap: 'wrap' as const,
+    flexDirection: 'column' as const,
+    alignItems: 'flex-start',
     flex: 1,
     minWidth: 0,
+  } as React.CSSProperties,
+  headerTopRow: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: 'var(--space-md)',
   } as React.CSSProperties,
   teamName: {
     fontSize: '1.25rem',
@@ -210,6 +217,11 @@ const styles = {
     color: 'var(--text-primary)',
     margin: 0,
     lineHeight: 1.3,
+  } as React.CSSProperties,
+  teamSubtitle: {
+    color: 'var(--text-secondary)',
+    fontSize: '0.9rem',
+    margin: '2px 0 0 0',
   } as React.CSSProperties,
   categoryBadge: {
     display: 'inline-block',

@@ -56,3 +56,34 @@ export interface InvitationCreate {
 export interface BulkInvitationCreate {
   invitations: InvitationCreate[];
 }
+
+export interface TeamSchedule {
+  id: string;
+  member_id: string;
+  member_name: string;
+  date: string;
+  shift: 'morning' | 'afternoon' | 'night';
+  status: 'scheduled' | 'on_leave' | 'absent';
+  notes?: string;
+}
+
+export interface TeamReview {
+  id: string;
+  member_id: string;
+  member_name: string;
+  review_date: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  comments: string;
+  reviewer_id: string;
+  reviewer_name: string;
+}
+
+export interface TicketRoleAssignment {
+  id: string;
+  ticket_id: string;
+  tracking_number: string;
+  member_id: string;
+  member_name: string;
+  assigned_role: string;
+  assigned_at: string;
+}
