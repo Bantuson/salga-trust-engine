@@ -5,6 +5,7 @@ Provides endpoints for:
 - Organogram (hierarchical department tree with director names)
 - Ticket category to department mapping (1:1 per tenant)
 - Municipality PMS settings (view, update, lock, unlock)
+- PMS readiness checklist (GET /departments/pms-readiness)
 
 Security:
 - All endpoints require authentication
@@ -13,6 +14,7 @@ Security:
 - Municipality settings locked flag prevents edits without explicit unlock
 """
 import logging
+from dataclasses import asdict
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, status
@@ -20,7 +22,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 from starlette.requests import Request
 
-from src.api.deps import get_current_user, get_db, require_role
+from src.api.deps import get_current_active_user, get_current_user, get_db, require_role
 from src.middleware.rate_limit import (
     SENSITIVE_READ_RATE_LIMIT,
     SENSITIVE_WRITE_RATE_LIMIT,
@@ -589,6 +591,39 @@ async def delete_ticket_category_mapping(
     logger.info(
         f"Ticket category mapping {mapping_id} deleted by {current_user.full_name}"
     )
+
+
+# ---------------------------------------------------------------------------
+# PMS readiness endpoint
+# ---------------------------------------------------------------------------
+
+@router.get("/pms-readiness")
+@limiter.limit(SENSITIVE_READ_RATE_LIMIT)
+async def get_pms_readiness(
+    request: Request,
+    current_user: User = Depends(get_current_active_user),
+    db: AsyncSession = Depends(get_db),
+) -> dict:
+    """Check PMS readiness status for the current user's municipality.
+
+    Returns the full readiness checklist so the frontend can display
+    actionable guidance. All three conditions must be True for is_ready=True:
+    - Municipality settings configured and locked
+    - All active departments have assigned directors
+    - At least one PMS officer assigned
+
+    Args:
+        current_user: Authenticated active user (any role)
+        db: Database session
+
+    Returns:
+        PmsReadinessStatus as dict with is_ready + checklist fields
+    """
+    from src.services.pms_readiness import check_pms_readiness  # noqa: PLC0415
+    readiness = await check_pms_readiness(
+        current_user.municipality_id, current_user.tenant_id, db
+    )
+    return asdict(readiness)
 
 
 # ---------------------------------------------------------------------------
