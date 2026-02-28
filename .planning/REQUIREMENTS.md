@@ -134,13 +134,74 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| (populated by roadmapper) | | |
+| RBAC-01 | Phase 27 | Pending |
+| RBAC-02 | Phase 27 | Pending |
+| RBAC-03 | Phase 27 | Pending |
+| RBAC-04 | Phase 27 | Pending |
+| RBAC-05 | Phase 27 | Pending |
+| RBAC-06 | Phase 27 | Pending |
+| IDP-01 | Phase 28 | Pending |
+| IDP-02 | Phase 28 | Pending |
+| IDP-03 | Phase 28 | Pending |
+| IDP-04 | Phase 28 | Pending |
+| IDP-05 | Phase 28 | Pending |
+| SDBIP-01 | Phase 28 | Pending |
+| SDBIP-02 | Phase 28 | Pending |
+| SDBIP-03 | Phase 28 | Pending |
+| SDBIP-04 | Phase 28 | Pending |
+| SDBIP-05 | Phase 28 | Pending |
+| SDBIP-06 | Phase 28 | Pending |
+| SDBIP-07 | Phase 28 | Pending |
+| SDBIP-08 | Phase 28 | Pending |
+| SDBIP-09 | Phase 28 | Pending |
+| SDBIP-10 | Phase 28 | Pending |
+| EVID-01 | Phase 28 | Pending |
+| EVID-02 | Phase 28 | Pending |
+| EVID-03 | Phase 28 | Pending |
+| EVID-04 | Phase 28 | Pending |
+| EVID-05 | Phase 28 | Pending |
+| EVID-06 | Phase 28 | Pending |
+| EVID-07 | Phase 28 | Pending |
+| EVID-08 | Phase 28 | Pending |
+| PA-01 | Phase 29 | Pending |
+| PA-02 | Phase 29 | Pending |
+| PA-03 | Phase 29 | Pending |
+| PA-04 | Phase 29 | Pending |
+| PA-05 | Phase 29 | Pending |
+| PA-06 | Phase 29 | Pending |
+| REPORT-01 | Phase 30 | Pending |
+| REPORT-02 | Phase 30 | Pending |
+| REPORT-03 | Phase 30 | Pending |
+| REPORT-04 | Phase 30 | Pending |
+| REPORT-05 | Phase 30 | Pending |
+| REPORT-06 | Phase 30 | Pending |
+| REPORT-07 | Phase 30 | Pending |
+| REPORT-08 | Phase 30 | Pending |
+| REPORT-09 | Phase 30 | Pending |
+| DASH-01 | Phase 31 | Pending |
+| DASH-02 | Phase 31 | Pending |
+| DASH-03 | Phase 31 | Pending |
+| DASH-04 | Phase 31 | Pending |
+| DASH-05 | Phase 31 | Pending |
+| DASH-06 | Phase 31 | Pending |
+| DASH-07 | Phase 31 | Pending |
+| DASH-08 | Phase 31 | Pending |
+| DASH-09 | Phase 31 | Pending |
+| DASH-10 | Phase 31 | Pending |
+| DASH-11 | Phase 31 | Pending |
+| DASH-12 | Phase 31 | Pending |
+| RISK-01 | Phase 32 | Pending |
+| RISK-02 | Phase 32 | Pending |
+| RISK-03 | Phase 32 | Pending |
+| RISK-04 | Phase 32 | Pending |
 
 **Coverage:**
-- v2.0 requirements: 61 total
-- Mapped to phases: 0
-- Unmapped: 61 ⚠️
+- v2.0 requirements: 60 total
+- Mapped to phases: 60
+- Unmapped: 0 ✓
+
+**Note:** REQUIREMENTS.md header originally stated 61 requirements. Actual count from listed items is 60 (RBAC:6, IDP:5, SDBIP:10, EVID:8, PA:6, REPORT:9, DASH:12, RISK:4). All 60 are mapped.
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 after initial definition*
+*Last updated: 2026-02-28 — traceability populated by roadmapper (60/60 requirements mapped)*

@@ -3,6 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-10.4 (shipped 2026-02-28)
+- 🚧 **v2.0 Senior Municipal Roles & PMS Integration** — Phases 27-32 (in progress)
 
 ## Phases
 
@@ -47,12 +48,137 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 </details>
 
+---
+
+### v2.0 Senior Municipal Roles & PMS Integration
+
+**Milestone Goal:** Transform the Trust Engine from a citizen service delivery platform into a full-stack municipal operating system — connecting citizen complaints on the ground to Council statutory reporting at the top — by implementing the Performance Management System (PMS) modules mandated by the Municipal Systems Act (MSA) and Municipal Finance Management Act (MFMA).
+
+- [ ] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality
+- [ ] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine
+- [ ] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments
+- [ ] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking
+- [ ] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles
+- [ ] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data
+
+## Phase Details
+
+### Phase 27: RBAC Foundation & Tenant Configuration
+**Goal**: Senior municipal staff can be assigned their correct roles and each municipality has its department structure configured, gating all PMS features
+**Depends on**: v1.0 foundation (Supabase Auth, existing 6-role RBAC, TenantAwareModel)
+**Requirements**: RBAC-01, RBAC-02, RBAC-03, RBAC-04, RBAC-05, RBAC-06
+**Success Criteria** (what must be TRUE):
+  1. Admin can assign any of the 14 new roles (executive_mayor, municipal_manager, cfo, speaker, councillor, section56_director, department_manager, pms_officer, audit_committee_member, internal_auditor, mpac_member, salga_admin) to a user and the user's JWT reflects the new role without re-login issues
+  2. Admin can create, name, and assign a responsible director to each department within their municipality tenant, and the organogram view reflects the configured hierarchy
+  3. A user with a senior role (e.g., cfo) automatically inherits access to endpoints accessible by subordinate roles (e.g., manager) without additional configuration
+  4. Every role change is visible in the audit log with the actor, timestamp, and previous/new role
+  5. PMS feature endpoints return 403 until department configuration is complete, enforced by the PMS readiness gate
+**Plans**: TBD
+
+Plans:
+- [ ] 27-01: Extend UserRole enum and Supabase custom access token hook with 14 new roles; add `require_minimum_tier()` dependency; DB CHECK constraint and startup assertion
+- [ ] 27-02: Department structure CRUD API and models (`Department`, `MunicipalityConfig`, `financial_year`); per-tenant organogram endpoint; RLS policies on all new tables
+- [ ] 27-03: PMS readiness checklist endpoint; placeholder PMS navigation in `useRoleBasedNav.ts`; Supabase Redis force-logout on role change
+
+### Phase 28: IDP, SDBIP Core & Performance Monitoring
+**Goal**: Authorized staff can define strategic goals (IDP), create KPIs with quarterly targets (SDBIP), submit quarterly actuals with evidence, and the system auto-populates actuals from resolved ticket data
+**Depends on**: Phase 27 (department structure required for KPI assignment; roles required for all endpoints)
+**Requirements**: IDP-01, IDP-02, IDP-03, IDP-04, IDP-05, SDBIP-01, SDBIP-02, SDBIP-03, SDBIP-04, SDBIP-05, SDBIP-06, SDBIP-07, SDBIP-08, SDBIP-09, SDBIP-10, EVID-01, EVID-02, EVID-03, EVID-04, EVID-05, EVID-06, EVID-07, EVID-08
+**Success Criteria** (what must be TRUE):
+  1. PMS officer can create a 5-year IDP cycle, add strategic goals and objectives with National KPA alignment, and view the IDP-to-SDBIP golden thread showing which KPIs link back to which objectives
+  2. Director can create departmental SDBIP KPIs with quarterly targets, link each KPI to a validated mSCOA budget code from the seeded reference table (not free-text), and submit the SDBIP for Mayor sign-off via the approval workflow
+  3. Director can submit quarterly actual values against KPI targets, upload portfolio of evidence documents, and see the system calculate achievement percentage and traffic-light status (green/amber/red) automatically
+  4. After each quarter closes, the system's Celery auto-population task fills SDBIP actuals for service-delivery KPIs from resolved ticket data, and each auto-populated actual is clearly labeled with its source query reference and is never a GBV ticket
+  5. Once a PMS officer validates a quarterly actual, it becomes immutable — corrections require a new submission record with a full audit trail, and the original validated value remains visible
+**Plans**: TBD
+
+Plans:
+- [ ] 28-01: IDP data models (`IDPCycle`, `IDPGoal`, `IDPObjective`, `IDPVersion`), approval state machine, API routes, IDP frontend pages
+- [ ] 28-02: SDBIP data models (`SDBIPScorecard`, `SDBIPKpi`, `SDBIPQuarterlyTarget`, `mscoa_reference` seeded table), KPI creation API, mSCOA code lookup endpoint
+- [ ] 28-03: SDBIP approval workflow (draft → approved → revised) with Mayor sign-off; mid-year target adjustment endpoint (SDBIP-09)
+- [ ] 28-04: Quarterly actuals submission (`SDBIPActual`), achievement percentage calculation, traffic-light status (EVID-01, EVID-02, EVID-06); immutability enforcement and correction record pattern (EVID-05)
+- [ ] 28-05: Portfolio of evidence upload with ClamAV virus scanning, per-municipality Supabase Storage buckets, signed URL serving; PMS officer validation workflow (EVID-03, EVID-04, EVID-07)
+- [ ] 28-06: Auto-population engine — `SDBIPTicketAggregationRule` model, Celery beat task with SEC-05 GBV exclusion (`is_sensitive = FALSE`), quarter boundary logic (`resolved_at BETWEEN`), auto-populated flag and source query logging (SDBIP-07, SDBIP-08, EVID-08)
+- [ ] 28-07: IDP and SDBIP frontend pages — golden thread view, scorecard grid, evidence upload forms, quarterly actuals table
+
+### Phase 29: Individual Performance Agreements
+**Goal**: PMS officers can create Section 57 performance agreements for senior managers, link them to SDBIP KPIs, and conduct quarterly reviews and annual assessments through a signed workflow
+**Depends on**: Phase 28 (SDBIP KPIs must exist before agreements can reference them)
+**Requirements**: PA-01, PA-02, PA-03, PA-04, PA-05, PA-06
+**Success Criteria** (what must be TRUE):
+  1. PMS officer can create a performance agreement for a Section 57 manager, link it to specific organizational SDBIP KPIs with individual targets and weightings, and the agreement enters draft status immediately
+  2. The Municipal Manager can sign a director's performance agreement (and the Executive Mayor can sign the Municipal Manager's agreement) via the approval workflow, transitioning the agreement from draft to signed status
+  3. An evaluator can score individual KPIs per quarter in the quarterly review workflow, and the system compiles the annual assessment score from all quarterly scores weighted by KPI weights automatically
+  4. Completed performance agreement records carry a POPIA retention flag and data deletion rights are honored on official departure
+**Plans**: TBD
+
+Plans:
+- [ ] 29-01: Performance agreement data models (`PerformanceAgreement`, `PAKpi`), CRUD API, approval state machine (draft → signed → under_review → assessed), role-gated signing endpoints
+- [ ] 29-02: Quarterly review workflow, annual assessment score compilation, Celery notifications to evaluators; POPIA retention flag; performance agreements frontend page
+
+### Phase 30: Statutory Reporting & Approval Workflows
+**Goal**: The system auto-generates Section 52/72/46/121 statutory reports from live PMS data, routes them through a multi-step approval chain, and tracks every statutory deadline with escalating notifications
+**Depends on**: Phase 28 (IDP/SDBIP actuals as source data), Phase 29 (performance agreement scores contribute to reports)
+**Requirements**: REPORT-01, REPORT-02, REPORT-03, REPORT-04, REPORT-05, REPORT-06, REPORT-07, REPORT-08, REPORT-09
+**Success Criteria** (what must be TRUE):
+  1. CFO or Municipal Manager can trigger generation of a Section 52 quarterly performance report or Section 72 mid-year assessment, and the system produces a PDF and DOCX file within the Celery worker (never blocking the request handler) using AG-compliant National Treasury formats
+  2. Generated reports go through a five-stage approval chain (drafting → internal_review → mm_approved → submitted → tabled), and the source data used to generate the report is snapshotted at mm_approved status so the document never diverges from what was approved
+  3. Senior staff receive escalating email and in-app notifications at 30, 14, 7, and 3 days before each statutory deadline, and overdue deadlines are flagged immediately
+  4. The system auto-creates a report drafting task 30 days before each statutory deadline for the relevant financial year, with no hardcoded date literals
+  5. Reports export with the municipality's logo, header formatting, and mandatory column structure (baseline, annual target, quarterly target, actual, variance, deviation reason), and carry a draft watermark until mm_approved
+**Plans**: TBD
+
+Plans:
+- [ ] 30-01: Statutory report data models (`StatutoryReport`, `StatutoryReportSnapshot`), approval state machine (drafting → tabled), report generation service using WeasyPrint (PDF) and docxtpl (DOCX) in Celery workers; Section 52 and Section 72 Jinja2 templates
+- [ ] 30-02: Section 46 annual performance report and Section 121 annual report templates; mandatory field completeness check before generation; draft watermark logic
+- [ ] 30-03: Statutory reporting calendar — `financial_year`-driven deadline computation, Celery beat with escalating notifications (30/14/7/3 days), auto-task creation 30 days before deadlines (REPORT-07, REPORT-09)
+- [ ] 30-04: Statutory reports frontend page — report list, approval action buttons, download PDF/DOCX, deadline calendar widget with traffic-light status
+
+### Phase 31: Role-Specific Dashboards
+**Goal**: Each of the 12 senior municipal roles sees a role-appropriate dashboard that surfaces the PMS data most relevant to their mandate, assembled from all prior phases
+**Depends on**: Phase 28 (SDBIP data), Phase 29 (performance agreement data), Phase 30 (report and deadline data)
+**Requirements**: DASH-01, DASH-02, DASH-03, DASH-04, DASH-05, DASH-06, DASH-07, DASH-08, DASH-09, DASH-10, DASH-11, DASH-12
+**Success Criteria** (what must be TRUE):
+  1. CFO can view budget execution (expenditure vs budget per vote, revenue collection rate, variance alerts), SDBIP achievement summary with traffic-light KPIs, service delivery correlation linking ticket resolution rates to SDBIP KPIs, and statutory reporting calendar — all in a single authenticated dashboard
+  2. Municipal Manager can view an all-department performance overview with drill-down to individual KPIs across departments
+  3. Executive Mayor can view the organizational scorecard and approve the SDBIP via a dashboard action
+  4. Audit Committee members can review all performance reports and access the full audit trail; Internal Auditors can verify portfolio of evidence for any KPI; MPAC members can view performance reports and flag investigation requests — each in a read-only role-scoped view
+  5. SALGA Admin can view cross-municipality benchmarking data with de-identified aggregations, and Section 56 Directors can manage their own department's KPIs from a department-scoped view
+**Plans**: TBD
+
+Plans:
+- [ ] 31-01: CFO dashboard API routes and React page — budget execution, SDBIP achievement summary, service delivery correlation, statutory deadline calendar (DASH-01, DASH-02, DASH-03, DASH-04)
+- [ ] 31-02: Municipal Manager dashboard — all-department overview, KPI drill-down; Executive Mayor dashboard — organizational scorecard and SDBIP approval (DASH-05, DASH-06)
+- [ ] 31-03: Oversight dashboards — Audit Committee (report review + audit trail), Internal Auditor (POE verification), MPAC (investigation requests), Councillor (read-only reports) (DASH-07, DASH-08, DASH-09, DASH-10)
+- [ ] 31-04: SALGA Admin cross-municipality benchmarking view (de-identified aggregations); Section 56 Director department-scoped dashboard (DASH-11, DASH-12)
+
+### Phase 32: Risk Register & Public Transparency
+**Goal**: Authorized staff can maintain a risk register linked to SDBIP KPIs (with auto-flagging when KPIs turn red), and the public dashboard shows plain-language SDBIP achievement data
+**Depends on**: Phase 28 (SDBIP KPIs and traffic-light statuses needed for auto-flagging), Phase 31 (dashboards provide the risk register widget surface)
+**Requirements**: RISK-01, RISK-02, RISK-03, RISK-04
+**Success Criteria** (what must be TRUE):
+  1. Authorized user can create a risk item linked to a specific SDBIP KPI, assign likelihood and impact ratings, record a mitigation strategy, and assign a responsible person
+  2. When a linked KPI's achievement status turns red (<50%), the system automatically flags the associated risk item as high-risk without manual intervention
+  3. CFO and Municipal Manager can view the risk register filtered by department and see which KPIs are driving risk elevations
+**Plans**: TBD
+
+Plans:
+- [ ] 32-01: Risk register data models (`RiskItem`, `RiskMitigation`), CRUD API, auto-flagging Celery task triggered by KPI status changes, risk register dashboard widget and frontend page
+
 ## Progress
 
-| Milestone | Phases | Plans | Requirements | Status | Shipped |
-|-----------|--------|-------|--------------|--------|---------|
-| v1.0 MVP | 26 | ~127 | 46/46 (100%) | ✅ Complete | 2026-02-28 |
+**Execution Order:** 27 → 28 → 29 → 30 → 31 → 32
+
+| Phase | Milestone | Plans Complete | Status | Completed |
+|-------|-----------|----------------|--------|-----------|
+| 1-10.4 (26 phases) | v1.0 | ~127/~127 | Complete | 2026-02-28 |
+| 27. RBAC Foundation & Tenant Configuration | v2.0 | 0/3 | Not started | - |
+| 28. IDP, SDBIP Core & Performance Monitoring | v2.0 | 0/7 | Not started | - |
+| 29. Individual Performance Agreements | v2.0 | 0/2 | Not started | - |
+| 30. Statutory Reporting & Approval Workflows | v2.0 | 0/4 | Not started | - |
+| 31. Role-Specific Dashboards | v2.0 | 0/4 | Not started | - |
+| 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-28 (v1.0 milestone archived)*
+*Last updated: 2026-02-28 (v2.0 milestone roadmap created)*
