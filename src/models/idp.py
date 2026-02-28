@@ -166,11 +166,9 @@ class IDPObjective(TenantAwareModel):
 
     # Relationships
     goal: Mapped["IDPGoal"] = relationship("IDPGoal", back_populates="objectives")
-    # TODO: populated after 28-04 — SDBIP KPI FK not yet created
-    sdbip_kpis: Mapped[list["SDBIPKpi"]] = relationship(  # type: ignore[name-defined]
-        "SDBIPKpi",
-        back_populates="idp_objective",
-    )
+    # TODO: sdbip_kpis relationship populated after Plan 28-04 when SDBIPKpi model is created.
+    # Do NOT add the relationship here — SDBIPKpi does not exist in Wave 1 and SQLAlchemy
+    # will raise InvalidRequestError at startup when the referenced class is missing.
 
     def __repr__(self) -> str:  # pragma: no cover
         return f"<IDPObjective {self.title}>"

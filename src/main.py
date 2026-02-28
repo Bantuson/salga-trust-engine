@@ -17,6 +17,7 @@ from src.api.v1 import (
     departments,
     events,
     export,
+    idp,
     invitations,
     messages,
     municipalities,
@@ -133,3 +134,6 @@ app.include_router(departments.municipality_router)
 
 # Phase 27 routers: Role assignment CRUD and Tier 1 approval workflow
 app.include_router(roles.router)
+
+# Phase 28 routers: IDP (Integrated Development Plan) CRUD and state machine
+app.include_router(idp.router)
