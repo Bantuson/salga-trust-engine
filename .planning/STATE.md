@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-02-28T22:09:33.023Z"
+progress:
+  total_phases: 2
+  completed_phases: 1
+  total_plans: 10
+  completed_plans: 8
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-02-28T19:06:34.318Z"
 progress:
   total_phases: 1
@@ -36,11 +49,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
-Plan: 5 of 7 in current phase (28-04 complete, starting 28-05)
-Status: Active — 28-04 complete
-Last activity: 2026-02-28 — 28-04 complete (quarterly actuals submission: SDBIPActual model, compute_achievement helper, TrafficLight enum, immutability enforcement, correction chain, 30 tests)
+Plan: 7 of 7 in current phase (28-06 complete, starting 28-07)
+Status: Active — 28-06 complete
+Last activity: 2026-02-28 — 28-06 complete (SDBIP auto-population engine: SDBIPTicketAggregationRule model, AutoPopulationEngine service, Celery beat daily 01:00 SAST, 10 tests including SEC-05 GBV exclusion verification)
 
-Progress: [░░░░░░░░░░] 29%
+Progress: [██████░░░░] 71%
 
 ## Performance Metrics
 
@@ -54,9 +67,10 @@ Progress: [░░░░░░░░░░] 29%
 | Phase | Plans | Total | Avg/Plan |
 |-------|-------|-------|----------|
 | 27-rbac-foundation-tenant-configuration | 3/3 plans done (excl. 27-03) | ~90 min | ~30 min |
-| 28-idp-sdbip-core-performance-monitoring | 4/7 plans done | ~120 min | ~30 min |
+| 28-idp-sdbip-core-performance-monitoring | 5/7 plans done | ~150 min | ~30 min |
 
 *Updated after each plan completion*
+| Phase 28 P06 | 12 | 2 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -114,6 +128,9 @@ From Phase 28 execution (Plan 28-04):
 - Immutability at API layer (not DB constraint) — PUT/PATCH return 422 when is_validated=True; DB stays mutable for PMS officer validation in 28-05
 - SDBIPActual.actuals relationship on SDBIPKpi uses explicit foreign_keys=[SDBIPActual.kpi_id] — avoids SQLAlchemy ambiguity with self-referencing corrects_actual_id FK
 - Correction reason stored in source_query_ref field — reuses existing column rather than adding new reason column (correction context already logged)
+- [Phase 28]: SEC-05 filter is_sensitive==False applied at query level not rule level — cannot be disabled per-rule, enforced unconditionally in AutoPopulationEngine
+- [Phase 28]: Raw SQL text() for tenant_id discovery bypasses ORM do_orm_execute event — required for cross-tenant iteration without pre-existing context
+- [Phase 28]: Idempotency via pre-check SELECT before INSERT (not UPSERT) — SQLite compatible for unit tests
 
 ### Pending Todos
 
@@ -129,5 +146,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-02-28
-Stopped at: Completed Phase 28 Plan 28-04 (quarterly actuals submission system). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-04-SUMMARY.md. Next: 28-05 (PMS officer validation of actuals — is_validated flag, validation workflow).
+Stopped at: Completed Phase 28 Plan 28-06 (SDBIP auto-population engine). SUMMARY.md created at .planning/phases/28-idp-sdbip-core-performance-monitoring/28-06-SUMMARY.md. Next: 28-07 (final plan in phase).
 Resume file: None

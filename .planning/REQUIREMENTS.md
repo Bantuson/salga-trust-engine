@@ -32,8 +32,8 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **SDBIP-04**: Each KPI has quarterly targets (Q1–Q4) that align to the annual target
 - [x] **SDBIP-05**: Each KPI links to a validated mSCOA budget code from seeded reference table (not free-text)
 - [x] **SDBIP-06**: SDBIP supports approval workflow (draft → approved → revised) with Mayor sign-off
-- [ ] **SDBIP-07**: System auto-populates SDBIP actuals from ticket resolution data for service-delivery KPIs
-- [ ] **SDBIP-08**: Auto-population rules are configurable per KPI (ticket category, aggregation type, formula description)
+- [x] **SDBIP-07**: System auto-populates SDBIP actuals from ticket resolution data for service-delivery KPIs
+- [x] **SDBIP-08**: Auto-population rules are configurable per KPI (ticket category, aggregation type, formula description)
 - [x] **SDBIP-09**: Authorized user can adjust SDBIP targets at mid-year when adjustments budget is approved
 - [x] **SDBIP-10**: mSCOA reference table is seeded from National Treasury classification and queryable by segment
 
@@ -46,7 +46,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **EVID-05**: Validated actuals are immutable — corrections require new submission with full audit trail
 - [x] **EVID-06**: System flags KPIs with traffic-light status (green ≥80%, amber 50-79%, red <50% achievement)
 - [ ] **EVID-07**: Evidence documents are virus-scanned on upload before storage
-- [ ] **EVID-08**: Auto-populated actuals are clearly marked with source query reference and distinguishable from manual entries
+- [x] **EVID-08**: Auto-populated actuals are clearly marked with source query reference and distinguishable from manual entries
 
 ### Individual Performance Agreements
 
@@ -151,8 +151,8 @@ Which phases cover which requirements. Updated during roadmap creation.
 | SDBIP-04 | Phase 28 | Complete |
 | SDBIP-05 | Phase 28 | Complete |
 | SDBIP-06 | Phase 28 | Complete |
-| SDBIP-07 | Phase 28 | Pending |
-| SDBIP-08 | Phase 28 | Pending |
+| SDBIP-07 | Phase 28 | Complete |
+| SDBIP-08 | Phase 28 | Complete |
 | SDBIP-09 | Phase 28 | Complete |
 | SDBIP-10 | Phase 28 | Complete |
 | EVID-01 | Phase 28 | Complete |
@@ -162,7 +162,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVID-05 | Phase 28 | Complete |
 | EVID-06 | Phase 28 | Complete |
 | EVID-07 | Phase 28 | Pending |
-| EVID-08 | Phase 28 | Pending |
+| EVID-08 | Phase 28 | Complete |
 | PA-01 | Phase 29 | Pending |
 | PA-02 | Phase 29 | Pending |
 | PA-03 | Phase 29 | Pending |
