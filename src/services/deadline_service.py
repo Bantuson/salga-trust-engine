@@ -410,14 +410,21 @@ class DeadlineService:
                         user.id, notif_type.value, deadline.description, days_label,
                     )
 
-                    # Send email notification
+                    # Send email notification (never blocks main flow)
                     user_email = getattr(user, "email", None)
                     if user_email:
-                        _send_deadline_email(
-                            recipient_email=user_email,
-                            subject=f"[SALGA PMS] {title} — {deadline.description}",
-                            body=message,
-                        )
+                        try:
+                            _send_deadline_email(
+                                recipient_email=user_email,
+                                subject=f"[SALGA PMS] {title} — {deadline.description}",
+                                body=message,
+                            )
+                        except Exception:
+                            logger.warning(
+                                "Email send failed for %s, notification still created",
+                                user_email,
+                                exc_info=True,
+                            )
 
                 # Set the notification flag to prevent re-sending
                 setattr(deadline, flag_attr, True)

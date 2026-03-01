@@ -22,6 +22,7 @@ app = Celery(
         "src.tasks.pms_auto_populate_task",
         "src.tasks.pa_notify_task",
         "src.tasks.report_generation_task",
+        "src.tasks.statutory_deadline_task",
     ]
 )
 
@@ -55,5 +56,11 @@ app.conf.beat_schedule = {
         # Actual email/in-app delivery implemented in Phase 30.
         "task": "src.tasks.pa_notify_task.notify_pa_evaluators",
         "schedule": crontab(day_of_month="1", month_of_year="1,4,7,10", hour=8, minute=0),
+    },
+    "check-statutory-deadlines": {
+        # Run daily at 07:00 SAST to check statutory deadlines,
+        # send escalating notifications, and auto-create report tasks.
+        "task": "src.tasks.statutory_deadline_task.check_statutory_deadlines",
+        "schedule": crontab(minute=0, hour=7),  # 07:00 SAST daily
     },
 }

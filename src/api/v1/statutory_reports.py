@@ -204,12 +204,24 @@ async def generate_report(
 
     Returns 202 Accepted with task_id for polling.
     Returns 404 if the report does not exist.
+    Returns 422 if required data (scorecard, KPIs, actuals) is missing (REPORT-08).
     """
     report = await _service.get_report(report_id, db)
     if report is None:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail=f"Statutory report {report_id} not found",
+        )
+
+    # Completeness check (REPORT-08): prevent generating empty reports
+    completeness = await _service.validate_report_completeness(report, db)
+    if not completeness["is_complete"]:
+        raise HTTPException(
+            status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+            detail={
+                "error": "Report data incomplete",
+                "missing_items": completeness["missing_items"],
+            },
         )
 
     # Dispatch Celery task
