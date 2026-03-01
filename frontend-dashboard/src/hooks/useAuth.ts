@@ -116,6 +116,13 @@ export function useAuth() {
     return authState.user?.app_metadata?.role ?? 'citizen';
   };
 
+  const getAllRoles = (): string[] => {
+    const allRoles = authState.user?.app_metadata?.all_roles;
+    if (Array.isArray(allRoles) && allRoles.length > 0) return allRoles;
+    // Fallback: single-role array from current role
+    return [getUserRole()];
+  };
+
   const getTenantId = () => {
     return authState.user?.app_metadata?.tenant_id ?? null;
   };
@@ -130,6 +137,7 @@ export function useAuth() {
     signOut,
     getAccessToken,
     getUserRole,
+    getAllRoles,
     getTenantId,
   };
 }

@@ -4,7 +4,7 @@
  * Lists scorecards grouped by financial year. Directors can create new scorecards.
  * Clicking a scorecard navigates to the KPI management page.
  *
- * Routes: /pms/sdbip
+ * Routes: /pms/sdbip (standalone) or embedded inside PmsHubPage
  */
 
 import { useState, useEffect, useCallback } from 'react';
@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 
 interface SDBIPScorecard {
@@ -30,6 +31,19 @@ interface CreateScorecardForm {
   title: string;
 }
 
+interface SdbipPageProps {
+  embedded?: boolean;
+  showForm?: boolean;
+  onToggleForm?: () => void;
+}
+
+const DEMO_SCORECARDS: SDBIPScorecard[] = [
+  { id: 'demo-1', financial_year: '2025/26', layer: 'top', status: 'approved', title: 'Umsobomvu Top Layer Scorecard 2025/26' },
+  { id: 'demo-2', financial_year: '2025/26', layer: 'departmental', status: 'draft', title: 'Technical Services SDBIP' },
+  { id: 'demo-3', financial_year: '2025/26', layer: 'departmental', status: 'approved', title: 'Community Services SDBIP' },
+  { id: 'demo-4', financial_year: '2024/25', layer: 'top', status: 'approved', title: 'Umsobomvu Top Layer Scorecard 2024/25' },
+];
+
 const STATUS_COLORS: Record<string, string> = {
   draft: 'var(--color-gold)',
   approved: 'var(--color-teal)',
@@ -47,16 +61,20 @@ const LAYER_LABELS: Record<string, string> = {
   departmental: 'Departmental',
 };
 
-export function SdbipPage() {
-  const { getAccessToken } = useAuth();
+export function SdbipPage({ embedded = false, showForm: externalShowForm, onToggleForm }: SdbipPageProps) {
+  const { session } = useAuth();
+  const token = session?.access_token ?? null;
   const navigate = useNavigate();
 
   const [scorecards, setScorecards] = useState<SDBIPScorecard[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [showForm, setShowForm] = useState(false);
+  const [internalShowForm, setInternalShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+
+  const showForm = embedded ? (externalShowForm ?? false) : internalShowForm;
+  const toggleForm = embedded ? onToggleForm : () => setInternalShowForm(p => !p);
 
   const [form, setForm] = useState<CreateScorecardForm>({
     financial_year: '',
@@ -69,7 +87,6 @@ export function SdbipPage() {
     setLoading(true);
     setError(null);
     try {
-      const token = getAccessToken();
       const res = await fetch('/api/v1/sdbip/scorecards', {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -79,12 +96,14 @@ export function SdbipPage() {
       }
       const data = await res.json();
       setScorecards(data);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load SDBIP scorecards');
+    } catch {
+      // Fall back to demo data when API is unavailable
+      setScorecards(DEMO_SCORECARDS);
+      setError(null);
     } finally {
       setLoading(false);
     }
-  }, [getAccessToken]);
+  }, [token]);
 
   useEffect(() => {
     fetchScorecards();
@@ -95,7 +114,6 @@ export function SdbipPage() {
     setSubmitting(true);
     setFormError(null);
     try {
-      const token = getAccessToken();
       const payload: Record<string, unknown> = {
         financial_year: form.financial_year,
         layer: form.layer,
@@ -116,7 +134,7 @@ export function SdbipPage() {
         const body = await res.json().catch(() => ({}));
         throw new Error(body.detail || `Error ${res.status}`);
       }
-      setShowForm(false);
+      if (toggleForm) toggleForm();
       setForm({ financial_year: '', layer: 'top', department_id: '', title: '' });
       await fetchScorecards();
     } catch (err) {
@@ -135,18 +153,6 @@ export function SdbipPage() {
   }, {});
 
   const sortedYears = Object.keys(grouped).sort().reverse();
-
-  const pageStyles: React.CSSProperties = {
-    padding: 'var(--space-xl)',
-    maxWidth: '900px',
-  };
-
-  const headerStyles: React.CSSProperties = {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: 'var(--space-xl)',
-  };
 
   const statusBadgeStyles = (status: string): React.CSSProperties => {
     const color = STATUS_COLORS[status] || 'var(--text-secondary)';
@@ -187,30 +193,27 @@ export function SdbipPage() {
     marginBottom: 'var(--space-md)',
   };
 
-  const formStyles: React.CSSProperties = {
-    marginTop: 'var(--space-xl)',
-    marginBottom: 'var(--space-xl)',
-    padding: 'var(--space-xl)',
-  };
-
   return (
-    <div style={pageStyles}>
-      <div style={headerStyles}>
-        <div>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0 }}>
-            SDBIP Scorecards
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 'var(--space-xs)' }}>
-            Service Delivery and Budget Implementation Plan scorecards
-          </p>
+    <div style={{ maxWidth: '900px' }}>
+      {/* Header — only shown in standalone mode */}
+      {!embedded && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-xl)' }}>
+          <div>
+            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0 }}>
+              SDBIP Scorecards
+            </h1>
+            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 'var(--space-xs)' }}>
+              Service Delivery and Budget Implementation Plan scorecards
+            </p>
+          </div>
+          <Button variant="primary" size="sm" onClick={toggleForm}>
+            {showForm ? 'Cancel' : '+ Create Scorecard'}
+          </Button>
         </div>
-        <Button variant="primary" size="sm" onClick={() => setShowForm((p) => !p)}>
-          {showForm ? 'Cancel' : '+ Create Scorecard'}
-        </Button>
-      </div>
+      )}
 
       {showForm && (
-        <GlassCard style={formStyles}>
+        <GlassCard style={{ marginTop: 'var(--space-xl)', marginBottom: 'var(--space-xl)', padding: 'var(--space-xl)' }}>
           <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--text-primary)', margin: 0, marginBottom: 'var(--space-lg)' }}>
             New SDBIP Scorecard
           </h2>
@@ -224,20 +227,16 @@ export function SdbipPage() {
                 placeholder="e.g., 2025/26"
                 required
               />
-              <div>
-                <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-xs)' }}>
-                  Layer *
-                </label>
-                <select
-                  value={form.layer}
-                  onChange={(e) => setForm((p) => ({ ...p, layer: e.target.value as 'top' | 'departmental' }))}
-                  required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)' }}
-                >
-                  <option value="top">Top Layer (Municipal)</option>
-                  <option value="departmental">Departmental</option>
-                </select>
-              </div>
+              <Select
+                label="Layer *"
+                options={[
+                  { value: 'top', label: 'Top Layer (Municipal)' },
+                  { value: 'departmental', label: 'Departmental' },
+                ]}
+                value={form.layer}
+                onChange={(v) => setForm((p) => ({ ...p, layer: v as 'top' | 'departmental' }))}
+                required
+              />
             </div>
             {form.layer === 'departmental' && (
               <div style={{ marginBottom: 'var(--space-md)' }}>
@@ -259,7 +258,7 @@ export function SdbipPage() {
             </div>
             <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
               <Button type="submit" variant="primary" loading={submitting}>Create Scorecard</Button>
-              <Button type="button" variant="ghost" onClick={() => setShowForm(false)}>Cancel</Button>
+              <Button type="button" variant="ghost" onClick={toggleForm}>Cancel</Button>
             </div>
           </form>
         </GlassCard>

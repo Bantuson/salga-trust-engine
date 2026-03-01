@@ -11,6 +11,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 
 interface PerformanceAgreement {
@@ -23,9 +24,16 @@ interface PerformanceAgreement {
   kpi_count: number;
 }
 
+interface EligibleManager {
+  id: string;
+  full_name: string;
+  email: string;
+  role: string;
+}
+
 interface CreateAgreementForm {
   financial_year: string;
-  manager_name: string;
+  section57_manager_id: string;
   manager_role: string;
 }
 
@@ -98,13 +106,14 @@ export function PerformanceAgreementsPage({
   const [internalShowForm, setInternalShowForm] = useState(false);
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
+  const [eligibleManagers, setEligibleManagers] = useState<EligibleManager[]>([]);
 
   const showForm = embedded ? (externalShowForm ?? false) : internalShowForm;
   const toggleForm = embedded ? onToggleForm : () => setInternalShowForm((p) => !p);
 
   const [form, setForm] = useState<CreateAgreementForm>({
     financial_year: '',
-    manager_name: '',
+    section57_manager_id: '',
     manager_role: 'section57_director',
   });
 
@@ -130,9 +139,23 @@ export function PerformanceAgreementsPage({
     }
   }, [token]);
 
+  const fetchEligibleManagers = useCallback(async () => {
+    try {
+      const res = await fetch('/api/v1/pa/eligible-managers', {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        setEligibleManagers(await res.json());
+      }
+    } catch {
+      // Non-critical — form still works with manual UUID entry
+    }
+  }, [token]);
+
   useEffect(() => {
     fetchAgreements();
-  }, [fetchAgreements]);
+    fetchEligibleManagers();
+  }, [fetchAgreements, fetchEligibleManagers]);
 
   const handleFormChange = (field: keyof CreateAgreementForm, value: string) => {
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -151,6 +174,7 @@ export function PerformanceAgreementsPage({
         },
         body: JSON.stringify({
           financial_year: form.financial_year,
+          section57_manager_id: form.section57_manager_id,
           manager_role: form.manager_role,
         }),
       });
@@ -159,7 +183,7 @@ export function PerformanceAgreementsPage({
         throw new Error(body.detail || `Error ${res.status}`);
       }
       if (toggleForm) toggleForm();
-      setForm({ financial_year: '', manager_name: '', manager_role: 'section57_director' });
+      setForm({ financial_year: '', section57_manager_id: '', manager_role: 'section57_director' });
       await fetchAgreements();
     } catch (err) {
       setFormError(
@@ -221,24 +245,40 @@ export function PerformanceAgreementsPage({
               />
             </div>
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <label style={selectLabelStyles}>Manager Role *</label>
-              <select
+              <Select
+                label="Manager Role *"
+                options={[
+                  { value: 'section57_director', label: 'Section 57 Director' },
+                  { value: 'municipal_manager', label: 'Municipal Manager' },
+                ]}
                 value={form.manager_role}
-                onChange={(e) => handleFormChange('manager_role', e.target.value)}
-                style={selectStyles}
+                onChange={(v) => {
+                  handleFormChange('manager_role', v);
+                  handleFormChange('section57_manager_id', '');
+                }}
                 required
-              >
-                <option value="section57_director">Section 57 Director</option>
-                <option value="municipal_manager">Municipal Manager</option>
-              </select>
+              />
             </div>
             <div style={{ marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Manager Name (display)"
-                value={form.manager_name}
-                onChange={(e) => handleFormChange('manager_name', e.target.value)}
-                placeholder="e.g., Director: Technical Services"
+              <Select
+                label="Section 57 Manager *"
+                placeholder="— Select a manager —"
+                options={eligibleManagers
+                  .filter((m) =>
+                    form.manager_role === 'municipal_manager'
+                      ? m.role === 'municipal_manager'
+                      : m.role === 'section56_director'
+                  )
+                  .map((m) => ({ value: m.id, label: `${m.full_name} (${m.email})` }))}
+                value={form.section57_manager_id}
+                onChange={(v) => handleFormChange('section57_manager_id', v)}
+                required
               />
+              {eligibleManagers.length === 0 && (
+                <p style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', marginTop: 'var(--space-xs)' }}>
+                  No eligible managers found. Assign section56_director or municipal_manager roles first.
+                </p>
+              )}
             </div>
             <div style={formActionsStyles}>
               <Button type="submit" variant="primary" loading={submitting}>
@@ -405,22 +445,3 @@ const errorTextStyles: React.CSSProperties = {
   marginBottom: 'var(--space-md)',
 };
 
-const selectLabelStyles: React.CSSProperties = {
-  display: 'block',
-  fontFamily: 'var(--font-body)',
-  fontSize: 'var(--text-sm)',
-  color: 'var(--text-secondary)',
-  marginBottom: 'var(--space-xs)',
-};
-
-const selectStyles: React.CSSProperties = {
-  width: '100%',
-  appearance: 'none',
-  background: 'var(--surface-elevated)',
-  border: '1px solid rgba(255, 255, 255, 0.2)',
-  borderRadius: 'var(--radius-md)',
-  color: 'var(--text-primary)',
-  padding: '10px 16px',
-  fontSize: 'var(--text-sm)',
-  cursor: 'pointer',
-};

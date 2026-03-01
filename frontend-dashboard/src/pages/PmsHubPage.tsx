@@ -14,6 +14,7 @@ import { useState, useEffect } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 import { IdpPage } from './IdpPage';
 import { SdbipPage } from './SdbipPage';
@@ -39,11 +40,6 @@ const VIEW_OPTIONS: ViewOption[] = [
 ];
 
 const ADMIN_ROLES = ['admin', 'manager', 'executive_mayor', 'municipal_manager', 'salga_admin'];
-
-const OPTION_STYLE: React.CSSProperties = {
-  background: '#2d1f3d',
-  color: '#ffffff',
-};
 
 export function PmsHubPage() {
   const [searchParams, setSearchParams] = useSearchParams();
@@ -76,21 +72,12 @@ export function PmsHubPage() {
     <div style={styles.container}>
       {/* Toolbar: dropdown (left) + create button (right) */}
       <div style={styles.toolbar}>
-        <div style={styles.selectWrapper}>
-          <select
-            value={activeView}
-            onChange={(e) => handleViewChange(e.target.value as PmsView)}
-            style={styles.select}
-            aria-label="Select PMS view"
-          >
-            {availableViews.map(opt => (
-              <option key={opt.value} value={opt.value} style={OPTION_STYLE}>
-                {opt.label}
-              </option>
-            ))}
-          </select>
-          <span style={styles.selectChevron}>&#9662;</span>
-        </div>
+        <Select
+          options={availableViews.map(opt => ({ value: opt.value, label: opt.label }))}
+          value={activeView}
+          onChange={(v) => handleViewChange(v as PmsView)}
+          fullWidth={false}
+        />
 
         {currentOption.createLabel && (
           <Button
@@ -154,32 +141,6 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     gap: 'var(--space-md)',
     flexWrap: 'wrap' as const,
-  },
-  selectWrapper: {
-    position: 'relative' as const,
-    display: 'inline-block',
-  },
-  select: {
-    appearance: 'none' as const,
-    background: 'var(--surface-elevated)',
-    border: '1px solid rgba(255, 255, 255, 0.2)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--text-primary)',
-    padding: '10px 40px 10px 16px',
-    fontSize: '0.95rem',
-    fontWeight: 600,
-    cursor: 'pointer',
-    minWidth: '200px',
-    backdropFilter: 'blur(8px)',
-  },
-  selectChevron: {
-    position: 'absolute' as const,
-    right: '14px',
-    top: '50%',
-    transform: 'translateY(-50%)',
-    pointerEvents: 'none' as const,
-    color: 'var(--text-secondary)',
-    fontSize: '0.8rem',
   },
   content: {
     width: '100%',

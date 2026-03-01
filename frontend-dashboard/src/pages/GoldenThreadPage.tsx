@@ -5,13 +5,14 @@
  * indented list with different background shades per level.
  * Includes a cycle selector dropdown if multiple cycles exist.
  *
- * Routes: /pms/golden-thread
+ * Routes: /pms/golden-thread (standalone) or embedded inside PmsHubPage
  */
 
 import { useState, useEffect, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 
 interface GoldenThreadKpi {
@@ -50,6 +51,142 @@ interface IDPCycle {
   status: string;
 }
 
+interface GoldenThreadPageProps {
+  embedded?: boolean;
+}
+
+/* ------------------------------------------------------------------ */
+/*  Demo data — realistic SA municipal content                        */
+/* ------------------------------------------------------------------ */
+
+const DEMO_CYCLES: IDPCycle[] = [
+  { id: 'demo-cycle-1', title: 'Umsobomvu IDP 2022–2027', start_year: 2022, end_year: 2027, status: 'approved' },
+  { id: 'demo-cycle-2', title: 'Umsobomvu IDP 2027–2032', start_year: 2027, end_year: 2032, status: 'draft' },
+];
+
+const DEMO_THREADS: Record<string, GoldenThread> = {
+  'demo-cycle-1': {
+    id: 'demo-cycle-1',
+    title: 'Umsobomvu IDP 2022–2027',
+    status: 'approved',
+    goals: [
+      {
+        id: 'goal-1',
+        title: 'Reliable water and sanitation for Colesburg, Norvalspont and Hanover',
+        national_kpa: 'basic_service_delivery',
+        objectives: [
+          {
+            id: 'obj-1a',
+            title: 'Reduce water losses in the Colesburg reticulation network',
+            kpis: [
+              { id: 'kpi-1a1', kpi_number: 'KPI-BSD-001', description: 'Percentage reduction in non-revenue water', unit_of_measurement: '%', annual_target: '12' },
+              { id: 'kpi-1a2', kpi_number: 'KPI-BSD-002', description: 'Pipe bursts repaired within 48 hours', unit_of_measurement: 'count', annual_target: '60' },
+            ],
+          },
+          {
+            id: 'obj-1b',
+            title: 'Extend waterborne sanitation to Lowryville and Kuyasa',
+            kpis: [
+              { id: 'kpi-1b1', kpi_number: 'KPI-BSD-003', description: 'Households connected to waterborne sewerage', unit_of_measurement: 'households', annual_target: '150' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'goal-2',
+        title: 'Maintain and upgrade gravel and tar road network',
+        national_kpa: 'basic_service_delivery',
+        objectives: [
+          {
+            id: 'obj-2a',
+            title: 'Resurface priority roads in Colesburg CBD and township access routes',
+            kpis: [
+              { id: 'kpi-2a1', kpi_number: 'KPI-BSD-010', description: 'Kilometres of road resurfaced', unit_of_measurement: 'km', annual_target: '8' },
+              { id: 'kpi-2a2', kpi_number: 'KPI-BSD-011', description: 'Pothole repair turnaround time (average days)', unit_of_measurement: 'days', annual_target: '7' },
+            ],
+          },
+          {
+            id: 'obj-2b',
+            title: 'Re-gravel rural access roads to farming areas',
+            kpis: [
+              { id: 'kpi-2b1', kpi_number: 'KPI-BSD-012', description: 'Kilometres of gravel road re-gravelled', unit_of_measurement: 'km', annual_target: '15' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'goal-3',
+        title: 'Stimulate local economic development and tourism',
+        national_kpa: 'local_economic_development',
+        objectives: [
+          {
+            id: 'obj-3a',
+            title: 'Support emerging farmers and SMMEs along the N1 corridor',
+            kpis: [
+              { id: 'kpi-3a1', kpi_number: 'KPI-LED-001', description: 'SMMEs supported through LED programmes', unit_of_measurement: 'count', annual_target: '25' },
+              { id: 'kpi-3a2', kpi_number: 'KPI-LED-002', description: 'Jobs created through EPWP and CWP projects', unit_of_measurement: 'jobs', annual_target: '180' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'goal-4',
+        title: 'Strengthen financial management and revenue collection',
+        national_kpa: 'municipal_financial_viability',
+        objectives: [
+          {
+            id: 'obj-4a',
+            title: 'Improve revenue collection from rates and service charges',
+            kpis: [
+              { id: 'kpi-4a1', kpi_number: 'KPI-MFV-001', description: 'Revenue collection rate as percentage of billing', unit_of_measurement: '%', annual_target: '78' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+  'demo-cycle-2': {
+    id: 'demo-cycle-2',
+    title: 'Umsobomvu IDP 2027–2032',
+    status: 'draft',
+    goals: [
+      {
+        id: 'goal-d1',
+        title: 'Universal access to safe drinking water',
+        national_kpa: 'basic_service_delivery',
+        objectives: [
+          {
+            id: 'obj-d1a',
+            title: 'Replace aging asbestos water mains in Colesburg',
+            kpis: [
+              { id: 'kpi-d1a1', kpi_number: 'KPI-BSD-020', description: 'Metres of asbestos pipe replaced', unit_of_measurement: 'm', annual_target: '2500' },
+            ],
+          },
+        ],
+      },
+      {
+        id: 'goal-d2',
+        title: 'Transparent governance and community participation',
+        national_kpa: 'good_governance',
+        objectives: [
+          {
+            id: 'obj-d2a',
+            title: 'Increase ward committee activity across all 5 wards',
+            kpis: [
+              { id: 'kpi-d2a1', kpi_number: 'KPI-GG-001', description: 'Ward committee meetings held per quarter', unit_of_measurement: 'meetings', annual_target: '20' },
+              { id: 'kpi-d2a2', kpi_number: 'KPI-GG-002', description: 'Community imbizo sessions conducted', unit_of_measurement: 'sessions', annual_target: '6' },
+            ],
+          },
+        ],
+      },
+    ],
+  },
+};
+
+/* ------------------------------------------------------------------ */
+/*  Constants / lookup maps                                            */
+/* ------------------------------------------------------------------ */
+
 const KPA_LABELS: Record<string, string> = {
   basic_service_delivery: 'Basic Service Delivery',
   local_economic_development: 'Local Economic Development',
@@ -78,8 +215,9 @@ const STATUS_LABELS: Record<string, string> = {
   under_review: 'Under Review',
 };
 
-export function GoldenThreadPage() {
-  const { getAccessToken } = useAuth();
+export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
+  const { session } = useAuth();
+  const token = session?.access_token ?? null;
   const [searchParams, setSearchParams] = useSearchParams();
   const initialCycleId = searchParams.get('cycle') || '';
 
@@ -96,23 +234,26 @@ export function GoldenThreadPage() {
   const fetchCycles = useCallback(async () => {
     setLoadingCycles(true);
     try {
-      const token = getAccessToken();
       const res = await fetch('/api/v1/idp/cycles', {
         headers: { Authorization: `Bearer ${token}` },
       });
       if (!res.ok) throw new Error(`Failed to load cycles (${res.status})`);
       const data: IDPCycle[] = await res.json();
       setCycles(data);
-      // Auto-select first cycle if none specified
       if (!selectedCycleId && data.length > 0) {
         setSelectedCycleId(data[0].id);
       }
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load IDP cycles');
+    } catch {
+      // Fall back to demo cycles
+      setCycles(DEMO_CYCLES);
+      if (!selectedCycleId) {
+        setSelectedCycleId(DEMO_CYCLES[0].id);
+      }
+      setError(null);
     } finally {
       setLoadingCycles(false);
     }
-  }, [getAccessToken, selectedCycleId]);
+  }, [token, selectedCycleId]);
 
   useEffect(() => {
     fetchCycles();
@@ -124,7 +265,6 @@ export function GoldenThreadPage() {
     setLoadingThread(true);
     setError(null);
     try {
-      const token = getAccessToken();
       const res = await fetch(`/api/v1/idp/cycles/${selectedCycleId}/golden-thread`, {
         headers: { Authorization: `Bearer ${token}` },
       });
@@ -134,14 +274,19 @@ export function GoldenThreadPage() {
       }
       const data: GoldenThread = await res.json();
       setThread(data);
-      // Expand all goals by default
       setExpandedGoals(new Set(data.goals.map((g) => g.id)));
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load golden thread');
+    } catch {
+      // Fall back to demo thread
+      const demoThread = DEMO_THREADS[selectedCycleId];
+      if (demoThread) {
+        setThread(demoThread);
+        setExpandedGoals(new Set(demoThread.goals.map((g) => g.id)));
+      }
+      setError(null);
     } finally {
       setLoadingThread(false);
     }
-  }, [selectedCycleId, getAccessToken]);
+  }, [selectedCycleId, token]);
 
   useEffect(() => {
     fetchThread();
@@ -171,11 +316,6 @@ export function GoldenThreadPage() {
       else next.add(objId);
       return next;
     });
-  };
-
-  const pageStyles: React.CSSProperties = {
-    padding: 'var(--space-xl)',
-    maxWidth: '900px',
   };
 
   const kpaBadgeStyles = (kpa: string): React.CSSProperties => {
@@ -213,48 +353,33 @@ export function GoldenThreadPage() {
     fontFamily: 'var(--font-body)',
   };
 
-  const errorStyles: React.CSSProperties = {
-    color: 'var(--color-coral)',
-    fontFamily: 'var(--font-body)',
-    fontSize: 'var(--text-sm)',
-    marginBottom: 'var(--space-md)',
-  };
-
   return (
-    <div style={pageStyles}>
-      {/* Header */}
-      <div style={{ marginBottom: 'var(--space-xl)' }}>
-        <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0, marginBottom: 'var(--space-xs)' }}>
-          Golden Thread
-        </h1>
-        <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 0 }}>
-          Statutory traceability: IDP Cycle → Strategic Goals → Objectives → SDBIP KPIs
-        </p>
-      </div>
+    <div style={{ maxWidth: '900px' }}>
+      {/* Header — only shown in standalone mode */}
+      {!embedded && (
+        <div style={{ marginBottom: 'var(--space-xl)' }}>
+          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0, marginBottom: 'var(--space-xs)' }}>
+            Golden Thread
+          </h1>
+          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 0 }}>
+            Statutory traceability: IDP Cycle &rarr; Strategic Goals &rarr; Objectives &rarr; SDBIP KPIs
+          </p>
+        </div>
+      )}
 
       {/* Cycle Selector */}
       {!loadingCycles && cycles.length > 0 && (
         <GlassCard style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-lg)' }}>
-          <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-            <label style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', fontWeight: 600, whiteSpace: 'nowrap' }}>
-              IDP Cycle:
-            </label>
-            <select
-              value={selectedCycleId}
-              onChange={(e) => handleCycleChange(e.target.value)}
-              style={{ flex: 1, minWidth: '200px', padding: '8px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)' }}
-            >
-              {cycles.map((c) => (
-                <option key={c.id} value={c.id}>
-                  {c.title} ({c.start_year}–{c.end_year})
-                </option>
-              ))}
-            </select>
-          </div>
+          <Select
+            label="IDP Cycle"
+            options={cycles.map((c) => ({ value: c.id, label: `${c.title} (${c.start_year}–${c.end_year})` }))}
+            value={selectedCycleId}
+            onChange={handleCycleChange}
+          />
         </GlassCard>
       )}
 
-      {error && <p style={errorStyles}>{error}</p>}
+      {error && <p style={{ color: 'var(--color-coral)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', marginBottom: 'var(--space-md)' }}>{error}</p>}
 
       {loadingCycles || loadingThread ? (
         <div style={emptyStyles}>Loading golden thread...</div>
@@ -299,7 +424,7 @@ export function GoldenThreadPage() {
                 <GlassCard style={{ padding: 'var(--space-md) var(--space-lg)', background: 'rgba(255,255,255,0.08)' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
                     <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', width: '16px', textAlign: 'center' }}>
-                      {expandedGoals.has(goal.id) ? '▼' : '▶'}
+                      {expandedGoals.has(goal.id) ? '\u25BC' : '\u25B6'}
                     </span>
                     <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', fontWeight: 600, textTransform: 'uppercase' }}>
                       Goal {gi + 1}
@@ -328,7 +453,7 @@ export function GoldenThreadPage() {
                       <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
                         {obj.kpis.length > 0 ? (
                           <span style={{ color: 'var(--text-muted)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', width: '16px', textAlign: 'center' }}>
-                            {expandedObjectives.has(obj.id) ? '▼' : '▶'}
+                            {expandedObjectives.has(obj.id) ? '\u25BC' : '\u25B6'}
                           </span>
                         ) : (
                           <span style={{ width: '16px' }} />
@@ -349,7 +474,7 @@ export function GoldenThreadPage() {
                   </div>
 
                   {/* KPIs */}
-                  {expandedObjectives.has(obj.id) && obj.kpis.map((kpi, ki) => (
+                  {expandedObjectives.has(obj.id) && obj.kpis.map((kpi) => (
                     <div key={kpi.id} style={{ marginLeft: 'var(--space-xl)', marginBottom: 'var(--space-xs)' }}>
                       <div style={{ padding: 'var(--space-sm) var(--space-md)', background: 'rgba(0, 191, 165, 0.05)', border: '1px solid rgba(0, 191, 165, 0.15)', borderRadius: 'var(--radius-sm)' }}>
                         <div style={{ display: 'flex', alignItems: 'flex-start', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>

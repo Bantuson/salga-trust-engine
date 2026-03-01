@@ -5,8 +5,10 @@
  * - Icon sidebar navigation (fixed position)
  * - Main content area (with margin for sidebar)
  * - Responsive mobile support
+ * - RoleSwitcher for multi-role users (switches view context)
  */
 
+import { useState, useEffect } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../hooks/useAuth';
 import './DashboardLayout.css';
@@ -16,16 +18,25 @@ interface DashboardLayoutProps {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, signOut, getUserRole } = useAuth();
+  const { user, signOut, getUserRole, getAllRoles } = useAuth();
 
-  const role = getUserRole();
+  const jwtRole = getUserRole();
+  const allRoles = getAllRoles();
+  const [viewRole, setViewRole] = useState(jwtRole);
+
+  // Sync viewRole when auth loads (jwtRole starts as 'citizen' during loading)
+  useEffect(() => {
+    setViewRole(jwtRole);
+  }, [jwtRole]);
 
   return (
     <div className="dashboard-layout">
       <Sidebar
         userEmail={user?.email}
         userPhone={user?.phone}
-        userRole={role}
+        userRole={viewRole}
+        allRoles={allRoles}
+        onRoleSwitch={setViewRole}
         onSignOut={signOut}
       />
       <main className="dashboard-main">
