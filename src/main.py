@@ -22,6 +22,7 @@ from src.api.v1 import (
     messages,
     municipalities,
     onboarding,
+    pa,
     public,
     reports,
     roles,
@@ -141,3 +142,6 @@ app.include_router(idp.router)
 
 # Phase 28 routers: SDBIP scorecard, KPI, quarterly targets, mSCOA reference lookup
 app.include_router(sdbip.router)
+
+# Phase 29 routers: Individual Performance Agreements for Section 57 managers
+app.include_router(pa.router)

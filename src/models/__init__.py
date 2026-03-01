@@ -20,6 +20,13 @@ from src.models.sdbip import (
     Quarter,
 )
 from src.models.evidence import EvidenceDocument
+from src.models.pa import (
+    PerformanceAgreement,
+    PAKpi,
+    PAQuarterlyScore,
+    PAStatus,
+    ManagerRole,
+)
 
 __all__ = [
     "Base",
@@ -53,4 +60,9 @@ __all__ = [
     "SDBIPLayer",
     "Quarter",
     "EvidenceDocument",
+    "PerformanceAgreement",
+    "PAKpi",
+    "PAQuarterlyScore",
+    "PAStatus",
+    "ManagerRole",
 ]
