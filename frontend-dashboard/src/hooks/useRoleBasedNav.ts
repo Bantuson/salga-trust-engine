@@ -119,6 +119,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Teams', path: '/teams', icon: 'users' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
+          ...pmsNavItems,
           { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
@@ -127,6 +128,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
         return [...base,
           { label: 'Municipalities', path: '/municipalities', icon: 'building' },
           { label: 'Role Approvals', path: '/role-approvals', icon: 'users' },
+          ...pmsNavItems,
           { label: 'System', path: '/system', icon: 'settings' },
         ];
 
