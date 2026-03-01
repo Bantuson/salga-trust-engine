@@ -27,6 +27,14 @@ from src.models.pa import (
     PAStatus,
     ManagerRole,
 )
+from src.models.statutory_report import (
+    StatutoryReport,
+    StatutoryReportSnapshot,
+    ReportType,
+    ReportStatus,
+    ReportWorkflow,
+)
+from src.models.notification import Notification, NotificationType
 
 __all__ = [
     "Base",
@@ -65,4 +73,11 @@ __all__ = [
     "PAQuarterlyScore",
     "PAStatus",
     "ManagerRole",
+    "StatutoryReport",
+    "StatutoryReportSnapshot",
+    "ReportType",
+    "ReportStatus",
+    "ReportWorkflow",
+    "Notification",
+    "NotificationType",
 ]

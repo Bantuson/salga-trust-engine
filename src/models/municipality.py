@@ -28,3 +28,5 @@ class Municipality(NonTenantModel):
         default=7,  # July per MFMA standard
         nullable=False
     )
+    # Branding: used in statutory report PDF headers (REPORT-08)
+    logo_url: Mapped[str | None] = mapped_column(String(500), nullable=True)
