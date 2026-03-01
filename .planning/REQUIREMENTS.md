@@ -65,7 +65,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [ ] **REPORT-04**: System auto-generates Section 121 annual report performance chapter
 - [x] **REPORT-05**: Reports follow approval workflow (drafting → internal_review → mm_approved → submitted → tabled)
 - [x] **REPORT-06**: Report generation snapshots source data at mm_approved status for point-in-time consistency
-- [ ] **REPORT-07**: System tracks statutory deadlines per financial year with escalating notifications (30d → 14d → 7d → 3d → overdue)
+- [x] **REPORT-07**: System tracks statutory deadlines per financial year with escalating notifications (30d → 14d → 7d → 3d → overdue)
 - [x] **REPORT-08**: Reports export as PDF and DOCX with municipality-branded templates (logo, headers, formatting)
 - [ ] **REPORT-09**: System auto-creates report tasks 30 days before each statutory deadline
 
@@ -175,7 +175,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPORT-04 | Phase 30 | Pending |
 | REPORT-05 | Phase 30 | Complete |
 | REPORT-06 | Phase 30 | Complete |
-| REPORT-07 | Phase 30 | Pending |
+| REPORT-07 | Phase 30 | Complete |
 | REPORT-08 | Phase 30 | Complete |
 | REPORT-09 | Phase 30 | Pending |
 | DASH-01 | Phase 31 | Pending |

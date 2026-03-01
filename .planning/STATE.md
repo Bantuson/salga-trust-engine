@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-01T20:44:28.727Z"
+progress:
+  total_phases: 4
+  completed_phases: 4
+  total_plans: 16
+  completed_plans: 16
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-01T19:42:10.695Z"
 progress:
   total_phases: 4
@@ -100,6 +113,7 @@ Progress: [██████░░░░] 71%
 | Phase 29 P01 | 13 | 6 tasks | 8 files |
 | Phase 29 P02 | 31 | 4 tasks | 8 files |
 | Phase 30-statutory-reporting-approval-workflows P30-01 | 13 | 3 tasks | 15 files |
+| Phase 30 P30-04 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -177,6 +191,8 @@ From Phase 29 execution (Plan 29-02):
 - pa-notify-phase30: PA evaluator notification task logs only — actual email/in-app delivery built in Phase 30 notification infrastructure
 - sqlite-timezone: DateTime columns in SQLite strip tzinfo; assertions on scored_at timezone must use PostgreSQL integration tests, not unit tests
 - [Phase 30-01]: ReportWorkflow tabled state marked final=True; data snapshot as JSON string in Text column for SQLite compatibility; _TRANSITION_ROLES dict in service layer (not DB) for static governance; DOCX generation graceful degradation; assemble_report_data renders from snapshot for status >= mm_approved (REPORT-06)
+- [Phase 30]: Notification bell placed in fixed top header bar (48px) — DashboardLayout previously had no header; added glassmorphism header matching sidebar aesthetic
+- [Phase 30]: Download uses fetch-then-blob pattern with auth header — direct href cannot include Authorization header for protected downloads
 
 ### Pending Todos
 
