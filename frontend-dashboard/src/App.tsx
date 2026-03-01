@@ -24,13 +24,11 @@ import { FieldWorkerTeamPage } from './pages/FieldWorkerTeamPage';
 import { CompletedTicketsPage } from './pages/CompletedTicketsPage';
 import { PmsSetupWizardPage } from './pages/PmsSetupWizardPage';
 import { OrganogramPage } from './pages/OrganogramPage';
-import { IdpPage } from './pages/IdpPage';
+import { PmsHubPage } from './pages/PmsHubPage';
 import { IdpDetailPage } from './pages/IdpDetailPage';
-import { SdbipPage } from './pages/SdbipPage';
 import { SdbipKpiPage } from './pages/SdbipKpiPage';
 import { ActualsPage } from './pages/ActualsPage';
 import { EvidencePage } from './pages/EvidencePage';
-import { GoldenThreadPage } from './pages/GoldenThreadPage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
 import { LenisProvider } from './providers/LenisProvider';
@@ -83,9 +81,6 @@ function AppRoutes() {
         {/* Onboarding wizard (full-screen, no layout) */}
         <Route path="/onboarding" element={<OnboardingWizardPage />} />
 
-        {/* PMS setup wizard (admin only, full-page within layout) */}
-        <Route path="/pms-setup" element={<DashboardLayout><PmsSetupWizardPage /></DashboardLayout>} />
-
         {/* Dashboard routes (wrapped in DashboardLayout) */}
         <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
@@ -101,14 +96,13 @@ function AppRoutes() {
         <Route path="/field-worker" element={<DashboardLayout><FieldWorkerTicketsPage /></DashboardLayout>} />
         <Route path="/field-worker/team" element={<DashboardLayout><FieldWorkerTeamPage /></DashboardLayout>} />
 
-        {/* PMS routes — Performance Management System */}
-        <Route path="/pms/idp" element={<DashboardLayout><IdpPage /></DashboardLayout>} />
+        {/* PMS hub — consolidated Performance Management with in-page view selector */}
+        <Route path="/pms" element={<DashboardLayout><PmsHubPage /></DashboardLayout>} />
+        {/* PMS detail routes — drill-down from hub list views */}
         <Route path="/pms/idp/:cycleId" element={<DashboardLayout><IdpDetailPage /></DashboardLayout>} />
-        <Route path="/pms/sdbip" element={<DashboardLayout><SdbipPage /></DashboardLayout>} />
         <Route path="/pms/sdbip/:scorecardId/kpis" element={<DashboardLayout><SdbipKpiPage /></DashboardLayout>} />
         <Route path="/pms/kpis/:kpiId/actuals" element={<DashboardLayout><ActualsPage /></DashboardLayout>} />
         <Route path="/pms/actuals/:actualId/evidence" element={<DashboardLayout><EvidencePage /></DashboardLayout>} />
-        <Route path="/pms/golden-thread" element={<DashboardLayout><GoldenThreadPage /></DashboardLayout>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

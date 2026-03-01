@@ -6,8 +6,8 @@
  * - Executive (executive_mayor, municipal_manager): Full authority + PMS
  * - CFO: Financial + PMS
  * - Speaker: Reports
- * - Admin: Full municipality management
- * - SALGA Admin: Cross-municipality management + role approvals
+ * - Admin: Full municipality management + PMS
+ * - SALGA Admin: Cross-municipality management + PMS
  * - Section 56 Director / Department Manager: Department + PMS
  * - PMS Officer: Departments + PMS + Analytics
  * - Audit roles (audit_committee_member, internal_auditor, mpac_member): Reports + Audit
@@ -16,9 +16,8 @@
  * - SAPS Liaison: GBV cases only
  * - Citizen: Home only
  *
- * Phase 27 note: PMS navigation items (path: '/pms') are placeholder routes
- * that become active in Phase 28+. Adding them here ensures the nav hook
- * covers all 18 roles and the router can render them incrementally.
+ * Phase 28: PMS views (IDP, SDBIP, Golden Thread, Setup) consolidated into
+ * single /pms hub page with in-page dropdown selector.
  */
 
 import { useMemo } from 'react';
@@ -28,15 +27,13 @@ interface NavItem {
   label: string;
   path: string;
   icon: string;  // Icon identifier: 'home', 'ticket', 'users', 'chart', 'settings', 'shield', 'building', 'upload', 'target', 'link'
-  section?: string; // Optional section header for grouping (e.g., 'Performance Management')
+  section?: string; // Optional section header for grouping
 }
 
-// PMS navigation items — visible to all roles that can manage performance data
-const pmsNavItems: NavItem[] = [
-  { label: 'IDP Management', path: '/pms/idp', icon: 'target', section: 'Performance Management' },
-  { label: 'SDBIP Scorecards', path: '/pms/sdbip', icon: 'chart' },
-  { label: 'Golden Thread', path: '/pms/golden-thread', icon: 'link' },
-];
+// Single PMS sidebar entry — all sub-views accessed via in-page dropdown
+const pmsNavItem: NavItem = {
+  label: 'Performance', path: '/pms', icon: 'target',
+};
 
 // All 18 roles from the UserRole enum (Phase 27 18-role 4-tier hierarchy)
 type UserRole =
@@ -93,8 +90,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Departments', path: '/departments', icon: 'building' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          ...pmsNavItems,
-          { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
+          pmsNavItem,
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
@@ -104,7 +100,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Departments', path: '/departments', icon: 'building' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          ...pmsNavItems,
+          pmsNavItem,
         ];
 
       case 'speaker':
@@ -119,8 +115,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Teams', path: '/teams', icon: 'users' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          ...pmsNavItems,
-          { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
+          pmsNavItem,
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
@@ -128,7 +123,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
         return [...base,
           { label: 'Municipalities', path: '/municipalities', icon: 'building' },
           { label: 'Role Approvals', path: '/role-approvals', icon: 'users' },
-          ...pmsNavItems,
+          pmsNavItem,
           { label: 'System', path: '/system', icon: 'settings' },
         ];
 
@@ -141,7 +136,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'My Department', path: '/departments', icon: 'building' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Tickets', path: '/tickets', icon: 'ticket' },
-          ...pmsNavItems,
+          pmsNavItem,
         ];
 
       case 'ward_councillor':
@@ -158,7 +153,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
         return [...base,
           { label: 'Departments', path: '/departments', icon: 'building' },
           { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
-          ...pmsNavItems,
+          pmsNavItem,
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
         ];
 
