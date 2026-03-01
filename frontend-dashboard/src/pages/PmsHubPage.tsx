@@ -21,8 +21,9 @@ import { SdbipPage } from './SdbipPage';
 import { GoldenThreadPage } from './GoldenThreadPage';
 import { PmsSetupWizardPage } from './PmsSetupWizardPage';
 import { PerformanceAgreementsPage } from './PerformanceAgreementsPage';
+import { StatutoryReportsPage } from './StatutoryReportsPage';
 
-type PmsView = 'idp' | 'sdbip' | 'golden-thread' | 'performance-agreements' | 'setup';
+type PmsView = 'idp' | 'sdbip' | 'golden-thread' | 'performance-agreements' | 'statutory-reports' | 'setup';
 
 interface ViewOption {
   value: PmsView;
@@ -36,6 +37,7 @@ const VIEW_OPTIONS: ViewOption[] = [
   { value: 'sdbip', label: 'SDBIP Scorecards', createLabel: '+ Create Scorecard' },
   { value: 'golden-thread', label: 'Golden Thread' },
   { value: 'performance-agreements', label: 'Performance Agreements', createLabel: '+ Create Agreement' },
+  { value: 'statutory-reports', label: 'Statutory Reports', createLabel: '+ Create Report' },
   { value: 'setup', label: 'PMS Setup', adminOnly: true },
 ];
 
@@ -113,6 +115,12 @@ export function PmsHubPage() {
             embedded
             showForm={showForm}
             onToggleForm={() => setShowForm(prev => !prev)}
+          />
+        )}
+        {activeView === 'statutory-reports' && (
+          <StatutoryReportsPage
+            showForm={showForm}
+            onCloseForm={() => setShowForm(false)}
           />
         )}
         {activeView === 'setup' && isAdmin && <PmsSetupWizardPage />}
