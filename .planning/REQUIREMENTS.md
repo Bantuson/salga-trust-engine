@@ -50,12 +50,12 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Individual Performance Agreements
 
-- [ ] **PA-01**: PMS officer can create performance agreement for Section 57 manager linked to financial year
-- [ ] **PA-02**: Performance agreement KPIs link to organizational SDBIP KPIs with individual targets and weights
+- [x] **PA-01**: PMS officer can create performance agreement for Section 57 manager linked to financial year
+- [x] **PA-02**: Performance agreement KPIs link to organizational SDBIP KPIs with individual targets and weights
 - [ ] **PA-03**: Evaluator can score individual KPIs per quarter in quarterly review workflow
 - [ ] **PA-04**: System compiles annual assessment score from quarterly scores and KPI weights
-- [ ] **PA-05**: Performance agreement supports status workflow (draft → signed → under_review → assessed)
-- [ ] **PA-06**: Municipal Manager signs performance agreements for directors; Executive Mayor signs for Municipal Manager
+- [x] **PA-05**: Performance agreement supports status workflow (draft → signed → under_review → assessed)
+- [x] **PA-06**: Municipal Manager signs performance agreements for directors; Executive Mayor signs for Municipal Manager
 
 ### Statutory Reporting
 
@@ -163,12 +163,12 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVID-06 | Phase 28 | Complete |
 | EVID-07 | Phase 28 | Complete |
 | EVID-08 | Phase 28 | Complete |
-| PA-01 | Phase 29 | Pending |
-| PA-02 | Phase 29 | Pending |
+| PA-01 | Phase 29 | Complete |
+| PA-02 | Phase 29 | Complete |
 | PA-03 | Phase 29 | Pending |
 | PA-04 | Phase 29 | Pending |
-| PA-05 | Phase 29 | Pending |
-| PA-06 | Phase 29 | Pending |
+| PA-05 | Phase 29 | Complete |
+| PA-06 | Phase 29 | Complete |
 | REPORT-01 | Phase 30 | Pending |
 | REPORT-02 | Phase 30 | Pending |
 | REPORT-03 | Phase 30 | Pending |

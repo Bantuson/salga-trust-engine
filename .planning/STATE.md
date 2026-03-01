@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-01T12:30:08.384Z"
+progress:
+  total_phases: 3
+  completed_phases: 2
+  total_plans: 12
+  completed_plans: 11
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-02-28T22:09:33.023Z"
 progress:
   total_phases: 2
@@ -71,6 +84,7 @@ Progress: [██████░░░░] 71%
 
 *Updated after each plan completion*
 | Phase 28 P06 | 12 | 2 tasks | 8 files |
+| Phase 29 P01 | 13 | 6 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -138,6 +152,8 @@ From Phase 28 execution (Plan 28-05):
 - pyclamd.scan_stream() returns None (clean) or {'stream': ('FOUND', 'name')} — differs from clamd.instream() plan reference; adapted accordingly
 - EvidenceDocument no cascade delete from SDBIPActual: evidence is permanent audit trail
 - validate_actual() requires PMS_OFFICER, ADMIN, or SALGA_ADMIN — admin/salga_admin bypass for platform management
+- [Phase 29]: PAWorkflow assessed state marked final=True — python-statemachine 3.0.0 requires all non-final states have outgoing transitions
+- [Phase 29]: PA signing role gate: MM signs section57_director PAs, ExecMayor signs municipal_manager PA; admin/salga_admin bypass both
 
 ### Pending Todos
 
