@@ -1,0 +1,404 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ municipality_name }} - Section 121 Annual Report</title>
+  <style>
+    @page {
+      size: A4 landscape;
+      margin: 20mm;
+      @bottom-center {
+        content: "Page " counter(page) " of " counter(pages);
+        font-family: Arial, sans-serif;
+        font-size: 8pt;
+        color: #888;
+      }
+    }
+    body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; counter-reset: page; }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a3a5c; padding-bottom: 15px; }
+    .header h1 { font-size: 18pt; margin: 8px 0; color: #1a3a5c; }
+    .header h2 { font-size: 13pt; color: #333; margin: 4px 0; }
+    .header p { font-size: 9pt; color: #555; margin: 4px 0; }
+    .logo { max-height: 80px; max-width: 200px; margin-bottom: 10px; }
+    .toc { margin: 20px 0; padding: 15px; background-color: #f0f4f8; border-radius: 4px; }
+    .toc h3 { font-size: 12pt; color: #1a3a5c; margin: 0 0 10px 0; }
+    .toc ol { margin: 0; padding-left: 20px; }
+    .toc li { margin: 4px 0; font-size: 9.5pt; }
+    .chapter-heading {
+      font-size: 13pt;
+      color: white;
+      background-color: #1a3a5c;
+      padding: 8px 12px;
+      margin: 30px 0 15px 0;
+      page-break-before: always;
+    }
+    .chapter-heading:first-of-type { page-break-before: avoid; }
+    .section-title { font-size: 12pt; color: #1a3a5c; margin: 20px 0 10px 0; border-bottom: 1px solid #1a3a5c; padding-bottom: 4px; }
+    .dept-header { font-size: 11pt; color: #1a3a5c; margin: 20px 0 8px 0; border-bottom: 1px solid #aac; padding-bottom: 4px; }
+    .summary { margin: 15px 0; padding: 12px; background-color: #f0f4f8; border-radius: 4px; border-left: 4px solid #1a3a5c; }
+    .summary h3 { font-size: 11pt; color: #1a3a5c; margin: 0 0 8px 0; }
+    .summary p { margin: 4px 0; font-size: 9.5pt; }
+    .narrative { font-size: 9.5pt; line-height: 1.5; margin: 10px 0; color: #333; }
+    .placeholder { font-size: 9.5pt; color: #888; font-style: italic; padding: 10px; border: 1px dashed #ccc; border-radius: 4px; margin: 10px 0; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 8.5pt; }
+    th { background-color: #1a3a5c; color: white; padding: 6px 8px; text-align: left; font-weight: bold; font-size: 8pt; border: 1px solid #0e2540; }
+    td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; }
+    tr:nth-child(even) td { background-color: #f9f9f9; }
+    .green td { background-color: #c6efce !important; }
+    .amber td { background-color: #ffeb9c !important; }
+    .red td { background-color: #ffc7ce !important; }
+    .status-green { background-color: #c6efce; color: #276221; font-weight: bold; text-align: center; }
+    .status-amber { background-color: #ffeb9c; color: #9c5700; font-weight: bold; text-align: center; }
+    .status-red { background-color: #ffc7ce; color: #9c0006; font-weight: bold; text-align: center; }
+    .watermark {
+      position: fixed;
+      top: 40%;
+      left: 20%;
+      font-size: 80pt;
+      color: rgba(200, 200, 200, 0.3);
+      transform: rotate(-45deg);
+      z-index: -1;
+      font-weight: bold;
+      letter-spacing: 8px;
+    }
+    .pa-table th { background-color: #1a3a5c; }
+    .rating-exceeds { background-color: #c6efce; color: #276221; font-weight: bold; text-align: center; }
+    .rating-meets { background-color: #ffeb9c; color: #9c5700; font-weight: bold; text-align: center; }
+    .rating-below { background-color: #ffc7ce; color: #9c0006; font-weight: bold; text-align: center; }
+    .sign-off { margin-top: 40px; page-break-inside: avoid; }
+    .sign-off h3 { font-size: 11pt; color: #1a3a5c; }
+    .sign-line { display: inline-block; border-top: 1px solid #000; width: 220px; margin-top: 40px; }
+    .sign-block { display: inline-block; margin-right: 60px; text-align: center; }
+    .sign-block p { margin: 4px 0; font-size: 9pt; }
+    .footer { margin-top: 20px; text-align: center; font-size: 8pt; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+    .no-data { color: #888; font-style: italic; }
+    .page-break { page-break-before: always; }
+    .recommendations li { margin-bottom: 6px; font-size: 9.5pt; }
+    .idp-table th { background-color: #2c5f8a; }
+  </style>
+</head>
+<body>
+
+  {% if show_watermark %}<div class="watermark">DRAFT</div>{% endif %}
+
+  <!-- Header / Cover Page -->
+  <div class="header">
+    {% if logo_url %}
+      <img src="{{ logo_url }}" alt="{{ municipality_name }} logo" class="logo"><br>
+    {% endif %}
+    <h1>{{ municipality_name }}</h1>
+    <h2>Annual Report &mdash; Section 121 of the Local Government: Municipal Finance Management Act</h2>
+    <p>Financial Year: <strong>{{ financial_year }}</strong></p>
+    <p>Reporting Period: {{ period_start }} &ndash; {{ period_end }}</p>
+  </div>
+
+  <!-- Table of Contents -->
+  <div class="toc">
+    <h3>Table of Contents</h3>
+    <ol>
+      <li>Executive Overview</li>
+      <li>Governance</li>
+      <li>Service Delivery Performance (SDBIP)</li>
+      <li>Organisational Development (Section 57 Performance Agreements)</li>
+      <li>Financial Performance (Summary)</li>
+      <li>Auditor-General Findings</li>
+      <li>Appendices</li>
+    </ol>
+  </div>
+
+  <!-- CHAPTER 1: Executive Overview -->
+  <div class="chapter-heading">Chapter 1: Executive Overview</div>
+
+  <h3 class="section-title">1.1 Introduction</h3>
+  <p class="narrative">
+    This Annual Report has been compiled in accordance with Section 121 of the Local Government:
+    Municipal Finance Management Act, 56 of 2003 (MFMA), and presents a comprehensive account
+    of <strong>{{ municipality_name }}</strong>'s performance for the <strong>{{ financial_year }}</strong>
+    financial year. It covers service delivery performance, organisational development, financial management,
+    and governance during the period {{ period_start }} to {{ period_end }}.
+  </p>
+
+  {% if municipality_vision %}
+  <h3 class="section-title">1.2 Vision</h3>
+  <p class="narrative"><em>"{{ municipality_vision }}"</em></p>
+  {% endif %}
+
+  {% if municipality_mission %}
+  <h3 class="section-title">1.3 Mission</h3>
+  <p class="narrative"><em>"{{ municipality_mission }}"</em></p>
+  {% endif %}
+
+  <h3 class="section-title">1.4 Annual Performance Summary</h3>
+  <div class="summary">
+    <p>
+      <strong>Total KPIs:</strong> {{ summary_stats.total_kpis }} &nbsp;&nbsp;
+      <strong style="color:#276221;">&#9632; On Track (Green):</strong> {{ summary_stats.green_count }} ({{ summary_stats.green_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c5700;">&#9632; At Risk (Amber):</strong> {{ summary_stats.amber_count }} ({{ summary_stats.amber_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c0006;">&#9632; Off Track (Red):</strong> {{ summary_stats.red_count }} ({{ summary_stats.red_pct }}%)
+    </p>
+    <p><strong>Overall Annual Achievement:</strong> {{ summary_stats.overall_achievement_pct }}%</p>
+  </div>
+
+  <!-- IDP Alignment -->
+  {% if idp_objectives %}
+  <h3 class="section-title">1.5 IDP Alignment</h3>
+  <p class="narrative">
+    The following table shows the alignment between Integrated Development Plan (IDP) strategic objectives
+    and the SDBIP KPIs monitored during the {{ financial_year }} financial year.
+  </p>
+  <table class="idp-table">
+    <thead>
+      <tr>
+        <th style="width:40%">IDP Objective</th>
+        <th style="width:20%">National KPA</th>
+        <th style="width:20%">Linked KPIs</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for obj in idp_objectives %}
+      <tr>
+        <td>{{ obj.title }}</td>
+        <td>{{ obj.national_kpa | default('-', true) }}</td>
+        <td>{{ obj.linked_kpi_count }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% endif %}
+
+  <!-- CHAPTER 2: Governance -->
+  <div class="chapter-heading">Chapter 2: Governance</div>
+
+  <h3 class="section-title">2.1 Council and Committees</h3>
+  <div class="placeholder">
+    [Council composition and committee structure — to be populated from governance records.
+    Include: number of ordinary council meetings held, special meetings, and key council resolutions.]
+  </div>
+
+  <h3 class="section-title">2.2 Intergovernmental Relations</h3>
+  <div class="placeholder">
+    [Summary of key intergovernmental engagements, district municipality coordination, and
+    provincial/national compliance submissions during {{ financial_year }}.]
+  </div>
+
+  <h3 class="section-title">2.3 Public Participation</h3>
+  <div class="placeholder">
+    [Summary of public participation activities, ward committee meetings, IDP/Budget roadshows,
+    and community engagement events during {{ financial_year }}.]
+  </div>
+
+  <!-- CHAPTER 3: Service Delivery Performance -->
+  <div class="chapter-heading">Chapter 3: Service Delivery Performance</div>
+
+  <h3 class="section-title">3.1 Quarterly Performance Summary</h3>
+  {% if quarterly_summary %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width:12%">Quarter</th>
+        <th style="width:16%">KPIs Assessed</th>
+        <th style="width:14%">Green</th>
+        <th style="width:14%">Amber</th>
+        <th style="width:14%">Red</th>
+        <th style="width:15%">Achievement %</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for q in quarterly_summary %}
+      <tr>
+        <td><strong>{{ q.quarter }}</strong></td>
+        <td>{{ q.assessed }}</td>
+        <td class="status-green">{{ q.green }}</td>
+        <td class="status-amber">{{ q.amber }}</td>
+        <td class="status-red">{{ q.red }}</td>
+        <td>{{ q.achievement_pct }}%</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="no-data">No quarterly summary data available for this financial year.</p>
+  {% endif %}
+
+  <h3 class="section-title">3.2 Departmental KPI Detail</h3>
+  {% if departments %}
+    {% for dept in departments %}
+      <h4 class="dept-header">{{ dept.name }}</h4>
+      {% if dept.kpis %}
+        <table>
+          <thead>
+            <tr>
+              <th style="width:6%">KPI #</th>
+              <th style="width:18%">Description</th>
+              <th style="width:5%">Unit</th>
+              <th style="width:6%">Baseline</th>
+              <th style="width:7%">Annual Target</th>
+              <th style="width:7%">Q1 Actual</th>
+              <th style="width:7%">Q2 Actual</th>
+              <th style="width:7%">Q3 Actual</th>
+              <th style="width:7%">Q4 Actual</th>
+              <th style="width:9%">Annual Achievement %</th>
+              <th style="width:7%">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for kpi in dept.kpis %}
+            <tr>
+              <td>{{ kpi.kpi_number }}</td>
+              <td>{{ kpi.description }}</td>
+              <td>{{ kpi.unit }}</td>
+              <td>{{ kpi.baseline }}</td>
+              <td>{{ kpi.annual_target }}</td>
+              <td>{{ kpi.q1_actual | default('-', true) }}</td>
+              <td>{{ kpi.q2_actual | default('-', true) }}</td>
+              <td>{{ kpi.q3_actual | default('-', true) }}</td>
+              <td>{{ kpi.q4_actual | default('-', true) }}</td>
+              <td>{{ kpi.annual_achievement_pct }}</td>
+              <td class="status-{{ kpi.annual_traffic_light | lower }}">{{ kpi.annual_traffic_light | upper }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="no-data">No KPI data available for this department.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p class="no-data">No departmental performance data found for this financial year.</p>
+  {% endif %}
+
+  <h3 class="section-title">3.3 Areas Requiring Corrective Action</h3>
+  <ul class="recommendations">
+    {% if red_kpis %}
+      {% for kpi in red_kpis %}
+      <li>
+        <strong>{{ kpi.kpi_number }}:</strong> {{ kpi.description }}
+        &mdash; Annual Achievement {{ kpi.annual_achievement_pct }}% (Red). Corrective action required.
+      </li>
+      {% endfor %}
+    {% else %}
+    <li>No critical underperformance areas identified. All KPIs achieved acceptable performance levels during the {{ financial_year }} financial year.</li>
+    {% endif %}
+  </ul>
+
+  <!-- CHAPTER 4: Organisational Development -->
+  <div class="chapter-heading">Chapter 4: Organisational Development</div>
+
+  <h3 class="section-title">4.1 Section 57 Manager Performance Agreements</h3>
+  {% if pa_summaries %}
+  <table class="pa-table">
+    <thead>
+      <tr>
+        <th style="width:25%">Manager</th>
+        <th style="width:20%">Role</th>
+        <th style="width:15%">Agreement Status</th>
+        <th style="width:15%">Annual Score</th>
+        <th style="width:15%">Rating</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for pa in pa_summaries %}
+      <tr>
+        <td>{{ pa.manager_name }}</td>
+        <td>{{ pa.role }}</td>
+        <td>{{ pa.status }}</td>
+        <td>{{ pa.annual_score | default('-', true) }}{% if pa.annual_score is not none and pa.annual_score != '-' %}%{% endif %}</td>
+        <td class="{{ pa.rating_class }}">{{ pa.rating }}</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="no-data"><em>No Section 57 performance agreements assessed for this financial year.</em></p>
+  {% endif %}
+
+  <h3 class="section-title">4.2 Human Resources Summary</h3>
+  <div class="placeholder">
+    [Human resources statistics: approved posts, filled posts, vacancies, and turnover rate
+    for the {{ financial_year }} financial year — to be populated from HR records.]
+  </div>
+
+  <h3 class="section-title">4.3 Capacity Building and Training</h3>
+  <div class="placeholder">
+    [Summary of skills development programmes, training completed, and bursaries awarded
+    during {{ financial_year }} in compliance with the Workplace Skills Plan.]
+  </div>
+
+  <!-- CHAPTER 5: Financial Performance -->
+  <div class="chapter-heading">Chapter 5: Financial Performance</div>
+
+  <h3 class="section-title">5.1 Financial Overview</h3>
+  <div class="placeholder">
+    [Financial performance summary including operating revenue, operating expenditure, capital
+    expenditure, and key financial ratios — to be populated from mSCOA-classified financial data.
+    Full financial integration is planned for a future release.]
+  </div>
+
+  <h3 class="section-title">5.2 Capital Projects</h3>
+  <div class="placeholder">
+    [Summary of approved capital projects, expenditure to date, and completion status
+    for the {{ financial_year }} financial year.]
+  </div>
+
+  <!-- CHAPTER 6: Auditor-General Findings -->
+  <div class="chapter-heading">Chapter 6: Auditor-General Findings</div>
+
+  <h3 class="section-title">6.1 Audit Outcome</h3>
+  <div class="placeholder">
+    [Auditor-General audit outcome for {{ financial_year }}: unqualified, qualified, adverse,
+    or disclaimer — to be inserted once AG report is received.]
+  </div>
+
+  <h3 class="section-title">6.2 Key Findings and Corrective Measures</h3>
+  <div class="placeholder">
+    [Summary of key audit findings, material irregularities, and management's corrective
+    action plan to address findings from the {{ financial_year }} audit.]
+  </div>
+
+  <!-- CHAPTER 7: Appendices -->
+  <div class="chapter-heading">Chapter 7: Appendices</div>
+
+  <h3 class="section-title">Appendix A: Approved SDBIP</h3>
+  <div class="placeholder">
+    [Reference to approved SDBIP document for {{ financial_year }}.]
+  </div>
+
+  <h3 class="section-title">Appendix B: Section 57 Performance Agreements</h3>
+  <div class="placeholder">
+    [Reference to signed Section 57 performance agreements for {{ financial_year }}.]
+  </div>
+
+  <!-- Sign-off -->
+  <div class="sign-off page-break">
+    <h3>Certification</h3>
+    <p style="font-size:9.5pt">
+      I hereby certify that the information contained in this Annual Report is accurate and complete
+      to the best of my knowledge, as required in terms of Section 121 of the Local Government:
+      Municipal Finance Management Act, 56 of 2003.
+    </p>
+    <br>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Municipal Manager</strong></p>
+      <p>Date: _______________</p>
+    </div>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Chief Financial Officer</strong></p>
+      <p>Date: _______________</p>
+    </div>
+    <br><br>
+    <p><strong>Submitted to National Treasury:</strong> Yes &nbsp;/&nbsp; No</p>
+    <p><strong>Date of submission:</strong> _________________________</p>
+    <p><strong>Tabled before Council:</strong> Yes &nbsp;/&nbsp; No</p>
+    <p><strong>Date tabled:</strong> _________________________</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>{{ municipality_name }} | Section 121 Annual Report | {{ financial_year }}</p>
+    <p>Generated in accordance with Section 121 of the Local Government: Municipal Finance Management Act, 56 of 2003</p>
+  </div>
+
+</body>
+</html>

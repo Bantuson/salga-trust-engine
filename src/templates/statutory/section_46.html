@@ -1,0 +1,239 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ municipality_name }} - Section 46 Annual Performance Report</title>
+  <style>
+    @page { size: A4 landscape; margin: 20mm; }
+    body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a3a5c; padding-bottom: 15px; }
+    .header h1 { font-size: 16pt; margin: 8px 0; color: #1a3a5c; }
+    .header h2 { font-size: 12pt; color: #333; margin: 4px 0; }
+    .header p { font-size: 9pt; color: #555; margin: 4px 0; }
+    .logo { max-height: 80px; max-width: 200px; margin-bottom: 10px; }
+    .summary { margin: 15px 0; padding: 12px; background-color: #f0f4f8; border-radius: 4px; border-left: 4px solid #1a3a5c; }
+    .summary h3 { font-size: 11pt; color: #1a3a5c; margin: 0 0 8px 0; }
+    .summary p { margin: 4px 0; font-size: 9.5pt; }
+    .section-title { font-size: 12pt; color: #1a3a5c; margin: 20px 0 10px 0; border-bottom: 2px solid #1a3a5c; padding-bottom: 4px; }
+    .dept-header { font-size: 11pt; color: #1a3a5c; margin: 20px 0 8px 0; border-bottom: 1px solid #1a3a5c; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 8.5pt; }
+    th { background-color: #1a3a5c; color: white; padding: 6px 8px; text-align: left; font-weight: bold; font-size: 8pt; border: 1px solid #0e2540; }
+    td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; }
+    tr:nth-child(even) td { background-color: #f9f9f9; }
+    .green td { background-color: #c6efce !important; }
+    .amber td { background-color: #ffeb9c !important; }
+    .red td { background-color: #ffc7ce !important; }
+    .status-green { background-color: #c6efce; color: #276221; font-weight: bold; text-align: center; }
+    .status-amber { background-color: #ffeb9c; color: #9c5700; font-weight: bold; text-align: center; }
+    .status-red { background-color: #ffc7ce; color: #9c0006; font-weight: bold; text-align: center; }
+    .watermark {
+      position: fixed;
+      top: 40%;
+      left: 20%;
+      font-size: 80pt;
+      color: rgba(200, 200, 200, 0.3);
+      transform: rotate(-45deg);
+      z-index: -1;
+      font-weight: bold;
+      letter-spacing: 8px;
+    }
+    .pa-section { margin-top: 30px; page-break-before: always; }
+    .pa-table th { background-color: #1a3a5c; }
+    .rating-exceeds { background-color: #c6efce; color: #276221; font-weight: bold; text-align: center; }
+    .rating-meets { background-color: #ffeb9c; color: #9c5700; font-weight: bold; text-align: center; }
+    .rating-below { background-color: #ffc7ce; color: #9c0006; font-weight: bold; text-align: center; }
+    .sign-off { margin-top: 40px; page-break-inside: avoid; }
+    .sign-off h3 { font-size: 11pt; color: #1a3a5c; }
+    .sign-line { display: inline-block; border-top: 1px solid #000; width: 220px; margin-top: 40px; }
+    .sign-block { display: inline-block; margin-right: 60px; text-align: center; }
+    .sign-block p { margin: 4px 0; font-size: 9pt; }
+    .footer { margin-top: 20px; text-align: center; font-size: 8pt; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+    .no-data { color: #888; font-style: italic; }
+    .page-break { page-break-before: always; }
+    .recommendations li { margin-bottom: 6px; font-size: 9.5pt; }
+  </style>
+</head>
+<body>
+
+  {% if show_watermark %}<div class="watermark">DRAFT</div>{% endif %}
+
+  <!-- Header -->
+  <div class="header">
+    {% if logo_url %}
+      <img src="{{ logo_url }}" alt="{{ municipality_name }} logo" class="logo"><br>
+    {% endif %}
+    <h1>{{ municipality_name }}</h1>
+    <h2>Annual Performance Report &mdash; Section 46 of the Municipal Systems Act</h2>
+    <p>Financial Year: <strong>{{ financial_year }}</strong></p>
+    <p>Reporting Period: {{ period_start }} &ndash; {{ period_end }}</p>
+  </div>
+
+  <!-- 1. Executive Summary -->
+  <div class="summary">
+    <h3>1. Executive Summary</h3>
+    <p>
+      This report provides a comprehensive assessment of <strong>{{ municipality_name }}</strong>'s performance
+      against its Service Delivery and Budget Implementation Plan (SDBIP) for the <strong>{{ financial_year }}</strong>
+      financial year as required by Section 46 of the Local Government: Municipal Systems Act, 32 of 2000.
+    </p>
+    <p>
+      <strong>Total KPIs:</strong> {{ summary_stats.total_kpis }} &nbsp;&nbsp;
+      <strong style="color:#276221;">&#9632; On Track (Green):</strong> {{ summary_stats.green_count }} ({{ summary_stats.green_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c5700;">&#9632; At Risk (Amber):</strong> {{ summary_stats.amber_count }} ({{ summary_stats.amber_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c0006;">&#9632; Off Track (Red):</strong> {{ summary_stats.red_count }} ({{ summary_stats.red_pct }}%)
+    </p>
+    <p><strong>Overall Annual Achievement:</strong> {{ summary_stats.overall_achievement_pct }}%</p>
+  </div>
+
+  <!-- 2. Quarterly Performance Summary -->
+  <h3 class="section-title">2. Quarterly Performance Summary</h3>
+  {% if quarterly_summary %}
+  <table>
+    <thead>
+      <tr>
+        <th style="width:12%">Quarter</th>
+        <th style="width:16%">KPIs Assessed</th>
+        <th style="width:14%">Green</th>
+        <th style="width:14%">Amber</th>
+        <th style="width:14%">Red</th>
+        <th style="width:15%">Achievement %</th>
+      </tr>
+    </thead>
+    <tbody>
+    {% for q in quarterly_summary %}
+      <tr>
+        <td><strong>{{ q.quarter }}</strong></td>
+        <td>{{ q.assessed }}</td>
+        <td class="status-green">{{ q.green }}</td>
+        <td class="status-amber">{{ q.amber }}</td>
+        <td class="status-red">{{ q.red }}</td>
+        <td>{{ q.achievement_pct }}%</td>
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+  {% else %}
+  <p class="no-data">No quarterly summary data available for this financial year.</p>
+  {% endif %}
+
+  <!-- 3. Departmental Performance Detail -->
+  <h3 class="section-title page-break">3. Departmental Performance Detail</h3>
+  {% if departments %}
+    {% for dept in departments %}
+      <h4 class="dept-header">{{ dept.name }}</h4>
+      {% if dept.kpis %}
+        <table>
+          <thead>
+            <tr>
+              <th style="width:6%">KPI #</th>
+              <th style="width:18%">Description</th>
+              <th style="width:5%">Unit</th>
+              <th style="width:6%">Baseline</th>
+              <th style="width:7%">Annual Target</th>
+              <th style="width:7%">Q1 Actual</th>
+              <th style="width:7%">Q2 Actual</th>
+              <th style="width:7%">Q3 Actual</th>
+              <th style="width:7%">Q4 Actual</th>
+              <th style="width:9%">Annual Achievement %</th>
+              <th style="width:7%">Status</th>
+            </tr>
+          </thead>
+          <tbody>
+          {% for kpi in dept.kpis %}
+            <tr>
+              <td>{{ kpi.kpi_number }}</td>
+              <td>{{ kpi.description }}</td>
+              <td>{{ kpi.unit }}</td>
+              <td>{{ kpi.baseline }}</td>
+              <td>{{ kpi.annual_target }}</td>
+              <td>{{ kpi.q1_actual | default('-', true) }}</td>
+              <td>{{ kpi.q2_actual | default('-', true) }}</td>
+              <td>{{ kpi.q3_actual | default('-', true) }}</td>
+              <td>{{ kpi.q4_actual | default('-', true) }}</td>
+              <td>{{ kpi.annual_achievement_pct }}</td>
+              <td class="status-{{ kpi.annual_traffic_light | lower }}">{{ kpi.annual_traffic_light | upper }}</td>
+            </tr>
+          {% endfor %}
+          </tbody>
+        </table>
+      {% else %}
+        <p class="no-data">No KPI data available for this department.</p>
+      {% endif %}
+    {% endfor %}
+  {% else %}
+    <p class="no-data">No departmental performance data found for this financial year.</p>
+  {% endif %}
+
+  <!-- 4. Section 57 Manager Performance (PA Summaries) -->
+  <div class="pa-section">
+    <h3 class="section-title">4. Section 57 Manager Performance</h3>
+    {% if pa_summaries %}
+    <table class="pa-table">
+      <thead>
+        <tr>
+          <th style="width:25%">Manager</th>
+          <th style="width:20%">Role</th>
+          <th style="width:15%">Agreement Status</th>
+          <th style="width:15%">Annual Score</th>
+          <th style="width:15%">Rating</th>
+        </tr>
+      </thead>
+      <tbody>
+      {% for pa in pa_summaries %}
+        <tr>
+          <td>{{ pa.manager_name }}</td>
+          <td>{{ pa.role }}</td>
+          <td>{{ pa.status }}</td>
+          <td>{{ pa.annual_score | default('-', true) }}{% if pa.annual_score is not none and pa.annual_score != '-' %}%{% endif %}</td>
+          <td class="{{ pa.rating_class }}">{{ pa.rating }}</td>
+        </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+    {% else %}
+    <p class="no-data"><em>No Section 57 performance agreements assessed for this financial year.</em></p>
+    {% endif %}
+  </div>
+
+  <!-- 5. Recommendations -->
+  <h3 class="section-title page-break">5. Recommendations</h3>
+  <ul class="recommendations">
+    {% if red_kpis %}
+      {% for kpi in red_kpis %}
+      <li>
+        <strong>{{ kpi.kpi_number }}:</strong> {{ kpi.description }}
+        &mdash; Annual Achievement {{ kpi.annual_achievement_pct }}% (Red). Corrective action required.
+      </li>
+      {% endfor %}
+    {% else %}
+    <li>No critical underperformance areas identified. All KPIs achieved acceptable performance levels during the {{ financial_year }} financial year.</li>
+    {% endif %}
+  </ul>
+
+  <!-- Sign-off -->
+  <div class="sign-off">
+    <h3>Certification</h3>
+    <p style="font-size:9.5pt">
+      I hereby certify that the information contained in this Annual Performance Report is accurate and complete
+      to the best of my knowledge, as required in terms of Section 46 of the Local Government: Municipal Systems
+      Act, 32 of 2000.
+    </p>
+    <br>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Municipal Manager</strong></p>
+      <p>Date: _______________</p>
+    </div>
+    <br><br>
+    <p><strong>Submitted to Auditor-General:</strong> Yes &nbsp;/&nbsp; No</p>
+    <p><strong>Date of submission:</strong> _________________________</p>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>{{ municipality_name }} | Section 46 Annual Performance Report | {{ financial_year }}</p>
+    <p>Generated in accordance with Section 46 of the Local Government: Municipal Systems Act, 32 of 2000</p>
+  </div>
+
+</body>
+</html>
