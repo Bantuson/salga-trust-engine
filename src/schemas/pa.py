@@ -129,7 +129,12 @@ class PAKpiBulkCreate(BaseModel):
 
 
 class PAKpiResponse(BaseModel):
-    """Schema for PA KPI API responses."""
+    """Schema for PA KPI API responses.
+
+    The `scores` field is populated when the endpoint uses get_kpis_with_scores()
+    (which eager-loads quarterly_scores via selectinload). When using list_kpis()
+    without eager loading, scores defaults to an empty list.
+    """
 
     model_config = ConfigDict(from_attributes=True)
 
@@ -140,6 +145,7 @@ class PAKpiResponse(BaseModel):
     weight: Decimal
     description: str | None
     created_at: datetime
+    scores: list["PAScoreResponse"] = []
 
 
 # ---------------------------------------------------------------------------

@@ -8,12 +8,14 @@ Key responsibilities:
 - KPI creation with SDBIP FK validation and weight sum enforcement
 - State machine transitions with role-gated signing (PA-06)
 - Quarterly score submission
+- Annual score compilation (weighted average across quarterly scores)
 
 Design notes:
 - FK validation uses SELECT then 422 (not DB FK violation) for SQLite compatibility
 - Weight sum enforcement at service layer (not DB constraint) for SQLite test compatibility
 - start_value= MUST always be passed to PAWorkflow to bind non-initial states
 - agreement_id captured before db.commit() to avoid MissingGreenlet in async context
+- selectinload(PAKpi.quarterly_scores) required for async-safe compilation (no lazy load)
 """
 import logging
 from decimal import Decimal
@@ -23,6 +25,7 @@ from fastapi import HTTPException, status
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
 
 from src.models.pa import (
     ManagerRole,
@@ -202,6 +205,24 @@ class PAService:
                     ),
                 )
 
+        # PA-04/PA-05: assess guard — require at least one quarterly score
+        if event == "assess":
+            scores_result = await db.execute(
+                select(PAQuarterlyScore)
+                .join(PAKpi, PAQuarterlyScore.pa_kpi_id == PAKpi.id)
+                .where(PAKpi.agreement_id == agreement_id)
+            )
+            has_scores = scores_result.scalars().first() is not None
+            if not has_scores:
+                raise HTTPException(
+                    status_code=status.HTTP_422_UNPROCESSABLE_ENTITY,
+                    detail="Cannot assess: no quarterly scores submitted",
+                )
+            # Compile annual score before finalising state (PA-04)
+            await self.compile_annual_score(agreement_id, db)
+            # Re-fetch agreement after compile commit (compile calls db.commit)
+            agreement = await self.get_agreement(agreement_id, db)
+
         # Apply state machine transition (CRITICAL: always pass start_value=)
         try:
             machine = PAWorkflow(
@@ -336,6 +357,100 @@ class PAService:
         )
         return list(result.scalars().all())
 
+    async def get_kpis_with_scores(
+        self,
+        agreement_id: UUID,
+        db: AsyncSession,
+    ) -> list[PAKpi]:
+        """Return KPIs for a Performance Agreement with quarterly_scores eager-loaded.
+
+        Uses selectinload to avoid lazy-load failures in async context.
+        Used by the list-kpis endpoint so the response includes nested score data.
+
+        Args:
+            agreement_id: UUID of the parent PerformanceAgreement.
+            db:           Async database session.
+
+        Returns:
+            List of PAKpi instances with quarterly_scores populated.
+        """
+        result = await db.execute(
+            select(PAKpi)
+            .where(PAKpi.agreement_id == agreement_id)
+            .options(selectinload(PAKpi.quarterly_scores))
+        )
+        return list(result.scalars().all())
+
+    async def compile_annual_score(
+        self,
+        agreement_id: UUID,
+        db: AsyncSession,
+    ) -> Decimal:
+        """Compile the annual assessment score from quarterly scores and KPI weights.
+
+        Algorithm (PA-04):
+            For each PAKpi with at least one quarterly score:
+                avg_score = sum(quarter_scores) / count(quarter_scores)
+            weighted_total = sum(avg_score * kpi.weight)
+            annual_score = weighted_total / sum(kpi.weight)
+
+        All arithmetic uses Decimal (not float) to match compute_achievement() in sdbip.py.
+        Returns Decimal("0") on division by zero (no KPIs or all zero weight).
+        Stores the result in agreement.annual_score and commits.
+
+        Args:
+            agreement_id: UUID of the PerformanceAgreement to score.
+            db:           Async database session.
+
+        Returns:
+            Compiled annual score as Decimal.
+
+        Raises:
+            HTTPException 404: Agreement not found.
+        """
+        agreement = await self.get_agreement(agreement_id, db)
+        if agreement is None:
+            raise HTTPException(
+                status_code=status.HTTP_404_NOT_FOUND,
+                detail=f"Performance Agreement {agreement_id} not found",
+            )
+
+        # Fetch KPIs with scores eager-loaded (required for async context)
+        kpis_result = await db.execute(
+            select(PAKpi)
+            .where(PAKpi.agreement_id == agreement_id)
+            .options(selectinload(PAKpi.quarterly_scores))
+        )
+        kpis = list(kpis_result.scalars().all())
+
+        weighted_total = Decimal("0")
+        weight_sum = Decimal("0")
+
+        for kpi in kpis:
+            scores = kpi.quarterly_scores
+            if not scores:
+                continue  # Skip KPIs with no scores (partial compilation)
+            avg_score = sum(Decimal(str(s.score)) for s in scores) / Decimal(str(len(scores)))
+            weighted_total += avg_score * Decimal(str(kpi.weight))
+            weight_sum += Decimal(str(kpi.weight))
+
+        if weight_sum == Decimal("0"):
+            annual_score = Decimal("0")
+        else:
+            annual_score = weighted_total / weight_sum
+
+        # Capture ID before commit to avoid MissingGreenlet in async context
+        captured_id = agreement.id
+        agreement.annual_score = annual_score
+        await db.commit()
+        await db.refresh(agreement)
+
+        logger.info(
+            "PerformanceAgreement %s annual_score compiled: %s",
+            captured_id, annual_score,
+        )
+        return annual_score
+
     async def get_kpi(
         self,
         kpi_id: UUID,
@@ -414,3 +529,6 @@ class PAService:
             pa_kpi_id, data.quarter, data.score, user.id,
         )
         return score
+
+    # Alias for plan requirement naming consistency
+    add_quarterly_score = add_score

@@ -150,15 +150,83 @@ async def add_kpi(
     "/agreements/{agreement_id}/kpis",
     response_model=list[PAKpiResponse],
     dependencies=_pms_deps(),
-    summary="List KPIs for a Performance Agreement",
+    summary="List KPIs for a Performance Agreement (with quarterly scores)",
 )
 async def list_kpis(
     agreement_id: UUID,
     db: AsyncSession = Depends(get_db),
 ) -> list[PAKpiResponse]:
-    """Return all KPIs for a given Performance Agreement."""
-    kpis = await _service.list_kpis(agreement_id, db)
+    """Return all KPIs for a given Performance Agreement with nested quarterly scores.
+
+    Uses get_kpis_with_scores() which eager-loads quarterly_scores via selectinload
+    so the response includes nested score data for frontend display (PA-02).
+    """
+    kpis = await _service.get_kpis_with_scores(agreement_id, db)
     return [PAKpiResponse.model_validate(k) for k in kpis]
+
+
+# ---------------------------------------------------------------------------
+# PA Quarterly Scores
+# ---------------------------------------------------------------------------
+
+
+@router.post(
+    "/kpis/{pa_kpi_id}/scores",
+    response_model=PAScoreResponse,
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(1))],
+    summary="Submit a quarterly score for a PA KPI (PA-03)",
+)
+async def add_quarterly_score(
+    pa_kpi_id: UUID,
+    payload: PAScoreCreate,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> PAScoreResponse:
+    """Submit a quarterly performance score for a PA KPI.
+
+    Tier 1 gate is used because evaluators (MM, ExecMayor) are Tier 1.
+    Admin and salga_admin bypass the tier restriction.
+
+    - quarter: Q1, Q2, Q3, or Q4
+    - score: 0-100 (inclusive)
+    - notes: optional assessor notes
+
+    Returns 404 if PA KPI not found.
+    Returns 409 if a score already exists for this (pa_kpi_id, quarter).
+    """
+    score = await _service.add_score(pa_kpi_id, payload, current_user, db)
+    return PAScoreResponse.model_validate(score)
+
+
+@router.post(
+    "/agreements/{agreement_id}/compile-score",
+    response_model=PAResponse,
+    status_code=status.HTTP_200_OK,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(2))],
+    summary="Compile annual assessment score from quarterly scores (PA-04)",
+)
+async def compile_annual_score(
+    agreement_id: UUID,
+    db: AsyncSession = Depends(get_db),
+) -> PAResponse:
+    """Compute and store the weighted annual score for a Performance Agreement.
+
+    Annual score = sum(avg_quarterly_score_per_kpi * kpi_weight) / sum(kpi_weights)
+
+    Tier 2 gate (Directors and above).
+
+    Returns 404 if agreement not found.
+    Returns the updated PerformanceAgreement with annual_score set.
+    """
+    await _service.compile_annual_score(agreement_id, db)
+    agreement = await _service.get_agreement(agreement_id, db)
+    if agreement is None:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail=f"Performance Agreement {agreement_id} not found",
+        )
+    return PAResponse.model_validate(agreement)
 
 
 # ---------------------------------------------------------------------------
