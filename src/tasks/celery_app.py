@@ -3,6 +3,7 @@
 Configures Celery with Redis broker/backend and beat schedule for:
 - Periodic SLA monitoring (every 5 minutes)
 - Daily SDBIP actuals auto-population (01:00 SAST)
+- Quarterly PA evaluator notifications (Q-start: 1st Jan/Apr/Jul/Oct at 08:00 SAST)
 
 Uses Africa/Johannesburg timezone for all time-based calculations.
 """
@@ -19,6 +20,7 @@ app = Celery(
         "src.tasks.sla_monitor",
         "src.tasks.status_notify",
         "src.tasks.pms_auto_populate_task",
+        "src.tasks.pa_notify_task",
     ]
 )
 
@@ -45,5 +47,12 @@ app.conf.beat_schedule = {
         # SEC-05: AutoPopulationEngine unconditionally excludes GBV tickets (is_sensitive=FALSE).
         "task": "src.tasks.pms_auto_populate_task.populate_sdbip_actuals",
         "schedule": crontab(minute=0, hour=1),  # 01:00 SAST daily
+    },
+    "notify-pa-evaluators-q-start": {
+        # Run at 08:00 SAST on the 1st of each quarter-start month (Jan/Apr/Jul/Oct).
+        # Notifies PA evaluators that the new scoring quarter has begun.
+        # Actual email/in-app delivery implemented in Phase 30.
+        "task": "src.tasks.pa_notify_task.notify_pa_evaluators",
+        "schedule": crontab(day_of_month="1", month_of_year="1,4,7,10", hour=8, minute=0),
     },
 }
