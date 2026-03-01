@@ -9,6 +9,7 @@ Key responsibilities:
 - Data snapshot at mm_approved transition (REPORT-06)
 - SDBIP KPI data assembly for PDF/DOCX template rendering
 - Municipality branding (name + logo_url) for REPORT-08
+- Completeness validation before generation (REPORT-08)
 
 Design notes:
 - Period dates computed from financial_year string and quarter (South African: July-June)
@@ -16,6 +17,8 @@ Design notes:
 - start_value= MUST always be passed to ReportWorkflow to bind non-initial states
 - Snapshot serialised as JSON string (not dict) for DB storage efficiency
 - assemble_report_data renders from snapshot if status >= mm_approved (REPORT-06)
+- validate_report_completeness: returns is_complete + missing_items; S52 warns on
+  missing scorecard/KPIs/actuals; S72 additionally checks Q2; S46/S121 check all 4 quarters
 """
 import json
 import logging
@@ -29,6 +32,7 @@ from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy.orm import selectinload
 
+from src.models.idp import IDPCycle, IDPGoal, IDPObjective
 from src.models.municipality import Municipality
 from src.models.notification import Notification, NotificationType
 from src.models.pa import PerformanceAgreement
@@ -430,6 +434,16 @@ class StatutoryReportService:
                     "status": pa.status,
                 })
 
+        # Include IDP data for Section 121 snapshots
+        idp_objectives: list[dict] = []
+        municipality_vision = ""
+        municipality_mission = ""
+        if report.report_type == ReportType.SECTION_121:
+            idp_data = await self._query_live_idp_data(report.financial_year, db)
+            idp_objectives = idp_data["idp_objectives"]
+            municipality_vision = idp_data["municipality_vision"]
+            municipality_mission = idp_data["municipality_mission"]
+
         snapshot_data = {
             "report_id": str(report.id),
             "report_type": report.report_type,
@@ -438,6 +452,9 @@ class StatutoryReportService:
             "snapshot_reason": "mm_approved",
             "kpis": kpi_data,
             "pa_summaries": pa_summaries,
+            "idp_objectives": idp_objectives,
+            "municipality_vision": municipality_vision,
+            "municipality_mission": municipality_mission,
         }
 
         snapshot = StatutoryReportSnapshot(
@@ -471,6 +488,128 @@ class StatutoryReportService:
         return result.scalar_one_or_none()
 
     # ------------------------------------------------------------------
+    # Completeness validation (REPORT-08)
+    # ------------------------------------------------------------------
+
+    async def validate_report_completeness(
+        self,
+        report: StatutoryReport,
+        db: AsyncSession,
+    ) -> dict:
+        """Validate that all required data exists before generating a report.
+
+        Checks vary by report type:
+        - SECTION_52:  scorecard, KPIs, actuals for the specified quarter
+        - SECTION_72:  scorecard, KPIs, actuals for Q1 AND Q2
+        - SECTION_46:  scorecard, KPIs, actuals for all 4 quarters;
+                       PA assessments incomplete is a warning (does not block)
+        - SECTION_121: all S46 checks plus IDP cycle existence (warning only)
+
+        Returns:
+            dict with:
+            - is_complete (bool): False if any blocking item is missing
+            - missing_items (list[str]): human-readable descriptions of missing data
+            - warnings (list[str]): non-blocking advisory messages
+        """
+        missing: list[str] = []
+        warnings: list[str] = []
+        fy = report.financial_year
+
+        # --- Scorecard check ---
+        scorecard_result = await db.execute(
+            select(SDBIPScorecard).where(
+                SDBIPScorecard.financial_year == fy
+            ).limit(1)
+        )
+        scorecard = scorecard_result.scalar_one_or_none()
+        if scorecard is None:
+            missing.append(f"No SDBIP scorecard for {fy}")
+            # If no scorecard, skip further SDBIP checks — they will all fail
+            return {
+                "is_complete": False,
+                "missing_items": missing,
+                "warnings": warnings,
+            }
+
+        # --- KPI check ---
+        kpi_count_result = await db.execute(
+            select(SDBIPKpi).where(
+                SDBIPKpi.scorecard_id == scorecard.id
+            ).limit(1)
+        )
+        if kpi_count_result.scalar_one_or_none() is None:
+            missing.append(f"No KPIs found for {fy}")
+
+        # --- Actuals check (varies by report type) ---
+        if report.report_type == ReportType.SECTION_52:
+            quarter = report.quarter or "Q1"
+            actual_result = await db.execute(
+                select(SDBIPActual).where(
+                    SDBIPActual.financial_year == fy,
+                    SDBIPActual.quarter == quarter,
+                ).limit(1)
+            )
+            if actual_result.scalar_one_or_none() is None:
+                missing.append(f"No actuals submitted for {quarter}")
+
+        elif report.report_type == ReportType.SECTION_72:
+            for quarter in ("Q1", "Q2"):
+                actual_result = await db.execute(
+                    select(SDBIPActual).where(
+                        SDBIPActual.financial_year == fy,
+                        SDBIPActual.quarter == quarter,
+                    ).limit(1)
+                )
+                if actual_result.scalar_one_or_none() is None:
+                    missing.append(f"No actuals submitted for {quarter}")
+
+        else:
+            # SECTION_46 and SECTION_121: all 4 quarters required
+            for quarter in ("Q1", "Q2", "Q3", "Q4"):
+                actual_result = await db.execute(
+                    select(SDBIPActual).where(
+                        SDBIPActual.financial_year == fy,
+                        SDBIPActual.quarter == quarter,
+                    ).limit(1)
+                )
+                if actual_result.scalar_one_or_none() is None:
+                    missing.append(f"No actuals submitted for {quarter}")
+
+            # PA assessment warning (non-blocking) for S46/S121
+            pa_result = await db.execute(
+                select(PerformanceAgreement).where(
+                    PerformanceAgreement.financial_year == fy,
+                    PerformanceAgreement.status == "assessed",
+                ).limit(1)
+            )
+            if pa_result.scalar_one_or_none() is None:
+                warnings.append(
+                    f"No assessed Section 57 performance agreements for {fy}. "
+                    "PA section will be empty but report can still be generated."
+                )
+
+            # IDP cycle warning for S121 (non-blocking)
+            if report.report_type == ReportType.SECTION_121:
+                start_year = int(fy.split("/")[0])
+                idp_result = await db.execute(
+                    select(IDPCycle).where(
+                        IDPCycle.start_year <= start_year,
+                        IDPCycle.end_year >= start_year,
+                    ).limit(1)
+                )
+                if idp_result.scalar_one_or_none() is None:
+                    warnings.append(
+                        f"No IDP cycle found covering {fy}. "
+                        "IDP alignment section will be empty but report can still be generated."
+                    )
+
+        return {
+            "is_complete": len(missing) == 0,
+            "missing_items": missing,
+            "warnings": warnings,
+        }
+
+    # ------------------------------------------------------------------
     # Report data assembly (for template rendering)
     # ------------------------------------------------------------------
 
@@ -502,13 +641,17 @@ class StatutoryReportService:
         """
         # Municipality branding (REPORT-08)
         # Municipality is NonTenantModel — query by tenant_id via direct filter
-        muni_result = await db.execute(
-            select(Municipality).where(
-                # tenant_id on StatutoryReport corresponds to municipality.id as str
-                Municipality.id == report.tenant_id  # type: ignore[arg-type]
+        try:
+            muni_uuid = UUID(report.tenant_id)
+        except (ValueError, AttributeError):
+            muni_uuid = None
+        if muni_uuid:
+            muni_result = await db.execute(
+                select(Municipality).where(Municipality.id == muni_uuid)
             )
-        )
-        municipality = muni_result.scalar_one_or_none()
+        else:
+            muni_result = None
+        municipality = muni_result.scalar_one_or_none() if muni_result else None
         municipality_name = municipality.name if municipality else "Municipality"
         logo_url = municipality.logo_url if municipality else None
 
@@ -564,18 +707,23 @@ class StatutoryReportService:
         }
 
         # Group KPIs by department for table rendering
-        dept_map: dict[str | None, list] = {}
-        for kpi in kpi_list:
-            dept_id = kpi.get("department_id")
-            dept_map.setdefault(dept_id, []).append(kpi)
+        # For S46/S121: pivot actuals per KPI so each row has q1-q4 actuals
+        is_annual = report.report_type in (ReportType.SECTION_46, ReportType.SECTION_121)
+        if is_annual:
+            departments = self._build_annual_departments(kpi_list)
+        else:
+            dept_map: dict[str | None, list] = {}
+            for kpi in kpi_list:
+                dept_id = kpi.get("department_id")
+                dept_map.setdefault(dept_id, []).append(kpi)
 
-        departments = [
-            {
-                "name": dept_id or "Municipal-wide KPIs",
-                "kpis": dept_kpis,
-            }
-            for dept_id, dept_kpis in dept_map.items()
-        ]
+            departments = [
+                {
+                    "name": dept_id or "Municipal-wide KPIs",
+                    "kpis": dept_kpis,
+                }
+                for dept_id, dept_kpis in dept_map.items()
+            ]
 
         # Section 72: compute H1 summary (Q1+Q2 combined)
         h1_summary = None
@@ -588,6 +736,43 @@ class StatutoryReportService:
                 "green_count": h1_green,
                 "on_track_pct": round(h1_green / h1_total * 100, 1) if h1_total else 0.0,
             }
+
+        # Section 46/121: quarterly summary and PA data
+        quarterly_summary: list[dict] = []
+        pa_summaries: list[dict] = []
+        red_kpis: list[dict] = []
+        idp_objectives: list[dict] = []
+        municipality_vision = ""
+        municipality_mission = ""
+
+        if is_annual:
+            # Build quarterly summary from kpi_list
+            quarterly_summary = self._build_quarterly_summary(kpi_list)
+
+            # Red KPIs for recommendations (from pivoted annual departments)
+            for dept in departments:
+                for kpi in dept.get("kpis", []):
+                    if kpi.get("annual_traffic_light", "").lower() == "red":
+                        red_kpis.append(kpi)
+
+            # PA summaries
+            if use_snapshot:
+                snapshot_pa = raw_data.get("pa_summaries", [])  # type: ignore[possibly-undefined]
+                pa_summaries = self._enrich_pa_summaries(snapshot_pa)
+            else:
+                pa_summaries = await self._query_live_pa_summaries(report.financial_year, db)
+
+            # IDP objectives and vision/mission for S121
+            if report.report_type == ReportType.SECTION_121:
+                if use_snapshot:
+                    idp_objectives = raw_data.get("idp_objectives", [])  # type: ignore[possibly-undefined]
+                    municipality_vision = raw_data.get("municipality_vision", "")
+                    municipality_mission = raw_data.get("municipality_mission", "")
+                else:
+                    idp_data = await self._query_live_idp_data(report.financial_year, db)
+                    idp_objectives = idp_data["idp_objectives"]
+                    municipality_vision = idp_data["municipality_vision"]
+                    municipality_mission = idp_data["municipality_mission"]
 
         return {
             "municipality_name": municipality_name,
@@ -603,6 +788,13 @@ class StatutoryReportService:
             "show_watermark": report.status not in snapshot_statuses,
             "h1_summary": h1_summary,
             "report_type": report.report_type,
+            # S46/S121 specific
+            "quarterly_summary": quarterly_summary,
+            "pa_summaries": pa_summaries,
+            "red_kpis": red_kpis,
+            "idp_objectives": idp_objectives,
+            "municipality_vision": municipality_vision,
+            "municipality_mission": municipality_mission,
         }
 
     async def _query_live_kpi_data(
@@ -663,6 +855,230 @@ class StatutoryReportService:
                 })
 
         return kpi_list
+
+    # ------------------------------------------------------------------
+    # Annual report data helpers (S46/S121)
+    # ------------------------------------------------------------------
+
+    def _build_annual_departments(self, kpi_list: list[dict]) -> list[dict]:
+        """Pivot per-quarter actuals into per-KPI rows for annual report tables.
+
+        Input kpi_list has one record per (kpi_id, quarter).
+        Output has one row per kpi_id with q1_actual..q4_actual fields and
+        a computed annual_achievement_pct and annual_traffic_light.
+        """
+        # Group records by (dept_id, kpi_id) to pivot quarters
+        pivot: dict[tuple, dict] = {}
+        for row in kpi_list:
+            key = (row.get("department_id"), row.get("kpi_id"))
+            if key not in pivot:
+                pivot[key] = {
+                    "kpi_id": row.get("kpi_id"),
+                    "kpi_number": row.get("kpi_number", ""),
+                    "description": row.get("description", ""),
+                    "unit": row.get("unit", ""),
+                    "baseline": row.get("baseline", ""),
+                    "annual_target": row.get("annual_target", ""),
+                    "department_id": row.get("department_id"),
+                    "q1_actual": None,
+                    "q2_actual": None,
+                    "q3_actual": None,
+                    "q4_actual": None,
+                    "_achievement_values": [],
+                    "_traffic_lights": [],
+                }
+            entry = pivot[key]
+            quarter = row.get("quarter", "")
+            actual_val = row.get("actual_value")
+            if quarter == "Q1":
+                entry["q1_actual"] = actual_val
+            elif quarter == "Q2":
+                entry["q2_actual"] = actual_val
+            elif quarter == "Q3":
+                entry["q3_actual"] = actual_val
+            elif quarter == "Q4":
+                entry["q4_actual"] = actual_val
+            if row.get("achievement_pct") is not None:
+                try:
+                    entry["_achievement_values"].append(float(row["achievement_pct"]))
+                except (ValueError, TypeError):
+                    pass
+            if row.get("traffic_light"):
+                entry["_traffic_lights"].append(row["traffic_light"])
+
+        # Compute annual aggregates
+        pivoted_kpis: list[dict] = []
+        for entry in pivot.values():
+            vals = entry.pop("_achievement_values")
+            lights = entry.pop("_traffic_lights")
+            annual_pct = round(sum(vals) / len(vals), 1) if vals else 0.0
+            entry["annual_achievement_pct"] = annual_pct
+            # Worst-case traffic light
+            if "red" in lights:
+                entry["annual_traffic_light"] = "red"
+            elif "amber" in lights:
+                entry["annual_traffic_light"] = "amber"
+            elif lights:
+                entry["annual_traffic_light"] = "green"
+            else:
+                entry["annual_traffic_light"] = "red"
+            pivoted_kpis.append(entry)
+
+        # Group by department
+        dept_map: dict[str | None, list] = {}
+        for kpi in pivoted_kpis:
+            dept_id = kpi.get("department_id")
+            dept_map.setdefault(dept_id, []).append(kpi)
+
+        return [
+            {"name": dept_id or "Municipal-wide KPIs", "kpis": dept_kpis}
+            for dept_id, dept_kpis in dept_map.items()
+        ]
+
+    def _build_quarterly_summary(self, kpi_list: list[dict]) -> list[dict]:
+        """Build per-quarter summary rows from a flat kpi_list.
+
+        Returns list of dicts: {quarter, assessed, green, amber, red, achievement_pct}
+        ordered Q1 -> Q4.
+        """
+        quarter_data: dict[str, list] = {q: [] for q in ("Q1", "Q2", "Q3", "Q4")}
+        for row in kpi_list:
+            q = row.get("quarter")
+            if q in quarter_data:
+                quarter_data[q].append(row)
+
+        summary = []
+        for quarter in ("Q1", "Q2", "Q3", "Q4"):
+            rows = quarter_data[quarter]
+            assessed = len(rows)
+            green = sum(1 for r in rows if r.get("traffic_light") == "green")
+            amber = sum(1 for r in rows if r.get("traffic_light") == "amber")
+            red = assessed - green - amber
+            if assessed > 0:
+                achievement_vals = [
+                    float(r.get("achievement_pct", 0)) for r in rows
+                    if r.get("achievement_pct") is not None
+                ]
+                achievement_pct = round(
+                    sum(achievement_vals) / len(achievement_vals), 1
+                ) if achievement_vals else 0.0
+            else:
+                achievement_pct = 0.0
+            summary.append({
+                "quarter": quarter,
+                "assessed": assessed,
+                "green": green,
+                "amber": amber,
+                "red": red,
+                "achievement_pct": achievement_pct,
+            })
+        return summary
+
+    def _enrich_pa_summaries(self, snapshot_pa: list[dict]) -> list[dict]:
+        """Enrich snapshot PA data with rating labels for template rendering."""
+        enriched = []
+        for pa in snapshot_pa:
+            annual_score = pa.get("annual_score")
+            rating, rating_class = self._pa_rating(annual_score)
+            enriched.append({
+                "manager_name": pa.get("manager_id", "Unknown"),
+                "role": pa.get("manager_role", ""),
+                "status": pa.get("status", ""),
+                "annual_score": annual_score,
+                "rating": rating,
+                "rating_class": rating_class,
+            })
+        return enriched
+
+    def _pa_rating(self, annual_score) -> tuple[str, str]:
+        """Return (rating label, CSS class) from annual_score (0-100 or None)."""
+        if annual_score is None:
+            return ("Not Assessed", "rating-below")
+        try:
+            score = float(annual_score)
+        except (ValueError, TypeError):
+            return ("Not Assessed", "rating-below")
+        if score >= 80:
+            return ("Exceeds Expectations", "rating-exceeds")
+        elif score >= 50:
+            return ("Meets Expectations", "rating-meets")
+        else:
+            return ("Below Expectations", "rating-below")
+
+    async def _query_live_pa_summaries(
+        self,
+        financial_year: str,
+        db: AsyncSession,
+    ) -> list[dict]:
+        """Query live PA data and return enriched summary list."""
+        pa_result = await db.execute(
+            select(PerformanceAgreement).where(
+                PerformanceAgreement.financial_year == financial_year
+            )
+        )
+        pas = list(pa_result.scalars().all())
+        summaries = []
+        for pa in pas:
+            rating, rating_class = self._pa_rating(pa.annual_score)
+            summaries.append({
+                "manager_name": str(pa.section57_manager_id),
+                "role": pa.manager_role,
+                "status": pa.status,
+                "annual_score": str(pa.annual_score) if pa.annual_score is not None else None,
+                "rating": rating,
+                "rating_class": rating_class,
+            })
+        return summaries
+
+    async def _query_live_idp_data(
+        self,
+        financial_year: str,
+        db: AsyncSession,
+    ) -> dict:
+        """Query IDP cycle data for S121 template context.
+
+        Returns:
+            dict with idp_objectives (list), municipality_vision (str), municipality_mission (str)
+        """
+        start_year = int(financial_year.split("/")[0])
+        idp_result = await db.execute(
+            select(IDPCycle)
+            .options(
+                selectinload(IDPCycle.goals)
+                .selectinload(IDPGoal.objectives)
+                .selectinload(IDPObjective.sdbip_kpis)
+            )
+            .where(
+                IDPCycle.start_year <= start_year,
+                IDPCycle.end_year >= start_year,
+            )
+            .limit(1)
+        )
+        cycle = idp_result.scalar_one_or_none()
+
+        if cycle is None:
+            return {
+                "idp_objectives": [],
+                "municipality_vision": "",
+                "municipality_mission": "",
+            }
+
+        objectives = []
+        for goal in cycle.goals:
+            for obj in goal.objectives:
+                # Count linked KPIs via relationship (lazy-loaded, 0 if no KPIs linked)
+                linked_count = len(obj.sdbip_kpis) if hasattr(obj, "sdbip_kpis") else 0
+                objectives.append({
+                    "title": obj.title,
+                    "national_kpa": goal.national_kpa,
+                    "linked_kpi_count": linked_count,
+                })
+
+        return {
+            "idp_objectives": objectives,
+            "municipality_vision": cycle.vision or "",
+            "municipality_mission": cycle.mission or "",
+        }
 
     # ------------------------------------------------------------------
     # Notification helpers

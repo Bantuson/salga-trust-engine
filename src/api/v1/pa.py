@@ -15,10 +15,12 @@ Endpoint prefix: /api/v1/pa
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, HTTPException, Query, status
+from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, require_min_tier
-from src.models.user import User
+from src.models.role_assignment import UserRoleAssignment
+from src.models.user import User, UserRole
 from src.schemas.pa import (
     PACreate,
     PAKpiCreate,
@@ -42,6 +44,49 @@ _service = PAService()
 def _pms_deps() -> list:
     """Shared dependency list: PMS readiness gate + Tier 3+ check."""
     return [Depends(require_pms_ready()), Depends(require_min_tier(3))]
+
+
+# ---------------------------------------------------------------------------
+# Eligible Managers (for frontend PA creation form)
+# ---------------------------------------------------------------------------
+
+# Roles eligible for Section 57 performance agreements
+_ELIGIBLE_ROLES = {UserRole.SECTION56_DIRECTOR, UserRole.MUNICIPAL_MANAGER}
+
+
+@router.get(
+    "/eligible-managers",
+    dependencies=_pms_deps(),
+    summary="List users eligible for Section 57 performance agreements",
+)
+async def list_eligible_managers(
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Return users with section56_director or municipal_manager role assignments.
+
+    Used by the frontend to populate the manager selector when creating a PA.
+    """
+    result = await db.execute(
+        select(User.id, User.full_name, User.email, UserRoleAssignment.role)
+        .join(UserRoleAssignment, User.id == UserRoleAssignment.user_id)
+        .where(
+            UserRoleAssignment.role.in_(_ELIGIBLE_ROLES),
+            UserRoleAssignment.is_active.is_(True),
+            User.is_active.is_(True),
+            User.is_deleted.is_(False),
+        )
+    )
+    rows = result.all()
+    return [
+        {
+            "id": str(row.id),
+            "full_name": row.full_name,
+            "email": row.email,
+            "role": row.role.value,
+        }
+        for row in rows
+    ]
 
 
 # ---------------------------------------------------------------------------

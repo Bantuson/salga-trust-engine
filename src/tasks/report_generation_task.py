@@ -109,8 +109,7 @@ def generate_statutory_report(self, report_id: str, user_id: str) -> dict:
                 template_path = _TEMPLATES_DIR / template_filename
                 if not template_path.exists():
                     raise FileNotFoundError(
-                        f"Template for {report.report_type} not found at {template_path}. "
-                        "Ensure Plan 30-02 has been executed for section_46 and section_121 templates."
+                        f"Template for {report.report_type} not found at {template_path}."
                     )
 
                 # Assemble template context
