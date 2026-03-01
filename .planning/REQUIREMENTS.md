@@ -59,14 +59,14 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Statutory Reporting
 
-- [ ] **REPORT-01**: System auto-generates Section 52 quarterly performance report from SDBIP actuals
-- [ ] **REPORT-02**: System auto-generates Section 72 mid-year budget and performance assessment
+- [x] **REPORT-01**: System auto-generates Section 52 quarterly performance report from SDBIP actuals
+- [x] **REPORT-02**: System auto-generates Section 72 mid-year budget and performance assessment
 - [ ] **REPORT-03**: System auto-generates Section 46 annual performance report
 - [ ] **REPORT-04**: System auto-generates Section 121 annual report performance chapter
-- [ ] **REPORT-05**: Reports follow approval workflow (drafting → internal_review → mm_approved → submitted → tabled)
-- [ ] **REPORT-06**: Report generation snapshots source data at mm_approved status for point-in-time consistency
+- [x] **REPORT-05**: Reports follow approval workflow (drafting → internal_review → mm_approved → submitted → tabled)
+- [x] **REPORT-06**: Report generation snapshots source data at mm_approved status for point-in-time consistency
 - [ ] **REPORT-07**: System tracks statutory deadlines per financial year with escalating notifications (30d → 14d → 7d → 3d → overdue)
-- [ ] **REPORT-08**: Reports export as PDF and DOCX with municipality-branded templates (logo, headers, formatting)
+- [x] **REPORT-08**: Reports export as PDF and DOCX with municipality-branded templates (logo, headers, formatting)
 - [ ] **REPORT-09**: System auto-creates report tasks 30 days before each statutory deadline
 
 ### Dashboards & Oversight
@@ -169,14 +169,14 @@ Which phases cover which requirements. Updated during roadmap creation.
 | PA-04 | Phase 29 | Complete |
 | PA-05 | Phase 29 | Complete |
 | PA-06 | Phase 29 | Complete |
-| REPORT-01 | Phase 30 | Pending |
-| REPORT-02 | Phase 30 | Pending |
+| REPORT-01 | Phase 30 | Complete |
+| REPORT-02 | Phase 30 | Complete |
 | REPORT-03 | Phase 30 | Pending |
 | REPORT-04 | Phase 30 | Pending |
-| REPORT-05 | Phase 30 | Pending |
-| REPORT-06 | Phase 30 | Pending |
+| REPORT-05 | Phase 30 | Complete |
+| REPORT-06 | Phase 30 | Complete |
 | REPORT-07 | Phase 30 | Pending |
-| REPORT-08 | Phase 30 | Pending |
+| REPORT-08 | Phase 30 | Complete |
 | REPORT-09 | Phase 30 | Pending |
 | DASH-01 | Phase 31 | Pending |
 | DASH-02 | Phase 31 | Pending |

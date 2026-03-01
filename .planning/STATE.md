@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v1.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-01T19:42:10.695Z"
+progress:
+  total_phases: 4
+  completed_phases: 3
+  total_plans: 16
+  completed_plans: 13
+---
+
+---
+gsd_state_version: 1.0
+milestone: v1.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-01T12:30:08.384Z"
 progress:
   total_phases: 3
@@ -61,10 +74,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 29 of 32 (Individual Performance Agreements)
-Plan: 2 of 2 in current phase (29-02 complete)
-Status: Active — Phase 29 complete (both plans done)
-Last activity: 2026-03-01 — 29-02 complete: quarterly score submission, annual score compilation, assess guard, Celery Q-start notifications, PerformanceAgreementsPage.tsx, PmsHub extension, 23 passing tests
+Phase: 30 of 32 (Statutory Reporting and Approval Workflows)
+Plan: 1 of 4 in current phase (30-01 complete)
+Status: Active — Phase 30 in progress (30-01 done)
+Last activity: 2026-03-01 — 30-01 complete: StatutoryReport model, ReportWorkflow state machine, data snapshot at mm_approved (REPORT-06), service+API (7 endpoints)+Celery task+Section 52/72 Jinja2 templates, Notification model+API, 30 passing tests
 
 Progress: [██████░░░░] 71%
 
@@ -86,6 +99,7 @@ Progress: [██████░░░░] 71%
 | Phase 28 P06 | 12 | 2 tasks | 8 files |
 | Phase 29 P01 | 13 | 6 tasks | 8 files |
 | Phase 29 P02 | 31 | 4 tasks | 8 files |
+| Phase 30-statutory-reporting-approval-workflows P30-01 | 13 | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -162,6 +176,7 @@ From Phase 29 execution (Plan 29-02):
 - partial-compilation: KPIs with no scores excluded from weighted average — only KPIs with scores contribute to weight_sum denominator; enables partial scoring without division by zero
 - pa-notify-phase30: PA evaluator notification task logs only — actual email/in-app delivery built in Phase 30 notification infrastructure
 - sqlite-timezone: DateTime columns in SQLite strip tzinfo; assertions on scored_at timezone must use PostgreSQL integration tests, not unit tests
+- [Phase 30-01]: ReportWorkflow tabled state marked final=True; data snapshot as JSON string in Text column for SQLite compatibility; _TRANSITION_ROLES dict in service layer (not DB) for static governance; DOCX generation graceful degradation; assemble_report_data renders from snapshot for status >= mm_approved (REPORT-06)
 
 ### Pending Todos
 
