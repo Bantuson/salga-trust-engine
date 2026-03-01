@@ -574,7 +574,12 @@ class TestWorkflowFullLifecycle:
     """Tests for the full PA state machine lifecycle."""
 
     async def test_workflow_full_lifecycle(self, db_session: AsyncSession):
-        """PA transitions through all states: draft -> signed -> under_review -> assessed."""
+        """PA transitions through all states: draft -> signed -> under_review -> assessed.
+
+        Note: As of Plan 29-02, assess requires at least one quarterly score (PA-04/PA-05).
+        This test adds a KPI + Q1 score before calling assess.
+        """
+        from src.schemas.pa import PAScoreCreate
         service = PAService()
         tenant_id = str(uuid4())
         pms_user = make_mock_pms_officer(tenant_id=tenant_id)
@@ -583,6 +588,7 @@ class TestWorkflowFullLifecycle:
         set_tenant_context(tenant_id)
         try:
             real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
 
             agreement = await service.create_agreement(
                 PACreate(
@@ -593,6 +599,22 @@ class TestWorkflowFullLifecycle:
                 pms_user, db_session,
             )
             assert agreement.status == PAStatus.DRAFT
+
+            # Add a KPI and a quarterly score so assess guard is satisfied
+            pa_kpi = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+            await service.add_score(
+                pa_kpi.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("80.00")),
+                pms_user, db_session,
+            )
 
             # draft -> signed
             agreement = await service.transition_agreement(
@@ -606,7 +628,7 @@ class TestWorkflowFullLifecycle:
             )
             assert agreement.status == PAStatus.UNDER_REVIEW
 
-            # under_review -> assessed
+            # under_review -> assessed (requires scores; auto-compiles annual_score)
             agreement = await service.transition_agreement(
                 agreement.id, "assess", mm_user, db_session
             )
@@ -624,7 +646,11 @@ class TestPopiaFlagSetOnAssess:
     """Tests for POPIA compliance flag on assess transition."""
 
     async def test_popia_flag_set_on_assess(self, db_session: AsyncSession):
-        """assess transition sets popia_retention_flag=True on the agreement."""
+        """assess transition sets popia_retention_flag=True on the agreement.
+
+        Note: As of Plan 29-02, assess requires at least one quarterly score.
+        """
+        from src.schemas.pa import PAScoreCreate
         service = PAService()
         tenant_id = str(uuid4())
         pms_user = make_mock_pms_officer(tenant_id=tenant_id)
@@ -633,6 +659,7 @@ class TestPopiaFlagSetOnAssess:
         set_tenant_context(tenant_id)
         try:
             real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
 
             agreement = await service.create_agreement(
                 PACreate(
@@ -645,6 +672,22 @@ class TestPopiaFlagSetOnAssess:
 
             # Initial flag should be False
             assert agreement.popia_retention_flag is False
+
+            # Add KPI + score so assess guard is satisfied
+            pa_kpi = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+            await service.add_score(
+                pa_kpi.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("75.00")),
+                pms_user, db_session,
+            )
 
             # Progress through lifecycle
             agreement = await service.transition_agreement(
@@ -715,3 +758,474 @@ class TestFinancialYearFormatValidation:
         for event in ("sign", "open_review", "assess"):
             req = PATransitionRequest(event=event)
             assert req.event == event
+
+
+# ---------------------------------------------------------------------------
+# Test 12: Quarterly score submission (PA-03)
+# ---------------------------------------------------------------------------
+
+
+class TestQuarterlyScoreSubmission:
+    """Tests for PAService.add_score() / add_quarterly_score()."""
+
+    async def test_quarterly_score_submission(self, db_session: AsyncSession):
+        """PAQuarterlyScore created for Q1 with correct score, scored_by, scored_at."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            kpi = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("75.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            from src.schemas.pa import PAScoreCreate
+            score = await service.add_quarterly_score(
+                kpi.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("85.00")),
+                pms_user, db_session,
+            )
+        finally:
+            clear_tenant_context()
+
+        assert score.id is not None
+        assert score.pa_kpi_id == kpi.id
+        assert score.quarter == "Q1"
+        assert score.score == Decimal("85.00")
+        assert score.scored_by == str(pms_user.id)
+        assert score.scored_at is not None  # timestamp recorded
+
+
+# ---------------------------------------------------------------------------
+# Test 13: Duplicate score returns 409
+# ---------------------------------------------------------------------------
+
+
+class TestDuplicateScoreRejected:
+    """Tests for duplicate quarterly score rejection."""
+
+    async def test_duplicate_score_rejected(self, db_session: AsyncSession):
+        """Second score for same (pa_kpi_id, Q1) returns 409 Conflict."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            kpi = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("75.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            from src.schemas.pa import PAScoreCreate
+            # First score — should succeed
+            await service.add_quarterly_score(
+                kpi.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("80.00")),
+                pms_user, db_session,
+            )
+
+            # Second score for same quarter — should return 409
+            with pytest.raises(HTTPException) as exc_info:
+                await service.add_quarterly_score(
+                    kpi.id,
+                    PAScoreCreate(quarter="Q1", score=Decimal("90.00")),
+                    pms_user, db_session,
+                )
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 409
+
+
+# ---------------------------------------------------------------------------
+# Test 14: Compile annual score — two KPIs with 4 quarterly scores each
+# ---------------------------------------------------------------------------
+
+
+class TestCompileAnnualScoreTwoKpis:
+    """Tests for PAService.compile_annual_score() with two weighted KPIs."""
+
+    async def test_compile_annual_score_two_kpis(self, db_session: AsyncSession):
+        """Annual score = weighted average of KPI avg scores.
+
+        KPI-1 (weight=60): Q1=80, Q2=90, Q3=70, Q4=85 -> avg=81.25
+        KPI-2 (weight=40): Q1=70, Q2=75, Q3=80, Q4=72 -> avg=74.25
+        Annual = (81.25*60 + 74.25*40) / (60+40) = (4875 + 2970) / 100 = 78.45
+        """
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi1 = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id), suffix="kpi1")
+            sdbip_kpi2 = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id), suffix="kpi2")
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+
+            pa_kpi1 = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi1.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("60.00"),
+                ),
+                pms_user, db_session,
+            )
+            pa_kpi2 = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi2.id,
+                    individual_target=Decimal("75.00"),
+                    weight=Decimal("40.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            from src.schemas.pa import PAScoreCreate
+            # KPI-1 scores
+            for quarter, score_val in [("Q1", "80"), ("Q2", "90"), ("Q3", "70"), ("Q4", "85")]:
+                await service.add_quarterly_score(
+                    pa_kpi1.id,
+                    PAScoreCreate(quarter=quarter, score=Decimal(score_val)),
+                    pms_user, db_session,
+                )
+            # KPI-2 scores
+            for quarter, score_val in [("Q1", "70"), ("Q2", "75"), ("Q3", "80"), ("Q4", "72")]:
+                await service.add_quarterly_score(
+                    pa_kpi2.id,
+                    PAScoreCreate(quarter=quarter, score=Decimal(score_val)),
+                    pms_user, db_session,
+                )
+
+            annual_score = await service.compile_annual_score(agreement.id, db_session)
+
+            # Agreement should now have annual_score stored (verify inside tenant context)
+            updated = await service.get_agreement(agreement.id, db_session)
+        finally:
+            clear_tenant_context()
+
+        # Manual calculation: (81.25*60 + 74.25*40) / 100 = 78.45
+        expected = Decimal("78.45")
+        assert abs(annual_score - expected) < Decimal("0.01"), (
+            f"Expected ~{expected} but got {annual_score}"
+        )
+
+        assert updated.annual_score is not None
+        assert abs(updated.annual_score - expected) < Decimal("0.01")
+
+
+# ---------------------------------------------------------------------------
+# Test 15: Compile annual score — no scores returns Decimal("0")
+# ---------------------------------------------------------------------------
+
+
+class TestCompileAnnualScoreEmpty:
+    """Tests for compile_annual_score when no quarterly scores exist."""
+
+    async def test_compile_annual_score_empty(self, db_session: AsyncSession):
+        """PA with KPIs but no quarterly scores; compile returns Decimal('0')."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            # No scores submitted — compile should return 0
+            annual_score = await service.compile_annual_score(agreement.id, db_session)
+        finally:
+            clear_tenant_context()
+
+        assert annual_score == Decimal("0")
+
+
+# ---------------------------------------------------------------------------
+# Test 16: Compile annual score — partial (only 1 of 2 KPIs has scores)
+# ---------------------------------------------------------------------------
+
+
+class TestCompileAnnualScorePartial:
+    """Tests for compile_annual_score when only some KPIs have scores."""
+
+    async def test_compile_annual_score_partial(self, db_session: AsyncSession):
+        """PA with 2 KPIs; only 1 has scores — compile uses available data only."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi1 = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id), suffix="partial1")
+            sdbip_kpi2 = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id), suffix="partial2")
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            pa_kpi1 = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi1.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("60.00"),
+                ),
+                pms_user, db_session,
+            )
+            await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi2.id,
+                    individual_target=Decimal("75.00"),
+                    weight=Decimal("40.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            from src.schemas.pa import PAScoreCreate
+            # Only KPI-1 gets scores
+            await service.add_quarterly_score(
+                pa_kpi1.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("80.00")),
+                pms_user, db_session,
+            )
+
+            # Compile with partial data — only KPI-1 (weight=60) contributes
+            # annual = (80 * 60) / 60 = 80.0
+            annual_score = await service.compile_annual_score(agreement.id, db_session)
+        finally:
+            clear_tenant_context()
+
+        expected = Decimal("80.0")
+        assert abs(annual_score - expected) < Decimal("0.01"), (
+            f"Expected ~{expected} but got {annual_score}"
+        )
+
+
+# ---------------------------------------------------------------------------
+# Test 17: assess without scores returns 422 (PA-05 guard)
+# ---------------------------------------------------------------------------
+
+
+class TestAssessWithoutScoresRejected:
+    """Tests for assess guard: requires at least one quarterly score."""
+
+    async def test_assess_without_scores_rejected(self, db_session: AsyncSession):
+        """transition_agreement('assess') when no scores exist returns 422."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+        mm_user = make_mock_mm(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            # Progress to under_review
+            agreement = await service.transition_agreement(
+                agreement.id, "sign", mm_user, db_session
+            )
+            agreement = await service.transition_agreement(
+                agreement.id, "open_review", mm_user, db_session
+            )
+
+            # Attempt assess without any scores — should return 422
+            with pytest.raises(HTTPException) as exc_info:
+                await service.transition_agreement(
+                    agreement.id, "assess", mm_user, db_session
+                )
+        finally:
+            clear_tenant_context()
+
+        assert exc_info.value.status_code == 422
+        assert "no quarterly scores" in exc_info.value.detail.lower()
+
+
+# ---------------------------------------------------------------------------
+# Test 18: assess auto-compiles annual_score (PA-04)
+# ---------------------------------------------------------------------------
+
+
+class TestAssessAutoCompilesScore:
+    """Tests for auto-compilation of annual score during assess transition."""
+
+    async def test_assess_auto_compiles_score(self, db_session: AsyncSession):
+        """assess transition calls compile_annual_score and stores annual_score."""
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+        mm_user = make_mock_mm(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+            sdbip_kpi = await _create_sdbip_kpi(db_session, tenant_id, str(pms_user.id))
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+            pa_kpi = await service.add_kpi(
+                agreement.id,
+                PAKpiCreate(
+                    sdbip_kpi_id=sdbip_kpi.id,
+                    individual_target=Decimal("80.00"),
+                    weight=Decimal("100.00"),
+                ),
+                pms_user, db_session,
+            )
+
+            from src.schemas.pa import PAScoreCreate
+            await service.add_quarterly_score(
+                pa_kpi.id,
+                PAScoreCreate(quarter="Q1", score=Decimal("90.00")),
+                pms_user, db_session,
+            )
+
+            # Progress through workflow
+            agreement = await service.transition_agreement(
+                agreement.id, "sign", mm_user, db_session
+            )
+            agreement = await service.transition_agreement(
+                agreement.id, "open_review", mm_user, db_session
+            )
+
+            # assess triggers compile — single Q1 score of 90 on single 100-weight KPI
+            assessed = await service.transition_agreement(
+                agreement.id, "assess", mm_user, db_session
+            )
+        finally:
+            clear_tenant_context()
+
+        assert assessed.status == PAStatus.ASSESSED
+        assert assessed.annual_score is not None
+        # With one Q1 score of 90 and weight=100: annual = (90*100)/100 = 90
+        assert abs(assessed.annual_score - Decimal("90.00")) < Decimal("0.01")
+        assert assessed.popia_retention_flag is True
+
+
+# ---------------------------------------------------------------------------
+# Test 19: POPIA departure date stored correctly (PA-06)
+# ---------------------------------------------------------------------------
+
+
+class TestPopiaDepartureDateSet:
+    """Tests for POPIA departure date storage on PerformanceAgreement."""
+
+    async def test_popia_departure_date_set(self, db_session: AsyncSession):
+        """popia_departure_date field stored correctly and retrieved from DB."""
+        from datetime import datetime, timezone
+
+        service = PAService()
+        tenant_id = str(uuid4())
+        pms_user = make_mock_pms_officer(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            real_manager = await _create_real_user(db_session, tenant_id)
+
+            agreement = await service.create_agreement(
+                PACreate(
+                    financial_year="2025/26",
+                    section57_manager_id=real_manager.id,
+                    manager_role=ManagerRole.SECTION57_DIRECTOR,
+                ),
+                pms_user, db_session,
+            )
+
+            # Initially no departure date
+            assert agreement.popia_departure_date is None
+
+            # Set the departure date directly (would be done via separate endpoint in Phase 30)
+            departure_date = datetime(2026, 6, 30, tzinfo=timezone.utc)
+            agreement.popia_departure_date = departure_date
+            await db_session.commit()
+            await db_session.refresh(agreement)
+        finally:
+            clear_tenant_context()
+
+        assert agreement.popia_departure_date is not None
+        # Compare as ISO strings to handle timezone normalization
+        assert agreement.popia_departure_date.year == 2026
+        assert agreement.popia_departure_date.month == 6
+        assert agreement.popia_departure_date.day == 30
