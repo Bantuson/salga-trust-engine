@@ -21,6 +21,7 @@ app = Celery(
         "src.tasks.status_notify",
         "src.tasks.pms_auto_populate_task",
         "src.tasks.pa_notify_task",
+        "src.tasks.report_generation_task",
     ]
 )
 

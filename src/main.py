@@ -21,6 +21,7 @@ from src.api.v1 import (
     invitations,
     messages,
     municipalities,
+    notifications,
     onboarding,
     pa,
     public,
@@ -28,6 +29,7 @@ from src.api.v1 import (
     roles,
     sdbip,
     settings as settings_api,
+    statutory_reports,
     teams,
     tickets,
     uploads,
@@ -145,3 +147,8 @@ app.include_router(sdbip.router)
 
 # Phase 29 routers: Individual Performance Agreements for Section 57 managers
 app.include_router(pa.router)
+
+# Phase 30 routers: Statutory reporting and approval workflows
+app.include_router(statutory_reports.router)
+# Phase 30 routers: In-app notifications
+app.include_router(notifications.router)
