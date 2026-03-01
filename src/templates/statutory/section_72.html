@@ -1,0 +1,241 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>{{ municipality_name }} - Section 72 Mid-Year Assessment</title>
+  <style>
+    @page { size: A4 landscape; margin: 20mm; }
+    body { font-family: Arial, sans-serif; font-size: 10pt; color: #1a1a1a; }
+    .header { text-align: center; margin-bottom: 20px; border-bottom: 2px solid #1a3a6e; padding-bottom: 15px; }
+    .header h1 { font-size: 16pt; margin: 8px 0; color: #1a1a3a; }
+    .header h2 { font-size: 12pt; color: #333; margin: 4px 0; }
+    .header p { font-size: 9pt; color: #555; margin: 4px 0; }
+    .logo { max-height: 80px; max-width: 200px; margin-bottom: 10px; }
+    .summary { margin: 15px 0; padding: 12px; background-color: #f0f4ff; border-radius: 4px; border-left: 4px solid #1a3a6e; }
+    .summary h3 { font-size: 11pt; color: #1a3a6e; margin: 0 0 8px 0; }
+    .summary p { margin: 4px 0; font-size: 9.5pt; }
+    .h1-summary { margin: 15px 0; padding: 12px; background-color: #f5f5f5; border-radius: 4px; }
+    .h1-summary h3 { font-size: 11pt; color: #1a3a6e; margin: 0 0 8px 0; }
+    .section-header { font-size: 12pt; color: #1a3a6e; margin: 24px 0 12px 0; border-bottom: 2px solid #1a3a6e; padding-bottom: 4px; }
+    .dept-header { font-size: 11pt; color: #1a3a6e; margin: 16px 0 8px 0; padding-bottom: 4px; }
+    table { width: 100%; border-collapse: collapse; margin-top: 8px; margin-bottom: 16px; font-size: 8.5pt; }
+    th { background-color: #1a3a6e; color: white; padding: 6px 8px; text-align: left; font-weight: bold; font-size: 8pt; border: 1px solid #0e2756; }
+    td { border: 1px solid #ccc; padding: 5px 7px; text-align: left; vertical-align: top; }
+    tr:nth-child(even) td { background-color: #f9f9f9; }
+    .status-green { background-color: #c6efce; color: #276221; font-weight: bold; text-align: center; }
+    .status-amber { background-color: #ffeb9c; color: #9c5700; font-weight: bold; text-align: center; }
+    .status-red { background-color: #ffc7ce; color: #9c0006; font-weight: bold; text-align: center; }
+    .watermark {
+      position: fixed;
+      top: 40%;
+      left: 20%;
+      font-size: 80pt;
+      color: rgba(200, 200, 200, 0.3);
+      transform: rotate(-45deg);
+      z-index: -1;
+      font-weight: bold;
+      letter-spacing: 8px;
+    }
+    .budget-placeholder { background-color: #fff8e1; border: 1px dashed #f59e0b; padding: 12px; margin: 12px 0; font-size: 9pt; color: #78350f; border-radius: 4px; }
+    .recommendations { margin: 20px 0; padding: 12px; background-color: #f5f5f5; border-radius: 4px; }
+    .recommendations h3 { font-size: 11pt; color: #1a3a6e; }
+    .recommendations ol { margin: 8px 0; padding-left: 20px; }
+    .recommendations li { margin: 6px 0; font-size: 9.5pt; }
+    .sign-off { margin-top: 40px; page-break-inside: avoid; }
+    .sign-off h3 { font-size: 11pt; color: #1a3a6e; }
+    .sign-line { display: inline-block; border-top: 1px solid #000; width: 220px; margin-top: 40px; }
+    .sign-block { display: inline-block; margin-right: 60px; text-align: center; }
+    .sign-block p { margin: 4px 0; font-size: 9pt; }
+    .footer { margin-top: 20px; text-align: center; font-size: 8pt; color: #888; border-top: 1px solid #ccc; padding-top: 8px; }
+    .no-data { color: #888; font-style: italic; }
+    .quarter-label { background-color: #e8eaf6; font-weight: bold; font-size: 8pt; padding: 2px 5px; border-radius: 2px; }
+  </style>
+</head>
+<body>
+
+  {% if show_watermark %}<div class="watermark">DRAFT</div>{% endif %}
+
+  <!-- Header -->
+  <div class="header">
+    {% if logo_url %}
+      <img src="{{ logo_url }}" alt="{{ municipality_name }} logo" class="logo"><br>
+    {% endif %}
+    <h1>{{ municipality_name }}</h1>
+    <h2>Mid-Year Budget and Performance Assessment &mdash; Section 72 of the MFMA</h2>
+    <p>Financial Year: <strong>{{ financial_year }}</strong></p>
+    <p>Assessment Period: {{ period_start }} &ndash; {{ period_end }} (First Half — Q1 &amp; Q2)</p>
+  </div>
+
+  <!-- H1 Performance Summary -->
+  {% if h1_summary %}
+  <div class="h1-summary">
+    <h3>First Half (H1) Performance Overview</h3>
+    <p>
+      <strong>Total KPIs Tracked:</strong> {{ h1_summary.total_kpis }} &nbsp;&nbsp;
+      <strong style="color:#276221;">On Track:</strong> {{ h1_summary.green_count }} &nbsp;&nbsp;
+      <strong>H1 On-Track Rate:</strong> {{ h1_summary.on_track_pct }}%
+    </p>
+  </div>
+  {% endif %}
+
+  <!-- Overall Summary -->
+  <div class="summary">
+    <h3>Performance Summary</h3>
+    <p>
+      <strong>Total KPIs:</strong> {{ summary_stats.total_kpis }} &nbsp;&nbsp;
+      <strong style="color:#276221;">&#9632; On Track (Green):</strong> {{ summary_stats.green_count }} ({{ summary_stats.green_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c5700;">&#9632; At Risk (Amber):</strong> {{ summary_stats.amber_count }} ({{ summary_stats.amber_pct }}%) &nbsp;&nbsp;
+      <strong style="color:#9c0006;">&#9632; Off Track (Red):</strong> {{ summary_stats.red_count }} ({{ summary_stats.red_pct }}%)
+    </p>
+    <p><strong>Overall Achievement:</strong> {{ summary_stats.overall_achievement_pct }}%</p>
+  </div>
+
+  <!-- Budget Performance Placeholder -->
+  <div class="budget-placeholder">
+    <strong>Budget Performance (Section 72(1)(a)):</strong>
+    Budget vs expenditure analysis will be integrated in v2.1 when mSCOA budget execution data
+    is available. See National Treasury Circular 68 for reporting requirements.
+    Municipal CFO to provide narrative budget performance commentary.
+  </div>
+
+  <!-- KPI Tables: Q1 Data -->
+  <h2 class="section-header">Quarter 1 Performance Data (July &ndash; September)</h2>
+  {% set q1_depts = namespace(has_data=false) %}
+  {% for dept in departments %}
+    {% set q1_kpis = dept.kpis | selectattr("quarter", "equalto", "Q1") | list %}
+    {% if q1_kpis %}
+      {% set q1_depts.has_data = true %}
+      <h3 class="dept-header">{{ dept.name }}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">KPI #</th>
+            <th style="width:22%">Description</th>
+            <th style="width:6%">Unit</th>
+            <th style="width:7%">Baseline</th>
+            <th style="width:8%">Annual Target</th>
+            <th style="width:8%">Q1 Target</th>
+            <th style="width:8%">Q1 Actual</th>
+            <th style="width:8%">Achievement %</th>
+            <th style="width:7%">Status</th>
+            <th style="width:7%">Variance</th>
+            <th style="width:13%">Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for kpi in q1_kpis %}
+            <tr>
+              <td>{{ kpi.kpi_number }}</td>
+              <td>{{ kpi.description }}</td>
+              <td>{{ kpi.unit }}</td>
+              <td>{{ kpi.baseline }}</td>
+              <td>{{ kpi.annual_target }}</td>
+              <td>{{ kpi.quarterly_target }}</td>
+              <td>{{ kpi.actual_value }}</td>
+              <td>{{ kpi.achievement_pct }}</td>
+              <td class="status-{{ kpi.traffic_light | lower }}">{{ kpi.traffic_light | upper }}</td>
+              <td>{{ kpi.variance }}</td>
+              <td>{{ kpi.deviation_reason | default('-', true) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endfor %}
+  {% if not q1_depts.has_data %}
+    <p class="no-data">No Q1 data available for this reporting period.</p>
+  {% endif %}
+
+  <!-- KPI Tables: Q2 Data -->
+  <h2 class="section-header">Quarter 2 Performance Data (October &ndash; December)</h2>
+  {% set q2_depts = namespace(has_data=false) %}
+  {% for dept in departments %}
+    {% set q2_kpis = dept.kpis | selectattr("quarter", "equalto", "Q2") | list %}
+    {% if q2_kpis %}
+      {% set q2_depts.has_data = true %}
+      <h3 class="dept-header">{{ dept.name }}</h3>
+      <table>
+        <thead>
+          <tr>
+            <th style="width:6%">KPI #</th>
+            <th style="width:22%">Description</th>
+            <th style="width:6%">Unit</th>
+            <th style="width:7%">Baseline</th>
+            <th style="width:8%">Annual Target</th>
+            <th style="width:8%">Q2 Target</th>
+            <th style="width:8%">Q2 Actual</th>
+            <th style="width:8%">Achievement %</th>
+            <th style="width:7%">Status</th>
+            <th style="width:7%">Variance</th>
+            <th style="width:13%">Remarks</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for kpi in q2_kpis %}
+            <tr>
+              <td>{{ kpi.kpi_number }}</td>
+              <td>{{ kpi.description }}</td>
+              <td>{{ kpi.unit }}</td>
+              <td>{{ kpi.baseline }}</td>
+              <td>{{ kpi.annual_target }}</td>
+              <td>{{ kpi.quarterly_target }}</td>
+              <td>{{ kpi.actual_value }}</td>
+              <td>{{ kpi.achievement_pct }}</td>
+              <td class="status-{{ kpi.traffic_light | lower }}">{{ kpi.traffic_light | upper }}</td>
+              <td>{{ kpi.variance }}</td>
+              <td>{{ kpi.deviation_reason | default('-', true) }}</td>
+            </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    {% endif %}
+  {% endfor %}
+  {% if not q2_depts.has_data %}
+    <p class="no-data">No Q2 data available for this reporting period.</p>
+  {% endif %}
+
+  <!-- Recommendations Section -->
+  <div class="recommendations">
+    <h3>Mid-Year Recommendations</h3>
+    <ol>
+      <li>Municipal Manager to review all Red-status KPIs with responsible directors and prepare remediation plans.</li>
+      <li>CFO to conduct budget vs expenditure analysis per department and report to Council.</li>
+      <li>PMS Officer to verify auto-populated actuals against source data for data integrity.</li>
+      <li>Council to note the mid-year assessment and provide policy guidance as required by Section 72(1)(b).</li>
+    </ol>
+  </div>
+
+  <!-- Sign-off Section -->
+  <div class="sign-off">
+    <h3>Certification</h3>
+    <p style="font-size:9.5pt">
+      I hereby certify that this Section 72 Mid-Year Budget and Performance Assessment has been
+      prepared in accordance with Section 72 of the Local Government: Municipal Finance Management
+      Act, 56 of 2003, and that the information contained herein is accurate and complete.
+    </p>
+    <br>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Municipal Manager</strong></p>
+      <p>Date: _______________</p>
+    </div>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Chief Financial Officer</strong></p>
+      <p>Date: _______________</p>
+    </div>
+    <div class="sign-block">
+      <div class="sign-line"></div><br>
+      <p><strong>Mayor (tabling to Council)</strong></p>
+      <p>Date: _______________</p>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <div class="footer">
+    <p>{{ municipality_name }} | Section 72 Mid-Year Assessment | {{ financial_year }}</p>
+    <p>Generated in accordance with MFMA Section 72 and National Treasury Reporting Requirements</p>
+  </div>
+
+</body>
+</html>
