@@ -30,6 +30,7 @@ from src.models.pa import (
 from src.models.statutory_report import (
     StatutoryReport,
     StatutoryReportSnapshot,
+    StatutoryDeadline,
     ReportType,
     ReportStatus,
     ReportWorkflow,
@@ -75,6 +76,7 @@ __all__ = [
     "ManagerRole",
     "StatutoryReport",
     "StatutoryReportSnapshot",
+    "StatutoryDeadline",
     "ReportType",
     "ReportStatus",
     "ReportWorkflow",

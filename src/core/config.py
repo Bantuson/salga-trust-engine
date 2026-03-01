@@ -97,6 +97,13 @@ class Settings(BaseSettings):
     TWILIO_WHATSAPP_NUMBER: str = Field(default="", description="Twilio WhatsApp sender number (whatsapp:+14155238886)")
     TWILIO_PHONE_NUMBER: str = Field(default="", description="Twilio phone number for SMS OTP (E.164 format, e.g. +1234567890)")
 
+    # SMTP email (for statutory deadline notifications)
+    SMTP_HOST: str = Field(default="", description="SMTP server host for outbound email")
+    SMTP_PORT: int = Field(default=587, description="SMTP server port (587=STARTTLS, 465=SSL)")
+    SMTP_USER: str = Field(default="", description="SMTP authentication username")
+    SMTP_PASSWORD: str = Field(default="", description="SMTP authentication password")
+    SMTP_FROM_EMAIL: str = Field(default="noreply@salga-trust-engine.gov.za", description="From address for system emails")
+
     # ClamAV virus scanning (for evidence document uploads)
     CLAMAV_HOST: str = Field(default="localhost", description="ClamAV daemon host")
     CLAMAV_PORT: int = Field(default=3310, description="ClamAV daemon TCP port")

@@ -16,18 +16,27 @@ REPORT-06 (Data Snapshot):
     exports render from the snapshot, not live data, to ensure the auditable
     record matches what was approved by the Municipal Manager.
 
+REPORT-07 (Deadline Calendar):
+    StatutoryDeadline records are computed from the financial_year string
+    (never hardcoded). Celery beat task checks daily and sends escalating
+    notifications at 30/14/7/3 days before and immediately when overdue.
+
 REPORT-08 (Branded Export):
     Municipality logo_url is stored on the Municipality model and passed to
     Jinja2 templates for PDF/DOCX rendering.
 
+REPORT-09 (Auto-Task Creation):
+    30 days before each statutory deadline, the system auto-creates a
+    StatutoryReport in DRAFTING status via DeadlineService.
+
 All models inherit TenantAwareModel for automatic RLS, audit trail, and
 multi-tenant isolation.
 """
-from datetime import datetime
+from datetime import date, datetime
 from enum import StrEnum
 from uuid import UUID
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, UniqueConstraint
+from sqlalchemy import Boolean, Date, DateTime, ForeignKey, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from statemachine import State, StateMachine
 from statemachine.exceptions import TransitionNotAllowed  # noqa: F401 (re-exported for callers)
@@ -267,4 +276,112 @@ class StatutoryReportSnapshot(TenantAwareModel):
         return (
             f"<StatutoryReportSnapshot report={self.report_id} "
             f"reason={self.snapshot_reason} at={self.snapshot_at}>"
+        )
+
+
+class StatutoryDeadline(TenantAwareModel):
+    """Statutory reporting deadline for a given financial year.
+
+    Deadlines are computed from the financial_year string, not hardcoded.
+    The Celery beat task checks these daily for notification windows.
+
+    Notification flags (notification_Xd_sent) prevent duplicate sends.
+    task_created tracks whether the auto-report task has been created (REPORT-09).
+    report_id links to the auto-created StatutoryReport (if any).
+    """
+
+    __tablename__ = "statutory_deadlines"
+    __table_args__ = (
+        UniqueConstraint(
+            "report_type", "financial_year", "quarter", "tenant_id",
+            name="uq_statutory_deadline_type_fy_q",
+        ),
+    )
+
+    report_type: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        comment="Report type: section_52, section_72, section_46, or section_121",
+    )
+    financial_year: Mapped[str] = mapped_column(
+        String(10),
+        nullable=False,
+        comment="Financial year in YYYY/YY format (e.g., '2025/26')",
+    )
+    quarter: Mapped[str | None] = mapped_column(
+        String(2),
+        nullable=True,
+        comment="Q1-Q4 for Section 52 only; NULL for Section 72/46/121",
+    )
+    deadline_date: Mapped[date] = mapped_column(
+        Date,
+        nullable=False,
+        comment="Statutory deadline date computed from financial_year string",
+    )
+    description: Mapped[str] = mapped_column(
+        String(200),
+        nullable=False,
+        comment="Human-readable deadline description (e.g., 'Section 52 Q1 Performance Report (2025)')",
+    )
+
+    # Auto-task tracking (REPORT-09)
+    task_created: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once a StatutoryReport in DRAFTING status has been auto-created",
+    )
+    task_created_at: Mapped[datetime | None] = mapped_column(
+        DateTime(timezone=True),
+        nullable=True,
+        comment="Timestamp when the auto-task was created",
+    )
+    report_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("statutory_reports.id"),
+        nullable=True,
+        comment="FK to the auto-created StatutoryReport (set when task_created=True)",
+    )
+
+    # Notification flags — prevent duplicate sends (REPORT-07)
+    notification_30d_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once the 30-day warning notification has been sent",
+    )
+    notification_14d_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once the 14-day warning notification has been sent",
+    )
+    notification_7d_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once the 7-day warning notification has been sent",
+    )
+    notification_3d_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once the 3-day warning notification has been sent",
+    )
+    notification_overdue_sent: Mapped[bool] = mapped_column(
+        Boolean,
+        default=False,
+        server_default="false",
+        nullable=False,
+        comment="True once the overdue notification has been sent",
+    )
+
+    def __repr__(self) -> str:  # pragma: no cover
+        return (
+            f"<StatutoryDeadline {self.report_type} {self.financial_year} "
+            f"Q={self.quarter} due={self.deadline_date}>"
         )

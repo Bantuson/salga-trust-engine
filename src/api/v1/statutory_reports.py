@@ -7,6 +7,8 @@ Provides REST endpoints for the full statutory report lifecycle:
 - Trigger PDF/DOCX generation via Celery
 - Download generated files
 - View data snapshots (for audit/debugging)
+- List statutory deadline calendar (REPORT-07)
+- Trigger deadline population for a financial year
 
 All endpoints require:
 - require_pms_ready(): Municipality must have PMS settings configured
@@ -16,6 +18,8 @@ Exceptions:
 - POST /{id}/transitions: Role check is inside service (not a separate tier dependency)
 - POST /{id}/generate: Tier 2 is sufficient to trigger generation
 - GET /{id}/download/{format}: Tier 2 is sufficient to download
+- GET /deadlines: Tier 2 sufficient (auto-populates if empty)
+- POST /deadlines/populate: Tier 1 only (admin action)
 
 Endpoint prefix: /api/v1/statutory-reports
 """
@@ -29,11 +33,15 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from src.api.deps import get_current_user, get_db, require_min_tier
 from src.models.user import User
 from src.schemas.statutory_report import (
+    DeadlineCalendarResponse,
+    DeadlinePopulateRequest,
     ReportSnapshotResponse,
     ReportTransitionRequest,
+    StatutoryDeadlineResponse,
     StatutoryReportCreate,
     StatutoryReportResponse,
 )
+from src.services.deadline_service import DeadlineService
 from src.services.pms_readiness import require_pms_ready
 from src.services.statutory_report_service import StatutoryReportService
 
@@ -43,6 +51,7 @@ router = APIRouter(
 )
 
 _service = StatutoryReportService()
+_deadline_service = DeadlineService()
 
 
 def _pms_deps() -> list:
@@ -309,3 +318,75 @@ async def download_report(
         media_type=media_type,
         filename=filename,
     )
+
+
+# ---------------------------------------------------------------------------
+# Deadline calendar (REPORT-07)
+# ---------------------------------------------------------------------------
+
+
+@router.get(
+    "/deadlines",
+    response_model=DeadlineCalendarResponse,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(2))],
+    summary="List statutory deadline calendar for a financial year (REPORT-07)",
+)
+async def list_deadlines(
+    financial_year: str = Query(
+        ...,
+        description="Financial year in YYYY/YY format (e.g., '2025/26')",
+    ),
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> DeadlineCalendarResponse:
+    """Return the statutory deadline calendar for the given financial year.
+
+    If no deadlines have been populated yet for this financial year,
+    they are automatically computed and stored (idempotent).
+
+    Returns 7 deadlines:
+    - Section 52 Q1, Q2, Q3, Q4 (quarterly performance reports)
+    - Section 72 (mid-year assessment)
+    - Section 46 (annual performance report)
+    - Section 121 (annual financial statements)
+
+    Requires Tier 2+ (CFO, directors, MM, admin).
+    """
+    from src.core.tenant import get_tenant_context
+    tenant_id = get_tenant_context() or current_user.tenant_id
+
+    # Auto-populate if not yet populated for this FY
+    deadlines = await _deadline_service.populate_deadlines(financial_year, tenant_id, db)
+
+    return DeadlineCalendarResponse(
+        financial_year=financial_year,
+        deadlines=[StatutoryDeadlineResponse.model_validate(d) for d in deadlines],
+    )
+
+
+@router.post(
+    "/deadlines/populate",
+    response_model=list[StatutoryDeadlineResponse],
+    status_code=status.HTTP_201_CREATED,
+    dependencies=[Depends(require_pms_ready()), Depends(require_min_tier(1))],
+    summary="Manually populate deadline calendar for a financial year (REPORT-07)",
+)
+async def populate_deadlines(
+    payload: DeadlinePopulateRequest,
+    current_user: User = Depends(get_current_user),
+    db: AsyncSession = Depends(get_db),
+) -> list[StatutoryDeadlineResponse]:
+    """Manually trigger deadline population for a financial year.
+
+    Computes and stores all 7 statutory deadlines from the financial_year string.
+    Idempotent — safe to call multiple times (existing records are returned).
+
+    Requires Tier 1 (admin action — executive and admin roles).
+    """
+    from src.core.tenant import get_tenant_context
+    tenant_id = get_tenant_context() or current_user.tenant_id
+
+    deadlines = await _deadline_service.populate_deadlines(
+        payload.financial_year, tenant_id, db
+    )
+    return [StatutoryDeadlineResponse.model_validate(d) for d in deadlines]

@@ -5,6 +5,7 @@ These schemas validate API request/response payloads for:
 - StatutoryReport response serialisation
 - Report state machine transitions
 - Report snapshot response (for debugging/audit)
+- StatutoryDeadline response (deadline calendar, REPORT-07)
 
 Business rules enforced at schema level:
 - financial_year must match YYYY/YY (e.g., "2025/26")
@@ -14,7 +15,7 @@ Business rules enforced at schema level:
 Role-gated transitions (REPORT-05) are enforced at the service layer, not here.
 """
 import re
-from datetime import datetime
+from datetime import date, datetime
 from uuid import UUID
 
 from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
@@ -173,3 +174,63 @@ class ReportSnapshotResponse(BaseModel):
     snapshot_at: datetime
     snapshot_reason: str
     created_at: datetime
+
+
+# ---------------------------------------------------------------------------
+# Statutory Deadline Schemas (REPORT-07)
+# ---------------------------------------------------------------------------
+
+
+class StatutoryDeadlineResponse(BaseModel):
+    """Schema for statutory deadline API responses.
+
+    Serialises all statutory_deadlines table fields for the deadline calendar.
+    from_attributes=True enables Pydantic to read from ORM objects directly.
+    """
+
+    model_config = ConfigDict(from_attributes=True)
+
+    id: UUID
+    tenant_id: str
+    report_type: str
+    financial_year: str
+    quarter: str | None
+    deadline_date: date
+    description: str
+    task_created: bool
+    task_created_at: datetime | None
+    report_id: UUID | None
+    notification_30d_sent: bool
+    notification_14d_sent: bool
+    notification_7d_sent: bool
+    notification_3d_sent: bool
+    notification_overdue_sent: bool
+    created_at: datetime
+    updated_at: datetime | None
+
+
+class DeadlineCalendarResponse(BaseModel):
+    """Schema for a full deadline calendar for a given financial year.
+
+    Returns the financial_year string and all associated deadline records.
+    """
+
+    financial_year: str
+    deadlines: list[StatutoryDeadlineResponse]
+
+
+class DeadlinePopulateRequest(BaseModel):
+    """Schema for manually triggering deadline population for a financial year."""
+
+    financial_year: str = Field(
+        ...,
+        description="Financial year in YYYY/YY format (e.g., '2025/26')",
+    )
+
+    @field_validator("financial_year")
+    @classmethod
+    def validate_financial_year(cls, v: str) -> str:
+        """Validate YYYY/YY pattern."""
+        if not re.compile(r"^\d{4}/\d{2}$").match(v):
+            raise ValueError("financial_year must match pattern YYYY/YY (e.g., '2025/26')")
+        return v
