@@ -56,7 +56,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 - [x] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality (completed 2026-02-28)
 - [ ] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine
-- [ ] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments
+- [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
 - [ ] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking
 - [ ] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles
 - [ ] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data
@@ -174,7 +174,7 @@ Plans:
 | 1-10.4 (26 phases) | v1.0 | ~127/~127 | Complete | 2026-02-28 |
 | 27. RBAC Foundation & Tenant Configuration | 3/3 | Complete   | 2026-02-28 | - |
 | 28. IDP, SDBIP Core & Performance Monitoring | 6/7 | In Progress|  | - |
-| 29. Individual Performance Agreements | 1/2 | In Progress|  | - |
+| 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | v2.0 | 0/4 | Not started | - |
 | 31. Role-Specific Dashboards | v2.0 | 0/4 | Not started | - |
 | 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |

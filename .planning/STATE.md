@@ -61,10 +61,10 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 
 ## Current Position
 
-Phase: 28 of 32 (IDP SDBIP Core Performance Monitoring)
-Plan: 7 of 7 in current phase (28-07 paused at checkpoint Task 3/4)
-Status: Active — 28-07 tasks 1-2 complete, awaiting visual verification (Task 3)
-Last activity: 2026-03-01 — 28-07 tasks 1a/1b/2 complete (7 PMS frontend pages, TrafficLightBadge, golden thread API with KPI selectinload, sidebar PMS navigation, 7 App.tsx routes)
+Phase: 29 of 32 (Individual Performance Agreements)
+Plan: 2 of 2 in current phase (29-02 complete)
+Status: Active — Phase 29 complete (both plans done)
+Last activity: 2026-03-01 — 29-02 complete: quarterly score submission, annual score compilation, assess guard, Celery Q-start notifications, PerformanceAgreementsPage.tsx, PmsHub extension, 23 passing tests
 
 Progress: [██████░░░░] 71%
 
@@ -85,6 +85,7 @@ Progress: [██████░░░░] 71%
 *Updated after each plan completion*
 | Phase 28 P06 | 12 | 2 tasks | 8 files |
 | Phase 29 P01 | 13 | 6 tasks | 8 files |
+| Phase 29 P02 | 31 | 4 tasks | 8 files |
 
 ## Accumulated Context
 
@@ -155,6 +156,13 @@ From Phase 28 execution (Plan 28-05):
 - [Phase 29]: PAWorkflow assessed state marked final=True — python-statemachine 3.0.0 requires all non-final states have outgoing transitions
 - [Phase 29]: PA signing role gate: MM signs section57_director PAs, ExecMayor signs municipal_manager PA; admin/salga_admin bypass both
 
+From Phase 29 execution (Plan 29-02):
+- assess-guard: assess transition requires at least one PAQuarterlyScore — enforced at service layer via JOIN query before state machine dispatch
+- compile-on-assess: compile_annual_score() called within transition_agreement before state machine dispatch; agreement re-fetched after compile commit to avoid MissingGreenlet
+- partial-compilation: KPIs with no scores excluded from weighted average — only KPIs with scores contribute to weight_sum denominator; enables partial scoring without division by zero
+- pa-notify-phase30: PA evaluator notification task logs only — actual email/in-app delivery built in Phase 30 notification infrastructure
+- sqlite-timezone: DateTime columns in SQLite strip tzinfo; assertions on scored_at timezone must use PostgreSQL integration tests, not unit tests
+
 ### Pending Todos
 
 - Obtain National Treasury mSCOA v5.5 Excel file before Phase 28 planning (product owner action)
@@ -169,5 +177,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-01
-Stopped at: Phase 28 Plan 28-07 paused at Task 3 checkpoint (human-verify). Tasks 1a, 1b, 2 complete. Frontend pages built, golden thread API updated with KPI selectinload, sidebar navigation updated with PMS section. Awaiting visual verification of PMS pages in browser.
+Stopped at: Completed 29-02-PLAN.md — Phase 29 complete. Quarterly score submission, annual score compilation, assess guard, Celery Q-start PA notifications, PerformanceAgreementsPage.tsx, PmsHub extension, 23 passing tests.
 Resume file: None
