@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-02T13:40:09.892Z"
+last_updated: "2026-03-02T15:16:53.181Z"
 progress:
-  total_phases: 5
+  total_phases: 7
   completed_phases: 5
-  total_plans: 22
-  completed_plans: 22
+  total_plans: 24
+  completed_plans: 23
 ---
 
 ---
@@ -122,16 +122,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 — Phase 31: Role-Specific Dashboards
+**Current focus:** v2.0 — Phase 32: Risk Register & Public Transparency
 
 ## Current Position
 
-Phase: 31 of 32 (Role-Specific Dashboards)
-Plan: 4 of 4 complete — Phase 31 DONE
-Status: Phase 31 complete (all 4 plans done: 31-01, 31-02, 31-03, 31-04)
-Last activity: 2026-03-02 — 31-04 complete: SALGAAdminDashboardPage (benchmarking table, inline drill-down, CSV export) and Section56DirectorDashboardPage (traffic light cards, KPI table, empty state). TypeScript clean, production build passes.
+Phase: 32 of 32 (Risk Register & Public Transparency)
+Plan: 1 of 2 complete
+Status: Phase 32 in progress (32-01 done: risk register backend, public SDBIP endpoint)
+Last activity: 2026-03-02 — 32-01 complete: risk register models, schemas, service, 7 API endpoints, Celery auto-flag task, public SDBIP performance endpoint. 13 unit tests pass.
 
-Progress: [██████████] 100% (Phase 31)
+Progress: [█░░░░░░░░░] 50% (Phase 32)
 
 ## Performance Metrics
 
@@ -160,6 +160,8 @@ Progress: [██████████] 100% (Phase 31)
 | Phase 31 P4 | 5 | 2 tasks | 3 files |
 | Phase 31 P06 | 11 | 2 tasks | 3 files |
 | Phase 31 P05 | 11 | 2 tasks | 7 files |
+| Phase 32 P01 | 24 | 2 tasks | 12 files |
+| Phase 32 P1 | 24 | 2 tasks | 12 files |
 
 ## Accumulated Context
 
@@ -254,6 +256,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 31]: Statutory Reports nav item links directly to /pms?view=statutory-reports — deeplink into PMS Hub for oversight roles and ward councillor
 - [Phase 31]: Placeholder pages as inline functions in App.tsx — small enough to not warrant separate files; municipalities and system pages show realistic mock data
 - [Phase 31]: catch block sets mock data instead of error string for all role dashboards
+- [Phase 32]: Auto-flag fail-open: Celery dispatch failure on Redis down does not break actuals submission
+- [Phase 32]: Critical risk items never overwritten by auto-flag — governance invariant for RISK-03
+- [Phase 32]: Public SDBIP endpoint uses raw SQL text() for cross-tenant aggregation — same pattern as SALGA Admin dashboards
 
 ### Pending Todos
 
@@ -269,5 +274,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 31-04-PLAN.md — Phase 31 complete (all 4 plans done). SALGAAdminDashboardPage (benchmarking table, inline drill-down, CSV export), Section56DirectorDashboardPage (traffic light cards, KPI table, empty state). TypeScript clean, production build passes.
+Stopped at: Completed 32-01-PLAN.md — risk register backend (RiskItem, RiskMitigation models, RiskService, 7 API endpoints, flag_risk_items_for_kpi Celery task, auto-flag dispatch in sdbip.py, public SDBIP achievement endpoint). 13 unit tests pass. RISK-01 through RISK-04 requirements marked complete.
 Resume file: None

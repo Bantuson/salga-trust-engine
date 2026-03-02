@@ -86,10 +86,10 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Risk Register
 
-- [ ] **RISK-01**: Authorized user can create risk items linked to SDBIP KPIs with likelihood, impact, and rating
-- [ ] **RISK-02**: Each risk item includes mitigation strategy and responsible person
-- [ ] **RISK-03**: System auto-flags high-risk items when linked KPI status turns red
-- [ ] **RISK-04**: CFO and Municipal Manager can view risk register filtered by department
+- [x] **RISK-01**: Authorized user can create risk items linked to SDBIP KPIs with likelihood, impact, and rating
+- [x] **RISK-02**: Each risk item includes mitigation strategy and responsible person
+- [x] **RISK-03**: System auto-flags high-risk items when linked KPI status turns red
+- [x] **RISK-04**: CFO and Municipal Manager can view risk register filtered by department
 
 ## v2.1+ Requirements
 
@@ -190,10 +190,10 @@ Which phases cover which requirements. Updated during roadmap creation.
 | DASH-10 | Phase 31 | Complete |
 | DASH-11 | Phase 31 | Complete |
 | DASH-12 | Phase 31 | Complete |
-| RISK-01 | Phase 32 | Pending |
-| RISK-02 | Phase 32 | Pending |
-| RISK-03 | Phase 32 | Pending |
-| RISK-04 | Phase 32 | Pending |
+| RISK-01 | Phase 32 | Complete |
+| RISK-02 | Phase 32 | Complete |
+| RISK-03 | Phase 32 | Complete |
+| RISK-04 | Phase 32 | Complete |
 
 **Coverage:**
 - v2.0 requirements: 60 total

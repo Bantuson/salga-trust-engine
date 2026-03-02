@@ -197,7 +197,7 @@ Plans:
 | 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
-| 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |
+| 32. Risk Register & Public Transparency | 1/2 | In Progress|  | - |
 | 33. Comprehensive v2.0 Gap Closure | v2.0 | 0/1 | Not started | - |
 
 ---
