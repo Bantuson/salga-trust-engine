@@ -9,6 +9,7 @@
 
 import { BrowserRouter, Routes, Route, Navigate, useLocation } from 'react-router-dom';
 import { useAuth } from './hooks/useAuth';
+import { ViewRoleProvider, useViewRole } from './contexts/ViewRoleContext';
 import { LoginPage } from './pages/LoginPage';
 import { RegisterPage } from './pages/RegisterPage';
 import { RequestAccessPage } from './pages/RequestAccessPage';
@@ -31,6 +32,12 @@ import { ActualsPage } from './pages/ActualsPage';
 import { EvidencePage } from './pages/EvidencePage';
 import { ReportForm } from './components/ReportForm';
 import { DashboardLayout } from './components/layout/DashboardLayout';
+import { CFODashboardPage } from './pages/CFODashboardPage';
+import { MunicipalManagerDashboardPage } from './pages/MunicipalManagerDashboardPage';
+import { MayorDashboardPage } from './pages/MayorDashboardPage';
+import { OversightDashboardPage } from './pages/OversightDashboardPage';
+import { SALGAAdminDashboardPage } from './pages/SALGAAdminDashboardPage';
+import { Section56DirectorDashboardPage } from './pages/Section56DirectorDashboardPage';
 import { LenisProvider } from './providers/LenisProvider';
 import { PageTransition } from './components/PageTransition';
 import '@shared/design-tokens.css';
@@ -76,6 +83,7 @@ function AppRoutes() {
 
   // Authenticated routes
   return (
+    <ViewRoleProvider>
     <PageTransition routeKey={location.pathname}>
       <Routes>
         {/* Onboarding wizard (full-screen, no layout) */}
@@ -107,19 +115,36 @@ function AppRoutes() {
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
     </PageTransition>
+    </ViewRoleProvider>
   );
 }
 
 /**
- * Role-based dashboard: field workers see their assigned tickets page,
- * SAPS liaison sees GBV cases, everyone else sees the default dashboard.
+ * Role-based dashboard: renders the correct dashboard page based on viewRole.
+ *
+ * viewRole comes from ViewRoleContext (updated by RoleSwitcher in Sidebar).
+ * This replaces the previous useAuth().getUserRole() pattern so that
+ * switching roles via the RoleSwitcher changes the page without a reload.
  */
 function RoleBasedDashboard() {
-  const { getUserRole } = useAuth();
-  const role = getUserRole();
+  const { viewRole } = useViewRole();
 
-  if (role === 'field_worker') return <FieldWorkerTicketsPage />;
-  if (role === 'saps_liaison') return <SAPSReportsPage />;
+  if (viewRole === 'field_worker') return <FieldWorkerTicketsPage />;
+  if (viewRole === 'saps_liaison') return <SAPSReportsPage />;
+
+  // Phase 31 role-specific dashboards
+  if (viewRole === 'cfo') return <CFODashboardPage />;
+  if (viewRole === 'municipal_manager') return <MunicipalManagerDashboardPage />;
+  if (viewRole === 'executive_mayor') return <MayorDashboardPage />;
+  if (viewRole === 'audit_committee_member') return <OversightDashboardPage role="audit_committee" />;
+  if (viewRole === 'internal_auditor') return <OversightDashboardPage role="internal_auditor" />;
+  if (viewRole === 'mpac_member') return <OversightDashboardPage role="mpac" />;
+  if (viewRole === 'ward_councillor') return <OversightDashboardPage role="councillor" />;
+  if (viewRole === 'councillor') return <OversightDashboardPage role="councillor" />;
+  if (viewRole === 'salga_admin') return <SALGAAdminDashboardPage />;
+  if (viewRole === 'section56_director') return <Section56DirectorDashboardPage />;
+
+  // Fallback: admin, manager, pms_officer, speaker, department_manager, chief_whip, citizen
   return <DashboardPage />;
 }
 

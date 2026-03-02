@@ -12,6 +12,7 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../hooks/useAuth';
+import { useViewRole } from '../../contexts/ViewRoleContext';
 import './DashboardLayout.css';
 
 interface DashboardLayoutProps {
@@ -48,23 +49,18 @@ function timeAgo(dateStr: string): string {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
-  const { user, session, signOut, getUserRole, getAllRoles } = useAuth();
+  const { user, session, signOut, getAllRoles } = useAuth();
   const token = session?.access_token ?? null;
 
-  const jwtRole = getUserRole();
   const allRoles = getAllRoles();
-  const [viewRole, setViewRole] = useState(jwtRole);
+  // viewRole state is now managed by ViewRoleContext (lifted to fix ReactNode disconnect)
+  const { viewRole, setViewRole } = useViewRole();
 
   // Notification state
   const [unreadCount, setUnreadCount] = useState(0);
   const [showNotifications, setShowNotifications] = useState(false);
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const bellRef = useRef<HTMLDivElement>(null);
-
-  // Sync viewRole when auth loads (jwtRole starts as 'citizen' during loading)
-  useEffect(() => {
-    setViewRole(jwtRole);
-  }, [jwtRole]);
 
   // Fetch unread notification count
   const fetchUnreadCount = useCallback(async () => {
@@ -176,9 +172,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           alignItems: 'center',
           justifyContent: 'flex-end',
           padding: '0 var(--space-xl, 24px)',
-          background: 'rgba(10, 10, 20, 0.7)',
-          backdropFilter: 'blur(12px)',
-          borderBottom: '1px solid rgba(255,255,255,0.08)',
+          background: 'transparent',
           zIndex: 100,
         }}
       >
@@ -194,20 +188,18 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
               border: 'none',
               cursor: 'pointer',
               padding: '8px',
-              color: 'var(--text-secondary, rgba(255,255,255,0.7))',
+              color: 'var(--color-coral, #f97316)',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               borderRadius: '8px',
-              transition: 'color 0.2s, background 0.2s',
+              transition: 'opacity 0.2s',
             }}
             onMouseEnter={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-primary, #fff)';
-              (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255,255,255,0.08)';
+              (e.currentTarget as HTMLButtonElement).style.opacity = '0.8';
             }}
             onMouseLeave={(e) => {
-              (e.currentTarget as HTMLButtonElement).style.color = 'var(--text-secondary, rgba(255,255,255,0.7))';
-              (e.currentTarget as HTMLButtonElement).style.background = 'none';
+              (e.currentTarget as HTMLButtonElement).style.opacity = '1';
             }}
           >
             <BellIcon />
