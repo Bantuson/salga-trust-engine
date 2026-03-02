@@ -102,7 +102,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **UI-03**: Settings page renders content sections for all Tier 1+ PMS roles (not just admin/manager) with error fallback UI
 - [x] **UI-04**: Every page has unique purpose — no duplicate data views across departments, role approvals, and dashboard pages
 - [x] **JOURNEY-01**: E2E user journey folder (e2e-tests/tests/journeys/) with daily-use scenario specs per role (9 specs minimum)
-- [ ] **JOURNEY-02**: Production readiness gate passed — Playwright E2E validates every role's onboarding and daily journey
+- [x] **JOURNEY-02**: Production readiness gate passed — Playwright E2E validates every role's onboarding and daily journey
 
 ## v2.1+ Requirements
 

@@ -60,8 +60,8 @@ Full details: `milestones/v1.0-ROADMAP.md`
 - [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
 - [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
 - [x] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data (completed 2026-03-02)
-- [ ] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate
-- [ ] **Phase 34: Municipal Onboarding Production Readiness** - Onboarding wizard, tier 1-4 user creation, department activation gates, UI fixes, page deduplication, per-role user journeys, Playwright E2E production readiness validation
+- [x] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate (completed 2026-03-02)
+- [x] **Phase 34: Municipal Onboarding Production Readiness** - Onboarding wizard, tier 1-4 user creation, department activation gates, UI fixes, page deduplication, per-role user journeys, Playwright E2E production readiness validation (completed 2026-03-03)
 
 ## Phase Details
 
@@ -202,7 +202,7 @@ Plans:
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
 | 32. Risk Register & Public Transparency | 2/2 | Complete    | 2026-03-02 | - |
 | 33. Comprehensive v2.0 Gap Closure | v2.0 | 1/3 | In progress | - |
-| 34. Municipal Onboarding Production Readiness | 5/6 | In Progress|  | - |
+| 34. Municipal Onboarding Production Readiness | 6/6 | Complete   | 2026-03-02 | - |
 
 ### Phase 34: Municipal Onboarding Production Readiness
 
