@@ -38,6 +38,9 @@ import { MayorDashboardPage } from './pages/MayorDashboardPage';
 import { OversightDashboardPage } from './pages/OversightDashboardPage';
 import { SALGAAdminDashboardPage } from './pages/SALGAAdminDashboardPage';
 import { Section56DirectorDashboardPage } from './pages/Section56DirectorDashboardPage';
+import { DepartmentsPage } from './pages/DepartmentsPage';
+import { RoleApprovalsPage } from './pages/RoleApprovalsPage';
+import { GoldenThreadPage } from './pages/GoldenThreadPage';
 import { LenisProvider } from './providers/LenisProvider';
 import { PageTransition } from './components/PageTransition';
 import '@shared/design-tokens.css';
@@ -242,6 +245,12 @@ function AppRoutes() {
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
         <Route path="/departments/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
+        {/* BUG-2: Department list page — was linked in nav but had no route */}
+        <Route path="/departments" element={<DashboardLayout><DepartmentsPage /></DashboardLayout>} />
+        {/* BUG-3: Role approvals page — was linked for SALGA Admin but had no route */}
+        <Route path="/role-approvals" element={<DashboardLayout><RoleApprovalsPage /></DashboardLayout>} />
+        {/* BUG-4: PMS setup as standalone route — was only accessible via ?view=setup in PmsHub */}
+        <Route path="/pms-setup" element={<DashboardLayout><PmsSetupWizardPage /></DashboardLayout>} />
         <Route path="/municipalities" element={<DashboardLayout><MunicipalitiesPlaceholderPage /></DashboardLayout>} />
         <Route path="/teams" element={<DashboardLayout><TeamsPage /></DashboardLayout>} />
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
@@ -259,6 +268,8 @@ function AppRoutes() {
         <Route path="/pms/sdbip/:scorecardId/kpis" element={<DashboardLayout><SdbipKpiPage /></DashboardLayout>} />
         <Route path="/pms/kpis/:kpiId/actuals" element={<DashboardLayout><ActualsPage /></DashboardLayout>} />
         <Route path="/pms/actuals/:actualId/evidence" element={<DashboardLayout><EvidencePage /></DashboardLayout>} />
+        {/* IDP-04: Golden thread standalone route — page exists but had no route */}
+        <Route path="/pms/golden-thread" element={<DashboardLayout><GoldenThreadPage /></DashboardLayout>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
