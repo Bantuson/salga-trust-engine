@@ -940,3 +940,47 @@ export async function flagInvestigation(
   if (!res.ok) throw new Error(`Flag investigation failed: ${res.status}`);
   return res.json();
 }
+
+/**
+ * Fetch SALGA Admin cross-municipality benchmarking dashboard data.
+ * Returns: municipalities array with KPI achievement, ticket resolution, SLA compliance
+ */
+export async function fetchSALGAAdminDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/salga-admin', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`SALGA Admin dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Export SALGA benchmarking data as CSV (authenticated file download).
+ * Uses fetch-then-blob pattern with Authorization header.
+ */
+export async function exportSALGABenchmarkingCSV(token: string): Promise<void> {
+  const res = await fetch('/api/v1/role-dashboards/salga-admin/export-csv', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`CSV export failed: ${res.status}`);
+  const blob = await res.blob();
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement('a');
+  link.href = objectUrl;
+  link.download = `salga-benchmarking-${new Date().toISOString().slice(0, 10)}.csv`;
+  document.body.appendChild(link);
+  link.click();
+  document.body.removeChild(link);
+  URL.revokeObjectURL(objectUrl);
+}
+
+/**
+ * Fetch Section 56 Director department-scoped KPI dashboard data.
+ * Returns: empty_state flag + department KPI details, or message when no department assigned
+ */
+export async function fetchSection56DirectorDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/section56-director', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Section 56 Director dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
