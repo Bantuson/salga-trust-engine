@@ -857,3 +857,86 @@ export async function approveSdbip(
   }
   return res.json();
 }
+
+/**
+ * Fetch Ward Councillor dashboard data.
+ * Returns: sdbip_summary, statutory_reports
+ */
+export async function fetchCouncillorDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/councillor', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Councillor dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch Audit Committee dashboard data.
+ * Returns: performance_reports, audit_trail
+ */
+export async function fetchAuditCommitteeDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/audit-committee', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Audit committee dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch Internal Auditor dashboard data.
+ * Returns: verification_queue with KPI groups and evidence items
+ */
+export async function fetchInternalAuditorDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/internal-auditor', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Internal auditor dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Verify or mark evidence insufficient (Internal Auditor action).
+ */
+export async function verifyEvidence(
+  token: string,
+  evidenceId: string,
+  status: 'verified' | 'insufficient'
+): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/internal-auditor/verify-evidence', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ evidence_id: evidenceId, status }),
+  });
+  if (!res.ok) throw new Error(`Evidence verification failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch MPAC dashboard data.
+ * Returns: statutory_reports, investigation_flags
+ */
+export async function fetchMPACDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/mpac', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`MPAC dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Flag a statutory report for investigation (MPAC action).
+ */
+export async function flagInvestigation(
+  token: string,
+  reportId: string,
+  reason: string,
+  notes: string
+): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/mpac/flag-investigation', {
+    method: 'POST',
+    headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
+    body: JSON.stringify({ report_id: reportId, reason, notes }),
+  });
+  if (!res.ok) throw new Error(`Flag investigation failed: ${res.status}`);
+  return res.json();
+}
