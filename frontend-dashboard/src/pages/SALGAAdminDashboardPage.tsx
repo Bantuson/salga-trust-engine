@@ -15,7 +15,7 @@
  */
 
 import { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { fetchSALGAAdminDashboard, exportSALGABenchmarkingCSV } from '../services/api';
 import { mockSALGAAdminDashboard } from '../mocks/mockRoleDashboards';
@@ -47,6 +47,8 @@ export function SALGAAdminDashboardPage() {
   const [error, setError] = useState<string | null>(null);
   const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityData | null>(null);
   const [exporting, setExporting] = useState(false);
+  // Pending approvals count — fetched separately, non-blocking
+  const [pendingApprovalCount, setPendingApprovalCount] = useState<number | null>(null);
 
   const loadData = useCallback(async () => {
     if (!session?.access_token) return;
@@ -66,6 +68,25 @@ export function SALGAAdminDashboardPage() {
   useEffect(() => {
     loadData();
   }, [loadData]);
+
+  // Non-blocking: fetch pending approval count for summary card
+  useEffect(() => {
+    if (!session?.access_token) return;
+    const fetchPendingCount = async () => {
+      try {
+        const res = await fetch('/api/v1/auth/tier1-approvals', {
+          headers: { Authorization: `Bearer ${session.access_token}` },
+        });
+        if (!res.ok) return;
+        const data = await res.json();
+        const list: any[] = Array.isArray(data) ? data : (data.requests ?? []);
+        setPendingApprovalCount(list.filter((r: any) => r.status === 'pending').length);
+      } catch {
+        // Non-blocking: ignore failures, show null count
+      }
+    };
+    fetchPendingCount();
+  }, [session?.access_token]);
 
   const handleExportCSV = async () => {
     if (!session?.access_token) return;
@@ -250,6 +271,40 @@ export function SALGAAdminDashboardPage() {
             {avgSlaCompliance.toFixed(1)}%
           </div>
           <div style={styles.summaryLabel}>Avg SLA Compliance</div>
+        </GlassCard>
+        {/* Role Approvals summary — links to /role-approvals for full action queue
+            Purpose separation: this card shows a COUNT only; the full queue is on /role-approvals */}
+        <GlassCard
+          style={{
+            ...styles.summaryCard,
+            borderColor: pendingApprovalCount && pendingApprovalCount > 0
+              ? 'rgba(251, 191, 36, 0.4)'
+              : undefined,
+          }}
+        >
+          <div
+            style={{
+              ...styles.summaryValue,
+              color: pendingApprovalCount && pendingApprovalCount > 0
+                ? 'var(--color-gold)'
+                : 'var(--text-primary)',
+            }}
+          >
+            {pendingApprovalCount ?? '—'}
+          </div>
+          <div style={styles.summaryLabel}>Pending Role Approvals</div>
+          <Link
+            to="/role-approvals"
+            style={{
+              marginTop: '0.5rem',
+              fontSize: 'var(--text-xs)',
+              color: 'var(--color-teal)',
+              textDecoration: 'none',
+              fontWeight: 500,
+            }}
+          >
+            View All →
+          </Link>
         </GlassCard>
       </div>
 

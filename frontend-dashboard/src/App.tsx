@@ -240,14 +240,37 @@ function AppRoutes() {
         {/* Onboarding wizard (full-screen, no layout) */}
         <Route path="/onboarding" element={<OnboardingWizardPage />} />
 
+        {/* ---------------------------------------------------------------
+         * PAGE DEDUPLICATION MAP (34-04)
+         * Each route has a UNIQUE purpose — no two pages show the same data.
+         * ---------------------------------------------------------------
+         * /               Role-based dashboard: executive KPI summary (role-specific)
+         * /tickets        Service delivery ticket queue (citizen-reported issues)
+         * /report         Ticket submission form
+         * /departments    Department management: CRUD, activation gates, director assignment
+         * /departments/organogram  Org chart (read-only tree view — different format from /departments)
+         * /role-approvals SALGA Admin action queue: approve/reject Tier 1 role requests (action-oriented)
+         * /pms            PMS Hub: IDP, SDBIP, actuals, evidence, agreements, statutory reports
+         * /pms-setup      Initial PMS configuration wizard (setup flow, not viewing data)
+         * /municipalities SALGA Admin municipality registry: onboarding status list
+         * /teams          Field team management: create teams, manage field workers
+         * /analytics      Operational analytics: ticket trends, resolution stats
+         * /settings       Municipality configuration: SLA, wards, branding
+         * /system         Platform admin infrastructure: system health, config
+         * /reports        SAPS GBV liaison reports (saps_liaison role only)
+         * /completed      Completed tickets archive
+         * /field-worker   Field worker active ticket queue
+         * /field-worker/team  Field worker's team roster
+         * --------------------------------------------------------------- */}
+
         {/* Dashboard routes (wrapped in DashboardLayout) */}
         <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
         <Route path="/departments/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
-        {/* BUG-2: Department list page — was linked in nav but had no route */}
+        {/* Department management — CRUD, activation gates, director assignment (34-04) */}
         <Route path="/departments" element={<DashboardLayout><DepartmentsPage /></DashboardLayout>} />
-        {/* BUG-3: Role approvals page — was linked for SALGA Admin but had no route */}
+        {/* Role approval action queue — SALGA Admin only, approve/reject Tier 1 requests (34-04) */}
         <Route path="/role-approvals" element={<DashboardLayout><RoleApprovalsPage /></DashboardLayout>} />
         {/* BUG-4: PMS setup as standalone route — was only accessible via ?view=setup in PmsHub */}
         <Route path="/pms-setup" element={<DashboardLayout><PmsSetupWizardPage /></DashboardLayout>} />
