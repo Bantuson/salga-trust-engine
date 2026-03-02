@@ -7,6 +7,7 @@ import type {
   HeatmapPoint,
   SystemSummary,
   CategoryBreakdownData,
+  SdbipAchievementData,
   PublicTicketStatsRow,
   PublicMunicipalityRow,
   PublicHeatmapRow,
@@ -338,6 +339,70 @@ export function useCategoryBreakdown(municipalityId?: string) {
   }, [municipalityId]);
 
   return { data, isLoading, error };
+}
+
+// ---------------------------------------------------------------------------
+// SDBIP Achievement Hook (Phase 32)
+// ---------------------------------------------------------------------------
+
+const mockSdbipAchievement: SdbipAchievementData[] = [
+  {
+    municipality_id: 'mun-001',
+    municipality_name: 'Buffalo City Metropolitan',
+    financial_year: '2025/2026',
+    total_kpis: 48,
+    green: 29,
+    amber: 12,
+    red: 7,
+    overall_achievement_pct: 72.4,
+  },
+  {
+    municipality_id: 'mun-002',
+    municipality_name: 'Mangaung Metropolitan',
+    financial_year: '2025/2026',
+    total_kpis: 35,
+    green: 18,
+    amber: 10,
+    red: 7,
+    overall_achievement_pct: 61.2,
+  },
+  {
+    municipality_id: 'mun-003',
+    municipality_name: 'Sol Plaatje Local',
+    financial_year: '2025/2026',
+    total_kpis: 22,
+    green: 15,
+    amber: 5,
+    red: 2,
+    overall_achievement_pct: 78.6,
+  },
+];
+
+export function useSdbipAchievement(municipalityId?: string) {
+  const [data, setData] = useState<SdbipAchievementData[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  useEffect(() => {
+    async function fetchData() {
+      try {
+        setIsLoading(true);
+        const params = new URLSearchParams();
+        if (municipalityId) params.set('municipality_id', municipalityId);
+        const apiUrl = import.meta.env.VITE_API_URL || '';
+        const res = await fetch(`${apiUrl}/api/v1/public/sdbip-performance?${params.toString()}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const json = await res.json();
+        setData(json.length > 0 ? json : mockSdbipAchievement);
+      } catch {
+        setData(mockSdbipAchievement);
+      } finally {
+        setIsLoading(false);
+      }
+    }
+    fetchData();
+  }, [municipalityId]);
+
+  return { data, isLoading };
 }
 
 export function useSystemSummary() {

@@ -71,3 +71,14 @@ export interface CategoryBreakdownData {
   category: string;
   count: number;
 }
+
+export interface SdbipAchievementData {
+  municipality_id: string;
+  municipality_name: string;
+  financial_year: string;
+  total_kpis: number;
+  green: number;
+  amber: number;
+  red: number;
+  overall_achievement_pct: number;
+}
