@@ -91,6 +91,19 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **RISK-03**: System auto-flags high-risk items when linked KPI status turns red
 - [x] **RISK-04**: CFO and Municipal Manager can view risk register filtered by department
 
+### Municipal Onboarding & Production Readiness
+
+- [ ] **ONBOARD-01**: New municipality can register via request-access form and complete 6-step PMS onboarding wizard (welcome → departments → invite Tier 1 → invite directors → SLA config → PMS gate)
+- [ ] **ONBOARD-02**: Admin can invite Tier 1-4 users per municipality with email invites, excluding field_worker/saps_liaison from initial onboard
+- [ ] **ONBOARD-03**: Department setup includes section director assignment per department during onboarding wizard
+- [ ] **ONBOARD-04**: Department activation gates show status per department (green: director + KPIs, amber: director only, red: no director)
+- [ ] **UI-01**: Every page header row (title + action buttons) aligns with notification bell icon on the same 48px row
+- [ ] **UI-02**: All create/ranking actions open modal dialogs (matching TeamCreateModal pattern) — not inline card expand
+- [ ] **UI-03**: Settings page renders content sections for all Tier 1+ PMS roles (not just admin/manager) with error fallback UI
+- [ ] **UI-04**: Every page has unique purpose — no duplicate data views across departments, role approvals, and dashboard pages
+- [ ] **JOURNEY-01**: E2E user journey folder (e2e-tests/tests/journeys/) with daily-use scenario specs per role (9 specs minimum)
+- [ ] **JOURNEY-02**: Production readiness gate passed — Playwright E2E validates every role's onboarding and daily journey
+
 ## v2.1+ Requirements
 
 Deferred to future releases. Tracked but not in current roadmap.
@@ -194,14 +207,22 @@ Which phases cover which requirements. Updated during roadmap creation.
 | RISK-02 | Phase 32 | Complete |
 | RISK-03 | Phase 32 | Complete |
 | RISK-04 | Phase 32 | Complete |
+| ONBOARD-01 | Phase 34 | Planned |
+| ONBOARD-02 | Phase 34 | Planned |
+| ONBOARD-03 | Phase 34 | Planned |
+| ONBOARD-04 | Phase 34 | Planned |
+| UI-01 | Phase 34 | Planned |
+| UI-02 | Phase 34 | Planned |
+| UI-03 | Phase 34 | Planned |
+| UI-04 | Phase 34 | Planned |
+| JOURNEY-01 | Phase 34 | Planned |
+| JOURNEY-02 | Phase 34 | Planned |
 
 **Coverage:**
-- v2.0 requirements: 60 total
-- Mapped to phases: 60
-- Unmapped: 0 ✓
-
-**Note:** REQUIREMENTS.md header originally stated 61 requirements. Actual count from listed items is 60 (RBAC:6, IDP:5, SDBIP:10, EVID:8, PA:6, REPORT:9, DASH:12, RISK:4). All 60 are mapped.
+- v2.0 requirements: 70 total (60 original + 10 Phase 34)
+- Mapped to phases: 70
+- Unmapped: 0
 
 ---
 *Requirements defined: 2026-02-28*
-*Last updated: 2026-02-28 — traceability populated by roadmapper (60/60 requirements mapped)*
+*Last updated: 2026-03-02 — Phase 34 requirements added (ONBOARD:4, UI:4, JOURNEY:2)*

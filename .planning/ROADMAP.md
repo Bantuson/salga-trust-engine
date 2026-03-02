@@ -3,7 +3,7 @@
 ## Milestones
 
 - ✅ **v1.0 MVP** — Phases 1-10.4 (shipped 2026-02-28)
-- 🚧 **v2.0 Senior Municipal Roles & PMS Integration** — Phases 27-32 (in progress)
+- 🚧 **v2.0 Senior Municipal Roles & PMS Integration** — Phases 27-34 (in progress)
 
 ## Phases
 
@@ -61,6 +61,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 - [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
 - [x] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data (completed 2026-03-02)
 - [ ] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate
+- [ ] **Phase 34: Municipal Onboarding Production Readiness** - Onboarding wizard, tier 1-4 user creation, department activation gates, UI fixes, page deduplication, per-role user journeys, Playwright E2E production readiness validation
 
 ## Phase Details
 
@@ -201,7 +202,41 @@ Plans:
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
 | 32. Risk Register & Public Transparency | 2/2 | Complete    | 2026-03-02 | - |
 | 33. Comprehensive v2.0 Gap Closure | v2.0 | 1/3 | In progress | - |
+| 34. Municipal Onboarding Production Readiness | v2.0 | 0/6 | Planned | - |
+
+### Phase 34: Municipal Onboarding Production Readiness
+
+**Goal:** Replace the request-access interface with a comprehensive municipal onboarding wizard (PMS setup → tier 1-4 user creation with email invites → department activation gates). Fix all UI inconsistencies (modal patterns, page header alignment, settings page, page deduplication). Define and validate daily user journeys per role as the production readiness gate via Playwright E2E testing.
+**Depends on:** Phase 33 (all v2.0 gaps closed)
+**Requirements**: ONBOARD-01, ONBOARD-02, ONBOARD-03, ONBOARD-04, UI-01, UI-02, UI-03, UI-04, JOURNEY-01, JOURNEY-02
+**Key Scope:**
+  1. Municipal onboarding wizard replacing request-access (PMS setup → unlock dashboard features)
+  2. Tier 1-4 user creation per municipality with email invites (exclude field_worker/saps_liaison from initial onboard)
+  3. Department setup with section directors and department managers
+  4. Department activation gates for full municipal operations
+  5. UI fixes: modals for all create/ranking actions (matching team modal design), page headers aligned with notification icon row, settings page fix
+  6. Page deduplication: departments, role approvals, and all pages must have unique purpose based on user journey and salga-pms-integration-plan.md
+  7. E2E user journey folder with daily-use scenarios per role
+  8. Production readiness gate: Playwright MCP validation of every role's onboarding + daily journey
+**Success Criteria** (what must be TRUE):
+  1. New municipality can register via request-access, receive invite, complete 6-step PMS wizard, and reach operational dashboard
+  2. Admin can invite Tier 1 leaders (executive_mayor, cfo, speaker) and Section 56 directors per department during onboarding — field_worker/saps_liaison excluded
+  3. DepartmentsPage shows activation status per department (green/amber/red) with functional CRUD and director invite
+  4. All create actions (IDP, SDBIP, PA, department, municipality ranking drill-down) open modals matching TeamCreateModal pattern
+  5. Every page header row aligns with notification bell icon (no 32px gap)
+  6. Settings page renders content for all Tier 1+ PMS roles (not just admin/manager)
+  7. Every dashboard page has a unique purpose — no duplicate data views
+  8. 9 E2E journey specs validate daily workflows for all major roles
+**Plans**: 6 plans
+
+Plans:
+- [ ] 34-01-PLAN.md — DashboardLayout header alignment fix (paddingTop 48px), settings page role check fix + error fallback [Wave 1] (UI-01, UI-03)
+- [ ] 34-02-PLAN.md — Modal conversions: PmsHubPage IDP/SDBIP/PA create modals, SALGAAdminDashboardPage municipality detail modal [Wave 1] (UI-02)
+- [ ] 34-03-PLAN.md — Onboarding wizard refactor (6 PMS steps), RequestAccessPage enhancement, InviteUserModal component [Wave 2] (ONBOARD-01, ONBOARD-02, ONBOARD-03)
+- [ ] 34-04-PLAN.md — DepartmentsPage CRUD + activation gates + director invite, RoleApprovalsPage filters, page deduplication [Wave 2] (ONBOARD-04, UI-04)
+- [ ] 34-05-PLAN.md — E2E user journey test suite (9 specs: executive-mayor, municipal-manager, cfo, section56-director, pms-officer, salga-admin, admin, oversight, onboarding) [Wave 3] (JOURNEY-01)
+- [ ] 34-06-PLAN.md — Production readiness gate: run full E2E suite, create VERIFICATION.md, human-verify checkpoint [Wave 4] (JOURNEY-02)
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-02-28 (v2.0 milestone roadmap created)*
+*Last updated: 2026-03-02 (Phase 34 planned — 6 plans across 4 waves)*
