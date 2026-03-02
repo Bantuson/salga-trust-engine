@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-02T10:24:25.868Z"
+last_updated: "2026-03-02T13:19:28.584Z"
 progress:
   total_phases: 5
   completed_phases: 5
-  total_plans: 20
-  completed_plans: 20
+  total_plans: 22
+  completed_plans: 22
 ---
 
 ---
@@ -158,6 +158,8 @@ Progress: [██████████] 100% (Phase 31)
 | Phase 31 P02 | 9 | 3 tasks | 10 files |
 | Phase 31 P03 | 5 | 2 tasks | 2 files |
 | Phase 31 P4 | 5 | 2 tasks | 3 files |
+| Phase 31 P06 | 11 | 2 tasks | 3 files |
+| Phase 31 P05 | 11 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -248,6 +250,10 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 31]: CSV export uses fetch-blob with Authorization header for authenticated downloads
 - [Phase 31]: Section 56 Director empty state replaces normal content entirely — not a banner
 - [Phase 31]: KPI detail table sorted ascending by achievement_pct to surface worst-performing KPIs first
+- [Phase 31]: READ_ONLY_ROLES explicit allowlist in PmsHubPage — clearer intent than checking absence from ADMIN_ROLES
+- [Phase 31]: Statutory Reports nav item links directly to /pms?view=statutory-reports — deeplink into PMS Hub for oversight roles and ward councillor
+- [Phase 31]: Placeholder pages as inline functions in App.tsx — small enough to not warrant separate files; municipalities and system pages show realistic mock data
+- [Phase 31]: catch block sets mock data instead of error string for all role dashboards
 
 ### Pending Todos
 
