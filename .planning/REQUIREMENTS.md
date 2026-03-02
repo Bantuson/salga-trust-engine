@@ -71,18 +71,18 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Dashboards & Oversight
 
-- [ ] **DASH-01**: CFO can view budget execution dashboard (expenditure vs budget per vote, revenue collection rate, variance alerts)
-- [ ] **DASH-02**: CFO can view SDBIP achievement summary with traffic-light status across all KPIs
-- [ ] **DASH-03**: CFO can view service delivery correlation linking ticket resolution rates to SDBIP KPIs
-- [ ] **DASH-04**: CFO can view statutory reporting calendar with upcoming deadlines and current status
-- [ ] **DASH-05**: Municipal Manager can view all-department performance overview with drill-down to individual KPIs
-- [ ] **DASH-06**: Executive Mayor can view organizational scorecard and approve SDBIP via dashboard
-- [ ] **DASH-07**: Councillor can view quarterly reports and SDBIP dashboard (read-only)
-- [ ] **DASH-08**: Audit Committee member can review all performance reports and access audit trail
-- [ ] **DASH-09**: Internal Auditor can verify evidence/POE for any KPI across departments
-- [ ] **DASH-10**: MPAC member can view performance reports and request performance investigations
-- [ ] **DASH-11**: SALGA Admin can view cross-municipality benchmarking and manage system configuration
-- [ ] **DASH-12**: Section 56 Director can view own department's SDBIP performance and manage departmental KPIs
+- [x] **DASH-01**: CFO can view budget execution dashboard (expenditure vs budget per vote, revenue collection rate, variance alerts)
+- [x] **DASH-02**: CFO can view SDBIP achievement summary with traffic-light status across all KPIs
+- [x] **DASH-03**: CFO can view service delivery correlation linking ticket resolution rates to SDBIP KPIs
+- [x] **DASH-04**: CFO can view statutory reporting calendar with upcoming deadlines and current status
+- [x] **DASH-05**: Municipal Manager can view all-department performance overview with drill-down to individual KPIs
+- [x] **DASH-06**: Executive Mayor can view organizational scorecard and approve SDBIP via dashboard
+- [x] **DASH-07**: Councillor can view quarterly reports and SDBIP dashboard (read-only)
+- [x] **DASH-08**: Audit Committee member can review all performance reports and access audit trail
+- [x] **DASH-09**: Internal Auditor can verify evidence/POE for any KPI across departments
+- [x] **DASH-10**: MPAC member can view performance reports and request performance investigations
+- [x] **DASH-11**: SALGA Admin can view cross-municipality benchmarking and manage system configuration
+- [x] **DASH-12**: Section 56 Director can view own department's SDBIP performance and manage departmental KPIs
 
 ### Risk Register
 
@@ -178,18 +178,18 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPORT-07 | Phase 30 | Complete |
 | REPORT-08 | Phase 30 | Complete |
 | REPORT-09 | Phase 30 | Pending |
-| DASH-01 | Phase 31 | Pending |
-| DASH-02 | Phase 31 | Pending |
-| DASH-03 | Phase 31 | Pending |
-| DASH-04 | Phase 31 | Pending |
-| DASH-05 | Phase 31 | Pending |
-| DASH-06 | Phase 31 | Pending |
-| DASH-07 | Phase 31 | Pending |
-| DASH-08 | Phase 31 | Pending |
-| DASH-09 | Phase 31 | Pending |
-| DASH-10 | Phase 31 | Pending |
-| DASH-11 | Phase 31 | Pending |
-| DASH-12 | Phase 31 | Pending |
+| DASH-01 | Phase 31 | Complete |
+| DASH-02 | Phase 31 | Complete |
+| DASH-03 | Phase 31 | Complete |
+| DASH-04 | Phase 31 | Complete |
+| DASH-05 | Phase 31 | Complete |
+| DASH-06 | Phase 31 | Complete |
+| DASH-07 | Phase 31 | Complete |
+| DASH-08 | Phase 31 | Complete |
+| DASH-09 | Phase 31 | Complete |
+| DASH-10 | Phase 31 | Complete |
+| DASH-11 | Phase 31 | Complete |
+| DASH-12 | Phase 31 | Complete |
 | RISK-01 | Phase 32 | Pending |
 | RISK-02 | Phase 32 | Pending |
 | RISK-03 | Phase 32 | Pending |

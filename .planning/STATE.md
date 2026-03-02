@@ -1,14 +1,14 @@
 ---
 gsd_state_version: 1.0
-milestone: v1.0
+milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-01T20:55:11.726Z"
+last_updated: "2026-03-02T09:32:56.100Z"
 progress:
-  total_phases: 4
+  total_phases: 5
   completed_phases: 4
-  total_plans: 16
-  completed_plans: 16
+  total_plans: 20
+  completed_plans: 17
 ---
 
 ---
@@ -83,16 +83,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 — Phase 28: IDP SDBIP Core Performance Monitoring
+**Current focus:** v2.0 — Phase 31: Role-Specific Dashboards
 
 ## Current Position
 
-Phase: 30 of 32 (Statutory Reporting and Approval Workflows)
-Plan: 1 of 4 in current phase (30-01 complete)
-Status: Active — Phase 30 in progress (30-01 done)
-Last activity: 2026-03-01 — 30-01 complete: StatutoryReport model, ReportWorkflow state machine, data snapshot at mm_approved (REPORT-06), service+API (7 endpoints)+Celery task+Section 52/72 Jinja2 templates, Notification model+API, 30 passing tests
+Phase: 31 of 32 (Role-Specific Dashboards)
+Plan: 2 of 4 in current phase (31-01 complete)
+Status: Active — Phase 31 in progress (31-01 done)
+Last activity: 2026-03-02 — 31-01 complete: RoleDashboardService (12 methods), 13 RBAC-gated endpoints under /api/v1/role-dashboards/, EvidenceDocument.verification_status migration, 23 passing unit tests
 
-Progress: [██████░░░░] 71%
+Progress: [███████░░░] 75%
 
 ## Performance Metrics
 
@@ -114,6 +114,8 @@ Progress: [██████░░░░] 71%
 | Phase 29 P02 | 31 | 4 tasks | 8 files |
 | Phase 30-statutory-reporting-approval-workflows P30-01 | 13 | 3 tasks | 15 files |
 | Phase 30 P30-04 | 3 | 2 tasks | 3 files |
+| Phase 31 P31-01 | 36 | 3 tasks | 6 files |
+| Phase 31 P1 | 36 | 3 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -193,6 +195,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 30-01]: ReportWorkflow tabled state marked final=True; data snapshot as JSON string in Text column for SQLite compatibility; _TRANSITION_ROLES dict in service layer (not DB) for static governance; DOCX generation graceful degradation; assemble_report_data renders from snapshot for status >= mm_approved (REPORT-06)
 - [Phase 30]: Notification bell placed in fixed top header bar (48px) — DashboardLayout previously had no header; added glassmorphism header matching sidebar aesthetic
 - [Phase 30]: Download uses fetch-then-blob pattern with auth header — direct href cannot include Authorization header for protected downloads
+- [Phase 31]: RBAC 403 tests use app.dependency_overrides[get_current_user] to inject mock users - avoids JWT+DB lookup 500 errors in SQLite unit tests
+- [Phase 31]: Councillor endpoint uses WARD_COUNCILLOR + CHIEF_WHIP — UserRole.COUNCILLOR does not exist in the enum
+- [Phase 31]: RoleDashboardService uses raw SQL text() for SALGA Admin cross-tenant sdbip_scorecards query - same Phase 28 pattern
 
 ### Pending Todos
 
@@ -207,6 +212,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-01
-Stopped at: Completed 29-02-PLAN.md — Phase 29 complete. Quarterly score submission, annual score compilation, assess guard, Celery Q-start PA notifications, PerformanceAgreementsPage.tsx, PmsHub extension, 23 passing tests.
+Last session: 2026-03-02
+Stopped at: Completed 31-01-PLAN.md — Phase 31 Plan 1 complete. RoleDashboardService (12 methods), 13 RBAC-gated endpoints under /api/v1/role-dashboards/, EvidenceDocument.verification_status migration, 23 passing unit tests covering all DASH-01 through DASH-12 requirements.
 Resume file: None
