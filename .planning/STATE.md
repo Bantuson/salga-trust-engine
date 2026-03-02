@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-02T19:07:52.651Z"
+progress:
+  total_phases: 8
+  completed_phases: 6
+  total_plans: 33
+  completed_plans: 26
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T15:44:04.428Z"
 progress:
   total_phases: 7
@@ -177,6 +190,7 @@ Progress: [█░░░░░░░░░] 33% (Plan 1/3 of Phase 33 done)
 | Phase 32 P1 | 24 | 2 tasks | 12 files |
 | Phase 32 P02 | 25 | 2 tasks | 7 files |
 | Phase 33 P01 | 32 | 2 tasks | 7 files |
+| Phase 34 P01 | 20 | 3 tasks | 15 files |
 
 ## Accumulated Context
 
@@ -280,6 +294,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 33-01]: X-Tenant-ID header required in TestClient tests that exercise require_pms_ready() — dependency queries DB with ORM tenant filter; without header, TenantContextMiddleware does not set context and SecurityError 500 is raised
 - [Phase 33-01]: BUG-1 fixed — MUNICIPAL_MANAGER added to _TRANSITION_ROLES['submit_for_review'] in statutory_report_service.py (was missing, caused 403 for MM trying to submit report for review)
 - [Phase 33-01]: DepartmentsPage + RoleApprovalsPage created as real page components (not inline functions) — substantial enough to warrant their own files per Phase 31 inline-function threshold
+- [Phase 34]: paddingTop changed from calc(48px + 32px) to 48px — removes 32px dead zone between notification bell header and page content
+- [Phase 34]: MANAGER_ROLES array in SettingsPage includes 10 roles: admin, salga_admin, manager, municipal_manager, executive_mayor, cfo, speaker, pms_officer, section56_director, department_manager
 
 ### Pending Todos
 
@@ -287,6 +303,10 @@ From Phase 29 execution (Plan 29-02):
 - Obtain official Section 52/72/46/121 report templates from treasury.gov.za before Phase 30 planning
 - Verify Supabase Pro bucket count limits at 257-municipality scale before Phase 28 implementation
 - Validate ClamAV Docker sidecar configuration on Render/Fly.io before Phase 28 implementation
+
+### Roadmap Evolution
+
+- Phase 34 added after Phase 33: Municipal Onboarding Production Readiness — comprehensive onboarding wizard, tier 1-4 user creation, department activation gates, UI consistency fixes, per-role user journeys, Playwright E2E production readiness validation
 
 ### Blockers/Concerns
 
