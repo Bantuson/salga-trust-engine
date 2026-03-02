@@ -16,6 +16,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { fetchMayorDashboard, approveSdbip } from '../services/api';
+import { mockMayorDashboard } from '../mocks/mockRoleDashboards';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -50,8 +51,9 @@ export function MayorDashboardPage() {
     try {
       const result = await fetchMayorDashboard(session.access_token);
       setData(result);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load Mayor dashboard');
+    } catch {
+      // Rich mock fallback — show demo data when backend unavailable
+      setData(mockMayorDashboard);
     } finally {
       setLoading(false);
     }

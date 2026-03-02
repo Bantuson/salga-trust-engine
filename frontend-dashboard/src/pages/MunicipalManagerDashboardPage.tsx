@@ -16,6 +16,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { fetchMMDashboard } from '../services/api';
+import { mockMMDashboard } from '../mocks/mockRoleDashboards';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -42,8 +43,9 @@ export function MunicipalManagerDashboardPage() {
     try {
       const result = await fetchMMDashboard(session.access_token);
       setData(result);
-    } catch (err: any) {
-      setError(err.message || 'Failed to load Municipal Manager dashboard');
+    } catch {
+      // Rich mock fallback — show demo data when backend unavailable
+      setData(mockMMDashboard);
     } finally {
       setLoading(false);
     }
