@@ -127,11 +127,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 32 of 32 (Risk Register & Public Transparency)
-Plan: 1 of 2 complete
-Status: Phase 32 in progress (32-01 done: risk register backend, public SDBIP endpoint)
-Last activity: 2026-03-02 — 32-01 complete: risk register models, schemas, service, 7 API endpoints, Celery auto-flag task, public SDBIP performance endpoint. 13 unit tests pass.
+Plan: 2 of 2 complete
+Status: Phase 32 COMPLETE — all 4 RISK requirements delivered
+Last activity: 2026-03-02 — 32-02 complete: Risk Register widget on CFO/MM dashboards, SDBIP Achievement section on public transparency dashboard. TypeScript clean, production builds pass.
 
-Progress: [█░░░░░░░░░] 50% (Phase 32)
+Progress: [██████████] 100% (Phase 32 complete)
 
 ## Performance Metrics
 
@@ -162,6 +162,7 @@ Progress: [█░░░░░░░░░] 50% (Phase 32)
 | Phase 31 P05 | 11 | 2 tasks | 7 files |
 | Phase 32 P01 | 24 | 2 tasks | 12 files |
 | Phase 32 P1 | 24 | 2 tasks | 12 files |
+| Phase 32 P02 | 25 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -259,6 +260,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 32]: Auto-flag fail-open: Celery dispatch failure on Redis down does not break actuals submission
 - [Phase 32]: Critical risk items never overwritten by auto-flag — governance invariant for RISK-03
 - [Phase 32]: Public SDBIP endpoint uses raw SQL text() for cross-tenant aggregation — same pattern as SALGA Admin dashboards
+- [Phase 32-02]: Non-blocking risk register fetch — loads after main dashboard data in separate try/catch, main dashboard never waits on risk register
+- [Phase 32-02]: useSdbipAchievement uses direct fetch() against FastAPI (not Supabase) — public SDBIP endpoint is FastAPI with cross-tenant SQL, not an RLS view
+- [Phase 32-02]: Risk Register section guarded by !loading — avoids flash of empty state during initial dashboard load
 
 ### Pending Todos
 
@@ -274,5 +278,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 32-01-PLAN.md — risk register backend (RiskItem, RiskMitigation models, RiskService, 7 API endpoints, flag_risk_items_for_kpi Celery task, auto-flag dispatch in sdbip.py, public SDBIP achievement endpoint). 13 unit tests pass. RISK-01 through RISK-04 requirements marked complete.
+Stopped at: Completed 32-02-PLAN.md — Risk Register widget on CFO/MM dashboards + SDBIP Achievement section on public transparency dashboard. Phase 32 complete. All RISK requirements (RISK-01 to RISK-04) delivered.
 Resume file: None

@@ -59,7 +59,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 - [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
 - [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
 - [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
-- [ ] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data
+- [x] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data (completed 2026-03-02)
 - [ ] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate
 
 ## Phase Details
@@ -197,7 +197,7 @@ Plans:
 | 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
-| 32. Risk Register & Public Transparency | 1/2 | In Progress|  | - |
+| 32. Risk Register & Public Transparency | 2/2 | Complete   | 2026-03-02 | - |
 | 33. Comprehensive v2.0 Gap Closure | v2.0 | 0/1 | Not started | - |
 
 ---
