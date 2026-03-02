@@ -101,7 +101,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **UI-02**: All create/ranking actions open modal dialogs (matching TeamCreateModal pattern) — not inline card expand
 - [x] **UI-03**: Settings page renders content sections for all Tier 1+ PMS roles (not just admin/manager) with error fallback UI
 - [x] **UI-04**: Every page has unique purpose — no duplicate data views across departments, role approvals, and dashboard pages
-- [ ] **JOURNEY-01**: E2E user journey folder (e2e-tests/tests/journeys/) with daily-use scenario specs per role (9 specs minimum)
+- [x] **JOURNEY-01**: E2E user journey folder (e2e-tests/tests/journeys/) with daily-use scenario specs per role (9 specs minimum)
 - [ ] **JOURNEY-02**: Production readiness gate passed — Playwright E2E validates every role's onboarding and daily journey
 
 ## v2.1+ Requirements

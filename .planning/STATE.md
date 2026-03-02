@@ -179,11 +179,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 34 of 34 (Municipal Onboarding Production Readiness)
-Plan: 4 of 6 complete
-Status: Phase 34 in progress — Plan 34-04 complete (DepartmentsPage management UI + RoleApprovalsPage action queue)
-Last activity: 2026-03-02 — 34-04 complete: Rebuilt DepartmentsPage with CreateDepartmentModal, green/amber/red activation gates, per-row InviteUserModal for section56_director; rewrote RoleApprovalsPage as SALGA Admin action queue with role/municipality/status/date filters; added pending approvals summary card to SALGAAdminDashboardPage; documented page deduplication across all 16 routes in App.tsx.
+Plan: 5 of 6 complete
+Status: Phase 34 in progress — Plan 34-05 complete (E2E role journey test suite: 9 journey specs for all PMS roles)
+Last activity: 2026-03-02 — 34-05 complete: Created e2e-tests/tests/journeys/ with 9 spec files covering daily workflows for executive_mayor, municipal_manager, cfo, section56_director, pms_officer, salga_admin, admin, 3 oversight roles, and onboarding; added pmsOfficerPage fixture and pms-officer.profile.ts; all specs use auth fixtures and skip gracefully on backend-down.
 
-Progress: [████░░░░░░] 67% (Plan 4/6 of Phase 34 done)
+Progress: [█████░░░░░] 83% (Plan 5/6 of Phase 34 done)
 
 ## Performance Metrics
 
@@ -221,6 +221,7 @@ Progress: [████░░░░░░] 67% (Plan 4/6 of Phase 34 done)
 | Phase 34 P03 | 12 | 2 tasks | 3 files |
 | Phase 34 P04 | 14 | 2 tasks | 5 files |
 | Phase 34 P04 | 850 | 2 tasks | 5 files |
+| Phase 34 P05 | 25 | 2 tasks | 11 files |
 
 ## Accumulated Context
 
@@ -333,6 +334,10 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34]: CreateDepartmentModal supports create/edit mode via optional editDepartment prop — one component, two modes, reduces code duplication
 - [Phase 34]: Pending approvals count in SALGA dashboard is non-blocking — fetch failure does not block benchmarking data from loading
 - [Phase 34]: Page deduplication verified (34-04): all 16 routes documented with unique purposes in App.tsx comment block
+- [Phase 34-05]: Journey spec pattern: try/catch navigation with authTest.skip() on timeout, 60s navigation timeout, 1.5–2s GSAP settle wait, minimum assertion is body.isVisible()
+- [Phase 34-05]: oversight-journey.spec.ts covers 3 roles in one file using separate authTest.describe blocks — journeys overlap significantly
+- [Phase 34-05]: onboarding-journey.spec.ts uses base test (no auth) for public /request-access; adminPage as proxy for authenticated /onboarding wizard
+- [Phase 34-05]: pmsOfficerPage fixture added to auth.ts; pms-officer.profile.ts created — missing profile is required for auth factory pattern
 
 ### Pending Todos
 
@@ -352,5 +357,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 34-04-PLAN.md — DepartmentsPage rebuilt with CreateDepartmentModal + activation gates + InviteUserModal; RoleApprovalsPage rewritten with filter bar; SALGAAdmin pending approvals summary card; page deduplication map documented in App.tsx.
+Stopped at: Completed 34-05-PLAN.md — 9 E2E journey spec files created in e2e-tests/tests/journeys/; pmsOfficerPage fixture + pms-officer.profile.ts added; all specs skip gracefully on backend-down with 60s navigation timeout.
 Resume file: None
