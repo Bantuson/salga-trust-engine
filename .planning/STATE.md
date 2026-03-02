@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-02T19:46:12.447Z"
+progress:
+  total_phases: 8
+  completed_phases: 6
+  total_plans: 33
+  completed_plans: 29
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T19:28:37.373Z"
 progress:
   total_phases: 8
@@ -166,11 +179,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 34 of 34 (Municipal Onboarding Production Readiness)
-Plan: 3 of 6 complete
-Status: Phase 34 in progress — Plan 34-03 complete (PMS onboarding wizard + InviteUserModal)
-Last activity: 2026-03-02 — 34-03 complete: Refactored OnboardingWizardPage to 6-step PMS wizard (welcome/departments/invite-tier1/invite-directors/sla-config/pms-gate); enhanced RequestAccessPage with demarcation code, category, MM details; created reusable InviteUserModal component with role filtering.
+Plan: 4 of 6 complete
+Status: Phase 34 in progress — Plan 34-04 complete (DepartmentsPage management UI + RoleApprovalsPage action queue)
+Last activity: 2026-03-02 — 34-04 complete: Rebuilt DepartmentsPage with CreateDepartmentModal, green/amber/red activation gates, per-row InviteUserModal for section56_director; rewrote RoleApprovalsPage as SALGA Admin action queue with role/municipality/status/date filters; added pending approvals summary card to SALGAAdminDashboardPage; documented page deduplication across all 16 routes in App.tsx.
 
-Progress: [███░░░░░░░] 50% (Plan 3/6 of Phase 34 done)
+Progress: [████░░░░░░] 67% (Plan 4/6 of Phase 34 done)
 
 ## Performance Metrics
 
@@ -206,6 +219,8 @@ Progress: [███░░░░░░░] 50% (Plan 3/6 of Phase 34 done)
 | Phase 34 P01 | 20 | 3 tasks | 15 files |
 | Phase 34 P02 | 22 | 2 tasks | 6 files |
 | Phase 34 P03 | 12 | 2 tasks | 3 files |
+| Phase 34 P04 | 14 | 2 tasks | 5 files |
+| Phase 34 P04 | 850 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -315,6 +330,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34-02]: expandedMunicipality inline row replaced with selectedMunicipality + MunicipalityDetailModal in SALGAAdminDashboardPage
 - [Phase 34]: InviteUserModal: allowedRoles prop filters from ALL_INVITABLE_ROLES; field_worker and saps_liaison explicitly excluded
 - [Phase 34]: [Phase 34-03]: OnboardingWizardPage complete rewrite with 6-step PMS flow; old v1.0 step components remain on disk but are unused
+- [Phase 34]: CreateDepartmentModal supports create/edit mode via optional editDepartment prop — one component, two modes, reduces code duplication
+- [Phase 34]: Pending approvals count in SALGA dashboard is non-blocking — fetch failure does not block benchmarking data from loading
+- [Phase 34]: Page deduplication verified (34-04): all 16 routes documented with unique purposes in App.tsx comment block
 
 ### Pending Todos
 
@@ -334,5 +352,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 33-01-PLAN.md Tasks 1+2 — BUG-1 fixed (MM submit_for_review), PMS readiness gate on 4 role dashboard endpoints, DepartmentsPage + RoleApprovalsPage created, 4 routes registered. Checkpoint:human-verify reached — waiting for user to verify 4 new frontend routes render correctly.
+Stopped at: Completed 34-04-PLAN.md — DepartmentsPage rebuilt with CreateDepartmentModal + activation gates + InviteUserModal; RoleApprovalsPage rewritten with filter bar; SALGAAdmin pending approvals summary card; page deduplication map documented in App.tsx.
 Resume file: None
