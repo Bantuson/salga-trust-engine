@@ -32,6 +32,14 @@ import { profile as managerPretoria } from '../profiles/municipal/manager-pretor
 import { profile as fieldWorker } from '../profiles/municipal/field-worker.profile.js';
 import { profile as sapsLiaison } from '../profiles/municipal/saps-liaison.profile.js';
 import { profile as wardCouncillor } from '../profiles/municipal/ward-councillor.profile.js';
+import { profile as cfo } from '../profiles/municipal/cfo.profile.js';
+import { profile as municipalManager } from '../profiles/municipal/municipal-manager.profile.js';
+import { profile as executiveMayor } from '../profiles/municipal/executive-mayor.profile.js';
+import { profile as auditCommittee } from '../profiles/municipal/audit-committee.profile.js';
+import { profile as internalAuditor } from '../profiles/municipal/internal-auditor.profile.js';
+import { profile as mpacMember } from '../profiles/municipal/mpac-member.profile.js';
+import { profile as salgaAdmin } from '../profiles/municipal/salga-admin.profile.js';
+import { profile as section56Director } from '../profiles/municipal/section56-director.profile.js';
 
 /**
  * Auth fixtures interface
@@ -51,6 +59,16 @@ interface AuthFixtures {
   fieldWorkerPage: Page;
   sapsLiaisonPage: Page;
   wardCouncillorPage: Page;
+
+  // PMS v2 role fixtures (Phase 31)
+  cfoPage: Page;
+  municipalManagerPage: Page;
+  executiveMayorPage: Page;
+  auditCommitteePage: Page;
+  internalAuditorPage: Page;
+  mpacMemberPage: Page;
+  salgaAdminPage: Page;
+  section56DirectorPage: Page;
 }
 
 /**
@@ -249,6 +267,63 @@ export const test = base.extend<AuthFixtures>({
   wardCouncillorPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, wardCouncillor);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  // PMS v2 role fixtures (Phase 31)
+  cfoPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, cfo);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  municipalManagerPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, municipalManager);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  executiveMayorPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, executiveMayor);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  auditCommitteePage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, auditCommittee);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  internalAuditorPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, internalAuditor);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  mpacMemberPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, mpacMember);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  salgaAdminPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, salgaAdmin);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  section56DirectorPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, section56Director);
     await use(page);
     await teardownPage(page, context);
   },

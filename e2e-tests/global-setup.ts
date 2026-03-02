@@ -27,6 +27,14 @@ import { profile as managerPretoria } from './profiles/municipal/manager-pretori
 import { profile as fieldWorker } from './profiles/municipal/field-worker.profile.js';
 import { profile as sapsLiaison } from './profiles/municipal/saps-liaison.profile.js';
 import { profile as wardCouncillor } from './profiles/municipal/ward-councillor.profile.js';
+import { profile as cfo } from './profiles/municipal/cfo.profile.js';
+import { profile as municipalManager } from './profiles/municipal/municipal-manager.profile.js';
+import { profile as executiveMayor } from './profiles/municipal/executive-mayor.profile.js';
+import { profile as auditCommittee } from './profiles/municipal/audit-committee.profile.js';
+import { profile as internalAuditor } from './profiles/municipal/internal-auditor.profile.js';
+import { profile as mpacMember } from './profiles/municipal/mpac-member.profile.js';
+import { profile as salgaAdmin } from './profiles/municipal/salga-admin.profile.js';
+import { profile as section56Director } from './profiles/municipal/section56-director.profile.js';
 
 // Load .env.test
 const __filename = fileURLToPath(import.meta.url);
@@ -95,6 +103,14 @@ async function globalSetup() {
       fieldWorker,
       sapsLiaison,
       wardCouncillor,
+      cfo,
+      municipalManager,
+      executiveMayor,
+      auditCommittee,
+      internalAuditor,
+      mpacMember,
+      salgaAdmin,
+      section56Director,
     ];
 
     for (const profile of allProfiles) {
