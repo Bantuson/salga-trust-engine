@@ -794,3 +794,66 @@ export async function assignTicketRole(
     throw error;
   }
 }
+
+// ---------------------------------------------------------------------------
+// Role-Specific Dashboard API (Phase 31)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch CFO dashboard data.
+ * Returns: budget_execution, sdbip_achievement_summary, service_delivery_correlation, statutory_deadlines, variance_alerts
+ */
+export async function fetchCFODashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/cfo', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`CFO dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch Municipal Manager dashboard data.
+ * Returns: departments array with KPI distribution and achievement averages
+ */
+export async function fetchMMDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/municipal-manager', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Municipal Manager dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Fetch Mayor dashboard data.
+ * Returns: organizational_scorecard, sdbip_scorecards
+ */
+export async function fetchMayorDashboard(token: string): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/mayor', {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Mayor dashboard fetch failed: ${res.status}`);
+  return res.json();
+}
+
+/**
+ * Approve an SDBIP scorecard (Mayor action).
+ */
+export async function approveSdbip(
+  token: string,
+  scorecardId: string,
+  comment?: string
+): Promise<any> {
+  const res = await fetch('/api/v1/role-dashboards/mayor/approve-sdbip', {
+    method: 'POST',
+    headers: {
+      Authorization: `Bearer ${token}`,
+      'Content-Type': 'application/json',
+    },
+    body: JSON.stringify({ scorecard_id: scorecardId, comment }),
+  });
+  if (!res.ok) {
+    const body = await res.json().catch(() => ({}));
+    throw new Error(body?.detail || `SDBIP approval failed: ${res.status}`);
+  }
+  return res.json();
+}
