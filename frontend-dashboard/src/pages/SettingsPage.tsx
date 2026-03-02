@@ -49,10 +49,20 @@ const ALL_NAV_ITEMS: NavItem[] = [
 export function SettingsPage() {
   const { getUserRole } = useAuth();
   const role = getUserRole();
-  const isAdmin = role === 'admin';
-  const isManager = role === 'manager' || role === 'admin';
 
-  const { slaConfigs, municipalityProfile, isLoading, updateSLA, updateProfile } = useSettings();
+  const ADMIN_ROLES = ['admin', 'salga_admin'];
+  const MANAGER_ROLES = [
+    'admin', 'salga_admin', 'manager', 'municipal_manager',
+    'executive_mayor', 'cfo', 'speaker', 'pms_officer',
+    'section56_director', 'department_manager',
+  ];
+  const isAdmin = ADMIN_ROLES.includes(role);
+  const isManager = MANAGER_ROLES.includes(role);
+
+  const { slaConfigs, municipalityProfile, isLoading, error: settingsError, updateSLA, updateProfile } = useSettings();
+
+  // Treat any settings hook error as a load error for UI purposes
+  const loadError = settingsError;
 
   // Active anchor tracking via IntersectionObserver
   const [activeSection, setActiveSection] = useState<string>('municipality-profile');
@@ -136,6 +146,26 @@ export function SettingsPage() {
 
   return (
     <div>
+      {/* Page header row — aligns with notification bell (48px height) */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '48px',
+        padding: 'var(--space-md) 0',
+        marginBottom: 'var(--space-sm)',
+      }}>
+        <h1 style={{
+          fontSize: '1.875rem',
+          fontWeight: 700,
+          color: 'var(--text-primary)',
+          margin: 0,
+          fontFamily: 'var(--font-display)',
+        }}>
+          Settings
+        </h1>
+      </div>
+
       {/* Anchor navigation — full width, flush at top */}
       <nav style={styles.anchorNav} aria-label="Settings sections">
         <div style={styles.navInner}>
@@ -161,6 +191,20 @@ export function SettingsPage() {
       {/* Sections */}
       <div style={styles.container}>
       <div style={styles.sections}>
+        {/* Error banner — shown when settings API calls fail */}
+        {loadError && (
+          <div style={{
+            padding: 'var(--space-md)',
+            background: 'rgba(239, 68, 68, 0.1)',
+            border: '1px solid rgba(239, 68, 68, 0.3)',
+            borderRadius: 'var(--radius-md)',
+            color: 'var(--text-secondary)',
+            marginBottom: 'var(--space-lg)',
+          }}>
+            Some settings could not be loaded. Displaying available configuration.
+          </div>
+        )}
+
         {isLoading ? (
           // Loading skeletons
           Array.from({ length: 3 }).map((_, i) => (
