@@ -1232,3 +1232,73 @@ class TestGenerateEndpointRejectsIncomplete422:
         assert exc.status_code == 422
         assert "missing_items" in exc.detail
         assert len(exc.detail["missing_items"]) > 0
+
+
+# ---------------------------------------------------------------------------
+# Test 24: BUG-1 fix — MUNICIPAL_MANAGER can submit_for_review (REPORT-05)
+# ---------------------------------------------------------------------------
+
+
+class TestMunicipalManagerSubmitForReview:
+    """MUNICIPAL_MANAGER must be able to call submit_for_review (BUG-1 fix).
+
+    Before BUG-1 was fixed, MUNICIPAL_MANAGER was missing from the
+    _TRANSITION_ROLES['submit_for_review'] set, causing a 403 when MM
+    tried to submit a draft report for internal review.
+    """
+
+    async def test_municipal_manager_can_submit_for_review(self, db_session: AsyncSession):
+        """MUNICIPAL_MANAGER can transition a drafting report to internal_review."""
+        service = StatutoryReportService()
+        tenant_id = str(uuid4())
+        mm_user = _make_mm(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            # Create a report in drafting state (admin creates it, so any role works here)
+            admin_user = _make_admin(tenant_id=tenant_id)
+            data = StatutoryReportCreate(
+                report_type=ReportType.SECTION_52,
+                financial_year="2025/26",
+                quarter="Q1",
+                title="Q1 2025/26 S52 Report",
+            )
+            report = await service.create_report(data, admin_user, db_session)
+
+            # MUNICIPAL_MANAGER calls submit_for_review — must NOT raise 403
+            report = await service.transition_report(
+                report.id, "submit_for_review", mm_user, db_session
+            )
+        finally:
+            clear_tenant_context()
+
+        assert report.status == ReportStatus.INTERNAL_REVIEW, (
+            f"Expected 'internal_review' after submit_for_review, got '{report.status}'. "
+            "MUNICIPAL_MANAGER is missing from _TRANSITION_ROLES['submit_for_review'] (BUG-1)."
+        )
+
+    async def test_pms_officer_can_submit_for_review_still_works(self, db_session: AsyncSession):
+        """PMS_OFFICER submit_for_review still works after BUG-1 fix (regression guard)."""
+        service = StatutoryReportService()
+        tenant_id = str(uuid4())
+        pms_user = _make_pms_officer(tenant_id=tenant_id)
+        admin_user = _make_admin(tenant_id=tenant_id)
+
+        set_tenant_context(tenant_id)
+        try:
+            data = StatutoryReportCreate(
+                report_type=ReportType.SECTION_72,
+                financial_year="2025/26",
+                quarter=None,
+                title="Mid-Year 2025/26 Report",
+            )
+            report = await service.create_report(data, admin_user, db_session)
+
+            # PMS_OFFICER — existing behaviour must be preserved
+            report = await service.transition_report(
+                report.id, "submit_for_review", pms_user, db_session
+            )
+        finally:
+            clear_tenant_context()
+
+        assert report.status == ReportStatus.INTERNAL_REVIEW

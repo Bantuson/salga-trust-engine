@@ -33,6 +33,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_db, require_role
 from src.models.user import User, UserRole
+from src.services.pms_readiness import require_pms_ready
 from src.services.role_dashboard_service import RoleDashboardService
 
 logger = logging.getLogger(__name__)
@@ -82,7 +83,7 @@ class FlagInvestigationRequest(BaseModel):
 # ---------------------------------------------------------------------------
 
 
-@router.get("/cfo")
+@router.get("/cfo", dependencies=[Depends(require_pms_ready())])
 async def get_cfo_dashboard(
     current_user: User = Depends(
         require_role(UserRole.CFO, UserRole.ADMIN, UserRole.SALGA_ADMIN)
@@ -94,6 +95,7 @@ async def get_cfo_dashboard(
 
     Allowed roles: CFO, ADMIN, SALGA_ADMIN.
     Returns 403 for all other roles.
+    Returns 403 PMS_NOT_READY if PMS configuration is incomplete.
     """
     return await _service.get_cfo_dashboard(
         tenant_id=current_user.tenant_id,
@@ -106,7 +108,7 @@ async def get_cfo_dashboard(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/municipal-manager")
+@router.get("/municipal-manager", dependencies=[Depends(require_pms_ready())])
 async def get_mm_dashboard(
     current_user: User = Depends(
         require_role(
@@ -119,6 +121,7 @@ async def get_mm_dashboard(
 
     Allowed roles: MUNICIPAL_MANAGER, ADMIN, SALGA_ADMIN.
     Returns 403 for all other roles.
+    Returns 403 PMS_NOT_READY if PMS configuration is incomplete.
     """
     return await _service.get_mm_dashboard(
         tenant_id=current_user.tenant_id,
@@ -131,7 +134,7 @@ async def get_mm_dashboard(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/mayor")
+@router.get("/mayor", dependencies=[Depends(require_pms_ready())])
 async def get_mayor_dashboard(
     current_user: User = Depends(
         require_role(
@@ -144,6 +147,7 @@ async def get_mayor_dashboard(
 
     Allowed roles: EXECUTIVE_MAYOR, ADMIN, SALGA_ADMIN.
     Returns 403 for all other roles.
+    Returns 403 PMS_NOT_READY if PMS configuration is incomplete.
     """
     return await _service.get_mayor_dashboard(
         tenant_id=current_user.tenant_id,
@@ -436,7 +440,7 @@ async def export_salga_admin_csv(
 # ---------------------------------------------------------------------------
 
 
-@router.get("/section56-director")
+@router.get("/section56-director", dependencies=[Depends(require_pms_ready())])
 async def get_section56_director_dashboard(
     current_user: User = Depends(
         require_role(
@@ -452,6 +456,7 @@ async def get_section56_director_dashboard(
 
     Allowed roles: SECTION56_DIRECTOR, ADMIN, SALGA_ADMIN.
     Returns 403 for all other roles.
+    Returns 403 PMS_NOT_READY if PMS configuration is incomplete.
     """
     return await _service.get_section56_director_dashboard(
         current_user=current_user,

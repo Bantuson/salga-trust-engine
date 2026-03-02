@@ -279,6 +279,9 @@ async def test_cfo_endpoint_403_for_pms_officer(db_session: AsyncSession):
 
     Uses dependency_overrides to inject a PMS officer user directly,
     bypassing the JWT+DB lookup layer to test the role gate in isolation.
+
+    X-Tenant-ID header is sent so TenantContextMiddleware sets tenant context
+    before require_pms_ready() queries the DB (added in Phase 33-01).
     """
     from fastapi.testclient import TestClient
     from src.main import app
@@ -292,7 +295,10 @@ async def test_cfo_endpoint_403_for_pms_officer(db_session: AsyncSession):
 
     try:
         with TestClient(app, raise_server_exceptions=False) as client:
-            response = client.get("/api/v1/role-dashboards/cfo")
+            response = client.get(
+                "/api/v1/role-dashboards/cfo",
+                headers={"X-Tenant-ID": TEST_TENANT},
+            )
     finally:
         app.dependency_overrides = original_override
 
@@ -929,3 +935,176 @@ async def test_section56_no_department(db_session: AsyncSession):
 
     assert result["empty_state"] is True
     assert "message" in result
+
+
+# ---------------------------------------------------------------------------
+# PMS readiness gate tests — tenant-specific dashboards (DASH-01..03, DASH-09)
+# ---------------------------------------------------------------------------
+
+
+class TestRoleDashboardPmsGate:
+    """Role dashboard endpoints for tenant-specific roles must enforce PMS readiness.
+
+    In a fresh SQLite test DB there is no Municipality with settings_locked=True,
+    no departments with directors, and no PMS officer assignments — so PMS is NOT
+    ready. The require_pms_ready() dependency must return 403 with PMS_NOT_READY.
+
+    Uses app.dependency_overrides[get_current_user] to inject mock users per the
+    Phase 31 RBAC 403 test pattern — avoids JWT+DB lookup 500 errors in SQLite.
+    """
+
+    async def test_cfo_dashboard_requires_pms_ready(self, db_session: AsyncSession):
+        """GET /role-dashboards/cfo returns 403 with PMS_NOT_READY when PMS not configured.
+
+        X-Tenant-ID header is sent so TenantContextMiddleware sets tenant context before
+        the require_pms_ready() dependency queries the DB — same pattern needed for any
+        dependency that queries the DB using the ORM tenant filter.
+        """
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        cfo_user = _make_user(UserRole.CFO, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: cfo_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/cfo",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 403, (
+            f"Expected 403 (PMS_NOT_READY) for CFO on /cfo, got {response.status_code}. "
+            "Add require_pms_ready() dependency to @router.get('/cfo')."
+        )
+        body = response.json()
+        assert body.get("detail", {}).get("code") == "PMS_NOT_READY", (
+            f"Expected detail.code='PMS_NOT_READY', got: {body}"
+        )
+
+    async def test_mm_dashboard_requires_pms_ready(self, db_session: AsyncSession):
+        """GET /role-dashboards/municipal-manager returns 403 when PMS not configured."""
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        mm_user = _make_user(UserRole.MUNICIPAL_MANAGER, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: mm_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/municipal-manager",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 403, (
+            f"Expected 403 (PMS_NOT_READY) for MM on /municipal-manager, got {response.status_code}."
+        )
+
+    async def test_mayor_dashboard_requires_pms_ready(self, db_session: AsyncSession):
+        """GET /role-dashboards/mayor returns 403 when PMS not configured."""
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        mayor_user = _make_user(UserRole.EXECUTIVE_MAYOR, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: mayor_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/mayor",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 403, (
+            f"Expected 403 (PMS_NOT_READY) for Mayor on /mayor, got {response.status_code}."
+        )
+
+    async def test_section56_director_dashboard_requires_pms_ready(self, db_session: AsyncSession):
+        """GET /role-dashboards/section56-director returns 403 when PMS not configured."""
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        director_user = _make_user(UserRole.SECTION56_DIRECTOR, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: director_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/section56-director",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 403, (
+            f"Expected 403 (PMS_NOT_READY) for Section56Director on /section56-director, "
+            f"got {response.status_code}."
+        )
+
+    async def test_councillor_dashboard_no_pms_gate(self, db_session: AsyncSession):
+        """GET /role-dashboards/councillor returns 200 (NOT 403) — oversight, no PMS gate."""
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        councillor_user = _make_user(UserRole.WARD_COUNCILLOR, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: councillor_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/councillor",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 200, (
+            f"Expected 200 for councillor on /councillor (no PMS gate), got {response.status_code}. "
+            "Oversight endpoints must NOT require PMS readiness."
+        )
+
+    async def test_salga_admin_dashboard_no_pms_gate(self, db_session: AsyncSession):
+        """GET /role-dashboards/salga-admin returns 200 — cross-tenant, no PMS gate."""
+        from fastapi.testclient import TestClient
+        from src.main import app
+        from src.api.deps import get_current_user
+
+        salga_user = _make_user(UserRole.SALGA_ADMIN, TEST_TENANT)
+
+        original_override = app.dependency_overrides.copy()
+        app.dependency_overrides[get_current_user] = lambda: salga_user
+
+        try:
+            with TestClient(app, raise_server_exceptions=False) as client:
+                response = client.get(
+                    "/api/v1/role-dashboards/salga-admin",
+                    headers={"X-Tenant-ID": TEST_TENANT},
+                )
+        finally:
+            app.dependency_overrides = original_override
+
+        assert response.status_code == 200, (
+            f"Expected 200 for salga_admin on /salga-admin (no PMS gate), got {response.status_code}."
+        )

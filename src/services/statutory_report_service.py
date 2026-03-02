@@ -61,6 +61,7 @@ _TRANSITION_ROLES: dict[str, set[str]] = {
         UserRole.PMS_OFFICER,
         UserRole.DEPARTMENT_MANAGER,
         UserRole.CFO,
+        UserRole.MUNICIPAL_MANAGER,  # ADDED — was missing, caused 403 for MM (BUG-1 / REPORT-05)
         UserRole.ADMIN,
         UserRole.SALGA_ADMIN,
     },
