@@ -144,13 +144,13 @@ Plans:
   3. Executive Mayor can view the organizational scorecard and approve the SDBIP via a dashboard action
   4. Audit Committee members can review all performance reports and access the full audit trail; Internal Auditors can verify portfolio of evidence for any KPI; MPAC members can view performance reports and flag investigation requests — each in a read-only role-scoped view
   5. SALGA Admin can view cross-municipality benchmarking data with de-identified aggregations, and Section 56 Directors can manage their own department's KPIs from a department-scoped view
-**Plans**: TBD
+**Plans**: 4 plans
 
 Plans:
-- [ ] 31-01: CFO dashboard API routes and React page — budget execution, SDBIP achievement summary, service delivery correlation, statutory deadline calendar (DASH-01, DASH-02, DASH-03, DASH-04)
-- [ ] 31-02: Municipal Manager dashboard — all-department overview, KPI drill-down; Executive Mayor dashboard — organizational scorecard and SDBIP approval (DASH-05, DASH-06)
-- [ ] 31-03: Oversight dashboards — Audit Committee (report review + audit trail), Internal Auditor (POE verification), MPAC (investigation requests), Councillor (read-only reports) (DASH-07, DASH-08, DASH-09, DASH-10)
-- [ ] 31-04: SALGA Admin cross-municipality benchmarking view (de-identified aggregations); Section 56 Director department-scoped dashboard (DASH-11, DASH-12)
+- [ ] 31-01-PLAN.md — Backend: RoleDashboardService (12 methods), role_dashboards.py API (13 endpoints), EvidenceDocument verification_status migration, unit tests [Wave 1] (DASH-01 through DASH-12)
+- [ ] 31-02-PLAN.md — Frontend: ViewRoleContext, RoleBasedDashboard router for all 12 PMS roles, CFODashboardPage, MunicipalManagerDashboardPage, MayorDashboardPage with SDBIP approval [Wave 2] (DASH-01 through DASH-06)
+- [ ] 31-03-PLAN.md — Frontend: OversightDashboardPage for Councillor (read-only), Audit Committee (reports + audit trail), Internal Auditor (POE verification workqueue), MPAC (investigation flags) [Wave 3] (DASH-07 through DASH-10)
+- [ ] 31-04-PLAN.md — Frontend: SALGAAdminDashboardPage (cross-municipality benchmarking + CSV export), Section56DirectorDashboardPage (department-scoped KPIs) [Wave 3] (DASH-11, DASH-12)
 
 ### Phase 32: Risk Register & Public Transparency
 **Goal**: Authorized staff can maintain a risk register linked to SDBIP KPIs (with auto-flagging when KPIs turn red), and the public dashboard shows plain-language SDBIP achievement data
