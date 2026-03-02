@@ -26,6 +26,7 @@ from src.api.v1 import (
     pa,
     public,
     reports,
+    role_dashboards,
     roles,
     sdbip,
     settings as settings_api,
@@ -152,3 +153,6 @@ app.include_router(pa.router)
 app.include_router(statutory_reports.router)
 # Phase 30 routers: In-app notifications
 app.include_router(notifications.router)
+
+# Phase 31 routers: Role-specific dashboard endpoints
+app.include_router(role_dashboards.router, prefix="/api/v1")
