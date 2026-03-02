@@ -128,7 +128,14 @@ export function RoleApprovalsPage() {
   return (
     <div style={{ padding: 'var(--space-lg)', maxWidth: '900px' }}>
       {/* Header */}
-      <div style={{ marginBottom: 'var(--space-lg)' }}>
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        minHeight: '48px',
+        padding: 'var(--space-md) 0',
+        marginBottom: 'var(--space-lg)',
+      }}>
         <h1 style={{
           fontSize: 'var(--text-2xl)',
           fontWeight: 700,

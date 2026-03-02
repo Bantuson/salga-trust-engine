@@ -185,6 +185,8 @@ const styles: Record<string, React.CSSProperties> = {
     justifyContent: 'space-between',
     gap: 'var(--space-md)',
     flexWrap: 'wrap' as const,
+    minHeight: '48px',
+    paddingTop: 'var(--space-md)',
   },
   content: {
     width: '100%',

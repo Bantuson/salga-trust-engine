@@ -336,6 +336,8 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: '48px',
+    padding: 'var(--space-md) 0',
     marginBottom: '1.5rem',
   },
   title: {
