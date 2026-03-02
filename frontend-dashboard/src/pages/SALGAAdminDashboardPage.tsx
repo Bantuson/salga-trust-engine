@@ -4,13 +4,13 @@
  * Sections:
  * 1. Page header with Refresh + Export CSV buttons
  * 2. Summary cards: Total Municipalities, Avg KPI Achievement, Avg Ticket Resolution, Avg SLA Compliance
- * 3. Municipality Performance Ranking table (ranked, clickable drill-down)
- * 4. Inline municipality detail panel (expands below clicked row)
+ * 3. Municipality Performance Ranking table (ranked, clickable — opens detail modal)
+ * 4. MunicipalityDetailModal for drill-down (replaces inline row expand)
  *
  * Data source: GET /api/v1/role-dashboards/salga-admin
  * CSV export: GET /api/v1/role-dashboards/salga-admin/export-csv (fetch-blob pattern)
  * Decision: CSS variables, no Tailwind (Phase 27-03 lock)
- * Decision: Click row expands inline detail panel (same pattern as Internal Auditor)
+ * Decision: Click row opens MunicipalityDetailModal (Phase 34-02 change — was inline expand)
  * Requirement: DASH-11
  */
 
@@ -22,6 +22,7 @@ import { mockSALGAAdminDashboard } from '../mocks/mockRoleDashboards';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
+import { MunicipalityDetailModal, type MunicipalityData } from '../components/salga/MunicipalityDetailModal';
 
 // Helper: derive traffic light status from achievement percentage
 function achievementStatus(pct: number): 'green' | 'amber' | 'red' {
@@ -44,7 +45,7 @@ export function SALGAAdminDashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [expandedMunicipality, setExpandedMunicipality] = useState<string | null>(null);
+  const [selectedMunicipality, setSelectedMunicipality] = useState<MunicipalityData | null>(null);
   const [exporting, setExporting] = useState(false);
 
   const loadData = useCallback(async () => {
@@ -78,8 +79,8 @@ export function SALGAAdminDashboardPage() {
     }
   };
 
-  const handleRowClick = (municipalityId: string) => {
-    setExpandedMunicipality(expandedMunicipality === municipalityId ? null : municipalityId);
+  const handleRowClick = (municipality: any) => {
+    setSelectedMunicipality(municipality as MunicipalityData);
   };
 
   // ---- Loading skeleton ----
@@ -255,6 +256,7 @@ export function SALGAAdminDashboardPage() {
       {/* Municipality Performance Ranking Table */}
       <GlassCard style={styles.tableCard}>
         <h2 style={styles.sectionTitle}>Municipality Performance Ranking</h2>
+        <p style={styles.tableHint}>Click a row to view municipality detail</p>
         <div style={styles.tableWrapper}>
           <table style={styles.table}>
             <thead>
@@ -274,173 +276,84 @@ export function SALGAAdminDashboardPage() {
                 const kpiPct = Number(m.kpi_achievement_avg ?? 0);
                 const kpiStatus = achievementStatus(kpiPct);
                 const kpiColor = trafficLightColor(kpiStatus);
-                const isExpanded = expandedMunicipality === m.id;
 
                 return (
-                  <>
-                    <tr
-                      key={`row-${m.id}`}
-                      style={{
-                        ...styles.tr,
-                        background: isExpanded ? 'rgba(255,255,255,0.06)' : 'transparent',
-                      }}
-                      onClick={() => handleRowClick(m.id)}
-                      onMouseEnter={(e) => {
-                        if (!isExpanded) {
-                          (e.currentTarget as HTMLTableRowElement).style.background =
-                            'rgba(255,255,255,0.04)';
-                        }
-                      }}
-                      onMouseLeave={(e) => {
-                        if (!isExpanded) {
-                          (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
-                        }
-                      }}
-                    >
-                      <td style={{ ...styles.td, textAlign: 'center', color: 'var(--text-muted)' }}>
-                        {idx + 1}
-                      </td>
-                      <td style={styles.td}>
-                        <span style={styles.muniName}>{m.name}</span>
-                      </td>
-                      <td style={{ ...styles.td, color: 'var(--text-secondary)' }}>
-                        {m.category ?? '—'}
-                      </td>
-                      <td style={{ ...styles.td, color: 'var(--text-secondary)' }}>
-                        {m.province ?? '—'}
-                      </td>
-                      <td style={{ ...styles.td, textAlign: 'right' }}>
-                        <span
-                          style={{
-                            display: 'inline-block',
-                            padding: '3px 10px',
-                            borderRadius: 'var(--radius-sm)',
-                            background: `${kpiColor}22`,
-                            border: `1px solid ${kpiColor}66`,
-                            color: kpiColor,
-                            fontWeight: 600,
-                            fontSize: 'var(--text-sm)',
-                          }}
-                        >
-                          {kpiPct.toFixed(1)}%
+                  <tr
+                    key={m.id}
+                    style={styles.tr}
+                    onClick={() => handleRowClick(m)}
+                    onMouseEnter={(e) => {
+                      (e.currentTarget as HTMLTableRowElement).style.background =
+                        'rgba(255,255,255,0.06)';
+                    }}
+                    onMouseLeave={(e) => {
+                      (e.currentTarget as HTMLTableRowElement).style.background = 'transparent';
+                    }}
+                  >
+                    <td style={{ ...styles.td, textAlign: 'center', color: 'var(--text-muted)' }}>
+                      {idx + 1}
+                    </td>
+                    <td style={styles.td}>
+                      <span style={styles.muniName}>{m.name}</span>
+                    </td>
+                    <td style={{ ...styles.td, color: 'var(--text-secondary)' }}>
+                      {m.category ?? '—'}
+                    </td>
+                    <td style={{ ...styles.td, color: 'var(--text-secondary)' }}>
+                      {m.province ?? '—'}
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'right' }}>
+                      <span
+                        style={{
+                          display: 'inline-block',
+                          padding: '3px 10px',
+                          borderRadius: 'var(--radius-sm)',
+                          background: `${kpiColor}22`,
+                          border: `1px solid ${kpiColor}66`,
+                          color: kpiColor,
+                          fontWeight: 600,
+                          fontSize: 'var(--text-sm)',
+                        }}
+                      >
+                        {kpiPct.toFixed(1)}%
+                      </span>
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'right', color: 'var(--text-primary)' }}>
+                      {Number(m.ticket_resolution_rate ?? 0).toFixed(1)}%
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'right', color: 'var(--text-primary)' }}>
+                      {Number(m.sla_compliance ?? 0).toFixed(1)}%
+                    </td>
+                    <td style={{ ...styles.td, textAlign: 'center' }}>
+                      <span style={styles.kpiDots}>
+                        <span style={{ color: 'var(--color-teal)', fontWeight: 700 }}>
+                          {m.green_count ?? 0}G
                         </span>
-                      </td>
-                      <td style={{ ...styles.td, textAlign: 'right', color: 'var(--text-primary)' }}>
-                        {Number(m.ticket_resolution_rate ?? 0).toFixed(1)}%
-                      </td>
-                      <td style={{ ...styles.td, textAlign: 'right', color: 'var(--text-primary)' }}>
-                        {Number(m.sla_compliance ?? 0).toFixed(1)}%
-                      </td>
-                      <td style={{ ...styles.td, textAlign: 'center' }}>
-                        <span style={styles.kpiDots}>
-                          <span style={{ color: 'var(--color-teal)', fontWeight: 700 }}>
-                            {m.green_count ?? 0}G
-                          </span>
-                          {' '}
-                          <span style={{ color: 'var(--color-gold)', fontWeight: 700 }}>
-                            {m.amber_count ?? 0}A
-                          </span>
-                          {' '}
-                          <span style={{ color: 'var(--color-coral)', fontWeight: 700 }}>
-                            {m.red_count ?? 0}R
-                          </span>
+                        {' '}
+                        <span style={{ color: 'var(--color-gold)', fontWeight: 700 }}>
+                          {m.amber_count ?? 0}A
                         </span>
-                      </td>
-                    </tr>
-
-                    {/* Inline detail panel */}
-                    {isExpanded && (
-                      <tr key={`detail-${m.id}`}>
-                        <td colSpan={8} style={styles.detailCell}>
-                          <div style={styles.detailPanel}>
-                            <div style={styles.detailHeader}>
-                              <div>
-                                <span style={styles.detailMuniName}>{m.name}</span>
-                                {m.category && (
-                                  <span style={styles.detailBadge}>{m.category}</span>
-                                )}
-                                {m.province && (
-                                  <span style={{ ...styles.detailBadge, marginLeft: '0.25rem' }}>
-                                    {m.province}
-                                  </span>
-                                )}
-                              </div>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => setExpandedMunicipality(null)}
-                              >
-                                Close
-                              </Button>
-                            </div>
-                            <div style={styles.detailContent}>
-                              {/* Left: KPI Performance Summary */}
-                              <div style={styles.detailSection}>
-                                <h4 style={styles.detailSectionTitle}>KPI Performance Summary</h4>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>Total KPIs</span>
-                                  <span style={styles.detailValue}>{m.total_kpis ?? 0}</span>
-                                </div>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>On Track (Green)</span>
-                                  <span style={{ ...styles.detailValue, color: 'var(--color-teal)' }}>
-                                    {m.green_count ?? 0}
-                                  </span>
-                                </div>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>At Risk (Amber)</span>
-                                  <span style={{ ...styles.detailValue, color: 'var(--color-gold)' }}>
-                                    {m.amber_count ?? 0}
-                                  </span>
-                                </div>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>Off Track (Red)</span>
-                                  <span style={{ ...styles.detailValue, color: 'var(--color-coral)' }}>
-                                    {m.red_count ?? 0}
-                                  </span>
-                                </div>
-                                <div style={{ ...styles.detailRow, marginTop: '0.5rem' }}>
-                                  <span style={styles.detailLabel}>Overall Achievement</span>
-                                  <span
-                                    style={{
-                                      ...styles.detailValue,
-                                      color: trafficLightColor(achievementStatus(kpiPct)),
-                                      fontWeight: 700,
-                                    }}
-                                  >
-                                    {kpiPct.toFixed(1)}%
-                                  </span>
-                                </div>
-                              </div>
-
-                              {/* Right: Service Delivery Summary */}
-                              <div style={styles.detailSection}>
-                                <h4 style={styles.detailSectionTitle}>Service Delivery Summary</h4>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>Ticket Resolution Rate</span>
-                                  <span style={styles.detailValue}>
-                                    {Number(m.ticket_resolution_rate ?? 0).toFixed(1)}%
-                                  </span>
-                                </div>
-                                <div style={styles.detailRow}>
-                                  <span style={styles.detailLabel}>SLA Compliance</span>
-                                  <span style={styles.detailValue}>
-                                    {Number(m.sla_compliance ?? 0).toFixed(1)}%
-                                  </span>
-                                </div>
-                              </div>
-                            </div>
-                          </div>
-                        </td>
-                      </tr>
-                    )}
-                  </>
+                        {' '}
+                        <span style={{ color: 'var(--color-coral)', fontWeight: 700 }}>
+                          {m.red_count ?? 0}R
+                        </span>
+                      </span>
+                    </td>
+                  </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
       </GlassCard>
+
+      {/* Municipality detail modal */}
+      {selectedMunicipality && (
+        <MunicipalityDetailModal
+          municipality={selectedMunicipality}
+          onClose={() => setSelectedMunicipality(null)}
+        />
+      )}
     </div>
   );
 }
@@ -503,7 +416,14 @@ const styles: Record<string, React.CSSProperties> = {
     fontWeight: 600,
     color: 'var(--text-primary)',
     fontFamily: 'var(--font-display)',
+    marginBottom: '0.25rem',
+  },
+  tableHint: {
+    fontSize: 'var(--text-xs)',
+    color: 'var(--text-muted)',
+    fontFamily: 'var(--font-body)',
     marginBottom: '1rem',
+    fontStyle: 'italic',
   },
   tableWrapper: {
     overflowX: 'auto',
@@ -531,6 +451,7 @@ const styles: Record<string, React.CSSProperties> = {
   tr: {
     cursor: 'pointer',
     transition: 'background 0.15s',
+    background: 'transparent',
   },
   muniName: {
     fontWeight: 600,
@@ -540,74 +461,6 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'inline-flex',
     gap: '0.35rem',
     fontSize: 'var(--text-xs)',
-    fontFamily: 'var(--font-body)',
-  },
-  detailCell: {
-    padding: 0,
-    borderBottom: '1px solid rgba(255,255,255,0.08)',
-  },
-  detailPanel: {
-    background: 'rgba(255,255,255,0.04)',
-    borderTop: '1px solid rgba(255,255,255,0.08)',
-    padding: '1.25rem 1.5rem',
-  },
-  detailHeader: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    marginBottom: '1rem',
-  },
-  detailMuniName: {
-    fontSize: '1rem',
-    fontWeight: 700,
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-display)',
-    marginRight: '0.5rem',
-  },
-  detailBadge: {
-    display: 'inline-block',
-    padding: '2px 8px',
-    borderRadius: 'var(--radius-sm)',
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.12)',
-    color: 'var(--text-secondary)',
-    fontSize: 'var(--text-xs)',
-    fontWeight: 500,
-    fontFamily: 'var(--font-body)',
-  },
-  detailContent: {
-    display: 'grid',
-    gridTemplateColumns: '1fr 1fr',
-    gap: '2rem',
-  },
-  detailSection: {
-    display: 'flex',
-    flexDirection: 'column',
-    gap: '0.5rem',
-  },
-  detailSectionTitle: {
-    fontSize: 'var(--text-sm)',
-    fontWeight: 600,
-    color: 'var(--text-secondary)',
-    fontFamily: 'var(--font-display)',
-    marginBottom: '0.25rem',
-    textTransform: 'uppercase',
-    letterSpacing: '0.05em',
-  },
-  detailRow: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-  },
-  detailLabel: {
-    fontSize: 'var(--text-sm)',
-    color: 'var(--text-secondary)',
-    fontFamily: 'var(--font-body)',
-  },
-  detailValue: {
-    fontSize: 'var(--text-sm)',
-    fontWeight: 600,
-    color: 'var(--text-primary)',
     fontFamily: 'var(--font-body)',
   },
   emptyCard: {
