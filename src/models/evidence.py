@@ -79,6 +79,17 @@ class EvidenceDocument(TenantAwareModel):
             "'scan_failed' (fail-open dev / fail-closed prod), 'pending'"
         ),
     )
+    verification_status: Mapped[str] = mapped_column(
+        String(20),
+        nullable=False,
+        default="unverified",
+        server_default="unverified",
+        comment=(
+            "Internal Auditor POE review status. "
+            "Values: 'unverified' (pending review), 'verified' (accepted), "
+            "'insufficient' (rejected — insufficient evidence)"
+        ),
+    )
     uploaded_by: Mapped[str | None] = mapped_column(
         String,
         nullable=True,
