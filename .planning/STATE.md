@@ -135,16 +135,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 — Phase 32: Risk Register & Public Transparency
+**Current focus:** v2.0 — Phase 33: Comprehensive Gap Closure
 
 ## Current Position
 
-Phase: 32 of 32 (Risk Register & Public Transparency)
-Plan: 2 of 2 complete
-Status: Phase 32 COMPLETE — all 4 RISK requirements delivered
-Last activity: 2026-03-02 — 32-02 complete: Risk Register widget on CFO/MM dashboards, SDBIP Achievement section on public transparency dashboard. TypeScript clean, production builds pass.
+Phase: 33 of 33 (Comprehensive Gap Closure)
+Plan: 1 of 3 complete
+Status: Phase 33 in progress — Plan 33-01 complete (BUG-1 fix, PMS readiness gate, 4 missing frontend routes)
+Last activity: 2026-03-02 — 33-01 complete: Fixed MM submit_for_review 403 (BUG-1/REPORT-05), added PMS readiness gate to /cfo, /municipal-manager, /mayor, /section56-director endpoints, created DepartmentsPage + RoleApprovalsPage, registered /departments, /role-approvals, /pms-setup, /pms/golden-thread routes.
 
-Progress: [██████████] 100% (Phase 32 complete)
+Progress: [█░░░░░░░░░] 33% (Plan 1/3 of Phase 33 done)
 
 ## Performance Metrics
 
@@ -176,6 +176,7 @@ Progress: [██████████] 100% (Phase 32 complete)
 | Phase 32 P01 | 24 | 2 tasks | 12 files |
 | Phase 32 P1 | 24 | 2 tasks | 12 files |
 | Phase 32 P02 | 25 | 2 tasks | 7 files |
+| Phase 33 P01 | 32 | 2 tasks | 7 files |
 
 ## Accumulated Context
 
@@ -276,6 +277,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 32-02]: Non-blocking risk register fetch — loads after main dashboard data in separate try/catch, main dashboard never waits on risk register
 - [Phase 32-02]: useSdbipAchievement uses direct fetch() against FastAPI (not Supabase) — public SDBIP endpoint is FastAPI with cross-tenant SQL, not an RLS view
 - [Phase 32-02]: Risk Register section guarded by !loading — avoids flash of empty state during initial dashboard load
+- [Phase 33-01]: X-Tenant-ID header required in TestClient tests that exercise require_pms_ready() — dependency queries DB with ORM tenant filter; without header, TenantContextMiddleware does not set context and SecurityError 500 is raised
+- [Phase 33-01]: BUG-1 fixed — MUNICIPAL_MANAGER added to _TRANSITION_ROLES['submit_for_review'] in statutory_report_service.py (was missing, caused 403 for MM trying to submit report for review)
+- [Phase 33-01]: DepartmentsPage + RoleApprovalsPage created as real page components (not inline functions) — substantial enough to warrant their own files per Phase 31 inline-function threshold
 
 ### Pending Todos
 
@@ -291,5 +295,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 32-02-PLAN.md — Risk Register widget on CFO/MM dashboards + SDBIP Achievement section on public transparency dashboard. Phase 32 complete. All RISK requirements (RISK-01 to RISK-04) delivered.
+Stopped at: Completed 33-01-PLAN.md Tasks 1+2 — BUG-1 fixed (MM submit_for_review), PMS readiness gate on 4 role dashboard endpoints, DepartmentsPage + RoleApprovalsPage created, 4 routes registered. Checkpoint:human-verify reached — waiting for user to verify 4 new frontend routes render correctly.
 Resume file: None

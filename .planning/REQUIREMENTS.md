@@ -9,10 +9,10 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### RBAC & Tenant Configuration
 
-- [ ] **RBAC-01**: Platform supports 4-tier role hierarchy with 14 roles (executive_mayor, municipal_manager, cfo, speaker, councillor, section56_director, department_manager, pms_officer, audit_committee_member, internal_auditor, mpac_member, salga_admin + existing citizen, field_worker, saps_liaison, manager, admin)
-- [ ] **RBAC-02**: Admin can configure municipal department structure (name, code, hierarchy, assigned director) per tenant
+- [x] **RBAC-01**: Platform supports 4-tier role hierarchy with 14 roles (executive_mayor, municipal_manager, cfo, speaker, councillor, section56_director, department_manager, pms_officer, audit_committee_member, internal_auditor, mpac_member, salga_admin + existing citizen, field_worker, saps_liaison, manager, admin)
+- [x] **RBAC-02**: Admin can configure municipal department structure (name, code, hierarchy, assigned director) per tenant
 - [x] **RBAC-03**: Admin can configure municipality settings (category, province, demarcation code, SDBIP layers, scoring method)
-- [ ] **RBAC-04**: Platform enforces role hierarchy inheritance so senior roles inherit access of subordinate roles
+- [x] **RBAC-04**: Platform enforces role hierarchy inheritance so senior roles inherit access of subordinate roles
 - [x] **RBAC-05**: Admin can view municipal organogram showing reporting structure
 - [x] **RBAC-06**: Role changes and permission checks are fully audit-logged
 
@@ -21,7 +21,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **IDP-01**: Authorized user can create a 5-year IDP cycle with title, vision, mission, and status
 - [x] **IDP-02**: Authorized user can add strategic goals and objectives under an IDP cycle with National KPA alignment
 - [x] **IDP-03**: Authorized user can create annual IDP review versions within a cycle with version control
-- [ ] **IDP-04**: User can view alignment mapping from IDP objectives down to linked SDBIP KPIs (golden thread)
+- [x] **IDP-04**: User can view alignment mapping from IDP objectives down to linked SDBIP KPIs (golden thread)
 - [x] **IDP-05**: IDP cycle supports approval workflow (draft → approved → under_review)
 
 ### SDBIP Management
@@ -50,7 +50,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Individual Performance Agreements
 
-- [ ] **PA-01**: PMS officer can create performance agreement for Section 57 manager linked to financial year
+- [x] **PA-01**: PMS officer can create performance agreement for Section 57 manager linked to financial year
 - [x] **PA-02**: Performance agreement KPIs link to organizational SDBIP KPIs with individual targets and weights
 - [x] **PA-03**: Evaluator can score individual KPIs per quarter in quarterly review workflow
 - [x] **PA-04**: System compiles annual assessment score from quarterly scores and KPI weights
@@ -63,7 +63,7 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 - [x] **REPORT-02**: System auto-generates Section 72 mid-year budget and performance assessment
 - [x] **REPORT-03**: System auto-generates Section 46 annual performance report
 - [x] **REPORT-04**: System auto-generates Section 121 annual report performance chapter
-- [ ] **REPORT-05**: Reports follow approval workflow (drafting → internal_review → mm_approved → submitted → tabled)
+- [x] **REPORT-05**: Reports follow approval workflow (drafting → internal_review → mm_approved → submitted → tabled)
 - [x] **REPORT-06**: Report generation snapshots source data at mm_approved status for point-in-time consistency
 - [x] **REPORT-07**: System tracks statutory deadlines per financial year with escalating notifications (30d → 14d → 7d → 3d → overdue)
 - [x] **REPORT-08**: Reports export as PDF and DOCX with municipality-branded templates (logo, headers, formatting)
@@ -134,16 +134,16 @@ Which phases cover which requirements. Updated during roadmap creation.
 
 | Requirement | Phase | Status |
 |-------------|-------|--------|
-| RBAC-01 | Phase 33 | Pending |
-| RBAC-02 | Phase 33 | Pending |
+| RBAC-01 | Phase 33 | Complete |
+| RBAC-02 | Phase 33 | Complete |
 | RBAC-03 | Phase 27 | Complete |
-| RBAC-04 | Phase 33 | Pending |
+| RBAC-04 | Phase 33 | Complete |
 | RBAC-05 | Phase 27 | Complete |
 | RBAC-06 | Phase 27 | Complete |
 | IDP-01 | Phase 28 | Complete |
 | IDP-02 | Phase 28 | Complete |
 | IDP-03 | Phase 28 | Complete |
-| IDP-04 | Phase 33 | Pending |
+| IDP-04 | Phase 33 | Complete |
 | IDP-05 | Phase 28 | Complete |
 | SDBIP-01 | Phase 28 | Complete |
 | SDBIP-02 | Phase 28 | Complete |
@@ -163,7 +163,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | EVID-06 | Phase 28 | Complete |
 | EVID-07 | Phase 28 | Complete |
 | EVID-08 | Phase 28 | Complete |
-| PA-01 | Phase 33 | Pending |
+| PA-01 | Phase 33 | Complete |
 | PA-02 | Phase 29 | Complete |
 | PA-03 | Phase 29 | Complete |
 | PA-04 | Phase 29 | Complete |
@@ -173,7 +173,7 @@ Which phases cover which requirements. Updated during roadmap creation.
 | REPORT-02 | Phase 30 | Complete |
 | REPORT-03 | Phase 30 | Complete |
 | REPORT-04 | Phase 30 | Complete |
-| REPORT-05 | Phase 33 | Pending |
+| REPORT-05 | Phase 33 | Complete |
 | REPORT-06 | Phase 30 | Complete |
 | REPORT-07 | Phase 30 | Complete |
 | REPORT-08 | Phase 30 | Complete |

@@ -183,7 +183,9 @@ Plans:
 **Plans**: TBD
 
 Plans:
-- [ ] 33-01: Comprehensive gap closure — all bug fixes, missing pages, verification, tracking cleanup
+- [x] 33-01-PLAN.md — Fix BUG-1 (MM submit_for_review 403), add PMS readiness gate to 4 role dashboard endpoints, create DepartmentsPage + RoleApprovalsPage, register /departments /role-approvals /pms-setup /pms/golden-thread routes, confirm PA-01 working — completed 2026-03-02
+- [ ] 33-02-PLAN.md — Phase 27/28 verification, REQUIREMENTS.md checkbox cleanup, stale tracking fixes
+- [ ] 33-03-PLAN.md — E2E test fixes and v2.0 milestone sign-off
 
 ## Progress
 
@@ -198,7 +200,7 @@ Plans:
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
 | 32. Risk Register & Public Transparency | 2/2 | Complete    | 2026-03-02 | - |
-| 33. Comprehensive v2.0 Gap Closure | v2.0 | 0/1 | Not started | - |
+| 33. Comprehensive v2.0 Gap Closure | v2.0 | 1/3 | In progress | - |
 
 ---
 *Roadmap created: 2026-02-09*
