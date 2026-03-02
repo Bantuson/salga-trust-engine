@@ -7,6 +7,8 @@
  *  - Golden Thread (IDP -> Goals -> Objectives -> KPIs tree)
  *  - PMS Setup (department wizard — admin/executive only)
  *
+ * Create actions open modal dialogs (not inline card expand).
+ *
  * Route: /pms
  */
 
@@ -22,6 +24,9 @@ import { GoldenThreadPage } from './GoldenThreadPage';
 import { PmsSetupWizardPage } from './PmsSetupWizardPage';
 import { PerformanceAgreementsPage } from './PerformanceAgreementsPage';
 import { StatutoryReportsPage } from './StatutoryReportsPage';
+import { CreateIdpModal } from '../components/pms/CreateIdpModal';
+import { CreateSdbipModal } from '../components/pms/CreateSdbipModal';
+import { CreatePaModal } from '../components/pms/CreatePaModal';
 
 type PmsView = 'idp' | 'sdbip' | 'golden-thread' | 'performance-agreements' | 'statutory-reports' | 'setup';
 
@@ -37,7 +42,7 @@ const VIEW_OPTIONS: ViewOption[] = [
   { value: 'sdbip', label: 'SDBIP Scorecards', createLabel: '+ Create Scorecard' },
   { value: 'golden-thread', label: 'Golden Thread' },
   { value: 'performance-agreements', label: 'Performance Agreements', createLabel: '+ Create Agreement' },
-  { value: 'statutory-reports', label: 'Statutory Reports', createLabel: '+ Create Report' },
+  { value: 'statutory-reports', label: 'Statutory Reports' },
   { value: 'setup', label: 'PMS Setup', adminOnly: true },
 ];
 
@@ -64,7 +69,7 @@ export function PmsHubPage() {
 
   const initialView = (searchParams.get('view') as PmsView) || 'idp';
   const [activeView, setActiveView] = useState<PmsView>(initialView);
-  const [showForm, setShowForm] = useState(false);
+  const [showCreateModal, setShowCreateModal] = useState(false);
 
   // Sync URL param with state
   useEffect(() => {
@@ -76,12 +81,16 @@ export function PmsHubPage() {
 
   const handleViewChange = (view: PmsView) => {
     setActiveView(view);
-    setShowForm(false);
+    setShowCreateModal(false);
     setSearchParams({ view });
   };
 
   const availableViews = VIEW_OPTIONS.filter(v => !v.adminOnly || isAdmin);
   const currentOption = availableViews.find(v => v.value === activeView) || availableViews[0];
+
+  const handleModalCreated = () => {
+    setShowCreateModal(false);
+  };
 
   return (
     <div style={styles.container}>
@@ -98,10 +107,10 @@ export function PmsHubPage() {
           <Button
             variant="primary"
             size="sm"
-            onClick={() => setShowForm(prev => !prev)}
+            onClick={() => setShowCreateModal(true)}
             style={{ background: 'var(--color-coral)', borderColor: 'var(--color-coral)' }}
           >
-            {showForm ? 'Cancel' : currentOption.createLabel}
+            {currentOption.createLabel}
           </Button>
         )}
       </div>
@@ -111,29 +120,23 @@ export function PmsHubPage() {
         {activeView === 'idp' && (
           <IdpPage
             embedded
-            showForm={showForm}
-            onToggleForm={() => setShowForm(prev => !prev)}
           />
         )}
         {activeView === 'sdbip' && (
           <SdbipPage
             embedded
-            showForm={showForm}
-            onToggleForm={() => setShowForm(prev => !prev)}
           />
         )}
         {activeView === 'golden-thread' && <GoldenThreadPage embedded />}
         {activeView === 'performance-agreements' && (
           <PerformanceAgreementsPage
             embedded
-            showForm={showForm}
-            onToggleForm={() => setShowForm(prev => !prev)}
           />
         )}
         {activeView === 'statutory-reports' && (
           <StatutoryReportsPage
-            showForm={showForm}
-            onCloseForm={() => setShowForm(false)}
+            showForm={false}
+            onCloseForm={() => {}}
           />
         )}
         {activeView === 'setup' && isAdmin && <PmsSetupWizardPage />}
@@ -145,6 +148,26 @@ export function PmsHubPage() {
           </GlassCard>
         )}
       </div>
+
+      {/* Modal dialogs for create actions */}
+      {showCreateModal && activeView === 'idp' && (
+        <CreateIdpModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleModalCreated}
+        />
+      )}
+      {showCreateModal && activeView === 'sdbip' && (
+        <CreateSdbipModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleModalCreated}
+        />
+      )}
+      {showCreateModal && activeView === 'performance-agreements' && (
+        <CreatePaModal
+          onClose={() => setShowCreateModal(false)}
+          onCreated={handleModalCreated}
+        />
+      )}
     </div>
   );
 }

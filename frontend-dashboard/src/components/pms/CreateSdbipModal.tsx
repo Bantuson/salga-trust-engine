@@ -1,0 +1,390 @@
+/**
+ * CreateSdbipModal — Modal dialog for creating a new SDBIP scorecard.
+ *
+ * Follows the TeamCreateModal pattern exactly:
+ * - Overlay at z-1000, rgba(0,0,0,0.5) blur 4px
+ * - glass-pink-frost container, blur medium
+ * - Sticky header, body scroll lock, Escape handler, overlay click closes
+ *
+ * Submit: POST /api/v1/sdbip/scorecards
+ */
+
+import { useState, useEffect } from 'react';
+import { useAuth } from '../../hooks/useAuth';
+
+type SdbipLayer = 'top_layer' | 'departmental';
+
+interface CreateSdbipModalProps {
+  onClose: () => void;
+  onCreated: () => void;
+}
+
+const DEPARTMENTS = [
+  'Infrastructure & Technical Services',
+  'Corporate Services',
+  'Finance',
+  'Community Services',
+  'Economic Development & Tourism',
+  'Planning & Development',
+  'Environmental Management',
+  'Emergency Services',
+];
+
+export function CreateSdbipModal({ onClose, onCreated }: CreateSdbipModalProps) {
+  const { session } = useAuth();
+
+  const [title, setTitle] = useState('');
+  const [financialYear, setFinancialYear] = useState('');
+  const [layer, setLayer] = useState<SdbipLayer>('top_layer');
+  const [department, setDepartment] = useState('');
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  // Body scroll lock while modal is open
+  useEffect(() => {
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, []);
+
+  // Close on Escape
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') onClose();
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [onClose]);
+
+  const handleSubmit = async () => {
+    if (!title.trim()) {
+      setError('Title is required');
+      return;
+    }
+    if (!financialYear) {
+      setError('Financial year is required');
+      return;
+    }
+    if (layer === 'departmental' && !department) {
+      setError('Department is required for departmental scorecards');
+      return;
+    }
+
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const res = await fetch('/api/v1/sdbip/scorecards', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${session?.access_token}`,
+        },
+        body: JSON.stringify({
+          title: title.trim(),
+          financial_year: parseInt(financialYear, 10),
+          layer,
+          department: layer === 'departmental' ? department : undefined,
+        }),
+      });
+
+      if (!res.ok) {
+        const body = await res.json().catch(() => ({}));
+        throw new Error(body.detail || `Error ${res.status}`);
+      }
+
+      onCreated();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to create SDBIP scorecard');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  return (
+    <div
+      style={styles.overlay}
+      onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Create SDBIP Scorecard"
+    >
+      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+        {/* Header */}
+        <div style={styles.header}>
+          <h2 style={styles.headerTitle}>Create SDBIP Scorecard</h2>
+          <button style={styles.closeButton} onClick={onClose} aria-label="Close">
+            <svg
+              width="20"
+              height="20"
+              viewBox="0 0 24 24"
+              fill="none"
+              stroke="currentColor"
+              strokeWidth="2"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            >
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        </div>
+
+        {/* Body */}
+        <div style={styles.body}>
+          {error && <div style={styles.errorBanner}>{error}</div>}
+
+          <div style={styles.section}>
+            <h3 style={styles.sectionTitle}>Scorecard Details</h3>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Title *</label>
+              <input
+                type="text"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder="e.g. Top Layer SDBIP 2025/26"
+                style={styles.input}
+                disabled={isSubmitting}
+              />
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Financial Year *</label>
+              <input
+                type="number"
+                value={financialYear}
+                onChange={(e) => setFinancialYear(e.target.value)}
+                placeholder="e.g. 2025"
+                style={styles.input}
+                disabled={isSubmitting}
+                min={2000}
+                max={2100}
+              />
+            </div>
+
+            <div style={styles.fieldGroup}>
+              <label style={styles.label}>Layer *</label>
+              <select
+                value={layer}
+                onChange={(e) => {
+                  setLayer(e.target.value as SdbipLayer);
+                  if (e.target.value === 'top_layer') setDepartment('');
+                }}
+                style={styles.select}
+                disabled={isSubmitting}
+              >
+                <option value="top_layer">Top Layer</option>
+                <option value="departmental">Departmental</option>
+              </select>
+            </div>
+
+            {layer === 'departmental' && (
+              <div style={styles.fieldGroup}>
+                <label style={styles.label}>Department *</label>
+                <select
+                  value={department}
+                  onChange={(e) => setDepartment(e.target.value)}
+                  style={styles.select}
+                  disabled={isSubmitting}
+                >
+                  <option value="">Select department...</option>
+                  {DEPARTMENTS.map((dept) => (
+                    <option key={dept} value={dept}>
+                      {dept}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* Footer */}
+        <div style={styles.footer}>
+          <button
+            type="button"
+            style={styles.cancelButton}
+            onClick={onClose}
+            disabled={isSubmitting}
+          >
+            Cancel
+          </button>
+          <button
+            type="button"
+            style={{
+              ...styles.createButton,
+              opacity: isSubmitting ? 0.6 : 1,
+            }}
+            onClick={handleSubmit}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? 'Creating...' : 'Create Scorecard'}
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+const styles = {
+  overlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+  } as React.CSSProperties,
+  modal: {
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    border: '1px solid var(--glass-border)',
+    borderRadius: 'var(--radius-xl)',
+    maxWidth: '720px',
+    width: '100%',
+    maxHeight: '85vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    overflow: 'hidden' as const,
+  } as React.CSSProperties,
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: 'var(--glass-card-padding)',
+    paddingBottom: 'var(--space-md)',
+    borderBottom: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    top: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    zIndex: 1,
+  } as React.CSSProperties,
+  headerTitle: {
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: 0,
+    lineHeight: 1.3,
+  } as React.CSSProperties,
+  closeButton: {
+    flexShrink: 0,
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--radius-sm)',
+    transition: 'color 0.15s ease',
+  } as React.CSSProperties,
+  body: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    padding: 'var(--glass-card-padding)',
+  } as React.CSSProperties,
+  errorBanner: {
+    padding: '0.5rem 0.75rem',
+    backgroundColor: 'rgba(239, 68, 68, 0.1)',
+    border: '1px solid var(--color-coral)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--color-coral)',
+    marginBottom: 'var(--space-lg)',
+    fontSize: '0.8rem',
+  } as React.CSSProperties,
+  section: {
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 'var(--glass-card-padding)',
+    marginBottom: 'var(--space-lg)',
+  } as React.CSSProperties,
+  sectionTitle: {
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    marginTop: 0,
+    marginBottom: 'var(--space-md)',
+  } as React.CSSProperties,
+  fieldGroup: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '4px',
+    marginBottom: 'var(--space-md)',
+  } as React.CSSProperties,
+  label: {
+    fontSize: '0.78rem',
+    fontWeight: 500,
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.04em',
+  } as React.CSSProperties,
+  input: {
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontFamily: 'inherit',
+    width: '100%',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+  } as React.CSSProperties,
+  select: {
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontFamily: 'inherit',
+    width: '100%',
+    outline: 'none',
+    cursor: 'pointer',
+    boxSizing: 'border-box' as const,
+  } as React.CSSProperties,
+  footer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 'var(--space-md)',
+    padding: 'var(--glass-card-padding)',
+    borderTop: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    bottom: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+  } as React.CSSProperties,
+  cancelButton: {
+    background: 'transparent',
+    border: 'none',
+    color: 'var(--text-secondary)',
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.875rem',
+  } as React.CSSProperties,
+  createButton: {
+    background: 'var(--color-teal)',
+    color: 'white',
+    border: 'none',
+    borderRadius: 'var(--radius-sm)',
+    padding: '0.5rem 1.5rem',
+    fontWeight: 600,
+    cursor: 'pointer',
+    fontFamily: 'inherit',
+    fontSize: '0.875rem',
+  } as React.CSSProperties,
+};
