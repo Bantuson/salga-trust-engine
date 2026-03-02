@@ -40,6 +40,7 @@ import { profile as internalAuditor } from '../profiles/municipal/internal-audit
 import { profile as mpacMember } from '../profiles/municipal/mpac-member.profile.js';
 import { profile as salgaAdmin } from '../profiles/municipal/salga-admin.profile.js';
 import { profile as section56Director } from '../profiles/municipal/section56-director.profile.js';
+import { profile as pmsOfficer } from '../profiles/municipal/pms-officer.profile.js';
 
 /**
  * Auth fixtures interface
@@ -69,6 +70,7 @@ interface AuthFixtures {
   mpacMemberPage: Page;
   salgaAdminPage: Page;
   section56DirectorPage: Page;
+  pmsOfficerPage: Page;
 }
 
 /**
@@ -324,6 +326,13 @@ export const test = base.extend<AuthFixtures>({
   section56DirectorPage: async ({ browser }, use) => {
     const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
     const page = await getAuthenticatedPage(context, section56Director);
+    await use(page);
+    await teardownPage(page, context);
+  },
+
+  pmsOfficerPage: async ({ browser }, use) => {
+    const context = await browser.newContext({ baseURL: 'http://localhost:5173' });
+    const page = await getAuthenticatedPage(context, pmsOfficer);
     await use(page);
     await teardownPage(page, context);
   },
