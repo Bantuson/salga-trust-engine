@@ -43,11 +43,24 @@ const VIEW_OPTIONS: ViewOption[] = [
 
 const ADMIN_ROLES = ['admin', 'manager', 'executive_mayor', 'municipal_manager', 'salga_admin'];
 
+// Roles that can VIEW PMS data but NOT create/edit
+const READ_ONLY_ROLES = [
+  'salga_admin',
+  'audit_committee_member',
+  'internal_auditor',
+  'mpac_member',
+  'ward_councillor',
+  'chief_whip',
+  'speaker',
+  'citizen',
+];
+
 export function PmsHubPage() {
   const [searchParams, setSearchParams] = useSearchParams();
   const { getUserRole } = useAuth();
   const role = getUserRole();
   const isAdmin = ADMIN_ROLES.includes(role);
+  const isReadOnly = READ_ONLY_ROLES.includes(role);
 
   const initialView = (searchParams.get('view') as PmsView) || 'idp';
   const [activeView, setActiveView] = useState<PmsView>(initialView);
@@ -81,7 +94,7 @@ export function PmsHubPage() {
           fullWidth={false}
         />
 
-        {currentOption.createLabel && (
+        {currentOption.createLabel && !isReadOnly && (
           <Button
             variant="primary"
             size="sm"

@@ -44,6 +44,154 @@ import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
 
+/**
+ * MunicipalitiesPlaceholderPage — mock municipalities list for SALGA Admin.
+ * Shows realistic municipality data. Full implementation deferred to Phase 32+.
+ */
+function MunicipalitiesPlaceholderPage() {
+  const municipalities = [
+    { name: 'eThekwini Metropolitan', province: 'KwaZulu-Natal', category: 'A', status: 'Active', population: '3.9M' },
+    { name: 'City of Tshwane', province: 'Gauteng', category: 'A', status: 'Active', population: '3.3M' },
+    { name: 'Mangaung Metropolitan', province: 'Free State', category: 'A', status: 'Active', population: '787K' },
+    { name: 'Nelson Mandela Bay', province: 'Eastern Cape', category: 'A', status: 'Active', population: '1.3M' },
+    { name: 'Buffalo City Metropolitan', province: 'Eastern Cape', category: 'A', status: 'Active', population: '834K' },
+    { name: 'Sol Plaatje Local', province: 'Northern Cape', category: 'B', status: 'Onboarding', population: '255K' },
+  ];
+
+  return (
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
+        Municipalities
+      </h1>
+      <div style={{
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-lg)',
+        overflow: 'hidden',
+      }}>
+        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+          <thead>
+            <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
+              {['Municipality', 'Province', 'Category', 'Status', 'Population'].map(h => (
+                <th key={h} style={{
+                  padding: 'var(--space-sm) var(--space-md)',
+                  textAlign: 'left' as const,
+                  fontSize: 'var(--text-xs)',
+                  fontWeight: 600,
+                  color: 'var(--text-muted)',
+                  textTransform: 'uppercase' as const,
+                  letterSpacing: '0.05em',
+                }}>{h}</th>
+              ))}
+            </tr>
+          </thead>
+          <tbody>
+            {municipalities.map((m, i) => (
+              <tr key={i} style={{
+                borderBottom: '1px solid var(--glass-border)',
+                cursor: 'pointer',
+              }}>
+                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</td>
+                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.province}</td>
+                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.category}</td>
+                <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                  <span style={{
+                    display: 'inline-block',
+                    padding: '2px 10px',
+                    borderRadius: '12px',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 600,
+                    background: m.status === 'Active' ? 'rgba(45, 212, 191, 0.15)' : 'rgba(251, 191, 36, 0.15)',
+                    color: m.status === 'Active' ? 'var(--color-teal)' : 'var(--color-gold)',
+                    border: `1px solid ${m.status === 'Active' ? 'rgba(45, 212, 191, 0.3)' : 'rgba(251, 191, 36, 0.3)'}`,
+                  }}>{m.status}</span>
+                </td>
+                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.population}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p style={{ marginTop: 'var(--space-md)', color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+        Showing {municipalities.length} onboarded municipalities. Full management interface available in a future release.
+      </p>
+    </div>
+  );
+}
+
+/**
+ * SystemPlaceholderPage — mock system health page for platform admin / SALGA Admin.
+ * Shows system status metrics. Full implementation deferred.
+ */
+function SystemPlaceholderPage() {
+  const metrics = [
+    { label: 'API Status', value: 'Healthy', color: 'var(--color-teal)' },
+    { label: 'Database', value: 'Connected', color: 'var(--color-teal)' },
+    { label: 'Redis Cache', value: 'Connected', color: 'var(--color-teal)' },
+    { label: 'Celery Workers', value: '2 Active', color: 'var(--color-teal)' },
+    { label: 'Storage', value: '12.4 GB Used', color: 'var(--color-gold)' },
+    { label: 'Last Backup', value: '2026-03-01 02:00', color: 'var(--text-secondary)' },
+  ];
+
+  return (
+    <div style={{ padding: 'var(--space-lg)' }}>
+      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
+        System Health
+      </h1>
+      <div style={{
+        display: 'grid',
+        gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+        gap: 'var(--space-md)',
+        marginBottom: 'var(--space-xl)',
+      }}>
+        {metrics.map((m, i) => (
+          <div key={i} style={{
+            background: 'var(--glass-bg)',
+            border: '1px solid var(--glass-border)',
+            borderRadius: 'var(--radius-lg)',
+            padding: 'var(--space-lg)',
+          }}>
+            <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.05em', marginBottom: 'var(--space-xs)' }}>
+              {m.label}
+            </div>
+            <div style={{ fontSize: 'var(--text-xl)', fontWeight: 700, color: m.color }}>
+              {m.value}
+            </div>
+          </div>
+        ))}
+      </div>
+      <div style={{
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-lg)',
+        padding: 'var(--space-lg)',
+      }}>
+        <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 600, color: 'var(--text-primary)', marginBottom: 'var(--space-md)' }}>
+          Configuration
+        </h2>
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-sm)' }}>
+          {[
+            ['Platform Version', 'v2.0.0-beta'],
+            ['Tenant Mode', 'Multi-tenant (RLS)'],
+            ['Auth Provider', 'Supabase Auth'],
+            ['AI Engine', 'CrewAI + DeepSeek'],
+            ['Timezone', 'Africa/Johannesburg (SAST)'],
+            ['PMS Module', 'Enabled'],
+          ].map(([k, v], i) => (
+            <div key={i} style={{ padding: 'var(--space-xs) 0', borderBottom: '1px solid var(--glass-border)' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>{k}: </span>
+              <span style={{ color: 'var(--text-primary)', fontSize: 'var(--text-sm)', fontWeight: 500 }}>{v}</span>
+            </div>
+          ))}
+        </div>
+      </div>
+      <p style={{ marginTop: 'var(--space-md)', color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
+        Full system management interface available in a future release.
+      </p>
+    </div>
+  );
+}
+
 function App() {
   return (
     <BrowserRouter>
@@ -94,11 +242,11 @@ function AppRoutes() {
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
         <Route path="/departments/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
-        <Route path="/municipalities" element={<DashboardLayout><div style={styles.placeholder}>Municipalities (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/municipalities" element={<DashboardLayout><MunicipalitiesPlaceholderPage /></DashboardLayout>} />
         <Route path="/teams" element={<DashboardLayout><TeamsPage /></DashboardLayout>} />
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
-        <Route path="/system" element={<DashboardLayout><div style={styles.placeholder}>System (Coming Soon)</div></DashboardLayout>} />
+        <Route path="/system" element={<DashboardLayout><SystemPlaceholderPage /></DashboardLayout>} />
         <Route path="/reports" element={<DashboardLayout><SAPSReportsPage /></DashboardLayout>} />
         <Route path="/completed" element={<DashboardLayout><CompletedTicketsPage /></DashboardLayout>} />
         <Route path="/field-worker" element={<DashboardLayout><FieldWorkerTicketsPage /></DashboardLayout>} />
