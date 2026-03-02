@@ -58,7 +58,7 @@ Full details: `milestones/v1.0-ROADMAP.md`
 - [ ] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine
 - [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
 - [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
-- [ ] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles
+- [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
 - [ ] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data
 
 ## Phase Details
@@ -176,7 +176,7 @@ Plans:
 | 28. IDP, SDBIP Core & Performance Monitoring | 6/7 | In Progress|  | - |
 | 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
-| 31. Role-Specific Dashboards | 2/4 | In Progress|  | - |
+| 31. Role-Specific Dashboards | 4/4 | Complete   | 2026-03-02 | - |
 | 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |
 
 ---

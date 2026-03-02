@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-02T09:56:39.116Z"
+progress:
+  total_phases: 5
+  completed_phases: 5
+  total_plans: 20
+  completed_plans: 20
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T09:47:10.389Z"
 progress:
   total_phases: 5
@@ -130,6 +143,8 @@ Progress: [███████░░░] 75%
 | Phase 31 P31-01 | 36 | 3 tasks | 6 files |
 | Phase 31 P1 | 36 | 3 tasks | 6 files |
 | Phase 31 P02 | 9 | 3 tasks | 10 files |
+| Phase 31 P03 | 5 | 2 tasks | 2 files |
+| Phase 31 P4 | 5 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -214,6 +229,12 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 31]: RoleDashboardService uses raw SQL text() for SALGA Admin cross-tenant sdbip_scorecards query - same Phase 28 pattern
 - [Phase 31]: [Phase 31-02]: ViewRoleContext lifts viewRole state above ReactNode children boundary — DashboardLayout local state removed, context provider wraps authenticated routes in App.tsx
 - [Phase 31]: [Phase 31-02]: Confirmation dialog for SDBIP approval is inline modal (state-driven overlay) — no React portal, no external dialog library
+- [Phase 31]: role-config-map (ROLE_CONFIG) selects API function and title per role — eliminates per-role if/else in data fetching
+- [Phase 31]: [Phase 31-03]: MPAC Flag Investigation uses inline expandable row form (not modal) — avoids React portal complexity per plan spec
+- [Phase 31]: [Phase 31-03]: Internal Auditor optimistic update with rollback on error — immediate feedback while confirming with refetch
+- [Phase 31]: CSV export uses fetch-blob with Authorization header for authenticated downloads
+- [Phase 31]: Section 56 Director empty state replaces normal content entirely — not a banner
+- [Phase 31]: KPI detail table sorted ascending by achievement_pct to surface worst-performing KPIs first
 
 ### Pending Todos
 
