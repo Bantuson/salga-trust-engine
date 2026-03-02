@@ -138,6 +138,46 @@ async def get_heatmap(
     return await service.get_heatmap_data(db, municipality_id=municipality_id)
 
 
+@router.get("/sdbip-performance")
+@limiter.limit(PUBLIC_RATE_LIMIT)
+async def get_sdbip_performance(
+    request: Request,
+    municipality_id: str | None = None,
+    financial_year: str | None = None,
+    db: AsyncSession = Depends(get_db),
+) -> list[dict]:
+    """Get aggregate SDBIP achievement summary for public transparency.
+
+    Returns per-municipality KPI achievement overview: total KPIs, traffic-light
+    counts (green/amber/red), and overall achievement percentage.
+
+    No authentication required (TRNS-04).
+    No ticket data involved — queries sdbip_actuals and sdbip_kpis only.
+    No SEC-05 GBV filter needed (no sensitive data in SDBIP tables).
+
+    Args:
+        municipality_id: Optional municipality_id to filter results
+        financial_year: Optional financial year filter (e.g., '2025/26')
+        db: Database session
+
+    Returns:
+        list of {
+            "municipality_id": str,
+            "municipality_name": str,
+            "financial_year": str,
+            "total_kpis": int,
+            "green": int,
+            "amber": int,
+            "red": int,
+            "overall_achievement_pct": float,
+        }
+    """
+    service = PublicMetricsService()
+    return await service.get_sdbip_achievement(
+        db, municipality_id=municipality_id, financial_year=financial_year
+    )
+
+
 @router.get("/summary")
 @limiter.limit(PUBLIC_RATE_LIMIT)
 async def get_summary(

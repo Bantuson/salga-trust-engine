@@ -10,9 +10,12 @@ required because mSCOA codes are reference data accessible to any authenticated 
 
 Endpoint prefix: /api/v1/sdbip
 """
+import logging
 from uuid import UUID
 
 from fastapi import APIRouter, Depends, File, HTTPException, Query, UploadFile, status
+
+logger = logging.getLogger(__name__)
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from src.api.deps import get_current_user, get_db, require_min_tier, require_role
@@ -330,6 +333,20 @@ async def submit_actual(
     Returns 422 if no quarterly target is set for the specified quarter.
     """
     actual = await _service.submit_actual(payload, current_user, db)
+
+    # RISK-03: Dispatch auto-flag task when KPI actual turns red
+    if actual.traffic_light_status == "red":
+        try:
+            from src.tasks.risk_autoflag_task import flag_risk_items_for_kpi  # noqa: PLC0415
+            flag_risk_items_for_kpi.delay(str(actual.kpi_id), current_user.tenant_id)
+        except Exception:
+            # Auto-flagging failure must not break actuals submission (Redis may be down)
+            logger.warning(
+                "Failed to dispatch risk auto-flag task for KPI %s",
+                actual.kpi_id,
+                exc_info=True,
+            )
+
     return SDBIPActualResponse.model_validate(actual)
 
 
@@ -705,6 +722,20 @@ async def validate_actual(
     Requires PMS Officer, Admin, or SALGA Admin role.
     """
     actual = await _service.validate_actual(actual_id, current_user, db)
+
+    # RISK-03: Dispatch auto-flag task when validated actual is red
+    if actual.traffic_light_status == "red":
+        try:
+            from src.tasks.risk_autoflag_task import flag_risk_items_for_kpi  # noqa: PLC0415
+            flag_risk_items_for_kpi.delay(str(actual.kpi_id), current_user.tenant_id)
+        except Exception:
+            # Auto-flagging failure must not break validation (Redis may be down)
+            logger.warning(
+                "Failed to dispatch risk auto-flag task for validated KPI %s",
+                actual.kpi_id,
+                exc_info=True,
+            )
+
     return SDBIPActualResponse.model_validate(actual)
 
 

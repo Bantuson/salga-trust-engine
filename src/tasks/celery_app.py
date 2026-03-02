@@ -23,6 +23,7 @@ app = Celery(
         "src.tasks.pa_notify_task",
         "src.tasks.report_generation_task",
         "src.tasks.statutory_deadline_task",
+        "src.tasks.risk_autoflag_task",
     ]
 )
 

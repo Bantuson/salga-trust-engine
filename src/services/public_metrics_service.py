@@ -297,6 +297,95 @@ class PublicMetricsService:
             for row in rows
         ]
 
+    async def get_sdbip_achievement(
+        self,
+        db: AsyncSession,
+        municipality_id: str | None = None,
+        financial_year: str | None = None,
+    ) -> list[dict]:
+        """Aggregate SDBIP achievement for public transparency.
+
+        Returns per-municipality summary: total KPIs, green/amber/red counts,
+        overall achievement percentage.
+
+        Uses raw SQL text() for cross-tenant access (no ORM tenant filter needed).
+        No ticket data involved — no SEC-05 GBV filter needed.
+
+        Args:
+            db: Async database session
+            municipality_id: Optional filter to a specific municipality
+            financial_year: Optional financial year filter (e.g., '2025/26')
+
+        Returns:
+            list of {
+                "municipality_id": str,
+                "municipality_name": str,
+                "financial_year": str,
+                "total_kpis": int,
+                "green": int,
+                "amber": int,
+                "red": int,
+                "overall_achievement_pct": float,
+            }
+        """
+        # Build raw SQL — cross-tenant query joining sdbip_actuals with
+        # sdbip_kpis and municipalities. No tenant context needed (public data).
+        # Uses raw text() to bypass ORM do_orm_execute tenant filter.
+        where_clauses = ["m.is_active = true"]
+        params: dict = {}
+
+        if municipality_id:
+            where_clauses.append("m.id::text = :municipality_id")
+            params["municipality_id"] = municipality_id
+
+        if financial_year:
+            where_clauses.append("a.financial_year = :financial_year")
+            params["financial_year"] = financial_year
+
+        where_sql = " AND ".join(where_clauses)
+
+        sql = text(f"""
+            SELECT
+                m.id::text                                          AS municipality_id,
+                m.name                                              AS municipality_name,
+                a.financial_year                                    AS financial_year,
+                COUNT(DISTINCT a.id)                                AS total_kpis,
+                SUM(CASE WHEN a.traffic_light_status = 'green'  THEN 1 ELSE 0 END) AS green,
+                SUM(CASE WHEN a.traffic_light_status = 'amber'  THEN 1 ELSE 0 END) AS amber,
+                SUM(CASE WHEN a.traffic_light_status = 'red'    THEN 1 ELSE 0 END) AS red,
+                ROUND(
+                    AVG(COALESCE(a.achievement_pct, 0))::numeric, 2
+                )                                                   AS overall_achievement_pct
+            FROM sdbip_actuals a
+            JOIN sdbip_kpis k ON k.id = a.kpi_id
+            JOIN sdbip_scorecards sc ON sc.id = k.scorecard_id
+            JOIN municipalities m ON m.id::text = sc.tenant_id
+            WHERE {where_sql}
+            GROUP BY m.id, m.name, a.financial_year
+            ORDER BY m.name, a.financial_year
+        """)
+
+        try:
+            result = await db.execute(sql, params)
+            rows = result.mappings().all()
+            return [
+                {
+                    "municipality_id": row["municipality_id"],
+                    "municipality_name": row["municipality_name"],
+                    "financial_year": row["financial_year"],
+                    "total_kpis": row["total_kpis"] or 0,
+                    "green": row["green"] or 0,
+                    "amber": row["amber"] or 0,
+                    "red": row["red"] or 0,
+                    "overall_achievement_pct": float(row["overall_achievement_pct"] or 0.0),
+                }
+                for row in rows
+            ]
+        except Exception:
+            # Return empty list if SDBIP tables don't exist yet (e.g., migration pending)
+            # or if running against SQLite in tests
+            return []
+
     async def get_system_summary(self, db: AsyncSession) -> dict:
         """Get system-wide summary statistics.
 

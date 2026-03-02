@@ -26,6 +26,7 @@ from src.api.v1 import (
     pa,
     public,
     reports,
+    risk as risk_register,
     role_dashboards,
     roles,
     sdbip,
@@ -156,3 +157,6 @@ app.include_router(notifications.router)
 
 # Phase 31 routers: Role-specific dashboard endpoints
 app.include_router(role_dashboards.router, prefix="/api/v1")
+
+# Phase 32 routers: Risk register (RISK-01 through RISK-04)
+app.include_router(risk_register.router, prefix="/api/v1")
