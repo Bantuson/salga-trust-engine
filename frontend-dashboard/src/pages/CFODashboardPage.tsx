@@ -142,7 +142,7 @@ export function CFODashboardPage() {
   const budgetVotes = data.budget_execution || [];
   const correlation = data.service_delivery_correlation || [];
   const deadlines = data.statutory_deadlines || [];
-  const varianceAlerts = data.variance_alerts || [];
+  const varianceAlerts = (data.budget_execution || []).filter((v: any) => v.variance_alert);
 
   return (
     <div style={styles.container}>
