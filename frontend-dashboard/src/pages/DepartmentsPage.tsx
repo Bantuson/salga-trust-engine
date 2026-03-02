@@ -85,6 +85,8 @@ export function DepartmentsPage() {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
+        minHeight: '48px',
+        padding: 'var(--space-md) 0',
         marginBottom: 'var(--space-lg)',
       }}>
         <div>

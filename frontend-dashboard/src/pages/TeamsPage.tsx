@@ -128,6 +128,8 @@ const styles = {
     display: 'flex',
     justifyContent: 'space-between',
     alignItems: 'center',
+    minHeight: '48px',
+    padding: 'var(--space-md) 0',
     marginBottom: '2rem',
   } as React.CSSProperties,
   title: {

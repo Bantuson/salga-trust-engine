@@ -400,7 +400,7 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
         </div>
       </header>
 
-      <main className="dashboard-main" style={{ paddingTop: 'calc(48px + var(--space-2xl, 32px))' }}>
+      <main className="dashboard-main" style={{ paddingTop: '48px' }}>
         {children}
       </main>
     </div>

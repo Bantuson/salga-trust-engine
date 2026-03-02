@@ -178,6 +178,8 @@ const styles = {
     alignItems: 'center',
     flexWrap: 'wrap' as const,
     gap: '0.5rem',
+    minHeight: '48px',
+    padding: 'var(--space-md) 0',
     marginBottom: '2rem',
   } as React.CSSProperties,
   title: {
