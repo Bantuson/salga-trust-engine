@@ -1,445 +1,1527 @@
 /**
- * Onboarding Wizard Page
+ * OnboardingWizardPage — 6-step PMS-aware municipal onboarding wizard.
  *
- * Multi-step guided setup for new municipalities.
- * Steps: Welcome → Profile → Team → Wards → SLA → Completion
- * Progress persisted to backend (GET/PUT /api/v1/onboarding/state).
- * LocalStorage as fallback cache for offline resilience.
+ * Route: /onboarding (full-screen, no DashboardLayout)
+ *
+ * Steps:
+ *  1. welcome           — Municipality confirmation + SDBIP level choice
+ *  2. departments       — Create departments (min 3 soft warning)
+ *  3. invite-tier1      — Invite Executive Mayor, MM, CFO, Speaker
+ *  4. invite-directors  — One invite row per department from Step 2
+ *  5. sla-config        — SLA response/resolution targets + ward count
+ *  6. pms-gate          — Readiness check via GET /api/v1/pms/readiness
+ *
+ * Styling: inline CSS variables only (Phase 27-03 CSS lock — no Tailwind).
+ * Background: AnimatedGradientBg for visual continuity with login page.
+ * State: localStorage persistence so wizard can resume after browser close.
  */
 
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
-import { useOnboarding } from '../hooks/useOnboarding';
-import { WizardProgress } from '../components/onboarding/WizardProgress';
-import type { WizardStep } from '../components/onboarding/WizardProgress';
-import { WelcomeStep } from '../components/onboarding/WelcomeStep';
-import { ProfileStep } from '../components/onboarding/ProfileStep';
-import type { ProfileData } from '../components/onboarding/ProfileStep';
-import { InviteTeamStep } from '../components/onboarding/InviteTeamStep';
-import type { InviteTeamData, TeamInvitation } from '../components/onboarding/InviteTeamStep';
-import { ConfigureWardsStep } from '../components/onboarding/ConfigureWardsStep';
-import type { ConfigureWardsData } from '../components/onboarding/ConfigureWardsStep';
-import { SetSLAStep } from '../components/onboarding/SetSLAStep';
-import type { SLAData } from '../components/onboarding/SetSLAStep';
-import { CompletionStep } from '../components/onboarding/CompletionStep';
-import gsap from 'gsap';
-import { useGSAP } from '@gsap/react';
 
-const STORAGE_KEY = 'salga_onboarding_wizard_data';
+// ---------------------------------------------------------------------------
+// Types
+// ---------------------------------------------------------------------------
 
-const STEPS: WizardStep[] = [
-  { id: 'welcome', title: 'Welcome', isCompleted: false, isCurrent: true },
-  { id: 'profile', title: 'Profile', isCompleted: false, isCurrent: false },
-  { id: 'team', title: 'Team', isCompleted: false, isCurrent: false },
-  { id: 'wards', title: 'Wards', isCompleted: false, isCurrent: false },
-  { id: 'sla', title: 'SLA', isCompleted: false, isCurrent: false },
-  { id: 'complete', title: 'Done', isCompleted: false, isCurrent: false },
+type OnboardingStep =
+  | 'welcome'
+  | 'departments'
+  | 'invite-tier1'
+  | 'invite-directors'
+  | 'sla-config'
+  | 'pms-gate';
+
+const STEPS: OnboardingStep[] = [
+  'welcome',
+  'departments',
+  'invite-tier1',
+  'invite-directors',
+  'sla-config',
+  'pms-gate',
 ];
 
-interface WizardData {
-  profile?: ProfileData;
-  team?: InviteTeamData;
-  wards?: ConfigureWardsData;
-  sla?: SLAData;
+const STEP_LABELS: Record<OnboardingStep, string> = {
+  'welcome': 'Welcome',
+  'departments': 'Departments',
+  'invite-tier1': 'Tier 1 Leaders',
+  'invite-directors': 'Directors',
+  'sla-config': 'SLA & Wards',
+  'pms-gate': 'Readiness Check',
+};
+
+interface Department {
+  id?: string;
+  name: string;
+  code: string;
+  saved?: boolean;
 }
+
+interface Tier1Invite {
+  role: string;
+  label: string;
+  email: string;
+  readOnly?: boolean;
+  sendInvite: boolean;
+  sent?: boolean;
+}
+
+interface DirectorInvite {
+  departmentName: string;
+  departmentCode: string;
+  email: string;
+  sendInvite: boolean;
+  sent?: boolean;
+}
+
+interface PmsReadiness {
+  ready: boolean;
+  checklist: {
+    departments: boolean;
+    directors: boolean;
+    sla: boolean;
+    [key: string]: boolean;
+  };
+  counts?: {
+    departments?: number;
+    tier1_invites?: number;
+    directors?: number;
+  };
+}
+
+const STORAGE_KEY = 'salga_onboarding_wizard_v2';
+
+// ---------------------------------------------------------------------------
+// Step indicator sub-component
+// ---------------------------------------------------------------------------
+
+function StepIndicator({
+  steps,
+  currentIndex,
+}: {
+  steps: OnboardingStep[];
+  currentIndex: number;
+}) {
+  return (
+    <div style={stepStyles.container}>
+      {steps.map((step, i) => {
+        const isCompleted = i < currentIndex;
+        const isCurrent = i === currentIndex;
+
+        return (
+          <div key={step} style={stepStyles.stepWrapper}>
+            <div style={stepStyles.stepColumn}>
+              <div
+                style={{
+                  ...stepStyles.circle,
+                  background: isCompleted
+                    ? 'var(--color-teal)'
+                    : isCurrent
+                    ? 'rgba(0, 191, 165, 0.15)'
+                    : 'var(--surface-elevated)',
+                  border: isCurrent || isCompleted
+                    ? '2px solid var(--color-teal)'
+                    : '2px solid var(--border-subtle)',
+                  color: isCompleted
+                    ? 'white'
+                    : isCurrent
+                    ? 'var(--color-teal)'
+                    : 'var(--text-muted)',
+                }}
+              >
+                {isCompleted ? (
+                  <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                    <polyline points="20 6 9 17 4 12" />
+                  </svg>
+                ) : (
+                  <span style={{ fontSize: '12px', fontWeight: 700 }}>{i + 1}</span>
+                )}
+              </div>
+              <span
+                style={{
+                  ...stepStyles.label,
+                  color: isCurrent
+                    ? 'var(--color-teal)'
+                    : isCompleted
+                    ? 'var(--text-secondary)'
+                    : 'var(--text-muted)',
+                }}
+              >
+                {STEP_LABELS[step]}
+              </span>
+            </div>
+            {i < steps.length - 1 && (
+              <div
+                style={{
+                  ...stepStyles.connector,
+                  background: isCompleted ? 'var(--color-teal)' : 'var(--border-subtle)',
+                }}
+              />
+            )}
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
+const stepStyles: Record<string, React.CSSProperties> = {
+  container: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    justifyContent: 'space-between',
+    marginBottom: '2rem',
+    gap: '4px',
+  },
+  stepWrapper: {
+    display: 'flex',
+    alignItems: 'center',
+    flex: 1,
+  },
+  stepColumn: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
+    flexShrink: 0,
+  },
+  circle: {
+    width: '36px',
+    height: '36px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 0.2s ease, border-color 0.2s ease',
+    flexShrink: 0,
+  },
+  label: {
+    fontSize: '11px',
+    fontWeight: 500,
+    textAlign: 'center',
+    whiteSpace: 'nowrap',
+    transition: 'color 0.2s ease',
+  },
+  connector: {
+    flex: 1,
+    height: '2px',
+    margin: '0 4px',
+    marginBottom: '18px',
+    transition: 'background 0.2s ease',
+    borderRadius: '1px',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Shared field styles
+// ---------------------------------------------------------------------------
+
+const fieldStyles: Record<string, React.CSSProperties> = {
+  group: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '6px',
+    marginBottom: '1.25rem',
+  },
+  label: {
+    fontSize: '0.78rem',
+    fontWeight: 500,
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.04em',
+  },
+  select: {
+    width: '100%',
+    padding: '10px 16px',
+    fontSize: '0.9rem',
+    fontFamily: 'var(--font-body)',
+    background: 'rgba(255, 255, 255, 0.18)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-md)',
+    color: 'var(--text-primary)',
+    outline: 'none',
+    cursor: 'pointer',
+    transition: 'border-color 0.15s ease',
+    appearance: 'none' as never,
+    WebkitAppearance: 'none' as never,
+    backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' fill='%23e0d4d8' viewBox='0 0 16 16'%3E%3Cpath d='M8 11L3 6h10z'/%3E%3C/svg%3E")`,
+    backgroundRepeat: 'no-repeat',
+    backgroundPosition: 'right 14px center',
+    paddingRight: '38px',
+  },
+  input: {
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-primary)',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontFamily: 'inherit',
+    width: '100%',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    transition: 'border-color 0.15s ease',
+  },
+  readOnlyInput: {
+    background: 'var(--surface-elevated)',
+    border: '1px solid var(--border-subtle)',
+    borderRadius: 'var(--radius-sm)',
+    color: 'var(--text-muted)',
+    padding: '0.5rem 0.75rem',
+    fontSize: '0.875rem',
+    fontFamily: 'inherit',
+    width: '100%',
+    outline: 'none',
+    boxSizing: 'border-box' as const,
+    cursor: 'not-allowed',
+    opacity: 0.75,
+  },
+  warningBox: {
+    padding: '10px 1rem',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.3)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '0.85rem',
+    color: 'var(--color-gold)',
+    marginBottom: '1rem',
+  },
+  infoBox: {
+    padding: '10px 1rem',
+    background: 'rgba(0, 191, 165, 0.08)',
+    border: '1px solid rgba(0, 191, 165, 0.2)',
+    borderRadius: 'var(--radius-sm)',
+    fontSize: '0.85rem',
+    color: 'var(--text-secondary)',
+    marginBottom: '1rem',
+    lineHeight: '1.4',
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Main wizard page
+// ---------------------------------------------------------------------------
 
 export function OnboardingWizardPage() {
   const navigate = useNavigate();
-  const { getAccessToken, getTenantId } = useAuth();
-  const { loadProgress, saveStep, completeOnboarding, isLoading, error } = useOnboarding();
+  const { getAccessToken, getTenantId, user } = useAuth();
 
-  const [currentStep, setCurrentStep] = useState(0);
-  const [steps, setSteps] = useState<WizardStep[]>(STEPS);
-  const [wizardData, setWizardData] = useState<WizardData>({});
-  const [isLoadingProgress, setIsLoadingProgress] = useState(true);
+  const [currentStepIndex, setCurrentStepIndex] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const containerRef = useRef<HTMLDivElement>(null);
-  const cardRef = useRef<HTMLDivElement>(null);
+  // Step 1: welcome
+  const [sdbipLevel, setSdbipLevel] = useState<'top-layer' | 'top-departmental'>('top-layer');
+  const municipalityName = (user as { user_metadata?: { municipality_name?: string } })?.user_metadata?.municipality_name || 'Your Municipality';
 
-  // Load progress from backend on mount
+  // Step 2: departments
+  const [departments, setDepartments] = useState<Department[]>([]);
+  const [newDeptName, setNewDeptName] = useState('');
+  const [newDeptCode, setNewDeptCode] = useState('');
+  const [deptCount, setDeptCount] = useState(0);
+
+  // Step 3: invite tier 1
+  const mmEmail = (user as { user_metadata?: { email?: string } })?.user_metadata?.email || user?.email || '';
+  const [tier1Invites, setTier1Invites] = useState<Tier1Invite[]>([
+    { role: 'executive_mayor', label: 'Executive Mayor', email: '', sendInvite: true },
+    { role: 'municipal_manager', label: 'Municipal Manager', email: mmEmail, readOnly: true, sendInvite: false },
+    { role: 'cfo', label: 'Chief Financial Officer', email: '', sendInvite: true },
+    { role: 'speaker', label: 'Speaker', email: '', sendInvite: true },
+  ]);
+
+  // Step 4: invite directors (one per dept from step 2)
+  const [directorInvites, setDirectorInvites] = useState<DirectorInvite[]>([]);
+
+  // Step 5: SLA + wards
+  const [slaResponseHours, setSlaResponseHours] = useState(24);
+  const [slaResolutionHours, setSlaResolutionHours] = useState(168);
+  const [wardCount, setWardCount] = useState('');
+
+  // Step 6: PMS readiness
+  const [pmsReadiness, setPmsReadiness] = useState<PmsReadiness | null>(null);
+  const [readinessLoading, setReadinessLoading] = useState(false);
+
+  // ---------------------------------------------------------------------------
+  // Restore from localStorage
+  // ---------------------------------------------------------------------------
+
   useEffect(() => {
-    const loadInitialProgress = async () => {
-      setIsLoadingProgress(true);
-
-      // Try loading from backend
-      const backendProgress = await loadProgress();
-
-      if (backendProgress && backendProgress.steps.length > 0) {
-        // Resume from backend state
-        const updatedSteps = [...STEPS];
-        const loadedData: WizardData = {};
-
-        backendProgress.steps.forEach((savedStep) => {
-          const stepIndex = updatedSteps.findIndex((s) => s.id === savedStep.step_id);
-          if (stepIndex >= 0) {
-            updatedSteps[stepIndex].isCompleted = savedStep.is_completed;
-          }
-
-          // Load step data
-          if (savedStep.step_data) {
-            if (savedStep.step_id === 'profile') {
-              loadedData.profile = savedStep.step_data as ProfileData;
-            } else if (savedStep.step_id === 'team') {
-              loadedData.team = savedStep.step_data as InviteTeamData;
-            } else if (savedStep.step_id === 'wards') {
-              loadedData.wards = savedStep.step_data as ConfigureWardsData;
-            } else if (savedStep.step_id === 'sla') {
-              loadedData.sla = savedStep.step_data as SLAData;
-            }
-          }
-        });
-
-        setSteps(updatedSteps);
-        setWizardData(loadedData);
-
-        // Resume from first incomplete step (skip welcome if any other step completed)
-        const firstIncompleteIndex = updatedSteps.findIndex((s) => !s.isCompleted && s.id !== 'welcome');
-        if (firstIncompleteIndex >= 0) {
-          setCurrentStep(firstIncompleteIndex);
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (raw) {
+        const saved = JSON.parse(raw);
+        if (typeof saved.currentStepIndex === 'number') {
+          setCurrentStepIndex(saved.currentStepIndex);
         }
-      } else {
-        // Fallback to localStorage
-        const cachedData = localStorage.getItem(STORAGE_KEY);
-        if (cachedData) {
-          try {
-            const parsed = JSON.parse(cachedData);
-            setWizardData(parsed.data || {});
-            setCurrentStep(parsed.step || 0);
-          } catch (err) {
-          }
+        if (saved.sdbipLevel) setSdbipLevel(saved.sdbipLevel);
+        if (saved.departments) setDepartments(saved.departments);
+        if (saved.tier1Invites) {
+          setTier1Invites((prev) =>
+            prev.map((t) => {
+              const found = saved.tier1Invites.find((s: Tier1Invite) => s.role === t.role);
+              return found ? { ...t, email: found.email, sendInvite: found.sendInvite, sent: found.sent } : t;
+            })
+          );
         }
+        if (saved.directorInvites) setDirectorInvites(saved.directorInvites);
+        if (saved.slaResponseHours) setSlaResponseHours(saved.slaResponseHours);
+        if (saved.slaResolutionHours) setSlaResolutionHours(saved.slaResolutionHours);
+        if (saved.wardCount) setWardCount(saved.wardCount);
+        if (typeof saved.deptCount === 'number') setDeptCount(saved.deptCount);
       }
+    } catch {
+      // non-critical
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-      setIsLoadingProgress(false);
-    };
-
-    loadInitialProgress();
-  }, [loadProgress]);
-
-  // Auto-save to localStorage as cache
+  // Auto-save to localStorage
   useEffect(() => {
-    if (!isLoadingProgress && currentStep > 0) {
+    try {
       localStorage.setItem(
         STORAGE_KEY,
-        JSON.stringify({ step: currentStep, data: wizardData })
+        JSON.stringify({
+          currentStepIndex,
+          sdbipLevel,
+          departments,
+          tier1Invites,
+          directorInvites,
+          slaResponseHours,
+          slaResolutionHours,
+          wardCount,
+          deptCount,
+        })
       );
+    } catch {
+      // non-critical
     }
-  }, [currentStep, wizardData, isLoadingProgress]);
+  }, [currentStepIndex, sdbipLevel, departments, tier1Invites, directorInvites, slaResponseHours, slaResolutionHours, wardCount, deptCount]);
 
-  // Entrance animation
-  useGSAP(
-    () => {
-      if (isLoadingProgress) return;
-
-      gsap.from(cardRef.current, {
-        y: 30,
-        opacity: 0,
-        duration: 0.6,
-        ease: 'power2.out',
+  // Sync director invites when departments change (Step 4 is dynamic)
+  useEffect(() => {
+    setDirectorInvites((prev) => {
+      const merged = departments.map((dept) => {
+        const existing = prev.find(
+          (d) => d.departmentCode === dept.code
+        );
+        return existing
+          ? existing
+          : { departmentName: dept.name, departmentCode: dept.code, email: '', sendInvite: true };
       });
-    },
-    { scope: containerRef, dependencies: [isLoadingProgress] }
-  );
+      return merged;
+    });
+  }, [departments]);
 
-  const handleNext = async () => {
-    // Save current step to backend before advancing
-    const stepId = steps[currentStep].id;
+  // ---------------------------------------------------------------------------
+  // API helpers
+  // ---------------------------------------------------------------------------
 
-    if (stepId !== 'welcome' && stepId !== 'complete') {
-      let stepData = null;
-      let isCompleted = true;
-
-      if (stepId === 'profile') {
-        stepData = wizardData.profile || null;
-      } else if (stepId === 'team') {
-        stepData = wizardData.team || null;
-      } else if (stepId === 'wards') {
-        stepData = wizardData.wards || null;
-      } else if (stepId === 'sla') {
-        stepData = wizardData.sla || null;
-      }
-
-      await saveStep(stepId, stepData, isCompleted);
-
-      // Mark step as completed
-      const updatedSteps = [...steps];
-      updatedSteps[currentStep].isCompleted = true;
-      setSteps(updatedSteps);
-    }
-
-    // Advance to next step
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleBack = () => {
-    if (currentStep > 0) {
-      setCurrentStep(currentStep - 1);
-    }
-  };
-
-  const handleSkip = async () => {
-    // Save as not completed, then advance
-    const stepId = steps[currentStep].id;
-
-    if (stepId !== 'welcome' && stepId !== 'complete' && stepId !== 'profile') {
-      await saveStep(stepId, null, false);
-    }
-
-    if (currentStep < steps.length - 1) {
-      setCurrentStep(currentStep + 1);
-    }
-  };
-
-  const handleProfileChange = (data: ProfileData) => {
-    setWizardData({ ...wizardData, profile: data });
-  };
-
-  const handleTeamChange = (data: InviteTeamData) => {
-    setWizardData({ ...wizardData, team: data });
-  };
-
-  const handleSubmitInvitations = async (invitations: TeamInvitation[]) => {
+  const getHeaders = useCallback(() => {
     const token = getAccessToken();
     const tenantId = getTenantId();
+    return {
+      'Content-Type': 'application/json',
+      ...(token ? { Authorization: `Bearer ${token}` } : {}),
+      ...(tenantId ? { 'X-Tenant-ID': tenantId } : {}),
+    };
+  }, [getAccessToken, getTenantId]);
 
-    if (!token || !tenantId) {
-      throw new Error('User not authenticated');
+  const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+
+  // ---------------------------------------------------------------------------
+  // Step 2: Create department
+  // ---------------------------------------------------------------------------
+
+  async function handleCreateDepartment() {
+    const name = newDeptName.trim();
+    const code = newDeptCode.trim().toUpperCase();
+    if (!name || !code) {
+      setError('Department name and code are required.');
+      return;
+    }
+    if (!/^[A-Z0-9_]{1,20}$/.test(code)) {
+      setError('Code must be uppercase letters, digits, or underscores (e.g., FIN, COMM_SAFETY).');
+      return;
+    }
+    if (departments.some((d) => d.code === code)) {
+      setError(`Department code ${code} already used.`);
+      return;
     }
 
-    const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+    setIsLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/departments/`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ name, code }),
+      });
 
-    const response = await fetch(`${apiUrl}/api/v1/invitations/bulk`, {
-      method: 'POST',
-      headers: {
-        'Authorization': `Bearer ${token}`,
-        'X-Tenant-ID': tenantId,
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify({
-        invitations: invitations.map((inv) => ({
-          email: inv.email,
-          role: inv.role,
-        })),
-      }),
-    });
-
-    if (!response.ok) {
-      const errorData = await response.json();
-      throw new Error(errorData.detail || 'Failed to send invitations');
+      if (response.ok) {
+        const created = await response.json();
+        setDepartments((prev) => [...prev, { id: created.id, name: created.name, code: created.code, saved: true }]);
+        setDeptCount((c) => c + 1);
+      } else {
+        // API unavailable during onboarding — track locally
+        setDepartments((prev) => [...prev, { name, code, saved: false }]);
+        setDeptCount((c) => c + 1);
+      }
+      setNewDeptName('');
+      setNewDeptCode('');
+    } catch {
+      // Offline / API not ready — add locally
+      setDepartments((prev) => [...prev, { name, code, saved: false }]);
+      setDeptCount((c) => c + 1);
+      setNewDeptName('');
+      setNewDeptCode('');
+    } finally {
+      setIsLoading(false);
     }
-
-    return response.json();
-  };
-
-  const handleWardsChange = (data: ConfigureWardsData) => {
-    setWizardData({ ...wizardData, wards: data });
-  };
-
-  const handleSLAChange = (data: SLAData) => {
-    setWizardData({ ...wizardData, sla: data });
-  };
-
-  const handleComplete = async (): Promise<boolean> => {
-    const success = await completeOnboarding();
-    if (success) {
-      localStorage.removeItem(STORAGE_KEY);
-    }
-    return success;
-  };
-
-  const handleNavigateDashboard = () => {
-    navigate('/');
-  };
-
-  // Validation for "Next" button
-  const canProceed = (): boolean => {
-    const stepId = steps[currentStep].id;
-
-    if (stepId === 'profile') {
-      const profile = wizardData.profile;
-      return !!(
-        profile &&
-        profile.municipalityName &&
-        profile.municipalityCode &&
-        profile.province &&
-        profile.contactEmail &&
-        profile.contactPhone &&
-        profile.contactPersonName
-      );
-    }
-
-    return true; // Other steps are skippable or don't require validation
-  };
-
-  // Show skippable steps
-  const isSkippable = (): boolean => {
-    const stepId = steps[currentStep].id;
-    return stepId === 'team' || stepId === 'wards' || stepId === 'sla';
-  };
-
-  if (isLoadingProgress) {
-    return (
-      <div style={styles.loadingContainer}>
-        <AnimatedGradientBg />
-        <div style={styles.spinner}></div>
-        <p style={styles.loadingText}>Loading your progress...</p>
-      </div>
-    );
   }
 
-  return (
-    <div ref={containerRef} style={styles.container}>
-      <AnimatedGradientBg />
+  function handleRemoveDepartment(code: string) {
+    setDepartments((prev) => prev.filter((d) => d.code !== code));
+    setDeptCount((c) => Math.max(0, c - 1));
+  }
 
-      <div ref={cardRef}>
-        <GlassCard style={styles.card}>
-        {/* Progress indicator (hide on welcome and completion) */}
-        {currentStep > 0 && currentStep < steps.length - 1 && (
-          <WizardProgress
-            steps={steps.slice(1, -1)} // Exclude welcome and completion
-            currentStepIndex={currentStep - 1}
-          />
-        )}
+  // ---------------------------------------------------------------------------
+  // Step 3: Submit tier 1 invites
+  // ---------------------------------------------------------------------------
 
-        {/* Step content */}
-        <div style={styles.stepContent}>
-          {currentStep === 0 && <WelcomeStep onStart={() => setCurrentStep(1)} />}
-          {currentStep === 1 && (
-            <ProfileStep initialData={wizardData.profile} onDataChange={handleProfileChange} />
-          )}
-          {currentStep === 2 && (
-            <InviteTeamStep
-              initialData={wizardData.team}
-              onDataChange={handleTeamChange}
-              onSubmitInvitations={handleSubmitInvitations}
-            />
-          )}
-          {currentStep === 3 && (
-            <ConfigureWardsStep initialData={wizardData.wards} onDataChange={handleWardsChange} />
-          )}
-          {currentStep === 4 && (
-            <SetSLAStep initialData={wizardData.sla} onDataChange={handleSLAChange} />
-          )}
-          {currentStep === 5 && (
-            <CompletionStep
-              onComplete={handleComplete}
-              onNavigateDashboard={handleNavigateDashboard}
-              summary={{
-                municipalityName: wizardData.profile?.municipalityName,
-                municipalityCode: wizardData.profile?.municipalityCode,
-                teamMembersCount: wizardData.team?.invitations?.filter((i) => i.email).length || 0,
-                wardsCount: wizardData.wards?.wards?.filter((w) => w.name).length || 0,
-                slaConfigured: !!wizardData.sla,
-              }}
-            />
-          )}
-        </div>
+  async function handleSendTier1Invites() {
+    const toSend = tier1Invites.filter((t) => t.sendInvite && t.email.trim() && !t.readOnly);
+    if (toSend.length === 0) return;
 
-        {/* Navigation buttons (hide on welcome and completion) */}
-        {currentStep > 0 && currentStep < steps.length - 1 && (
-          <div style={styles.navigation}>
-            <Button variant="ghost" onClick={handleBack} disabled={isLoading}>
-              Back
-            </Button>
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetch(`${apiUrl}/api/v1/invitations/bulk`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          invitations: toSend.map((t) => ({ email: t.email.trim(), role: t.role })),
+        }),
+      });
+      setTier1Invites((prev) =>
+        prev.map((t) => (toSend.some((s) => s.role === t.role) ? { ...t, sent: true } : t))
+      );
+    } catch {
+      // Non-blocking — mark as "attempted"
+      setTier1Invites((prev) =>
+        prev.map((t) => (toSend.some((s) => s.role === t.role) ? { ...t, sent: true } : t))
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
 
-            <div style={styles.rightButtons}>
-              {isSkippable() && (
-                <Button variant="ghost" onClick={handleSkip} disabled={isLoading}>
-                  Skip
-                </Button>
-              )}
+  // ---------------------------------------------------------------------------
+  // Step 4: Submit director invites
+  // ---------------------------------------------------------------------------
 
-              <Button
-                variant="primary"
-                onClick={handleNext}
-                disabled={!canProceed() || isLoading}
-                loading={isLoading}
+  async function handleSendDirectorInvites() {
+    const toSend = directorInvites.filter((d) => d.sendInvite && d.email.trim());
+    if (toSend.length === 0) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetch(`${apiUrl}/api/v1/invitations/bulk`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          invitations: toSend.map((d) => ({ email: d.email.trim(), role: 'section56_director' })),
+        }),
+      });
+      setDirectorInvites((prev) =>
+        prev.map((d) => (toSend.some((s) => s.departmentCode === d.departmentCode) ? { ...d, sent: true } : d))
+      );
+    } catch {
+      setDirectorInvites((prev) =>
+        prev.map((d) => (toSend.some((s) => s.departmentCode === d.departmentCode) ? { ...d, sent: true } : d))
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 6: Load PMS readiness
+  // ---------------------------------------------------------------------------
+
+  async function loadPmsReadiness() {
+    setReadinessLoading(true);
+    try {
+      const response = await fetch(`${apiUrl}/api/v1/pms/readiness`, {
+        headers: getHeaders(),
+      });
+      if (response.ok) {
+        const data = await response.json();
+        setPmsReadiness(data);
+      } else {
+        // Derive readiness from local wizard state
+        setPmsReadiness({
+          ready: departments.length >= 3 && directorInvites.some((d) => d.sent),
+          checklist: {
+            departments: departments.length >= 1,
+            directors: directorInvites.some((d) => d.sent),
+            sla: slaResponseHours > 0,
+          },
+          counts: {
+            departments: departments.length,
+            tier1_invites: tier1Invites.filter((t) => t.sent).length,
+            directors: directorInvites.filter((d) => d.sent).length,
+          },
+        });
+      }
+    } catch {
+      setPmsReadiness({
+        ready: departments.length >= 3,
+        checklist: {
+          departments: departments.length >= 1,
+          directors: directorInvites.some((d) => d.sent),
+          sla: slaResponseHours > 0,
+        },
+        counts: {
+          departments: departments.length,
+          tier1_invites: tier1Invites.filter((t) => t.sent).length,
+          directors: directorInvites.filter((d) => d.sent).length,
+        },
+      });
+    } finally {
+      setReadinessLoading(false);
+    }
+  }
+
+  useEffect(() => {
+    if (STEPS[currentStepIndex] === 'pms-gate') {
+      loadPmsReadiness();
+    }
+  }, [currentStepIndex]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  // ---------------------------------------------------------------------------
+  // Navigation
+  // ---------------------------------------------------------------------------
+
+  async function handleNext() {
+    setError(null);
+    const step = STEPS[currentStepIndex];
+
+    if (step === 'invite-tier1') {
+      // Auto-send before advancing (if any checked)
+      const hasUnsent = tier1Invites.some((t) => t.sendInvite && t.email.trim() && !t.readOnly && !t.sent);
+      if (hasUnsent) {
+        await handleSendTier1Invites();
+      }
+    }
+    if (step === 'invite-directors') {
+      const hasUnsent = directorInvites.some((d) => d.sendInvite && d.email.trim() && !d.sent);
+      if (hasUnsent) {
+        await handleSendDirectorInvites();
+      }
+    }
+
+    if (currentStepIndex < STEPS.length - 1) {
+      setCurrentStepIndex((i) => i + 1);
+    }
+  }
+
+  function handleBack() {
+    setError(null);
+    if (currentStepIndex > 0) {
+      setCurrentStepIndex((i) => i - 1);
+    }
+  }
+
+  function handleSkip() {
+    setError(null);
+    if (currentStepIndex < STEPS.length - 1) {
+      setCurrentStepIndex((i) => i + 1);
+    }
+  }
+
+  function handleFinish() {
+    localStorage.removeItem(STORAGE_KEY);
+    navigate('/');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Duration formatter helper
+  // ---------------------------------------------------------------------------
+
+  function formatDuration(hours: number): string {
+    if (hours < 24) return `${hours} hour${hours !== 1 ? 's' : ''}`;
+    const days = Math.floor(hours / 24);
+    const rem = hours % 24;
+    if (rem === 0) return `${days} day${days !== 1 ? 's' : ''}`;
+    return `${days}d ${rem}h`;
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render steps
+  // ---------------------------------------------------------------------------
+
+  function renderStep() {
+    const step = STEPS[currentStepIndex];
+
+    switch (step) {
+      // ---- Step 1: Welcome ----
+      case 'welcome':
+        return (
+          <div style={pageStyles.stepContent}>
+            <div style={pageStyles.stepHeader}>
+              <div style={pageStyles.welcomeIcon}>
+                <svg width="48" height="48" fill="none" stroke="var(--color-teal)" strokeWidth="1.5" viewBox="0 0 24 24">
+                  <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z" />
+                  <polyline points="9 22 9 12 15 12 15 22" />
+                </svg>
+              </div>
+              <h2 style={pageStyles.stepTitle}>Welcome, {municipalityName}</h2>
+              <p style={pageStyles.stepSubtitle}>
+                Let's get your municipality set up for Performance Management. This wizard will guide you through
+                department configuration, leadership invites, and SLA setup.
+              </p>
+            </div>
+
+            <div style={fieldStyles.group}>
+              <label style={fieldStyles.label}>SDBIP Configuration Level</label>
+              <select
+                value={sdbipLevel}
+                onChange={(e) => setSdbipLevel(e.target.value as 'top-layer' | 'top-departmental')}
+                style={fieldStyles.select}
               >
-                {currentStep === steps.length - 2 ? 'Finish' : 'Next'}
+                <option value="top-layer">Top Layer Only</option>
+                <option value="top-departmental">Top Layer + Departmental</option>
+              </select>
+            </div>
+
+            <div style={fieldStyles.infoBox}>
+              <strong>Top Layer Only</strong> — Tracks high-level municipal KPIs only.{' '}
+              <strong>Top Layer + Departmental</strong> — Also tracks per-department KPI delivery for full PMS compliance.
+            </div>
+
+            <div style={pageStyles.navRow}>
+              <div />
+              <Button variant="primary" onClick={handleNext}>
+                Confirm & Continue
               </Button>
             </div>
           </div>
-        )}
+        );
 
-        {error && <div style={styles.errorBox}>{error}</div>}
+      // ---- Step 2: Department Setup ----
+      case 'departments':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 2: Department Setup</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Create your municipality's departments. Each department will have a Section 56 Director assigned.
+            </p>
+
+            {departments.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ ...fieldStyles.label, marginBottom: '8px' }}>
+                  {departments.length} department{departments.length !== 1 ? 's' : ''} created
+                </p>
+                <ul style={pageStyles.deptList}>
+                  {departments.map((dept) => (
+                    <li key={dept.code} style={pageStyles.deptItem}>
+                      <div>
+                        <span style={pageStyles.deptName}>{dept.name}</span>
+                        <span style={pageStyles.deptCode}>{dept.code}</span>
+                        {!dept.saved && (
+                          <span style={pageStyles.unsavedBadge}>local</span>
+                        )}
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDepartment(dept.code)}
+                        style={pageStyles.removeBtn}
+                        aria-label={`Remove ${dept.name}`}
+                      >
+                        <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            )}
+
+            {departments.length < 3 && departments.length > 0 && (
+              <div style={fieldStyles.warningBox}>
+                Minimum 3 departments recommended. You can continue with fewer and add more later.
+              </div>
+            )}
+
+            <div style={pageStyles.addDeptForm}>
+              <p style={{ ...fieldStyles.label, marginBottom: '0.75rem' }}>Add Department</p>
+              <div style={pageStyles.deptGrid}>
+                <div style={fieldStyles.group}>
+                  <label style={fieldStyles.label}>Department Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Finance"
+                    value={newDeptName}
+                    onChange={(e) => setNewDeptName(e.target.value)}
+                    style={fieldStyles.input}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDepartment(); }}
+                  />
+                </div>
+                <div style={fieldStyles.group}>
+                  <label style={fieldStyles.label}>Code (uppercase)</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. FIN"
+                    value={newDeptCode}
+                    onChange={(e) => setNewDeptCode(e.target.value.toUpperCase())}
+                    style={{ ...fieldStyles.input, fontFamily: 'monospace' }}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleCreateDepartment(); }}
+                  />
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleCreateDepartment}
+                disabled={isLoading || !newDeptName.trim() || !newDeptCode.trim()}
+                loading={isLoading}
+              >
+                + Add Department
+              </Button>
+            </div>
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                {departments.length < 3 && (
+                  <Button variant="ghost" onClick={handleSkip}>
+                    Skip for now
+                  </Button>
+                )}
+                <Button variant="primary" onClick={handleNext} disabled={departments.length === 0}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 3: Invite Tier 1 Leaders ----
+      case 'invite-tier1':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 3: Invite Executive Leadership</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Invite your Tier 1 leaders. They will receive email invitations to join the SALGA Trust Engine platform.
+            </p>
+
+            <div style={pageStyles.inviteTable}>
+              {tier1Invites.map((invite, i) => (
+                <div key={invite.role} style={pageStyles.inviteRow}>
+                  <div style={pageStyles.inviteRoleCol}>
+                    <span style={pageStyles.inviteRoleLabel}>{invite.label}</span>
+                  </div>
+                  <div style={pageStyles.inviteEmailCol}>
+                    {invite.readOnly ? (
+                      <input
+                        type="email"
+                        value={invite.email}
+                        readOnly
+                        style={fieldStyles.readOnlyInput}
+                        title="Municipal Manager email is set from registration"
+                      />
+                    ) : (
+                      <input
+                        type="email"
+                        placeholder={`email@municipality.gov.za`}
+                        value={invite.email}
+                        onChange={(e) =>
+                          setTier1Invites((prev) =>
+                            prev.map((t, idx) => (idx === i ? { ...t, email: e.target.value } : t))
+                          )
+                        }
+                        style={fieldStyles.input}
+                      />
+                    )}
+                  </div>
+                  <div style={pageStyles.inviteCheckCol}>
+                    {invite.sent ? (
+                      <span style={pageStyles.sentBadge}>
+                        <svg width="14" height="14" fill="none" stroke="var(--color-teal)" strokeWidth="2.5" viewBox="0 0 24 24">
+                          <polyline points="20 6 9 17 4 12" />
+                        </svg>
+                        Sent
+                      </span>
+                    ) : invite.readOnly ? (
+                      <span style={{ ...pageStyles.sentBadge, color: 'var(--text-muted)' }}>Pre-registered</span>
+                    ) : (
+                      <label style={pageStyles.checkLabel}>
+                        <input
+                          type="checkbox"
+                          checked={invite.sendInvite}
+                          onChange={(e) =>
+                            setTier1Invites((prev) =>
+                              prev.map((t, idx) => (idx === i ? { ...t, sendInvite: e.target.checked } : t))
+                            )
+                          }
+                          style={{ accentColor: 'var(--color-teal)' }}
+                        />
+                        Send
+                      </label>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>
+                  I'll invite them later
+                </Button>
+                <Button variant="primary" onClick={handleNext} loading={isLoading}>
+                  Send & Continue
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 4: Invite Directors ----
+      case 'invite-directors':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 4: Assign Directors to Departments</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Invite Section 56 Directors — one per department created in Step 2.
+            </p>
+
+            {directorInvites.length === 0 ? (
+              <div style={fieldStyles.warningBox}>
+                No departments created yet. Go back to Step 2 to add departments first.
+              </div>
+            ) : (
+              <div style={pageStyles.inviteTable}>
+                {directorInvites.map((invite, i) => (
+                  <div key={invite.departmentCode} style={pageStyles.inviteRow}>
+                    <div style={pageStyles.inviteRoleCol}>
+                      <span style={pageStyles.inviteRoleLabel}>{invite.departmentName}</span>
+                      <span style={pageStyles.inviteRoleCode}>{invite.departmentCode}</span>
+                    </div>
+                    <div style={pageStyles.inviteEmailCol}>
+                      <input
+                        type="email"
+                        placeholder="director@municipality.gov.za"
+                        value={invite.email}
+                        onChange={(e) =>
+                          setDirectorInvites((prev) =>
+                            prev.map((d, idx) => (idx === i ? { ...d, email: e.target.value } : d))
+                          )
+                        }
+                        style={fieldStyles.input}
+                      />
+                    </div>
+                    <div style={pageStyles.inviteCheckCol}>
+                      {invite.sent ? (
+                        <span style={pageStyles.sentBadge}>
+                          <svg width="14" height="14" fill="none" stroke="var(--color-teal)" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Sent
+                        </span>
+                      ) : (
+                        <label style={pageStyles.checkLabel}>
+                          <input
+                            type="checkbox"
+                            checked={invite.sendInvite}
+                            onChange={(e) =>
+                              setDirectorInvites((prev) =>
+                                prev.map((d, idx) => (idx === i ? { ...d, sendInvite: e.target.checked } : d))
+                              )
+                            }
+                            style={{ accentColor: 'var(--color-teal)' }}
+                          />
+                          Send
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>
+                  I'll assign directors later
+                </Button>
+                <Button variant="primary" onClick={handleNext} loading={isLoading}>
+                  Send & Continue
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 5: SLA & Ward Configuration ----
+      case 'sla-config':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 5: SLA & Ward Configuration</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Set service level targets and ward count. These configure operational response expectations.
+            </p>
+
+            <div style={pageStyles.slaCard}>
+              <div style={pageStyles.slaHeader}>
+                <label style={pageStyles.slaLabel}>Response Time Target</label>
+                <div style={pageStyles.slaValue}>{formatDuration(slaResponseHours)}</div>
+              </div>
+              <p style={pageStyles.slaHint}>How quickly should your team acknowledge a new ticket?</p>
+              <input
+                type="range"
+                min="1"
+                max="72"
+                step="1"
+                value={slaResponseHours}
+                onChange={(e) => setSlaResponseHours(parseInt(e.target.value, 10))}
+                style={pageStyles.slider}
+              />
+              <div style={pageStyles.sliderLabels}>
+                <span style={pageStyles.sliderLabel}>1 hour</span>
+                <span style={pageStyles.sliderLabel}>72 hours</span>
+              </div>
+            </div>
+
+            <div style={{ ...pageStyles.slaCard, marginTop: '1.5rem' }}>
+              <div style={pageStyles.slaHeader}>
+                <label style={pageStyles.slaLabel}>Resolution Time Target</label>
+                <div style={pageStyles.slaValue}>{formatDuration(slaResolutionHours)}</div>
+              </div>
+              <p style={pageStyles.slaHint}>How long should it take to fully resolve a ticket?</p>
+              <input
+                type="range"
+                min="24"
+                max="720"
+                step="24"
+                value={slaResolutionHours}
+                onChange={(e) => setSlaResolutionHours(parseInt(e.target.value, 10))}
+                style={pageStyles.slider}
+              />
+              <div style={pageStyles.sliderLabels}>
+                <span style={pageStyles.sliderLabel}>1 day</span>
+                <span style={pageStyles.sliderLabel}>30 days</span>
+              </div>
+            </div>
+
+            <div style={{ ...fieldStyles.group, marginTop: '1.5rem' }}>
+              <label style={fieldStyles.label}>Ward Count (optional)</label>
+              <input
+                type="number"
+                min="0"
+                max="999"
+                placeholder="e.g. 47"
+                value={wardCount}
+                onChange={(e) => setWardCount(e.target.value)}
+                style={fieldStyles.input}
+              />
+              <p style={{ fontSize: '0.75rem', color: 'var(--text-muted)', margin: '2px 0 0 0' }}>
+                Number of wards in your municipality (used for councillor assignments)
+              </p>
+            </div>
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>Skip</Button>
+                <Button variant="primary" onClick={handleNext}>Next</Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 6: PMS Readiness Gate ----
+      case 'pms-gate':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 6: Municipality Readiness Check</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Review your setup status before going live. You can always complete missing items from the dashboard.
+            </p>
+
+            {readinessLoading ? (
+              <div style={pageStyles.readinessLoading}>
+                <div style={pageStyles.spinner} />
+                <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Checking readiness...</p>
+              </div>
+            ) : pmsReadiness ? (
+              <div>
+                <div style={pageStyles.checklistBox}>
+                  <ChecklistItem
+                    label="Departments created"
+                    pass={pmsReadiness.checklist.departments}
+                    detail={
+                      pmsReadiness.counts?.departments !== undefined
+                        ? `${pmsReadiness.counts.departments} department${pmsReadiness.counts.departments !== 1 ? 's' : ''}`
+                        : undefined
+                    }
+                  />
+                  <ChecklistItem
+                    label="Tier 1 invites sent"
+                    pass={!!pmsReadiness.counts?.tier1_invites && pmsReadiness.counts.tier1_invites > 0}
+                    detail={
+                      pmsReadiness.counts?.tier1_invites !== undefined
+                        ? `${pmsReadiness.counts.tier1_invites} invite${pmsReadiness.counts.tier1_invites !== 1 ? 's' : ''} sent`
+                        : undefined
+                    }
+                  />
+                  <ChecklistItem
+                    label="Directors assigned"
+                    pass={pmsReadiness.checklist.directors}
+                    detail={
+                      pmsReadiness.counts?.directors !== undefined
+                        ? `${pmsReadiness.counts.directors} director${pmsReadiness.counts.directors !== 1 ? 's' : ''} invited`
+                        : undefined
+                    }
+                  />
+                  <ChecklistItem
+                    label="SLA configured"
+                    pass={pmsReadiness.checklist.sla}
+                  />
+                </div>
+
+                {pmsReadiness.ready ? (
+                  <div style={pageStyles.readyBanner}>
+                    <svg width="20" height="20" fill="none" stroke="var(--color-teal)" strokeWidth="2.5" viewBox="0 0 24 24">
+                      <polyline points="20 6 9 17 4 12" />
+                    </svg>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--color-teal)' }}>
+                        Your municipality is PMS-ready!
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        All core configuration requirements are met.
+                      </p>
+                    </div>
+                  </div>
+                ) : (
+                  <div style={pageStyles.amberBanner}>
+                    <svg width="20" height="20" fill="none" stroke="var(--color-gold)" strokeWidth="2" viewBox="0 0 24 24">
+                      <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z" />
+                      <line x1="12" y1="9" x2="12" y2="13" />
+                      <line x1="12" y1="17" x2="12.01" y2="17" />
+                    </svg>
+                    <div>
+                      <p style={{ margin: 0, fontWeight: 600, color: 'var(--color-gold)' }}>
+                        Some items are incomplete
+                      </p>
+                      <p style={{ margin: '4px 0 0 0', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                        You can proceed now and complete them from the dashboard.
+                      </p>
+                    </div>
+                  </div>
+                )}
+
+                <div style={pageStyles.navRow}>
+                  <Button variant="ghost" onClick={handleBack}>Back</Button>
+                  <Button
+                    variant="primary"
+                    onClick={handleFinish}
+                    style={pmsReadiness.ready ? {} : { background: 'var(--color-gold)', borderColor: 'var(--color-gold)' }}
+                  >
+                    Go to Dashboard
+                  </Button>
+                </div>
+              </div>
+            ) : (
+              <div style={pageStyles.navRow}>
+                <Button variant="ghost" onClick={handleBack}>Back</Button>
+                <Button variant="primary" onClick={handleFinish}>Go to Dashboard</Button>
+              </div>
+            )}
+          </div>
+        );
+
+      default:
+        return null;
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Render
+  // ---------------------------------------------------------------------------
+
+  return (
+    <div style={pageStyles.container}>
+      <AnimatedGradientBg />
+      <div style={pageStyles.inner}>
+        <GlassCard style={pageStyles.card}>
+          {/* Step indicator */}
+          <StepIndicator steps={STEPS} currentIndex={currentStepIndex} />
+
+          {/* Error banner */}
+          {error && <div style={pageStyles.errorBanner}>{error}</div>}
+
+          {/* Step content */}
+          {renderStep()}
         </GlassCard>
       </div>
     </div>
   );
 }
 
-const styles = {
-  loadingContainer: {
+// ---------------------------------------------------------------------------
+// Checklist item sub-component
+// ---------------------------------------------------------------------------
+
+function ChecklistItem({
+  label,
+  pass,
+  detail,
+}: {
+  label: string;
+  pass: boolean;
+  detail?: string;
+}) {
+  return (
+    <div style={checklistStyles.row}>
+      <div
+        style={{
+          ...checklistStyles.icon,
+          background: pass ? 'rgba(0, 191, 165, 0.15)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${pass ? 'rgba(0, 191, 165, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+        }}
+      >
+        {pass ? (
+          <svg width="12" height="12" fill="none" stroke="var(--color-teal)" strokeWidth="3" viewBox="0 0 24 24">
+            <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : (
+          <svg width="12" height="12" fill="none" stroke="var(--color-coral)" strokeWidth="3" viewBox="0 0 24 24">
+            <line x1="18" y1="6" x2="6" y2="18" />
+            <line x1="6" y1="6" x2="18" y2="18" />
+          </svg>
+        )}
+      </div>
+      <div style={{ flex: 1 }}>
+        <span style={{ fontSize: '0.9rem', color: 'var(--text-primary)', fontWeight: 500 }}>{label}</span>
+        {detail && (
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginLeft: '0.5rem' }}>
+            ({detail})
+          </span>
+        )}
+      </div>
+      <span
+        style={{
+          fontSize: '0.8rem',
+          fontWeight: 600,
+          color: pass ? 'var(--color-teal)' : 'var(--color-coral)',
+        }}
+      >
+        {pass ? 'Complete' : 'Pending'}
+      </span>
+    </div>
+  );
+}
+
+const checklistStyles: Record<string, React.CSSProperties> = {
+  row: {
     display: 'flex',
-    flexDirection: 'column' as const,
+    alignItems: 'center',
+    gap: '0.75rem',
+    padding: '0.75rem',
+    borderBottom: '1px solid var(--border-subtle)',
+  },
+  icon: {
+    width: '28px',
+    height: '28px',
+    borderRadius: '50%',
+    display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    minHeight: '100vh',
-    gap: '1rem',
-    position: 'relative' as const,
-  } as React.CSSProperties,
-  spinner: {
-    width: '40px',
-    height: '40px',
-    border: '4px solid var(--surface-higher)',
-    borderTop: '4px solid var(--color-teal)',
-    borderRadius: '50%',
-    animation: 'spin 1s linear infinite',
-    position: 'relative' as const,
-    zIndex: 10,
-  } as React.CSSProperties,
-  loadingText: {
-    fontSize: '1rem',
-    color: 'var(--text-secondary)',
-    position: 'relative' as const,
-    zIndex: 10,
-  } as React.CSSProperties,
+    flexShrink: 0,
+  },
+};
+
+// ---------------------------------------------------------------------------
+// Page styles
+// ---------------------------------------------------------------------------
+
+const pageStyles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    position: 'relative' as const,
+    position: 'relative',
     overflow: 'hidden',
-  } as React.CSSProperties,
-  card: {
+  },
+  inner: {
     width: '100%',
-    maxWidth: '900px',
-    padding: '3rem 2.5rem',
-    position: 'relative' as const,
+    maxWidth: '860px',
+    position: 'relative',
     zIndex: 10,
-  } as React.CSSProperties,
-  stepContent: {
-    marginBottom: '2rem',
-    minHeight: '400px',
-  } as React.CSSProperties,
-  navigation: {
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    gap: '1rem',
-    paddingTop: '2rem',
-    borderTop: '1px solid var(--border-subtle)',
-  } as React.CSSProperties,
-  rightButtons: {
-    display: 'flex',
-    alignItems: 'center',
-    gap: '1rem',
-  } as React.CSSProperties,
-  errorBox: {
-    padding: '0.75rem',
+  },
+  card: {
+    padding: '2.5rem',
+    position: 'relative',
+    zIndex: 10,
+  },
+  errorBanner: {
+    padding: '0.5rem 0.75rem',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
     border: '1px solid var(--color-coral)',
     borderRadius: 'var(--radius-sm)',
     color: 'var(--color-coral)',
-    marginTop: '1rem',
+    marginBottom: '1rem',
+    fontSize: '0.8rem',
+  },
+  stepContent: {
+    minHeight: '360px',
+  },
+  stepHeader: {
+    textAlign: 'center',
+    marginBottom: '2rem',
+  },
+  welcomeIcon: {
+    display: 'flex',
+    justifyContent: 'center',
+    marginBottom: '1rem',
+  },
+  stepTitle: {
+    fontSize: '1.5rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: '0 0 0.5rem 0',
+    fontFamily: 'var(--font-display)',
+  },
+  stepSubtitle: {
+    fontSize: '0.9rem',
+    color: 'var(--text-secondary)',
+    lineHeight: 1.5,
+    margin: 0,
+  },
+  navRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    paddingTop: '1.5rem',
+    borderTop: '1px solid var(--border-subtle)',
+    marginTop: '1.5rem',
+  },
+  deptList: {
+    listStyle: 'none',
+    padding: 0,
+    margin: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+  },
+  deptItem: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    padding: '10px 1rem',
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border-subtle)',
+  },
+  deptName: {
+    fontSize: '0.9rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+    marginRight: '0.5rem',
+  },
+  deptCode: {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+    fontFamily: 'monospace',
+    background: 'var(--surface-higher)',
+    padding: '2px 6px',
+    borderRadius: '4px',
+  },
+  unsavedBadge: {
+    fontSize: '0.7rem',
+    color: 'var(--color-gold)',
+    background: 'rgba(251, 191, 36, 0.1)',
+    border: '1px solid rgba(251, 191, 36, 0.3)',
+    borderRadius: '4px',
+    padding: '1px 5px',
+    marginLeft: '0.5rem',
+  },
+  removeBtn: {
+    background: 'none',
+    border: 'none',
+    color: 'var(--color-coral)',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    borderRadius: 'var(--radius-sm)',
+    opacity: 0.7,
+  },
+  addDeptForm: {
+    padding: '1rem',
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border-subtle)',
+    marginBottom: '1rem',
+  },
+  deptGrid: {
+    display: 'grid',
+    gridTemplateColumns: '1fr 1fr',
+    gap: '1rem',
+  },
+  inviteTable: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '8px',
+    marginBottom: '1.5rem',
+  },
+  inviteRow: {
+    display: 'grid',
+    gridTemplateColumns: '200px 1fr 100px',
+    gap: '0.75rem',
+    alignItems: 'center',
+    padding: '0.75rem',
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-sm)',
+    border: '1px solid var(--border-subtle)',
+  },
+  inviteRoleCol: {
+    display: 'flex',
+    flexDirection: 'column',
+    gap: '2px',
+  },
+  inviteRoleLabel: {
     fontSize: '0.875rem',
-  } as React.CSSProperties,
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  inviteRoleCode: {
+    fontSize: '0.7rem',
+    color: 'var(--text-muted)',
+    fontFamily: 'monospace',
+  },
+  inviteEmailCol: {
+    flex: 1,
+  },
+  inviteCheckCol: {
+    display: 'flex',
+    justifyContent: 'center',
+  },
+  sentBadge: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '0.75rem',
+    fontWeight: 600,
+    color: 'var(--color-teal)',
+  },
+  checkLabel: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '4px',
+    fontSize: '0.8rem',
+    color: 'var(--text-secondary)',
+    cursor: 'pointer',
+    userSelect: 'none',
+  },
+  slaCard: {
+    padding: '1.25rem',
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border-subtle)',
+  },
+  slaHeader: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: '0.5rem',
+  },
+  slaLabel: {
+    fontSize: '0.95rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  },
+  slaValue: {
+    fontSize: '1.1rem',
+    fontWeight: 700,
+    color: 'var(--color-teal)',
+  },
+  slaHint: {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+    marginBottom: '1rem',
+    margin: '0 0 1rem 0',
+    lineHeight: 1.4,
+  },
+  slider: {
+    width: '100%',
+    height: '8px',
+    borderRadius: '4px',
+    appearance: 'none',
+    background: 'var(--surface-higher)',
+    outline: 'none',
+    cursor: 'pointer',
+  },
+  sliderLabels: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    marginTop: '0.5rem',
+  },
+  sliderLabel: {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+  },
+  checklistBox: {
+    background: 'var(--surface-elevated)',
+    borderRadius: 'var(--radius-md)',
+    border: '1px solid var(--border-subtle)',
+    overflow: 'hidden',
+    marginBottom: '1.5rem',
+  },
+  readyBanner: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.75rem',
+    padding: '1rem',
+    background: 'rgba(0, 191, 165, 0.08)',
+    border: '1px solid rgba(0, 191, 165, 0.25)',
+    borderRadius: 'var(--radius-md)',
+    marginBottom: '1.5rem',
+  },
+  amberBanner: {
+    display: 'flex',
+    alignItems: 'flex-start',
+    gap: '0.75rem',
+    padding: '1rem',
+    background: 'rgba(251, 191, 36, 0.08)',
+    border: '1px solid rgba(251, 191, 36, 0.25)',
+    borderRadius: 'var(--radius-md)',
+    marginBottom: '1.5rem',
+  },
+  readinessLoading: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '3rem 0',
+    gap: '1rem',
+  },
+  spinner: {
+    width: '36px',
+    height: '36px',
+    border: '3px solid var(--surface-higher)',
+    borderTop: '3px solid var(--color-teal)',
+    borderRadius: '50%',
+    animation: 'spin 1s linear infinite',
+  },
 };

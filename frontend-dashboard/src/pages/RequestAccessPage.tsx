@@ -1,18 +1,22 @@
 /**
- * Municipality Request Access Page
+ * RequestAccessPage — Municipality Onboarding Registration (Step 1 of 2)
  *
  * Public form for municipalities to request platform access (not open signup).
- * Request goes through admin approval before invitation is sent.
+ * Request goes through SALGA admin approval before an invitation is sent.
  *
  * Features:
- * - Municipal details form with SA province dropdown
- * - Supporting document upload to Supabase Storage
+ * - PMS-framed "Municipality Onboarding" heading with 2-step progress indicator
+ * - Municipality name, demarcation code, province, category, MM name/email
+ * - Contact phone (optional)
+ * - Council Resolution document upload (optional)
  * - Auto-save draft to localStorage
- * - Submit to POST /api/v1/access-requests backend API
- * - Success confirmation state
+ * - POST to /api/v1/access-requests
+ * - Success state with PMS-specific messaging
+ *
+ * Styling: inline CSS variables (Phase 27-03 CSS lock — no Tailwind).
  */
 
-import { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
@@ -33,17 +37,24 @@ const SA_PROVINCES = [
   'Western Cape',
 ];
 
-const DRAFT_KEY = 'salga_access_request_draft';
+const MUNICIPALITY_CATEGORIES = [
+  { value: 'A', label: 'A — Metropolitan Municipality' },
+  { value: 'B', label: 'B — Local Municipality' },
+  { value: 'C', label: 'C — District Municipality' },
+];
+
+const DRAFT_KEY = 'salga_access_request_draft_v2';
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 const MAX_FILES = 3;
 const ALLOWED_TYPES = ['application/pdf', 'image/jpeg', 'image/png'];
 
 interface FormData {
   municipalityName: string;
+  demarcationCode: string;
   province: string;
-  municipalityCode: string;
-  contactName: string;
-  contactEmail: string;
+  category: string;
+  municipalManagerName: string;
+  municipalManagerEmail: string;
   contactPhone: string;
   notes: string;
 }
@@ -59,10 +70,11 @@ export function RequestAccessPage() {
   const navigate = useNavigate();
   const [formData, setFormData] = useState<FormData>({
     municipalityName: '',
+    demarcationCode: '',
     province: '',
-    municipalityCode: '',
-    contactName: '',
-    contactEmail: '',
+    category: '',
+    municipalManagerName: '',
+    municipalManagerEmail: '',
     contactPhone: '',
     notes: '',
   });
@@ -82,7 +94,8 @@ export function RequestAccessPage() {
       try {
         const parsed = JSON.parse(draft);
         setFormData(parsed);
-      } catch (err) {
+      } catch {
+        // non-critical
       }
     }
   }, []);
@@ -91,9 +104,7 @@ export function RequestAccessPage() {
   useEffect(() => {
     if (
       state === 'idle' &&
-      (formData.municipalityName ||
-        formData.contactName ||
-        formData.contactEmail)
+      (formData.municipalityName || formData.municipalManagerEmail || formData.demarcationCode)
     ) {
       localStorage.setItem(DRAFT_KEY, JSON.stringify(formData));
     }
@@ -114,12 +125,8 @@ export function RequestAccessPage() {
     { scope: containerRef }
   );
 
-  const handleInputChange = (
-    field: keyof FormData,
-    value: string
-  ) => {
+  const handleInputChange = (field: keyof FormData, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }));
-    // Clear validation error for this field
     if (validationErrors[field]) {
       setValidationErrors((prev) => {
         const updated = { ...prev };
@@ -133,27 +140,21 @@ export function RequestAccessPage() {
     const files = Array.from(e.target.files || []);
     const errors: string[] = [];
 
-    // Validate file count
     if (uploadedFiles.length + files.length > MAX_FILES) {
       setError(`Maximum ${MAX_FILES} files allowed`);
       return;
     }
 
-    // Validate each file
     const validFiles: UploadedFile[] = [];
     for (const file of files) {
-      // Check file type
       if (!ALLOWED_TYPES.includes(file.type)) {
         errors.push(`${file.name}: Invalid file type (PDF, JPG, PNG only)`);
         continue;
       }
-
-      // Check file size
       if (file.size > MAX_FILE_SIZE) {
         errors.push(`${file.name}: File too large (max 10MB)`);
         continue;
       }
-
       validFiles.push({ file });
     }
 
@@ -177,19 +178,22 @@ export function RequestAccessPage() {
     if (!formData.municipalityName.trim()) {
       errors.municipalityName = 'Municipality name is required';
     }
-
+    if (!formData.demarcationCode.trim()) {
+      errors.demarcationCode = 'Demarcation code is required (MDB official code)';
+    }
     if (!formData.province) {
       errors.province = 'Province is required';
     }
-
-    if (!formData.contactName.trim()) {
-      errors.contactName = 'Contact name is required';
+    if (!formData.category) {
+      errors.category = 'Municipality category is required';
     }
-
-    if (!formData.contactEmail.trim()) {
-      errors.contactEmail = 'Contact email is required';
-    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.contactEmail)) {
-      errors.contactEmail = 'Invalid email format';
+    if (!formData.municipalManagerName.trim()) {
+      errors.municipalManagerName = 'Municipal Manager name is required';
+    }
+    if (!formData.municipalManagerEmail.trim()) {
+      errors.municipalManagerEmail = 'Municipal Manager email is required';
+    } else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.municipalManagerEmail)) {
+      errors.municipalManagerEmail = 'Invalid email format';
     }
 
     setValidationErrors(errors);
@@ -205,12 +209,12 @@ export function RequestAccessPage() {
       const fileName = `${timestamp}-${randomStr}-${uploadedFile.file.name}`;
       const filePath = `access-requests/${fileName}`;
 
-      const { error } = await supabase.storage
+      const { error: uploadError } = await supabase.storage
         .from('access-request-docs')
         .upload(filePath, uploadedFile.file);
 
-      if (error) {
-        throw new Error(`Failed to upload ${uploadedFile.file.name}: ${error.message}`);
+      if (uploadError) {
+        throw new Error(`Failed to upload ${uploadedFile.file.name}: ${uploadError.message}`);
       }
 
       storagePaths.push(filePath);
@@ -223,14 +227,13 @@ export function RequestAccessPage() {
     e.preventDefault();
     setError(null);
 
-    // Validate form
     if (!validateForm()) {
-      setError('Please fix the validation errors');
+      setError('Please fix the validation errors below');
       return;
     }
 
     try {
-      // Step 1: Upload files to Supabase Storage
+      // Step 1: Upload files if any
       let storagePaths: string[] = [];
       if (uploadedFiles.length > 0) {
         setState('uploading');
@@ -248,10 +251,12 @@ export function RequestAccessPage() {
         },
         body: JSON.stringify({
           municipality_name: formData.municipalityName,
+          demarcation_code: formData.demarcationCode,
           province: formData.province,
-          municipality_code: formData.municipalityCode || null,
-          contact_name: formData.contactName,
-          contact_email: formData.contactEmail,
+          category: formData.category,
+          municipality_code: formData.demarcationCode || null, // backward compat
+          contact_name: formData.municipalManagerName,
+          contact_email: formData.municipalManagerEmail,
           contact_phone: formData.contactPhone || null,
           notes: formData.notes || null,
           supporting_docs: storagePaths.length > 0 ? JSON.stringify(storagePaths) : null,
@@ -260,10 +265,10 @@ export function RequestAccessPage() {
 
       if (!response.ok) {
         const errorData = await response.json().catch(() => ({}));
-        throw new Error((errorData as any).detail || 'Failed to submit request');
+        throw new Error((errorData as { detail?: string }).detail || 'Failed to submit request');
       }
 
-      // Success!
+      // Success
       setState('success');
       localStorage.removeItem(DRAFT_KEY);
     } catch (err) {
@@ -272,37 +277,40 @@ export function RequestAccessPage() {
     }
   };
 
+  const isDisabled = state === 'uploading' || state === 'submitting';
+
   // Success state
   if (state === 'success') {
     return (
       <div ref={containerRef} style={styles.container}>
-        {/* Skyline background layers */}
         <div className="auth-skyline-bg" />
         <div className="auth-skyline-overlay" />
         <div>
           <GlassCard glow="teal" style={styles.card}>
-          <div style={styles.successContent}>
-            <div style={styles.successIcon}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-teal)" strokeWidth="2">
-                <circle cx="12" cy="12" r="10" />
-                <path d="M9 12l2 2 4-4" />
-              </svg>
+            <div style={styles.successContent}>
+              <div style={styles.successIcon}>
+                <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="var(--color-teal)" strokeWidth="2">
+                  <circle cx="12" cy="12" r="10" />
+                  <path d="M9 12l2 2 4-4" />
+                </svg>
+              </div>
+              <h1 style={styles.successTitle}>Registration Submitted!</h1>
+              <p style={styles.successText}>
+                Your registration for <strong>{formData.municipalityName}</strong> has been submitted successfully.
+              </p>
+              <p style={styles.successText}>
+                Your Municipal Manager (<strong>{formData.municipalManagerEmail}</strong>) will receive an email
+                invitation within <strong>5 business days</strong> once approved by SALGA.
+              </p>
+              <p style={styles.successText}>
+                Once approved, you will complete onboarding through the platform wizard.
+              </p>
+              <div style={styles.successActions}>
+                <Button variant="primary" onClick={() => navigate('/login')}>
+                  Go to Login
+                </Button>
+              </div>
             </div>
-            <h1 style={styles.successTitle}>Request Submitted!</h1>
-            <p style={styles.successText}>
-              Thank you for your request! Our team will review it and contact you within{' '}
-              <strong>5 business days</strong>.
-            </p>
-            <p style={styles.successText}>
-              You'll receive an email invitation at <strong>{formData.contactEmail}</strong>{' '}
-              once approved.
-            </p>
-            <div style={styles.successActions}>
-              <Button variant="primary" onClick={() => navigate('/login')}>
-                Go to Login
-              </Button>
-            </div>
-          </div>
           </GlassCard>
         </div>
       </div>
@@ -318,246 +326,348 @@ export function RequestAccessPage() {
 
       <div ref={cardRef}>
         <GlassCard style={styles.card}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>Request Municipal Access</h1>
-          <p style={styles.subtitle}>
-            Join the SALGA Trust Engine platform. Your request will be reviewed by our team.
-          </p>
-        </div>
+          {/* Header */}
+          <div style={styles.header}>
+            <h1 style={styles.title}>Municipality Onboarding — Registration</h1>
+            <p style={styles.subtitle}>
+              Join the SALGA Trust Engine platform. Your request will be reviewed by our team.
+            </p>
 
-        {error && (
-          <div style={styles.errorBox}>
-            {error}
-          </div>
-        )}
-
-        <form onSubmit={handleSubmit} style={styles.form} className="request-access-form">
-          {/* Municipality Name */}
-          <Input
-            label="Municipality Name *"
-            type="text"
-            value={formData.municipalityName}
-            onChange={(e) => handleInputChange('municipalityName', e.target.value)}
-            placeholder="e.g., City of Johannesburg"
-            error={validationErrors.municipalityName}
-            disabled={state === 'uploading' || state === 'submitting'}
-            autoComplete="organization"
-          />
-
-          {/* Province */}
-          <div>
-            <label htmlFor="province" style={styles.label}>
-              Province *
-            </label>
-            <select
-              id="province"
-              value={formData.province}
-              onChange={(e) => handleInputChange('province', e.target.value)}
-              className="province-select"
-              style={{
-                ...styles.select,
-                ...(validationErrors.province ? { borderColor: 'var(--color-coral)' } : {}),
-              }}
-              disabled={state === 'uploading' || state === 'submitting'}
-              autoComplete="address-level1"
-            >
-              <option value="">Select province</option>
-              {SA_PROVINCES.map((province) => (
-                <option key={province} value={province}>
-                  {province}
-                </option>
-              ))}
-            </select>
-            {validationErrors.province && (
-              <div style={styles.fieldError}>{validationErrors.province}</div>
-            )}
+            {/* 2-step progress indicator */}
+            <div style={styles.progressBar}>
+              <div style={styles.progressStep}>
+                <div style={{ ...styles.progressCircle, ...styles.progressCircleActive }}>1</div>
+                <span style={{ ...styles.progressLabel, color: 'var(--color-teal)' }}>Submit Registration</span>
+              </div>
+              <div style={styles.progressConnector} />
+              <div style={styles.progressStep}>
+                <div style={styles.progressCircle}>2</div>
+                <span style={styles.progressLabel}>Complete Onboarding</span>
+              </div>
+            </div>
+            <p style={styles.progressNote}>
+              Step 2 is completed after SALGA approves your registration and sends an invitation.
+            </p>
           </div>
 
-          {/* Municipality Code */}
-          <Input
-            label="Municipality Code (Optional)"
-            type="text"
-            value={formData.municipalityCode}
-            onChange={(e) => handleInputChange('municipalityCode', e.target.value.toUpperCase())}
-            placeholder="e.g., JHB, CPT"
-            disabled={state === 'uploading' || state === 'submitting'}
-          />
+          {error && (
+            <div style={styles.errorBox}>
+              {error}
+            </div>
+          )}
 
-          {/* Contact Person Name */}
-          <Input
-            label="Contact Person Name *"
-            type="text"
-            value={formData.contactName}
-            onChange={(e) => handleInputChange('contactName', e.target.value)}
-            placeholder="Full name"
-            error={validationErrors.contactName}
-            disabled={state === 'uploading' || state === 'submitting'}
-            autoComplete="name"
-          />
+          <form onSubmit={handleSubmit} style={styles.form}>
+            {/* === Municipality Information === */}
+            <div style={styles.sectionHeader}>Municipality Information</div>
 
-          {/* Contact Email */}
-          <Input
-            label="Contact Email *"
-            type="email"
-            value={formData.contactEmail}
-            onChange={(e) => handleInputChange('contactEmail', e.target.value)}
-            placeholder="email@municipality.gov.za"
-            error={validationErrors.contactEmail}
-            disabled={state === 'uploading' || state === 'submitting'}
-            autoComplete="email"
-          />
+            <Input
+              label="Municipality Name *"
+              type="text"
+              value={formData.municipalityName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('municipalityName', e.target.value)}
+              placeholder="e.g., City of Johannesburg"
+              error={validationErrors.municipalityName}
+              disabled={isDisabled}
+              autoComplete="organization"
+            />
 
-          {/* Contact Phone */}
-          <Input
-            label="Contact Phone (Optional)"
-            type="tel"
-            value={formData.contactPhone}
-            onChange={(e) => handleInputChange('contactPhone', e.target.value)}
-            placeholder="+27123456789"
-            disabled={state === 'uploading' || state === 'submitting'}
-            autoComplete="tel"
-          />
+            <Input
+              label="Demarcation Code *"
+              type="text"
+              value={formData.demarcationCode}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('demarcationCode', e.target.value.toUpperCase())}
+              placeholder="e.g., EKU, WC011 (MDB official code)"
+              error={validationErrors.demarcationCode}
+              disabled={isDisabled}
+            />
 
-          {/* Supporting Documents */}
-          <div>
-            <label htmlFor="documents" style={styles.label}>
-              Supporting Documents (Optional)
-            </label>
-            <div style={styles.uploadArea}>
-              <input
-                id="documents"
-                type="file"
-                multiple
-                accept=".pdf,.jpg,.jpeg,.png"
-                onChange={handleFileSelect}
-                style={styles.fileInput}
-                disabled={state === 'uploading' || state === 'submitting' || uploadedFiles.length >= MAX_FILES}
-              />
-              <label htmlFor="documents" style={styles.uploadLabel}>
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                  <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
-                  <polyline points="17 8 12 3 7 8" />
-                  <line x1="12" y1="3" x2="12" y2="15" />
-                </svg>
-                <span>Upload documentation proving municipal authority</span>
-                <small style={styles.uploadHint}>PDF, JPG, PNG (max 10MB each, up to 3 files)</small>
+            <div>
+              <label htmlFor="province" style={styles.label}>
+                Province *
               </label>
+              <select
+                id="province"
+                value={formData.province}
+                onChange={(e) => handleInputChange('province', e.target.value)}
+                style={{
+                  ...styles.select,
+                  ...(validationErrors.province ? { borderColor: 'var(--color-coral)' } : {}),
+                }}
+                disabled={isDisabled}
+                autoComplete="address-level1"
+              >
+                <option value="">Select province</option>
+                {SA_PROVINCES.map((province) => (
+                  <option key={province} value={province}>
+                    {province}
+                  </option>
+                ))}
+              </select>
+              {validationErrors.province && (
+                <div style={styles.fieldError}>{validationErrors.province}</div>
+              )}
             </div>
 
-            {/* File list */}
-            {uploadedFiles.length > 0 && (
-              <div style={styles.fileList}>
-                {uploadedFiles.map((uploadedFile, index) => (
-                  <div key={index} style={styles.fileItem}>
-                    <span style={styles.fileName}>{uploadedFile.file.name}</span>
-                    <button
-                      type="button"
-                      onClick={() => removeFile(index)}
-                      style={styles.removeButton}
-                      disabled={state === 'uploading' || state === 'submitting'}
-                    >
-                      Remove
-                    </button>
-                  </div>
+            <div>
+              <label htmlFor="category" style={styles.label}>
+                Municipality Category *
+              </label>
+              <select
+                id="category"
+                value={formData.category}
+                onChange={(e) => handleInputChange('category', e.target.value)}
+                style={{
+                  ...styles.select,
+                  ...(validationErrors.category ? { borderColor: 'var(--color-coral)' } : {}),
+                }}
+                disabled={isDisabled}
+              >
+                <option value="">Select category</option>
+                {MUNICIPALITY_CATEGORIES.map((cat) => (
+                  <option key={cat.value} value={cat.value}>
+                    {cat.label}
+                  </option>
                 ))}
-              </div>
-            )}
-          </div>
+              </select>
+              {validationErrors.category && (
+                <div style={styles.fieldError}>{validationErrors.category}</div>
+              )}
+            </div>
 
-          {/* Additional Notes */}
-          <div>
-            <label htmlFor="notes" style={styles.label}>
-              Additional Notes (Optional)
-            </label>
-            <textarea
-              id="notes"
-              value={formData.notes}
-              onChange={(e) => handleInputChange('notes', e.target.value)}
-              placeholder="Any additional information..."
-              style={styles.textarea}
-              rows={4}
-              disabled={state === 'uploading' || state === 'submitting'}
+            {/* === Municipal Manager Details === */}
+            <div style={{ ...styles.sectionHeader, marginTop: '1.5rem' }}>Municipal Manager Details</div>
+
+            <Input
+              label="Municipal Manager Name *"
+              type="text"
+              value={formData.municipalManagerName}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('municipalManagerName', e.target.value)}
+              placeholder="Full name"
+              error={validationErrors.municipalManagerName}
+              disabled={isDisabled}
+              autoComplete="name"
             />
+
+            <Input
+              label="Municipal Manager Email *"
+              type="email"
+              value={formData.municipalManagerEmail}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('municipalManagerEmail', e.target.value)}
+              placeholder="mm@municipality.gov.za"
+              error={validationErrors.municipalManagerEmail}
+              disabled={isDisabled}
+              autoComplete="email"
+            />
+
+            <Input
+              label="Contact Phone (Optional)"
+              type="tel"
+              value={formData.contactPhone}
+              onChange={(e: React.ChangeEvent<HTMLInputElement>) => handleInputChange('contactPhone', e.target.value)}
+              placeholder="+27123456789"
+              disabled={isDisabled}
+              autoComplete="tel"
+            />
+
+            {/* === Supporting Documentation === */}
+            <div style={{ ...styles.sectionHeader, marginTop: '1.5rem' }}>Supporting Documentation</div>
+
+            <div>
+              <label htmlFor="documents" style={styles.label}>
+                Council Resolution Document (Optional)
+              </label>
+              <div style={styles.uploadArea}>
+                <input
+                  id="documents"
+                  type="file"
+                  multiple
+                  accept=".pdf,.jpg,.jpeg,.png"
+                  onChange={handleFileSelect}
+                  style={styles.fileInput}
+                  disabled={isDisabled || uploadedFiles.length >= MAX_FILES}
+                />
+                <label htmlFor="documents" style={styles.uploadLabel}>
+                  <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4" />
+                    <polyline points="17 8 12 3 7 8" />
+                    <line x1="12" y1="3" x2="12" y2="15" />
+                  </svg>
+                  <span>Upload council resolution or authority documentation</span>
+                  <small style={styles.uploadHint}>PDF, JPG, PNG (max 10MB each, up to 3 files)</small>
+                </label>
+              </div>
+
+              {uploadedFiles.length > 0 && (
+                <div style={styles.fileList}>
+                  {uploadedFiles.map((uploadedFile, index) => (
+                    <div key={index} style={styles.fileItem}>
+                      <span style={styles.fileName}>{uploadedFile.file.name}</span>
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        style={styles.removeButton}
+                        disabled={isDisabled}
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+
+            <div>
+              <label htmlFor="notes" style={styles.label}>
+                Additional Notes (Optional)
+              </label>
+              <textarea
+                id="notes"
+                value={formData.notes}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Any additional context for SALGA reviewers..."
+                style={styles.textarea}
+                rows={3}
+                disabled={isDisabled}
+              />
+            </div>
+
+            {/* Submit Button */}
+            <button
+              type="submit"
+              disabled={isDisabled}
+              style={{
+                width: '100%',
+                padding: 'var(--space-lg) var(--space-2xl)',
+                background: 'var(--color-teal)',
+                color: 'white',
+                fontWeight: '600',
+                fontSize: '1.0625rem',
+                borderRadius: 'var(--radius-md)',
+                border: 'none',
+                cursor: isDisabled ? 'not-allowed' : 'pointer',
+                opacity: isDisabled ? 0.6 : 1,
+                transition: 'var(--transition-base)',
+                boxShadow: '0 0 20px rgba(0, 191, 165, 0.2), 0 0 60px rgba(0, 191, 165, 0.06)',
+              }}
+            >
+              {state === 'uploading'
+                ? 'Uploading documents...'
+                : state === 'submitting'
+                ? 'Submitting registration...'
+                : 'Submit Registration'}
+            </button>
+          </form>
+
+          {/* Navigation Links */}
+          <div style={styles.footer}>
+            <p style={styles.footerText}>
+              Already have an account?{' '}
+              <Link to="/login" style={styles.link}>
+                Sign In
+              </Link>
+            </p>
           </div>
-
-          {/* Submit Button */}
-          <button
-            type="submit"
-            disabled={state === 'uploading' || state === 'submitting'}
-            className="request-access-submit"
-            style={{
-              width: '100%',
-              padding: 'var(--space-lg) var(--space-2xl)',
-              background: 'var(--color-coral)',
-              color: 'white',
-              fontWeight: '600',
-              fontSize: '1.125rem',
-              borderRadius: 'var(--radius-md)',
-              border: 'none',
-              cursor: state === 'uploading' || state === 'submitting' ? 'not-allowed' : 'pointer',
-              opacity: state === 'uploading' || state === 'submitting' ? 0.6 : 1,
-              transition: 'var(--transition-base)',
-              boxShadow: '0 0 20px rgba(255, 107, 74, 0.2), 0 0 60px rgba(255, 107, 74, 0.08)',
-            }}
-          >
-            {state === 'uploading'
-              ? 'Uploading documents...'
-              : state === 'submitting'
-              ? 'Submitting request...'
-              : 'Submit Request'}
-          </button>
-        </form>
-
-        {/* Navigation Links */}
-        <div style={styles.footer}>
-          <p style={styles.footerText}>
-            Already have an account?{' '}
-            <Link to="/login" style={styles.link}>
-              Sign In
-            </Link>
-          </p>
-        </div>
         </GlassCard>
       </div>
     </div>
   );
 }
 
-const styles = {
+const styles: Record<string, React.CSSProperties> = {
   container: {
     minHeight: '100vh',
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
     padding: '2rem',
-    position: 'relative' as const,
+    position: 'relative',
     overflow: 'hidden',
-  } as React.CSSProperties,
+  },
   card: {
     width: '100%',
-    maxWidth: '600px',
+    maxWidth: '640px',
     padding: '3rem 2.5rem',
-    position: 'relative' as const,
+    position: 'relative',
     zIndex: 2,
-  } as React.CSSProperties,
+  },
   header: {
     marginBottom: '2rem',
-    textAlign: 'center' as const,
-  } as React.CSSProperties,
+    textAlign: 'center',
+  },
   title: {
-    fontSize: '2rem',
+    fontSize: '1.85rem',
     fontWeight: '700',
     marginBottom: '0.5rem',
-    background: 'linear-gradient(135deg, var(--color-coral), var(--color-teal))',
+    background: 'linear-gradient(135deg, var(--color-teal), var(--color-coral))',
     WebkitBackgroundClip: 'text',
     WebkitTextFillColor: 'transparent',
     backgroundClip: 'text',
-  } as React.CSSProperties,
+  },
   subtitle: {
-    fontSize: '1rem',
+    fontSize: '0.9rem',
     color: 'var(--text-secondary)',
     lineHeight: 1.5,
-  } as React.CSSProperties,
+    marginBottom: '1.5rem',
+  },
+  progressBar: {
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    gap: '0',
+    marginBottom: '0.5rem',
+  },
+  progressStep: {
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    gap: '6px',
+  },
+  progressCircle: {
+    width: '32px',
+    height: '32px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    fontSize: '13px',
+    fontWeight: 700,
+    background: 'var(--surface-elevated)',
+    border: '2px solid var(--border-subtle)',
+    color: 'var(--text-muted)',
+  },
+  progressCircleActive: {
+    background: 'rgba(0, 191, 165, 0.15)',
+    border: '2px solid var(--color-teal)',
+    color: 'var(--color-teal)',
+  },
+  progressLabel: {
+    fontSize: '11px',
+    fontWeight: 500,
+    color: 'var(--text-muted)',
+    whiteSpace: 'nowrap',
+  },
+  progressConnector: {
+    width: '60px',
+    height: '2px',
+    background: 'var(--border-subtle)',
+    marginBottom: '18px',
+  },
+  progressNote: {
+    fontSize: '0.75rem',
+    color: 'var(--text-muted)',
+    margin: '0.25rem 0 0 0',
+    lineHeight: 1.4,
+  },
+  sectionHeader: {
+    fontSize: '0.8rem',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    textTransform: 'uppercase',
+    letterSpacing: '0.06em',
+    paddingBottom: '0.5rem',
+    borderBottom: '1px solid var(--border-subtle)',
+    marginBottom: '1rem',
+  },
   errorBox: {
     padding: '0.75rem',
     backgroundColor: 'rgba(239, 68, 68, 0.1)',
@@ -566,19 +676,19 @@ const styles = {
     color: 'var(--color-coral)',
     marginBottom: '1.5rem',
     fontSize: '0.875rem',
-  } as React.CSSProperties,
+  },
   form: {
     display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '1.5rem',
-  } as React.CSSProperties,
+    flexDirection: 'column',
+    gap: '1.25rem',
+  },
   label: {
     display: 'block',
     marginBottom: '0.5rem',
     fontSize: '0.875rem',
     fontWeight: '500',
     color: 'var(--text-secondary)',
-  } as React.CSSProperties,
+  },
   select: {
     width: '100%',
     padding: '0.75rem',
@@ -592,81 +702,82 @@ const styles = {
     borderRadius: 'var(--radius-md)',
     outline: 'none',
     transition: 'var(--transition-base)',
-    appearance: 'none' as const,
+    appearance: 'none',
     backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%23ffd54f' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
     backgroundRepeat: 'no-repeat',
     backgroundPosition: 'right 0.75rem center',
     paddingRight: '2.5rem',
-  } as React.CSSProperties,
+  },
   textarea: {
     width: '100%',
     padding: '0.75rem',
-    fontSize: '1rem',
+    fontSize: '0.9rem',
     fontFamily: 'var(--font-body)',
     backgroundColor: 'var(--surface-elevated)',
     color: 'var(--text-primary)',
     border: '1px solid var(--border-subtle)',
     borderRadius: 'var(--radius-md)',
     outline: 'none',
-    resize: 'vertical' as const,
+    resize: 'vertical',
     transition: 'var(--transition-base)',
-  } as React.CSSProperties,
+  },
   fieldError: {
     marginTop: '0.25rem',
     fontSize: '0.75rem',
     color: 'var(--color-coral)',
-  } as React.CSSProperties,
+  },
   uploadArea: {
-    position: 'relative' as const,
-  } as React.CSSProperties,
+    position: 'relative',
+  },
   fileInput: {
-    position: 'absolute' as const,
+    position: 'absolute',
     opacity: 0,
     width: '1px',
     height: '1px',
-  } as React.CSSProperties,
+  },
   uploadLabel: {
     display: 'flex',
-    flexDirection: 'column' as const,
+    flexDirection: 'column',
     alignItems: 'center',
     justifyContent: 'center',
     gap: '0.75rem',
-    padding: '2rem',
+    padding: '1.5rem',
     border: '2px dashed var(--border-subtle)',
     borderRadius: 'var(--radius-md)',
     backgroundColor: 'var(--surface-elevated)',
     color: 'var(--text-secondary)',
     cursor: 'pointer',
     transition: 'var(--transition-base)',
-    textAlign: 'center' as const,
-  } as React.CSSProperties,
+    textAlign: 'center',
+    fontSize: '0.875rem',
+  },
   uploadHint: {
     fontSize: '0.75rem',
     color: 'var(--text-muted)',
-  } as React.CSSProperties,
+  },
   fileList: {
-    marginTop: '1rem',
+    marginTop: '0.75rem',
     display: 'flex',
-    flexDirection: 'column' as const,
+    flexDirection: 'column',
     gap: '0.5rem',
-  } as React.CSSProperties,
+  },
   fileItem: {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'space-between',
-    padding: '0.75rem',
+    padding: '0.5rem 0.75rem',
     backgroundColor: 'var(--surface-higher)',
     borderRadius: 'var(--radius-sm)',
-  } as React.CSSProperties,
+  },
   fileName: {
-    fontSize: '0.875rem',
+    fontSize: '0.8rem',
     color: 'var(--text-primary)',
     overflow: 'hidden',
     textOverflow: 'ellipsis',
-    whiteSpace: 'nowrap' as const,
-  } as React.CSSProperties,
+    whiteSpace: 'nowrap',
+  },
   removeButton: {
-    padding: '0.25rem 0.75rem',
+    padding: '0.25rem 0.5rem',
     fontSize: '0.75rem',
     backgroundColor: 'transparent',
     color: 'var(--color-coral)',
@@ -674,46 +785,46 @@ const styles = {
     borderRadius: 'var(--radius-sm)',
     cursor: 'pointer',
     transition: 'var(--transition-base)',
-  } as React.CSSProperties,
+    flexShrink: 0,
+    marginLeft: '0.5rem',
+  },
   footer: {
-    marginTop: '2rem',
-    textAlign: 'center' as const,
-    display: 'flex',
-    flexDirection: 'column' as const,
-    gap: '0.5rem',
-  } as React.CSSProperties,
+    marginTop: '1.5rem',
+    textAlign: 'center',
+  },
   footerText: {
     fontSize: '0.875rem',
     color: 'var(--text-muted)',
-  } as React.CSSProperties,
+  },
   link: {
     color: 'var(--color-accent-gold)',
     textDecoration: 'underline',
     fontWeight: '500',
-  } as React.CSSProperties,
+  },
   successContent: {
-    textAlign: 'center' as const,
-  } as React.CSSProperties,
+    textAlign: 'center',
+    padding: '1rem 0',
+  },
   successIcon: {
     marginBottom: '1.5rem',
     display: 'flex',
     justifyContent: 'center',
-  } as React.CSSProperties,
+  },
   successTitle: {
     fontSize: '2rem',
     fontWeight: '700',
     color: 'var(--text-primary)',
     marginBottom: '1rem',
-  } as React.CSSProperties,
+  },
   successText: {
     fontSize: '1rem',
     color: 'var(--text-secondary)',
-    marginBottom: '1rem',
+    marginBottom: '0.75rem',
     lineHeight: 1.6,
-  } as React.CSSProperties,
+  },
   successActions: {
     marginTop: '2rem',
     display: 'flex',
     justifyContent: 'center',
-  } as React.CSSProperties,
+  },
 };
