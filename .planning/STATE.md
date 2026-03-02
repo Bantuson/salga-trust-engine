@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-02T19:07:52.651Z"
+last_updated: "2026-03-02T19:11:35.469Z"
 progress:
   total_phases: 8
   completed_phases: 6
   total_plans: 33
-  completed_plans: 26
+  completed_plans: 27
 ---
 
 ---
@@ -148,16 +148,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 — Phase 33: Comprehensive Gap Closure
+**Current focus:** v2.0 — Phase 34: Municipal Onboarding Production Readiness
 
 ## Current Position
 
-Phase: 33 of 33 (Comprehensive Gap Closure)
-Plan: 1 of 3 complete
-Status: Phase 33 in progress — Plan 33-01 complete (BUG-1 fix, PMS readiness gate, 4 missing frontend routes)
-Last activity: 2026-03-02 — 33-01 complete: Fixed MM submit_for_review 403 (BUG-1/REPORT-05), added PMS readiness gate to /cfo, /municipal-manager, /mayor, /section56-director endpoints, created DepartmentsPage + RoleApprovalsPage, registered /departments, /role-approvals, /pms-setup, /pms/golden-thread routes.
+Phase: 34 of 34 (Municipal Onboarding Production Readiness)
+Plan: 2 of 6 complete
+Status: Phase 34 in progress — Plan 34-02 complete (PMS create modals + SALGA municipality detail modal)
+Last activity: 2026-03-02 — 34-02 complete: Created CreateIdpModal, CreateSdbipModal, CreatePaModal following TeamCreateModal pattern; created MunicipalityDetailModal replacing inline row expand; wired modals into PmsHubPage and SALGAAdminDashboardPage.
 
-Progress: [█░░░░░░░░░] 33% (Plan 1/3 of Phase 33 done)
+Progress: [██░░░░░░░░] 33% (Plan 2/6 of Phase 34 done)
 
 ## Performance Metrics
 
@@ -191,6 +191,7 @@ Progress: [█░░░░░░░░░] 33% (Plan 1/3 of Phase 33 done)
 | Phase 32 P02 | 25 | 2 tasks | 7 files |
 | Phase 33 P01 | 32 | 2 tasks | 7 files |
 | Phase 34 P01 | 20 | 3 tasks | 15 files |
+| Phase 34 P02 | 22 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -296,6 +297,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 33-01]: DepartmentsPage + RoleApprovalsPage created as real page components (not inline functions) — substantial enough to warrant their own files per Phase 31 inline-function threshold
 - [Phase 34]: paddingTop changed from calc(48px + 32px) to 48px — removes 32px dead zone between notification bell header and page content
 - [Phase 34]: MANAGER_ROLES array in SettingsPage includes 10 roles: admin, salga_admin, manager, municipal_manager, executive_mayor, cfo, speaker, pms_officer, section56_director, department_manager
+- [Phase 34-02]: showForm inline expand replaced with showCreateModal modal pattern in PmsHubPage
+- [Phase 34-02]: expandedMunicipality inline row replaced with selectedMunicipality + MunicipalityDetailModal in SALGAAdminDashboardPage
 
 ### Pending Todos
 
