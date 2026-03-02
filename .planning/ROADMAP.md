@@ -55,11 +55,12 @@ Full details: `milestones/v1.0-ROADMAP.md`
 **Milestone Goal:** Transform the Trust Engine from a citizen service delivery platform into a full-stack municipal operating system — connecting citizen complaints on the ground to Council statutory reporting at the top — by implementing the Performance Management System (PMS) modules mandated by the Municipal Systems Act (MSA) and Municipal Finance Management Act (MFMA).
 
 - [x] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality (completed 2026-02-28)
-- [ ] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine
+- [x] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine (completed 2026-03-01)
 - [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
 - [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
 - [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
 - [ ] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data
+- [ ] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate
 
 ## Phase Details
 
@@ -165,6 +166,25 @@ Plans:
 Plans:
 - [ ] 32-01: Risk register data models (`RiskItem`, `RiskMitigation`), CRUD API, auto-flagging Celery task triggered by KPI status changes, risk register dashboard widget and frontend page
 
+### Phase 33: Comprehensive v2.0 Gap Closure
+**Goal:** Close all gaps identified by v2.0 milestone audit — fix integration bugs, create missing pages/routes, complete PA-01 form, verify unverified phases, and clean up stale tracking
+**Depends on**: Phase 31 (all existing phases must be complete before gap closure)
+**Requirements**: IDP-04, PA-01, REPORT-05, RBAC-01, RBAC-02, RBAC-04 (code fixes); RBAC-03, RBAC-05, RBAC-06 (verification); REPORT-03, REPORT-04, REPORT-09 (tracking fixes)
+**Gap Closure:** Closes all gaps from v2.0 milestone audit
+**Success Criteria** (what must be TRUE):
+  1. Municipal Manager can submit statutory report for review without 403 (BUG-1 fixed)
+  2. All 5 sidebar nav links (/departments, /role-approvals, /pms-setup) route to real pages (BUG-2, BUG-3, BUG-4 fixed)
+  3. PMS officer can create performance agreement with section57_manager_id (PA-01 complete)
+  4. IDP-04 golden thread view discoverable via standalone route
+  5. Phase 27 and Phase 28 have VERIFICATION.md with independent verification results
+  6. REQUIREMENTS.md checkboxes match actual verification status (no stale [ ] or [x])
+  7. Role-dashboard endpoints enforce require_pms_ready() gate
+  8. All 10 E2E flows pass (0 broken)
+**Plans**: TBD
+
+Plans:
+- [ ] 33-01: Comprehensive gap closure — all bug fixes, missing pages, verification, tracking cleanup
+
 ## Progress
 
 **Execution Order:** 27 → 28 → 29 → 30 → 31 → 32
@@ -173,11 +193,12 @@ Plans:
 |-------|-----------|----------------|--------|-----------|
 | 1-10.4 (26 phases) | v1.0 | ~127/~127 | Complete | 2026-02-28 |
 | 27. RBAC Foundation & Tenant Configuration | 3/3 | Complete   | 2026-02-28 | - |
-| 28. IDP, SDBIP Core & Performance Monitoring | 6/7 | In Progress|  | - |
+| 28. IDP, SDBIP Core & Performance Monitoring | 7/7 | Complete   | 2026-03-01 | - |
 | 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
 | 31. Role-Specific Dashboards | 6/6 | Complete    | 2026-03-02 | - |
 | 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |
+| 33. Comprehensive v2.0 Gap Closure | v2.0 | 0/1 | Not started | - |
 
 ---
 *Roadmap created: 2026-02-09*
