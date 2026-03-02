@@ -10,8 +10,8 @@
  * - SALGA Admin: Cross-municipality management + PMS
  * - Section 56 Director / Department Manager: Department + PMS
  * - PMS Officer: Departments + PMS + Analytics
- * - Audit roles (audit_committee_member, internal_auditor, mpac_member): Reports + Audit
- * - Ward Councillor: Ward-specific views
+ * - Audit roles (audit_committee_member, internal_auditor, mpac_member): Performance (PMS) + Statutory Reports (SEC-05: no /reports GBV link)
+ * - Ward Councillor: Ward tickets + Performance (PMS) + Statutory Reports (v2 nav)
  * - Field Worker: Assigned tickets and reporting
  * - SAPS Liaison: GBV cases only
  * - Citizen: Home only
@@ -143,7 +143,8 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'chief_whip':
         return [...base,
           { label: 'My Ward Tickets', path: '/tickets', icon: 'ticket' },
-          { label: 'Ward Analytics', path: '/analytics', icon: 'chart' },
+          pmsNavItem,
+          { label: 'Statutory Reports', path: '/pms?view=statutory-reports', icon: 'chart' },
         ];
 
       // -----------------------------------------------------------------------
@@ -161,8 +162,8 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'internal_auditor':
       case 'mpac_member':
         return [...base,
-          { label: 'Reports', path: '/reports', icon: 'chart' },
-          { label: 'Audit Trail', path: '/audit', icon: 'shield' },
+          pmsNavItem,
+          { label: 'Statutory Reports', path: '/pms?view=statutory-reports', icon: 'chart' },
         ];
 
       case 'saps_liaison':
