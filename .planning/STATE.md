@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-02T19:28:37.373Z"
+progress:
+  total_phases: 8
+  completed_phases: 6
+  total_plans: 33
+  completed_plans: 28
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T19:11:35.469Z"
 progress:
   total_phases: 8
@@ -153,11 +166,11 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 34 of 34 (Municipal Onboarding Production Readiness)
-Plan: 2 of 6 complete
-Status: Phase 34 in progress — Plan 34-02 complete (PMS create modals + SALGA municipality detail modal)
-Last activity: 2026-03-02 — 34-02 complete: Created CreateIdpModal, CreateSdbipModal, CreatePaModal following TeamCreateModal pattern; created MunicipalityDetailModal replacing inline row expand; wired modals into PmsHubPage and SALGAAdminDashboardPage.
+Plan: 3 of 6 complete
+Status: Phase 34 in progress — Plan 34-03 complete (PMS onboarding wizard + InviteUserModal)
+Last activity: 2026-03-02 — 34-03 complete: Refactored OnboardingWizardPage to 6-step PMS wizard (welcome/departments/invite-tier1/invite-directors/sla-config/pms-gate); enhanced RequestAccessPage with demarcation code, category, MM details; created reusable InviteUserModal component with role filtering.
 
-Progress: [██░░░░░░░░] 33% (Plan 2/6 of Phase 34 done)
+Progress: [███░░░░░░░] 50% (Plan 3/6 of Phase 34 done)
 
 ## Performance Metrics
 
@@ -192,6 +205,7 @@ Progress: [██░░░░░░░░] 33% (Plan 2/6 of Phase 34 done)
 | Phase 33 P01 | 32 | 2 tasks | 7 files |
 | Phase 34 P01 | 20 | 3 tasks | 15 files |
 | Phase 34 P02 | 22 | 2 tasks | 6 files |
+| Phase 34 P03 | 12 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -299,6 +313,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34]: MANAGER_ROLES array in SettingsPage includes 10 roles: admin, salga_admin, manager, municipal_manager, executive_mayor, cfo, speaker, pms_officer, section56_director, department_manager
 - [Phase 34-02]: showForm inline expand replaced with showCreateModal modal pattern in PmsHubPage
 - [Phase 34-02]: expandedMunicipality inline row replaced with selectedMunicipality + MunicipalityDetailModal in SALGAAdminDashboardPage
+- [Phase 34]: InviteUserModal: allowedRoles prop filters from ALL_INVITABLE_ROLES; field_worker and saps_liaison explicitly excluded
+- [Phase 34]: [Phase 34-03]: OnboardingWizardPage complete rewrite with 6-step PMS flow; old v1.0 step components remain on disk but are unused
 
 ### Pending Todos
 

@@ -93,9 +93,9 @@ Requirements for PMS integration milestone. Each maps to roadmap phases.
 
 ### Municipal Onboarding & Production Readiness
 
-- [ ] **ONBOARD-01**: New municipality can register via request-access form and complete 6-step PMS onboarding wizard (welcome → departments → invite Tier 1 → invite directors → SLA config → PMS gate)
-- [ ] **ONBOARD-02**: Admin can invite Tier 1-4 users per municipality with email invites, excluding field_worker/saps_liaison from initial onboard
-- [ ] **ONBOARD-03**: Department setup includes section director assignment per department during onboarding wizard
+- [x] **ONBOARD-01**: New municipality can register via request-access form and complete 6-step PMS onboarding wizard (welcome → departments → invite Tier 1 → invite directors → SLA config → PMS gate)
+- [x] **ONBOARD-02**: Admin can invite Tier 1-4 users per municipality with email invites, excluding field_worker/saps_liaison from initial onboard
+- [x] **ONBOARD-03**: Department setup includes section director assignment per department during onboarding wizard
 - [ ] **ONBOARD-04**: Department activation gates show status per department (green: director + KPIs, amber: director only, red: no director)
 - [x] **UI-01**: Every page header row (title + action buttons) aligns with notification bell icon on the same 48px row
 - [x] **UI-02**: All create/ranking actions open modal dialogs (matching TeamCreateModal pattern) — not inline card expand
