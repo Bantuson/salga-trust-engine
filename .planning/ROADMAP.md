@@ -176,7 +176,7 @@ Plans:
 | 28. IDP, SDBIP Core & Performance Monitoring | 6/7 | In Progress|  | - |
 | 29. Individual Performance Agreements | 2/2 | Complete   | 2026-03-01 | - |
 | 30. Statutory Reporting & Approval Workflows | 4/4 | Complete    | 2026-03-01 | - |
-| 31. Role-Specific Dashboards | 1/4 | In Progress|  | - |
+| 31. Role-Specific Dashboards | 2/4 | In Progress|  | - |
 | 32. Risk Register & Public Transparency | v2.0 | 0/1 | Not started | - |
 
 ---

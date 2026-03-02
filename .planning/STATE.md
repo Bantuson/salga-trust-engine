@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-02T09:47:10.389Z"
+progress:
+  total_phases: 5
+  completed_phases: 4
+  total_plans: 20
+  completed_plans: 18
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T09:32:56.100Z"
 progress:
   total_phases: 5
@@ -88,9 +101,9 @@ See: .planning/PROJECT.md (updated 2026-02-28)
 ## Current Position
 
 Phase: 31 of 32 (Role-Specific Dashboards)
-Plan: 2 of 4 in current phase (31-01 complete)
-Status: Active — Phase 31 in progress (31-01 done)
-Last activity: 2026-03-02 — 31-01 complete: RoleDashboardService (12 methods), 13 RBAC-gated endpoints under /api/v1/role-dashboards/, EvidenceDocument.verification_status migration, 23 passing unit tests
+Plan: 3 of 4 in current phase (31-01, 31-02 complete)
+Status: Active — Phase 31 in progress (31-01, 31-02 done)
+Last activity: 2026-03-02 — 31-02 complete: ViewRoleContext, CFODashboardPage (5 sections), MunicipalManagerDashboardPage, MayorDashboardPage (SDBIP approval flow), 3 stub pages for Plans 31-03/04, API functions
 
 Progress: [███████░░░] 75%
 
@@ -116,6 +129,7 @@ Progress: [███████░░░] 75%
 | Phase 30 P30-04 | 3 | 2 tasks | 3 files |
 | Phase 31 P31-01 | 36 | 3 tasks | 6 files |
 | Phase 31 P1 | 36 | 3 tasks | 6 files |
+| Phase 31 P02 | 9 | 3 tasks | 10 files |
 
 ## Accumulated Context
 
@@ -198,6 +212,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 31]: RBAC 403 tests use app.dependency_overrides[get_current_user] to inject mock users - avoids JWT+DB lookup 500 errors in SQLite unit tests
 - [Phase 31]: Councillor endpoint uses WARD_COUNCILLOR + CHIEF_WHIP — UserRole.COUNCILLOR does not exist in the enum
 - [Phase 31]: RoleDashboardService uses raw SQL text() for SALGA Admin cross-tenant sdbip_scorecards query - same Phase 28 pattern
+- [Phase 31]: [Phase 31-02]: ViewRoleContext lifts viewRole state above ReactNode children boundary — DashboardLayout local state removed, context provider wraps authenticated routes in App.tsx
+- [Phase 31]: [Phase 31-02]: Confirmation dialog for SDBIP approval is inline modal (state-driven overlay) — no React portal, no external dialog library
 
 ### Pending Todos
 
@@ -213,5 +229,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-02
-Stopped at: Completed 31-01-PLAN.md — Phase 31 Plan 1 complete. RoleDashboardService (12 methods), 13 RBAC-gated endpoints under /api/v1/role-dashboards/, EvidenceDocument.verification_status migration, 23 passing unit tests covering all DASH-01 through DASH-12 requirements.
+Stopped at: Completed 31-02-PLAN.md — Phase 31 Plan 2 complete. ViewRoleContext, CFODashboardPage (5 sections), MunicipalManagerDashboardPage, MayorDashboardPage (SDBIP approval flow), 3 stub pages for Plans 31-03/04, 4 API functions. TypeScript clean, production build passes.
 Resume file: None
