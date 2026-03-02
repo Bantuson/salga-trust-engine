@@ -984,3 +984,22 @@ export async function fetchSection56DirectorDashboard(token: string): Promise<an
   if (!res.ok) throw new Error(`Section 56 Director dashboard fetch failed: ${res.status}`);
   return res.json();
 }
+
+// ---------------------------------------------------------------------------
+// Risk Register API (Phase 32)
+// ---------------------------------------------------------------------------
+
+/**
+ * Fetch risk register items for the current municipality.
+ * Returns: array of RiskItem objects with mitigations.
+ * Optional departmentId filter scopes to a single department.
+ */
+export async function fetchRiskRegister(token: string, departmentId?: string): Promise<any> {
+  const url = new URL('/api/v1/risk-register/', window.location.origin);
+  if (departmentId) url.searchParams.set('department_id', departmentId);
+  const res = await fetch(url.toString(), {
+    headers: { Authorization: `Bearer ${token}` },
+  });
+  if (!res.ok) throw new Error(`Risk register fetch failed: ${res.status}`);
+  return res.json();
+}

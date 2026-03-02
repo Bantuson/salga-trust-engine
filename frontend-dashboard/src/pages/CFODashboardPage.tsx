@@ -18,8 +18,8 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { fetchCFODashboard } from '../services/api';
-import { mockCFODashboard } from '../mocks/mockRoleDashboards';
+import { fetchCFODashboard, fetchRiskRegister } from '../services/api';
+import { mockCFODashboard, mockRiskRegister } from '../mocks/mockRoleDashboards';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -39,6 +39,17 @@ function statusColor(status: string): string {
   return 'var(--color-coral)';
 }
 
+// Helper: background color for risk rating badge
+function riskRatingColor(rating: string): string {
+  switch (rating) {
+    case 'critical': return 'var(--color-coral)';
+    case 'high': return '#e67e22';
+    case 'medium': return 'var(--color-gold)';
+    case 'low': return 'var(--color-teal)';
+    default: return 'var(--text-secondary)';
+  }
+}
+
 export function CFODashboardPage() {
   const { session } = useAuth();
   const navigate = useNavigate();
@@ -46,6 +57,7 @@ export function CFODashboardPage() {
   const [data, setData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [riskData, setRiskData] = useState<any[]>([]);
 
   const loadData = useCallback(async () => {
     if (!session?.access_token) return;
@@ -59,6 +71,13 @@ export function CFODashboardPage() {
       setData(mockCFODashboard);
     } finally {
       setLoading(false);
+    }
+    // Load risk register separately — non-blocking, falls back to mock
+    try {
+      const risks = await fetchRiskRegister(session.access_token);
+      setRiskData(Array.isArray(risks) ? risks : []);
+    } catch {
+      setRiskData(mockRiskRegister);
     }
   }, [session?.access_token]);
 
@@ -366,6 +385,72 @@ export function CFODashboardPage() {
               </tbody>
             </table>
           </div>
+        </GlassCard>
+      )}
+
+      {/* Risk Register Section */}
+      {!loading && (
+        <GlassCard style={styles.tableCard}>
+          <h2 style={{ fontSize: 'var(--text-lg)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem' }}>
+            Risk Register
+          </h2>
+          {riskData.length === 0 ? (
+            <p style={{ color: 'var(--text-secondary)', textAlign: 'center', padding: '2rem 0' }}>
+              No risk items registered. Risks are auto-flagged when KPIs turn red.
+            </p>
+          ) : (
+            <div style={styles.tableWrapper}>
+              <table style={styles.table}>
+                <thead>
+                  <tr>
+                    <th style={styles.th}>Risk</th>
+                    <th style={styles.th}>Rating</th>
+                    <th style={styles.th}>L x I</th>
+                    <th style={styles.th}>Auto-Flagged</th>
+                    <th style={styles.th}>Mitigations</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {riskData.map((item: any) => (
+                    <tr key={item.id} style={styles.tr}>
+                      <td style={styles.td}>
+                        <div style={{ fontWeight: 600 }}>{item.title}</div>
+                        <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', marginTop: '0.25rem' }}>
+                          {item.description?.slice(0, 80)}{item.description?.length > 80 ? '...' : ''}
+                        </div>
+                      </td>
+                      <td style={styles.td}>
+                        <span style={{
+                          padding: '0.25rem 0.75rem',
+                          borderRadius: '9999px',
+                          fontSize: 'var(--text-sm)',
+                          fontWeight: 600,
+                          textTransform: 'capitalize',
+                          color: '#fff',
+                          backgroundColor: riskRatingColor(item.risk_rating),
+                        }}>
+                          {item.risk_rating}
+                        </span>
+                      </td>
+                      <td style={styles.td}>
+                        {item.likelihood} x {item.impact}
+                      </td>
+                      <td style={styles.td}>
+                        {item.is_auto_flagged ? (
+                          <span style={{ color: 'var(--color-coral)', fontWeight: 600 }}>Yes</span>
+                        ) : (
+                          <span style={{ color: 'var(--text-secondary)' }}>No</span>
+                        )}
+                      </td>
+                      <td style={styles.td}>
+                        {item.mitigations?.length ?? 0}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
         </GlassCard>
       )}
     </div>
