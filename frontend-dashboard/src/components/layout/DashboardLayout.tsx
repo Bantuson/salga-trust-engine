@@ -13,6 +13,7 @@ import { useState, useEffect, useRef, useCallback } from 'react';
 import { Sidebar } from './Sidebar';
 import { useAuth } from '../../hooks/useAuth';
 import { useViewRole } from '../../contexts/ViewRoleContext';
+import { LayoutHeaderProvider, useLayoutHeader } from '../../contexts/LayoutHeaderContext';
 import './DashboardLayout.css';
 
 interface DashboardLayoutProps {
@@ -49,12 +50,21 @@ function timeAgo(dateStr: string): string {
 }
 
 export function DashboardLayout({ children }: DashboardLayoutProps) {
+  return (
+    <LayoutHeaderProvider>
+      <DashboardLayoutInner>{children}</DashboardLayoutInner>
+    </LayoutHeaderProvider>
+  );
+}
+
+function DashboardLayoutInner({ children }: DashboardLayoutProps) {
   const { user, session, signOut, getAllRoles } = useAuth();
   const token = session?.access_token ?? null;
 
   const allRoles = getAllRoles();
   // viewRole state is now managed by ViewRoleContext (lifted to fix ReactNode disconnect)
   const { viewRole, setViewRole } = useViewRole();
+  const { headerContent } = useLayoutHeader();
 
   // Notification state
   const [unreadCount, setUnreadCount] = useState(0);
@@ -170,14 +180,17 @@ export function DashboardLayout({ children }: DashboardLayoutProps) {
           height: '48px',
           display: 'flex',
           alignItems: 'center',
-          justifyContent: 'flex-end',
+          justifyContent: 'space-between',
           padding: '0 var(--space-xl, 24px)',
           background: 'transparent',
           zIndex: 100,
         }}
       >
+        {/* Left slot: page header content injected via LayoutHeaderContext */}
+        <div style={{ display: 'flex', alignItems: 'center', flex: 1, minWidth: 0, paddingLeft: 'var(--space-md)' }}>{headerContent}</div>
+
         {/* Notification Bell */}
-        <div ref={bellRef} style={{ position: 'relative' }}>
+        <div ref={bellRef} style={{ position: 'relative', flexShrink: 0 }}>
           <button
             onClick={() => setShowNotifications((prev) => !prev)}
             aria-label="Notifications"
