@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-03T22:39:27.059Z"
+progress:
+  total_phases: 12
+  completed_phases: 10
+  total_plans: 39
+  completed_plans: 37
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-03T22:02:58.276Z"
 progress:
   total_phases: 12
@@ -239,16 +252,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.3 IN PROGRESS — Modal scroll fix for mouse wheel support (Plan 1 of 2 done)
+**Current focus:** Phase 34.3 COMPLETE — Modal scroll fix for mouse wheel support (all 2 plans done)
 
 ## Current Position
 
 Phase: 34.3 of 34.3 (Modal Scroll Fix for Mouse Wheel Support)
-Plan: 1 of 2 complete
-Status: Plan 34.3-01 complete — E2E modal scroll spec created; data-lenis-prevent added to 8 team/ticket modal files (2 Pattern A, 6 Pattern B).
-Last activity: 2026-03-04 — 34.3-01 complete: modal-scroll.spec.ts created with 2 authTest cases; TeamCreateModal, BulkInviteDialog, TeamDetailModal, MemberDetailModal, AssignmentDetailModal, MemberScheduleModal, ReviewDetailModal, TicketDetailModal all fixed. Commits c9df08f and 5cffdaa.
+Plan: 2 of 2 complete
+Status: Plan 34.3-02 complete — data-lenis-prevent added to 3 remaining dashboard modal body divs + 2 public frontend dropdown panels; modal-scroll spec import path fixed.
+Last activity: 2026-03-04 — 34.3-02 complete: InviteUserModal, CreateDepartmentModal, MunicipalityDetailModal (Pattern A body divs), CustomSelect (listbox div), CitizenRegisterPage MunicipalityDropdown panel all fixed. Spec import bug fixed. Commits ad5057b and 25a739b.
 
-Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.3 done)
+Progress: [██████████] 100% (Plan 2/2 of Phase 34.3 done)
 
 ## Performance Metrics
 
@@ -294,6 +307,7 @@ Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.3 done)
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P03 | 20 | 2 tasks | 11 files |
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P02 | 9 | 2 tasks | 13 files |
 | Phase 34.3 P01 | 12 | 2 tasks | 9 files |
+| Phase 34.3 P34.3-02 | 35 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -427,6 +441,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.2-02]: TEAM_ROLES array passed directly as options prop in InviteTeamStep (already has value/label shape)
 - [Phase 34.3-01]: Pattern A vs B: inspect overflowY location to determine which div gets data-lenis-prevent (body div for Pattern A, modal div for Pattern B)
 - [Phase 34.3-01]: One data-lenis-prevent on outermost scrollable modal container covers all descendants — Lenis traverses upward from scroll target
+- [Phase 34.3]: [Phase 34.3-02]: All 3 remaining dashboard modals confirmed Pattern A — styles.modal has overflow:hidden, styles.body has overflowY:auto; data-lenis-prevent goes on body div not modal div
+- [Phase 34.3]: [Phase 34.3-02]: modal-scroll.spec.ts import path bug fixed — spec at tests/modal-scroll.spec.ts needs ../fixtures/auth not ../../fixtures/auth
+- [Phase 34.3]: [Phase 34.3-02]: Inline dropdown panels (role=listbox, anonymous divs with overflowY:auto) need data-lenis-prevent same as modal body divs — applies to public frontend too
 
 ### Pending Todos
 
@@ -449,6 +466,6 @@ None.
 
 ## Session Continuity
 
-Last session: 2026-03-03
-Stopped at: Completed 34.2-03-PLAN.md — all 11 page files migrated (9 dashboard + 2 public); zero native selects in pages dirs; PmsSetupWizardPage parseInt preserved; ReportIssuePage GBV logic preserved; ProfilePage disabled state preserved; commits 9adfdcf and 6c0bbfc. Phase 34.2 fully complete.
+Last session: 2026-03-04
+Stopped at: Completed 34.3-02-PLAN.md — all 5 remaining scrollable elements fixed (3 dashboard modal body divs + 2 public dropdown panels); modal-scroll spec import path fixed; E2E 1 passed 1 skipped; Phase 34.3 fully complete. Commits ad5057b and 25a739b.
 Resume file: None

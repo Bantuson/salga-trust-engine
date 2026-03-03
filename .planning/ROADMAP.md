@@ -256,7 +256,7 @@ Plans:
 **Goal:** Add `data-lenis-prevent` to all modal and dropdown scrollable elements that are missing it, so mouse wheel events scroll the modal/dropdown body rather than the background page. Fixes 13 elements across 13 files (8 team/ticket modals, 3 dashboard onboarding/department/salga modals, 2 public frontend dropdowns). Creates a Playwright E2E spec to validate mouse wheel scroll behavior.
 **Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 1/2 plans executed
+**Plans:** 2/2 plans complete
 
 Plans:
 - [ ] 34.3-01-PLAN.md — Wave 0: Create E2E modal scroll spec; Wave 1: Add data-lenis-prevent to 8 teams/TicketDetailModal files (Pattern A: TeamCreateModal body, BulkInviteDialog body; Pattern B: TeamDetailModal, MemberDetailModal, AssignmentDetailModal, MemberScheduleModal, ReviewDetailModal modal containers + TicketDetailModal modal container) [Wave 1]
