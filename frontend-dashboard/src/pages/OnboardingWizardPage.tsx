@@ -23,6 +23,7 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 
 // ---------------------------------------------------------------------------
@@ -943,14 +944,15 @@ export function OnboardingWizardPage() {
 
             <div style={fieldStyles.group}>
               <label style={fieldStyles.label}>SDBIP Configuration Level</label>
-              <select
+              <Select
                 value={sdbipLevel}
-                onChange={(e) => setSdbipLevel(e.target.value as 'top-layer' | 'top-departmental')}
-                style={fieldStyles.select}
-              >
-                <option value="top-layer">Top Layer Only</option>
-                <option value="top-departmental">Top Layer + Departmental</option>
-              </select>
+                onChange={(value) => setSdbipLevel(value as 'top-layer' | 'top-departmental')}
+                options={[
+                  { value: 'top-layer', label: 'Top Layer Only' },
+                  { value: 'top-departmental', label: 'Top Layer + Departmental' },
+                ]}
+                size="md"
+              />
             </div>
 
             <div style={fieldStyles.infoBox}>
@@ -1361,18 +1363,15 @@ export function OnboardingWizardPage() {
               <div style={pageStyles.deptGrid}>
                 <div style={fieldStyles.group}>
                   <label style={fieldStyles.label}>Department</label>
-                  <select
+                  <Select
                     value={newTeamDeptCode}
-                    onChange={(e) => setNewTeamDeptCode(e.target.value)}
-                    style={fieldStyles.select}
-                  >
-                    <option value="">Select department...</option>
-                    {departments.map((dept) => (
-                      <option key={dept.code} value={dept.code}>
-                        {dept.name} ({dept.code})
-                      </option>
-                    ))}
-                  </select>
+                    onChange={(value) => setNewTeamDeptCode(value)}
+                    options={[
+                      { value: '', label: 'Select department...' },
+                      ...departments.map((dept) => ({ value: dept.code, label: `${dept.name} (${dept.code})` })),
+                    ]}
+                    size="md"
+                  />
                 </div>
                 <div style={fieldStyles.group}>
                   <label style={fieldStyles.label}>Team Name</label>

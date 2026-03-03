@@ -12,6 +12,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 import { TrafficLightBadge } from '../components/pms/TrafficLightBadge';
 import { DEMO_MODE } from '../lib/demoMode';
@@ -326,14 +327,13 @@ export function ActualsPage() {
                 <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-xs)' }}>
                   Quarter *
                 </label>
-                <select
+                <Select
                   value={form.quarter}
-                  onChange={(e) => setForm((p) => ({ ...p, quarter: e.target.value }))}
+                  onChange={(value) => setForm((p) => ({ ...p, quarter: value }))}
+                  options={QUARTER_OPTIONS.map((q) => ({ value: q, label: QUARTER_LABELS[q] }))}
+                  size="md"
                   required
-                  style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)' }}
-                >
-                  {QUARTER_OPTIONS.map((q) => <option key={q} value={q}>{QUARTER_LABELS[q]}</option>)}
-                </select>
+                />
               </div>
               <Input
                 label="Financial Year *"

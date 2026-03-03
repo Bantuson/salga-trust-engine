@@ -12,6 +12,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
 import { DEMO_MODE } from '../lib/demoMode';
 
@@ -407,18 +408,19 @@ export function IdpDetailPage() {
               <label style={{ display: 'block', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginBottom: 'var(--space-xs)' }}>
                 National KPA *
               </label>
-              <select
+              <Select
                 value={goalForm.national_kpa}
-                onChange={(e) => setGoalForm((p) => ({ ...p, national_kpa: e.target.value }))}
+                onChange={(value) => setGoalForm((p) => ({ ...p, national_kpa: value }))}
+                options={[
+                  { value: 'basic_service_delivery', label: 'Basic Service Delivery' },
+                  { value: 'local_economic_development', label: 'Local Economic Development' },
+                  { value: 'municipal_financial_viability', label: 'Municipal Financial Viability' },
+                  { value: 'good_governance', label: 'Good Governance' },
+                  { value: 'municipal_transformation', label: 'Municipal Transformation' },
+                ]}
+                size="md"
                 required
-                style={{ width: '100%', padding: '10px 12px', background: 'rgba(255,255,255,0.1)', border: '1px solid rgba(255,255,255,0.2)', borderRadius: 'var(--radius-sm)', color: 'var(--text-primary)', fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)' }}
-              >
-                <option value="basic_service_delivery">Basic Service Delivery</option>
-                <option value="local_economic_development">Local Economic Development</option>
-                <option value="municipal_financial_viability">Municipal Financial Viability</option>
-                <option value="good_governance">Good Governance</option>
-                <option value="municipal_transformation">Municipal Transformation</option>
-              </select>
+              />
             </div>
             <div style={{ marginBottom: 'var(--space-md)' }}>
               <Input

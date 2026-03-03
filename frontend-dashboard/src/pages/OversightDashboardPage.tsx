@@ -26,9 +26,11 @@ import {
   flagInvestigation,
 } from '../services/api';
 import { mockOversightData } from '../mocks/mockRoleDashboards';
+import { DEMO_MODE } from '../lib/demoMode';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { TrafficLightBadge } from '../components/pms/TrafficLightBadge';
 
 // ---------------------------------------------------------------------------
@@ -898,28 +900,14 @@ function MPACView({
                                     >
                                       Reason
                                     </label>
-                                    <select
+                                    <Select
                                       value={flagForm.reason}
-                                      onChange={(e) =>
-                                        setFlagForm((f) => ({ ...f, reason: e.target.value }))
+                                      onChange={(value) =>
+                                        setFlagForm((f) => ({ ...f, reason: value }))
                                       }
-                                      style={{
-                                        width: '100%',
-                                        padding: '0.5rem 0.75rem',
-                                        background: 'var(--surface-elevated)',
-                                        border: '1px solid rgba(255,255,255,0.15)',
-                                        borderRadius: 'var(--radius-sm)',
-                                        color: 'var(--text-primary)',
-                                        fontSize: 'var(--text-sm)',
-                                        fontFamily: 'var(--font-body)',
-                                      }}
-                                    >
-                                      {INVESTIGATION_REASONS.map((opt) => (
-                                        <option key={opt.value} value={opt.value}>
-                                          {opt.label}
-                                        </option>
-                                      ))}
-                                    </select>
+                                      options={INVESTIGATION_REASONS.map((opt) => ({ value: opt.value, label: opt.label }))}
+                                      size="md"
+                                    />
                                   </div>
                                   <div>
                                     <label
@@ -1129,6 +1117,11 @@ export function OversightDashboardPage({ role }: OversightDashboardProps) {
   const config = ROLE_CONFIG[role];
 
   const loadData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setData(mockOversightData[role] || null);
+      setLoading(false);
+      return;
+    }
     if (!session?.access_token) return;
     setLoading(true);
     setError(null);

@@ -3,12 +3,14 @@
  *
  * Mock data with filter bar (Status, Province), table with actions.
  * "Approve & Onboard" navigates to /onboarding with prefill state.
+ * Clicking a row opens an inline detail modal (glass-pink-frost pattern).
  * Styling: glass card pattern, CSS variables only (no Tailwind).
  */
 
-import { useState, useMemo } from 'react';
+import { useState, useMemo, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { usePageHeader } from '../hooks/usePageHeader';
+import { Select } from '@shared/components/ui/Select';
 
 // ---------------------------------------------------------------------------
 // Types & Mock Data
@@ -120,6 +122,128 @@ function StatusBadge({ status }: { status: 'pending' | 'approved' | 'rejected' }
 }
 
 // ---------------------------------------------------------------------------
+// Inline Modal Styles (follows MunicipalityDetailModal pattern exactly)
+// ---------------------------------------------------------------------------
+
+const modalStyles = {
+  overlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+  } as React.CSSProperties,
+  modal: {
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    border: '1px solid var(--glass-border)',
+    borderRadius: 'var(--radius-xl)',
+    maxWidth: '640px',
+    width: '100%',
+    maxHeight: '85vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    overflow: 'hidden' as const,
+  } as React.CSSProperties,
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: 'var(--glass-card-padding)',
+    paddingBottom: 'var(--space-md)',
+    borderBottom: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    top: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    zIndex: 1,
+  } as React.CSSProperties,
+  headerLeft: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  headerTitle: {
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: 0,
+    lineHeight: 1.3,
+  } as React.CSSProperties,
+  closeButton: {
+    flexShrink: 0,
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--radius-sm)',
+    transition: 'color 0.15s ease',
+    marginLeft: '1rem',
+  } as React.CSSProperties,
+  body: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    padding: 'var(--glass-card-padding)',
+  } as React.CSSProperties,
+  section: {
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 'var(--glass-card-padding)',
+    marginBottom: 'var(--space-lg)',
+  } as React.CSSProperties,
+  sectionTitle: {
+    fontSize: '0.78rem',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    marginTop: 0,
+    marginBottom: 'var(--space-md)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+  } as React.CSSProperties,
+  detailRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.35rem 0',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+  } as React.CSSProperties,
+  detailLabel: {
+    fontSize: '0.875rem',
+    color: 'var(--text-secondary)',
+  } as React.CSSProperties,
+  detailValue: {
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  } as React.CSSProperties,
+  footer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: 'var(--glass-card-padding)',
+    borderTop: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    bottom: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+  } as React.CSSProperties,
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -134,6 +258,9 @@ export function AccessRequestsPage() {
 
   // Local state for optimistic status updates
   const [requests, setRequests] = useState<AccessRequest[]>(MOCK_REQUESTS);
+
+  // Modal state
+  const [selectedRequest, setSelectedRequest] = useState<AccessRequest | null>(null);
 
   const filtered = useMemo(() => {
     return requests.filter((r) => {
@@ -169,6 +296,35 @@ export function AccessRequestsPage() {
       prev.map((r) => (r.id === id ? { ...r, status: 'rejected' as const } : r))
     );
   };
+
+  // Body scroll lock while modal is open
+  useEffect(() => {
+    if (!selectedRequest) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [selectedRequest]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!selectedRequest) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedRequest(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedRequest]);
+
+  // Keep modal in sync with state changes (e.g. after reject)
+  useEffect(() => {
+    if (!selectedRequest) return;
+    const updated = requests.find((r) => r.id === selectedRequest.id);
+    if (updated && updated.status !== selectedRequest.status) {
+      setSelectedRequest(updated);
+    }
+  }, [requests, selectedRequest]);
 
   return (
     <div style={{ padding: 'var(--space-lg)', maxWidth: '1200px' }}>
@@ -214,31 +370,31 @@ export function AccessRequestsPage() {
         {/* Status filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '140px', flex: '1 1 140px' }}>
           <label style={filterLabelStyle}>Status</label>
-          <select
+          <Select
             value={filterStatus}
-            onChange={(e) => setFilterStatus(e.target.value as '' | 'pending' | 'approved' | 'rejected')}
-            style={filterSelectStyle}
-          >
-            <option value="">All</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+            onChange={(value) => setFilterStatus(value as '' | 'pending' | 'approved' | 'rejected')}
+            options={[
+              { value: '', label: 'All' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'rejected', label: 'Rejected' },
+            ]}
+            size="md"
+          />
         </div>
 
         {/* Province filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '180px', flex: '1 1 180px' }}>
           <label style={filterLabelStyle}>Province</label>
-          <select
+          <Select
             value={filterProvince}
-            onChange={(e) => setFilterProvince(e.target.value)}
-            style={filterSelectStyle}
-          >
-            <option value="">All Provinces</option>
-            {PROVINCES.map((p) => (
-              <option key={p} value={p}>{p}</option>
-            ))}
-          </select>
+            onChange={(value) => setFilterProvince(value)}
+            options={[
+              { value: '', label: 'All Provinces' },
+              ...PROVINCES.map((p) => ({ value: p, label: p })),
+            ]}
+            size="md"
+          />
         </div>
 
         {/* Clear filters */}
@@ -317,7 +473,17 @@ export function AccessRequestsPage() {
                 </tr>
               ) : (
                 filtered.map((req) => (
-                  <tr key={req.id} style={{ borderBottom: '1px solid rgba(255,255,255,0.08)' }}>
+                  <tr
+                    key={req.id}
+                    style={{
+                      borderBottom: '1px solid rgba(255,255,255,0.08)',
+                      cursor: 'pointer',
+                      transition: 'background 0.15s ease',
+                    }}
+                    onClick={() => setSelectedRequest(req)}
+                    onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
+                    onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
+                  >
                     <td style={{ padding: 'var(--space-sm) var(--space-md)', fontWeight: 600, color: 'var(--text-primary)', fontSize: 'var(--text-sm)' }}>
                       {req.municipalityName}
                     </td>
@@ -346,7 +512,10 @@ export function AccessRequestsPage() {
                     </td>
                     <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                       {req.status === 'pending' ? (
-                        <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                        <div
+                          style={{ display: 'flex', gap: 'var(--space-xs)' }}
+                          onClick={(e) => e.stopPropagation()}
+                        >
                           <button
                             onClick={() => handleApproveAndOnboard(req)}
                             style={{
@@ -391,6 +560,176 @@ export function AccessRequestsPage() {
           </table>
         </div>
       </div>
+
+      {/* Access Request Detail Modal */}
+      {selectedRequest && (
+        <div
+          style={modalStyles.overlay}
+          onClick={() => setSelectedRequest(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedRequest.municipalityName} access request detail`}
+        >
+          <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={modalStyles.header}>
+              <div style={modalStyles.headerLeft}>
+                <h2 style={modalStyles.headerTitle}>{selectedRequest.municipalityName}</h2>
+                <div style={{ marginTop: '0.25rem' }}>
+                  <StatusBadge status={selectedRequest.status} />
+                </div>
+              </div>
+              <button
+                style={modalStyles.closeButton}
+                onClick={() => setSelectedRequest(null)}
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={modalStyles.body}>
+              {/* Request Details */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Request Details</h3>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Municipality Name</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.municipalityName}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Demarcation Code</span>
+                  <span style={{ ...modalStyles.detailValue, fontFamily: 'monospace' }}>{selectedRequest.demarcationCode}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Province</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.province}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Category</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.category}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Submitted Date</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.date}</span>
+                </div>
+              </div>
+
+              {/* Contact Information */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Contact Information</h3>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Contact Name</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.contactName}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Contact Email</span>
+                  <span style={modalStyles.detailValue}>{selectedRequest.contactEmail}</span>
+                </div>
+              </div>
+
+              {/* Status */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Status</h3>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', padding: '0.35rem 0' }}>
+                  <StatusBadge status={selectedRequest.status} />
+                  {(selectedRequest.status === 'approved' || selectedRequest.status === 'rejected') && (
+                    <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', fontStyle: 'italic' }}>
+                      No decision history available in demo mode
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={modalStyles.footer}>
+              {selectedRequest.status === 'pending' ? (
+                <>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleApproveAndOnboard(selectedRequest);
+                      setSelectedRequest(null);
+                    }}
+                    style={{
+                      background: 'var(--color-teal)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Approve & Onboard
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      handleReject(selectedRequest.id);
+                      setSelectedRequest(null);
+                    }}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--color-coral)',
+                      border: '1px solid var(--color-coral)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedRequest(null)}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Close
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setSelectedRequest(null)}
+                  style={{
+                    background: 'var(--color-teal)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.5rem 1.5rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -407,15 +746,3 @@ const filterLabelStyle: React.CSSProperties = {
   letterSpacing: '0.04em',
 };
 
-const filterSelectStyle: React.CSSProperties = {
-  background: 'var(--surface-elevated)',
-  border: '1px solid var(--border-subtle)',
-  borderRadius: 'var(--radius-sm)',
-  color: 'var(--text-primary)',
-  padding: '0.4rem 0.6rem',
-  fontSize: '0.875rem',
-  fontFamily: 'inherit',
-  width: '100%',
-  outline: 'none',
-  cursor: 'pointer',
-};
