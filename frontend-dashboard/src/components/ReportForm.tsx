@@ -9,6 +9,7 @@ import React, { useState } from 'react';
 import { FileUpload } from './FileUpload';
 import { GeolocationCapture } from './GeolocationCapture';
 import { submitReport } from '../services/api';
+import { Select } from '@shared/components/ui/Select';
 
 interface LocationData {
   latitude: number;
@@ -154,25 +155,21 @@ export function ReportForm() {
           <label htmlFor="category" style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
             Category (optional - AI will classify if not selected):
           </label>
-          <select
-            id="category"
+          <Select
             value={category}
-            onChange={(e) => setCategory(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
-          >
-            <option value="">Let AI classify</option>
-            <option value="water">Water</option>
-            <option value="roads">Roads</option>
-            <option value="electricity">Electricity</option>
-            <option value="waste">Waste</option>
-            <option value="sanitation">Sanitation</option>
-            <option value="other">Other</option>
-          </select>
+            onChange={(value) => setCategory(value)}
+            options={[
+              { value: '', label: 'Let AI classify' },
+              { value: 'water', label: 'Water' },
+              { value: 'roads', label: 'Roads' },
+              { value: 'electricity', label: 'Electricity' },
+              { value: 'waste', label: 'Waste' },
+              { value: 'sanitation', label: 'Sanitation' },
+              { value: 'other', label: 'Other' },
+            ]}
+            size="md"
+            ariaLabel="Select category"
+          />
         </div>
 
         {/* Location */}
@@ -194,21 +191,17 @@ export function ReportForm() {
           <label htmlFor="language" style={{ display: 'block', marginBottom: '4px', fontWeight: 'bold' }}>
             Language:
           </label>
-          <select
-            id="language"
+          <Select
             value={language}
-            onChange={(e) => setLanguage(e.target.value)}
-            style={{
-              width: '100%',
-              padding: '8px',
-              border: '1px solid #ccc',
-              borderRadius: '4px',
-            }}
-          >
-            <option value="en">English</option>
-            <option value="zu">isiZulu</option>
-            <option value="af">Afrikaans</option>
-          </select>
+            onChange={(value) => setLanguage(value)}
+            options={[
+              { value: 'en', label: 'English' },
+              { value: 'zu', label: 'isiZulu' },
+              { value: 'af', label: 'Afrikaans' },
+            ]}
+            size="md"
+            ariaLabel="Select language"
+          />
         </div>
 
         {/* GBV Toggle */}

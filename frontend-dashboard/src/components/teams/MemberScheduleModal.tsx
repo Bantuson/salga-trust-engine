@@ -6,6 +6,7 @@
  */
 
 import { useEffect, useState } from 'react';
+import { Select } from '@shared/components/ui/Select';
 import type { TeamSchedule } from '../../types/teams';
 
 interface MemberScheduleModalProps {
@@ -170,24 +171,28 @@ export function MemberScheduleModal({
                   /* Edit mode */
                   <div style={styles.editForm}>
                     <span style={styles.entryDate}>{formatDate(s.date)}</span>
-                    <select
+                    <Select
                       value={editData.shift || s.shift}
-                      onChange={(e) => setEditData({ ...editData, shift: e.target.value as ShiftType })}
-                      style={styles.select}
-                    >
-                      <option value="morning">Morning</option>
-                      <option value="afternoon">Afternoon</option>
-                      <option value="night">Night</option>
-                    </select>
-                    <select
+                      onChange={(value) => setEditData({ ...editData, shift: value as ShiftType })}
+                      options={[
+                        { value: 'morning', label: 'Morning' },
+                        { value: 'afternoon', label: 'Afternoon' },
+                        { value: 'night', label: 'Night' },
+                      ]}
+                      size="sm"
+                      ariaLabel="Select shift"
+                    />
+                    <Select
                       value={editData.status || s.status}
-                      onChange={(e) => setEditData({ ...editData, status: e.target.value as StatusType })}
-                      style={styles.select}
-                    >
-                      <option value="scheduled">Scheduled</option>
-                      <option value="on_leave">On Leave</option>
-                      <option value="absent">Absent</option>
-                    </select>
+                      onChange={(value) => setEditData({ ...editData, status: value as StatusType })}
+                      options={[
+                        { value: 'scheduled', label: 'Scheduled' },
+                        { value: 'on_leave', label: 'On Leave' },
+                        { value: 'absent', label: 'Absent' },
+                      ]}
+                      size="sm"
+                      ariaLabel="Select status"
+                    />
                     <input
                       type="text"
                       placeholder="Notes"
@@ -244,19 +249,31 @@ export function MemberScheduleModal({
               </label>
               <label style={styles.formLabel}>
                 Shift
-                <select value={newShift} onChange={(e) => setNewShift(e.target.value as ShiftType)} style={styles.select}>
-                  <option value="morning">Morning</option>
-                  <option value="afternoon">Afternoon</option>
-                  <option value="night">Night</option>
-                </select>
+                <Select
+                  value={newShift}
+                  onChange={(value) => setNewShift(value as ShiftType)}
+                  options={[
+                    { value: 'morning', label: 'Morning' },
+                    { value: 'afternoon', label: 'Afternoon' },
+                    { value: 'night', label: 'Night' },
+                  ]}
+                  size="sm"
+                  ariaLabel="Select shift for new entry"
+                />
               </label>
               <label style={styles.formLabel}>
                 Status
-                <select value={newStatus} onChange={(e) => setNewStatus(e.target.value as StatusType)} style={styles.select}>
-                  <option value="scheduled">Scheduled</option>
-                  <option value="on_leave">On Leave</option>
-                  <option value="absent">Absent</option>
-                </select>
+                <Select
+                  value={newStatus}
+                  onChange={(value) => setNewStatus(value as StatusType)}
+                  options={[
+                    { value: 'scheduled', label: 'Scheduled' },
+                    { value: 'on_leave', label: 'On Leave' },
+                    { value: 'absent', label: 'Absent' },
+                  ]}
+                  size="sm"
+                  ariaLabel="Select status for new entry"
+                />
               </label>
               <label style={{ ...styles.formLabel, gridColumn: '1 / -1' }}>
                 Notes
@@ -413,15 +430,6 @@ const styles = {
   editActions: {
     display: 'flex',
     gap: '0.5rem',
-  } as React.CSSProperties,
-  select: {
-    background: 'rgba(255,255,255,0.08)',
-    border: '1px solid rgba(255,255,255,0.2)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    padding: '0.375rem 0.5rem',
-    fontSize: '0.8125rem',
-    fontFamily: 'inherit',
   } as React.CSSProperties,
   input: {
     background: 'rgba(255,255,255,0.08)',

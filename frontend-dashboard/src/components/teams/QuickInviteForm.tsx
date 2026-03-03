@@ -11,6 +11,7 @@
 import { useState } from 'react';
 import { createInvitation } from '../../services/api';
 import { RoleAssignPreview } from './RoleAssignPreview';
+import { Select } from '@shared/components/ui/Select';
 
 /** Roles that can be invited via team management (excludes citizen, admin, saps_liaison) */
 const INVITABLE_ROLES = [
@@ -114,20 +115,19 @@ export function QuickInviteForm({ teamId, onInvited }: QuickInviteFormProps) {
         />
 
         {/* Role select */}
-        <select
-          value={form.role}
-          onChange={(e) => handleRoleChange(e.target.value)}
-          style={styles.roleSelect}
-          disabled={isSubmitting}
-          aria-label="Select role"
-        >
-          <option value="">Select role…</option>
-          {INVITABLE_ROLES.map((r) => (
-            <option key={r.value} value={r.value}>
-              {r.label}
-            </option>
-          ))}
-        </select>
+        <div style={styles.roleSelectWrapper}>
+          <Select
+            value={form.role}
+            onChange={(value) => handleRoleChange(value)}
+            options={[
+              { value: '', label: 'Select role…' },
+              ...INVITABLE_ROLES,
+            ]}
+            size="md"
+            disabled={isSubmitting}
+            ariaLabel="Select role"
+          />
+        </div>
 
         {/* Confirmed indicator or submit button */}
         {form.confirmed && (
@@ -194,18 +194,9 @@ const styles = {
     outline: 'none',
     transition: 'border-color 0.15s ease',
   } as React.CSSProperties,
-  roleSelect: {
+  roleSelectWrapper: {
     flex: '0 1 160px',
     minWidth: '140px',
-    padding: '8px 12px',
-    fontSize: '0.84rem',
-    fontFamily: 'var(--font-body)',
-    background: 'var(--glass-white-frost)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    outline: 'none',
-    cursor: 'pointer',
   } as React.CSSProperties,
   confirmedBadge: {
     fontSize: '0.75rem',

@@ -8,6 +8,7 @@
 import { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { CATEGORY_CONFIG } from '../../constants/categories';
 import type { Team } from '../../types/teams';
 
@@ -112,19 +113,14 @@ export function TeamCreateCard({ onCreated, createTeam }: TeamCreateCardProps) {
           <label style={styles.label} htmlFor="team-category">
             Category
           </label>
-          <select
-            id="team-category"
+          <Select
             value={form.category}
-            onChange={(e) => handleChange('category', e.target.value)}
-            style={styles.select}
+            onChange={(value) => handleChange('category', value)}
+            options={Object.entries(CATEGORY_CONFIG).map(([key, config]) => ({ value: key, label: config.label }))}
+            size="md"
             disabled={isSubmitting}
-          >
-            {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-              <option key={key} value={key}>
-                {config.label}
-              </option>
-            ))}
-          </select>
+            ariaLabel="Select team category"
+          />
         </div>
 
         {/* Manager ID (placeholder) */}
@@ -132,15 +128,14 @@ export function TeamCreateCard({ onCreated, createTeam }: TeamCreateCardProps) {
           <label style={styles.label} htmlFor="team-manager">
             Manager (optional)
           </label>
-          <select
-            id="team-manager"
+          <Select
             value={form.manager_id}
-            onChange={(e) => handleChange('manager_id', e.target.value)}
-            style={styles.select}
+            onChange={(value) => handleChange('manager_id', value)}
+            options={[{ value: '', label: '— Assign later —' }]}
+            size="md"
             disabled={isSubmitting}
-          >
-            <option value="">— Assign later —</option>
-          </select>
+            ariaLabel="Select team manager"
+          />
           <span style={styles.fieldHint}>
             Assign a manager after inviting team members.
           </span>
@@ -247,19 +242,6 @@ const styles = {
     outline: 'none',
     transition: 'var(--transition-base)',
     boxSizing: 'border-box' as const,
-  } as React.CSSProperties,
-  select: {
-    width: '100%',
-    padding: '8px 12px',
-    fontSize: 'var(--text-sm)',
-    fontFamily: 'var(--font-body)',
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    outline: 'none',
-    transition: 'var(--transition-base)',
-    cursor: 'pointer',
   } as React.CSSProperties,
   fieldHint: {
     fontSize: '0.72rem',

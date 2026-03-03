@@ -13,6 +13,7 @@
 import { useState, useEffect, useRef } from 'react';
 import { createBulkInvitations } from '../../services/api';
 import { RoleAssignPreview } from './RoleAssignPreview';
+import { Select } from '@shared/components/ui/Select';
 
 const INVITABLE_ROLES = [
   { value: 'manager', label: 'Manager' },
@@ -196,20 +197,17 @@ export function BulkInviteDialog({ teamId, isOpen, onClose, onInvited }: BulkInv
             {/* Role selector */}
             <div style={styles.fieldGroup}>
               <label style={styles.label}>Role for All Invitees</label>
-              <select
+              <Select
                 value={role}
-                onChange={(e) => handleRoleChange(e.target.value)}
-                style={styles.select}
+                onChange={(value) => handleRoleChange(value)}
+                options={[
+                  { value: '', label: 'Select a role…' },
+                  ...INVITABLE_ROLES,
+                ]}
+                size="md"
                 disabled={isSubmitting}
-                aria-label="Select role for all invitees"
-              >
-                <option value="">Select a role…</option>
-                {INVITABLE_ROLES.map((r) => (
-                  <option key={r.value} value={r.value}>
-                    {r.label}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Select role for all invitees"
+              />
               <p style={styles.helperText}>
                 All invitees will receive the same role. You can change individual roles later.
               </p>
@@ -365,19 +363,6 @@ const styles = {
     color: 'var(--color-teal)',
     fontWeight: 500,
     margin: 0,
-  } as React.CSSProperties,
-  select: {
-    width: '100%',
-    padding: '10px 12px',
-    fontSize: '0.84rem',
-    fontFamily: 'var(--font-body)',
-    background: 'var(--glass-white-frost)',
-    border: '1px solid var(--glass-border)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    outline: 'none',
-    cursor: 'pointer',
-    boxSizing: 'border-box' as const,
   } as React.CSSProperties,
   helperText: {
     fontSize: '0.75rem',

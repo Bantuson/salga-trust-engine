@@ -12,6 +12,7 @@
 import { useState, useEffect } from 'react';
 import { CATEGORY_CONFIG } from '../../constants/categories';
 import { createTeam, createInvitation } from '../../services/api';
+import { Select } from '@shared/components/ui/Select';
 
 interface TeamCreateModalProps {
   onClose: () => void;
@@ -184,18 +185,14 @@ export function TeamCreateModal({ onClose, onCreated }: TeamCreateModalProps) {
           <div style={styles.section}>
             <h3 style={styles.sectionTitle}>Team Category</h3>
             <div style={styles.fieldGroup}>
-              <select
+              <Select
                 value={category}
-                onChange={(e) => setCategory(e.target.value)}
-                style={styles.select}
+                onChange={(value) => setCategory(value)}
+                options={Object.entries(CATEGORY_CONFIG).map(([key, config]) => ({ value: key, label: config.label }))}
+                size="md"
                 disabled={isSubmitting}
-              >
-                {Object.entries(CATEGORY_CONFIG).map(([key, config]) => (
-                  <option key={key} value={key}>
-                    {config.label}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Select team category"
+              />
             </div>
           </div>
 
@@ -425,19 +422,6 @@ const styles = {
     fontFamily: 'inherit',
     width: '100%',
     outline: 'none',
-    boxSizing: 'border-box' as const,
-  } as React.CSSProperties,
-  select: {
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
-    width: '100%',
-    outline: 'none',
-    cursor: 'pointer',
     boxSizing: 'border-box' as const,
   } as React.CSSProperties,
   emptyHint: {
