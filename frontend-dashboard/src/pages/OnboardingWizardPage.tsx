@@ -1,24 +1,26 @@
 /**
- * OnboardingWizardPage — 6-step PMS-aware municipal onboarding wizard.
+ * OnboardingWizardPage — 9-step PMS-aware municipal onboarding wizard.
  *
  * Route: /onboarding (full-screen, no DashboardLayout)
  *
  * Steps:
- *  1. welcome           — Municipality confirmation + SDBIP level choice
- *  2. departments       — Create departments (min 3 soft warning)
- *  3. invite-tier1      — Invite Executive Mayor, MM, CFO, Speaker
- *  4. invite-directors  — One invite row per department from Step 2
- *  5. sla-config        — SLA response/resolution targets + ward count
- *  6. pms-gate          — Readiness check via GET /api/v1/pms/readiness
+ *  1. welcome              — Municipality confirmation + SDBIP level choice
+ *  2. departments          — Create departments (min 3 soft warning)
+ *  3. invite-tier1         — Invite Executive Mayor, MM, CFO, Speaker
+ *  4. invite-directors     — One invite row per department from Step 2
+ *  5. invite-dept-managers — One invite row per department (dept managers)
+ *  6. create-teams         — Create operational teams within departments
+ *  7. invite-supervisors   — One invite row per team (supervisors)
+ *  8. sla-config           — SLA response/resolution targets + ward count
+ *  9. pms-gate             — Readiness check via GET /api/v1/pms/readiness
  *
  * Styling: inline CSS variables only (Phase 27-03 CSS lock — no Tailwind).
- * Background: AnimatedGradientBg for visual continuity with login page.
+ * Background: auth-skyline-bg CSS classes for visual continuity with login page.
  * State: localStorage persistence so wizard can resume after browser close.
  */
 
 import React, { useState, useEffect, useCallback } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
+import { useNavigate, useLocation } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
@@ -32,6 +34,9 @@ type OnboardingStep =
   | 'departments'
   | 'invite-tier1'
   | 'invite-directors'
+  | 'invite-dept-managers'
+  | 'create-teams'
+  | 'invite-supervisors'
   | 'sla-config'
   | 'pms-gate';
 
@@ -40,6 +45,9 @@ const STEPS: OnboardingStep[] = [
   'departments',
   'invite-tier1',
   'invite-directors',
+  'invite-dept-managers',
+  'create-teams',
+  'invite-supervisors',
   'sla-config',
   'pms-gate',
 ];
@@ -49,6 +57,9 @@ const STEP_LABELS: Record<OnboardingStep, string> = {
   'departments': 'Departments',
   'invite-tier1': 'Tier 1 Leaders',
   'invite-directors': 'Directors',
+  'invite-dept-managers': 'Dept Managers',
+  'create-teams': 'Teams',
+  'invite-supervisors': 'Supervisors',
   'sla-config': 'SLA & Wards',
   'pms-gate': 'Readiness Check',
 };
@@ -77,6 +88,28 @@ interface DirectorInvite {
   sent?: boolean;
 }
 
+interface DeptManagerInvite {
+  departmentName: string;
+  departmentCode: string;
+  email: string;
+  sendInvite: boolean;
+  sent?: boolean;
+}
+
+interface Team {
+  name: string;
+  departmentCode: string;
+  departmentName: string;
+}
+
+interface SupervisorInvite {
+  teamName: string;
+  departmentCode: string;
+  email: string;
+  sendInvite: boolean;
+  sent?: boolean;
+}
+
 interface PmsReadiness {
   ready: boolean;
   checklist: {
@@ -92,10 +125,10 @@ interface PmsReadiness {
   };
 }
 
-const STORAGE_KEY = 'salga_onboarding_wizard_v2';
+const STORAGE_KEY = 'salga_onboarding_wizard_v3';
 
 // ---------------------------------------------------------------------------
-// Step indicator sub-component
+// Step indicator sub-component (compact mode for > 6 steps)
 // ---------------------------------------------------------------------------
 
 function StepIndicator({
@@ -105,6 +138,68 @@ function StepIndicator({
   steps: OnboardingStep[];
   currentIndex: number;
 }) {
+  const isCompact = steps.length > 6;
+
+  if (isCompact) {
+    return (
+      <div style={{ marginBottom: '2rem' }}>
+        <div style={{ textAlign: 'center', marginBottom: '1rem' }}>
+          <span style={{ fontSize: '0.85rem', fontWeight: 600, color: 'var(--color-teal)' }}>
+            Step {currentIndex + 1} of {steps.length}: {STEP_LABELS[steps[currentIndex]]}
+          </span>
+        </div>
+        <div style={stepStyles.container}>
+          {steps.map((step, i) => {
+            const isCompleted = i < currentIndex;
+            const isCurrent = i === currentIndex;
+
+            return (
+              <div key={step} style={stepStyles.stepWrapper}>
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', flexShrink: 0 }}>
+                  <div
+                    style={{
+                      ...stepStyles.circleCompact,
+                      background: isCompleted
+                        ? 'var(--color-teal)'
+                        : isCurrent
+                        ? 'rgba(0, 191, 165, 0.15)'
+                        : 'var(--surface-elevated)',
+                      border: isCurrent || isCompleted
+                        ? '2px solid var(--color-teal)'
+                        : '2px solid var(--border-subtle)',
+                      color: isCompleted
+                        ? 'white'
+                        : isCurrent
+                        ? 'var(--color-teal)'
+                        : 'var(--text-muted)',
+                    }}
+                  >
+                    {isCompleted ? (
+                      <svg width="10" height="10" fill="none" stroke="currentColor" strokeWidth={3} viewBox="0 0 24 24">
+                        <polyline points="20 6 9 17 4 12" />
+                      </svg>
+                    ) : (
+                      <span style={{ fontSize: '10px', fontWeight: 700 }}>{i + 1}</span>
+                    )}
+                  </div>
+                </div>
+                {i < steps.length - 1 && (
+                  <div
+                    style={{
+                      ...stepStyles.connector,
+                      background: isCompleted ? 'var(--color-teal)' : 'var(--border-subtle)',
+                      marginBottom: '0px',
+                    }}
+                  />
+                )}
+              </div>
+            );
+          })}
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div style={stepStyles.container}>
       {steps.map((step, i) => {
@@ -191,6 +286,16 @@ const stepStyles: Record<string, React.CSSProperties> = {
   circle: {
     width: '36px',
     height: '36px',
+    borderRadius: '50%',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    transition: 'background 0.2s ease, border-color 0.2s ease',
+    flexShrink: 0,
+  },
+  circleCompact: {
+    width: '28px',
+    height: '28px',
     borderRadius: '50%',
     display: 'flex',
     alignItems: 'center',
@@ -306,6 +411,8 @@ const fieldStyles: Record<string, React.CSSProperties> = {
 
 export function OnboardingWizardPage() {
   const navigate = useNavigate();
+  const location = useLocation();
+  const prefill = (location.state as any)?.prefill;
   const { getAccessToken, getTenantId, user } = useAuth();
 
   const [currentStepIndex, setCurrentStepIndex] = useState(0);
@@ -314,7 +421,8 @@ export function OnboardingWizardPage() {
 
   // Step 1: welcome
   const [sdbipLevel, setSdbipLevel] = useState<'top-layer' | 'top-departmental'>('top-layer');
-  const municipalityName = (user as { user_metadata?: { municipality_name?: string } })?.user_metadata?.municipality_name || 'Your Municipality';
+  const [municipalityNameOverride, setMunicipalityNameOverride] = useState<string | null>(null);
+  const municipalityName = municipalityNameOverride || (user as { user_metadata?: { municipality_name?: string } })?.user_metadata?.municipality_name || 'Your Municipality';
 
   // Step 2: departments
   const [departments, setDepartments] = useState<Department[]>([]);
@@ -334,12 +442,23 @@ export function OnboardingWizardPage() {
   // Step 4: invite directors (one per dept from step 2)
   const [directorInvites, setDirectorInvites] = useState<DirectorInvite[]>([]);
 
-  // Step 5: SLA + wards
+  // Step 5: invite dept managers (one per dept)
+  const [deptManagerInvites, setDeptManagerInvites] = useState<DeptManagerInvite[]>([]);
+
+  // Step 6: create teams
+  const [teams, setTeams] = useState<Team[]>([]);
+  const [newTeamName, setNewTeamName] = useState('');
+  const [newTeamDeptCode, setNewTeamDeptCode] = useState('');
+
+  // Step 7: invite supervisors (one per team)
+  const [supervisorInvites, setSupervisorInvites] = useState<SupervisorInvite[]>([]);
+
+  // Step 8: SLA + wards
   const [slaResponseHours, setSlaResponseHours] = useState(24);
   const [slaResolutionHours, setSlaResolutionHours] = useState(168);
   const [wardCount, setWardCount] = useState('');
 
-  // Step 6: PMS readiness
+  // Step 9: PMS readiness
   const [pmsReadiness, setPmsReadiness] = useState<PmsReadiness | null>(null);
   const [readinessLoading, setReadinessLoading] = useState(false);
 
@@ -366,6 +485,9 @@ export function OnboardingWizardPage() {
           );
         }
         if (saved.directorInvites) setDirectorInvites(saved.directorInvites);
+        if (saved.deptManagerInvites) setDeptManagerInvites(saved.deptManagerInvites);
+        if (saved.teams) setTeams(saved.teams);
+        if (saved.supervisorInvites) setSupervisorInvites(saved.supervisorInvites);
         if (saved.slaResponseHours) setSlaResponseHours(saved.slaResponseHours);
         if (saved.slaResolutionHours) setSlaResolutionHours(saved.slaResolutionHours);
         if (saved.wardCount) setWardCount(saved.wardCount);
@@ -373,6 +495,11 @@ export function OnboardingWizardPage() {
       }
     } catch {
       // non-critical
+    }
+
+    // Apply prefill from router state
+    if (prefill?.municipalityName) {
+      setMunicipalityNameOverride(prefill.municipalityName);
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -387,6 +514,9 @@ export function OnboardingWizardPage() {
           departments,
           tier1Invites,
           directorInvites,
+          deptManagerInvites,
+          teams,
+          supervisorInvites,
           slaResponseHours,
           slaResolutionHours,
           wardCount,
@@ -396,7 +526,7 @@ export function OnboardingWizardPage() {
     } catch {
       // non-critical
     }
-  }, [currentStepIndex, sdbipLevel, departments, tier1Invites, directorInvites, slaResponseHours, slaResolutionHours, wardCount, deptCount]);
+  }, [currentStepIndex, sdbipLevel, departments, tier1Invites, directorInvites, deptManagerInvites, teams, supervisorInvites, slaResponseHours, slaResolutionHours, wardCount, deptCount]);
 
   // Sync director invites when departments change (Step 4 is dynamic)
   useEffect(() => {
@@ -412,6 +542,36 @@ export function OnboardingWizardPage() {
       return merged;
     });
   }, [departments]);
+
+  // Sync dept manager invites when departments change (Step 5 is dynamic)
+  useEffect(() => {
+    setDeptManagerInvites((prev) => {
+      const merged = departments.map((dept) => {
+        const existing = prev.find(
+          (d) => d.departmentCode === dept.code
+        );
+        return existing
+          ? existing
+          : { departmentName: dept.name, departmentCode: dept.code, email: '', sendInvite: true };
+      });
+      return merged;
+    });
+  }, [departments]);
+
+  // Sync supervisor invites when teams change (Step 7 is dynamic)
+  useEffect(() => {
+    setSupervisorInvites((prev) => {
+      const merged = teams.map((team) => {
+        const existing = prev.find(
+          (s) => s.teamName === team.name && s.departmentCode === team.departmentCode
+        );
+        return existing
+          ? existing
+          : { teamName: team.name, departmentCode: team.departmentCode, email: '', sendInvite: true };
+      });
+      return merged;
+    });
+  }, [teams]);
 
   // ---------------------------------------------------------------------------
   // API helpers
@@ -547,7 +707,67 @@ export function OnboardingWizardPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Step 6: Load PMS readiness
+  // Step 5: Submit dept manager invites
+  // ---------------------------------------------------------------------------
+
+  async function handleSendDeptManagerInvites() {
+    const toSend = deptManagerInvites.filter((d) => d.sendInvite && d.email.trim());
+    if (toSend.length === 0) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetch(`${apiUrl}/api/v1/invitations/bulk`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          invitations: toSend.map((d) => ({ email: d.email.trim(), role: 'department_manager' })),
+        }),
+      });
+      setDeptManagerInvites((prev) =>
+        prev.map((d) => (toSend.some((s) => s.departmentCode === d.departmentCode) ? { ...d, sent: true } : d))
+      );
+    } catch {
+      setDeptManagerInvites((prev) =>
+        prev.map((d) => (toSend.some((s) => s.departmentCode === d.departmentCode) ? { ...d, sent: true } : d))
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 7: Submit supervisor invites
+  // ---------------------------------------------------------------------------
+
+  async function handleSendSupervisorInvites() {
+    const toSend = supervisorInvites.filter((s) => s.sendInvite && s.email.trim());
+    if (toSend.length === 0) return;
+
+    setIsLoading(true);
+    setError(null);
+    try {
+      await fetch(`${apiUrl}/api/v1/invitations/bulk`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({
+          invitations: toSend.map((s) => ({ email: s.email.trim(), role: 'manager' })),
+        }),
+      });
+      setSupervisorInvites((prev) =>
+        prev.map((s) => (toSend.some((ts) => ts.teamName === s.teamName && ts.departmentCode === s.departmentCode) ? { ...s, sent: true } : s))
+      );
+    } catch {
+      setSupervisorInvites((prev) =>
+        prev.map((s) => (toSend.some((ts) => ts.teamName === s.teamName && ts.departmentCode === s.departmentCode) ? { ...s, sent: true } : s))
+      );
+    } finally {
+      setIsLoading(false);
+    }
+  }
+
+  // ---------------------------------------------------------------------------
+  // Step 9: Load PMS readiness
   // ---------------------------------------------------------------------------
 
   async function loadPmsReadiness() {
@@ -621,6 +841,18 @@ export function OnboardingWizardPage() {
         await handleSendDirectorInvites();
       }
     }
+    if (step === 'invite-dept-managers') {
+      const hasUnsent = deptManagerInvites.some((d) => d.sendInvite && d.email.trim() && !d.sent);
+      if (hasUnsent) {
+        await handleSendDeptManagerInvites();
+      }
+    }
+    if (step === 'invite-supervisors') {
+      const hasUnsent = supervisorInvites.some((s) => s.sendInvite && s.email.trim() && !s.sent);
+      if (hasUnsent) {
+        await handleSendSupervisorInvites();
+      }
+    }
 
     if (currentStepIndex < STEPS.length - 1) {
       setCurrentStepIndex((i) => i + 1);
@@ -644,6 +876,31 @@ export function OnboardingWizardPage() {
   function handleFinish() {
     localStorage.removeItem(STORAGE_KEY);
     navigate('/');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Team management (Step 6)
+  // ---------------------------------------------------------------------------
+
+  function handleAddTeam() {
+    const name = newTeamName.trim();
+    const deptCode = newTeamDeptCode;
+    if (!name || !deptCode) {
+      setError('Please select a department and enter a team name.');
+      return;
+    }
+    if (teams.some((t) => t.name === name && t.departmentCode === deptCode)) {
+      setError(`Team "${name}" already exists in this department.`);
+      return;
+    }
+    const dept = departments.find((d) => d.code === deptCode);
+    setTeams((prev) => [...prev, { name, departmentCode: deptCode, departmentName: dept?.name || deptCode }]);
+    setNewTeamName('');
+    setError(null);
+  }
+
+  function handleRemoveTeam(name: string, deptCode: string) {
+    setTeams((prev) => prev.filter((t) => !(t.name === name && t.departmentCode === deptCode)));
   }
 
   // ---------------------------------------------------------------------------
@@ -969,11 +1226,278 @@ export function OnboardingWizardPage() {
           </div>
         );
 
-      // ---- Step 5: SLA & Ward Configuration ----
+      // ---- Step 5: Invite Department Managers ----
+      case 'invite-dept-managers':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 5: Invite Department Managers</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Invite one Department Manager per department to coordinate day-to-day operations.
+            </p>
+
+            {deptManagerInvites.length === 0 ? (
+              <div style={fieldStyles.warningBox}>
+                No departments created yet. Go back to Step 2 to add departments first.
+              </div>
+            ) : (
+              <div style={pageStyles.inviteTable}>
+                {deptManagerInvites.map((invite, i) => (
+                  <div key={invite.departmentCode} style={pageStyles.inviteRow}>
+                    <div style={pageStyles.inviteRoleCol}>
+                      <span style={pageStyles.inviteRoleLabel}>{invite.departmentName}</span>
+                      <span style={pageStyles.inviteRoleCode}>{invite.departmentCode}</span>
+                    </div>
+                    <div style={pageStyles.inviteEmailCol}>
+                      <input
+                        type="email"
+                        placeholder="manager@municipality.gov.za"
+                        value={invite.email}
+                        onChange={(e) =>
+                          setDeptManagerInvites((prev) =>
+                            prev.map((d, idx) => (idx === i ? { ...d, email: e.target.value } : d))
+                          )
+                        }
+                        style={fieldStyles.input}
+                      />
+                    </div>
+                    <div style={pageStyles.inviteCheckCol}>
+                      {invite.sent ? (
+                        <span style={pageStyles.sentBadge}>
+                          <svg width="14" height="14" fill="none" stroke="var(--color-teal)" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Sent
+                        </span>
+                      ) : (
+                        <label style={pageStyles.checkLabel}>
+                          <input
+                            type="checkbox"
+                            checked={invite.sendInvite}
+                            onChange={(e) =>
+                              setDeptManagerInvites((prev) =>
+                                prev.map((d, idx) => (idx === i ? { ...d, sendInvite: e.target.checked } : d))
+                              )
+                            }
+                            style={{ accentColor: 'var(--color-teal)' }}
+                          />
+                          Send
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>
+                  I'll invite later
+                </Button>
+                <Button variant="primary" onClick={handleNext} loading={isLoading}>
+                  Send & Continue
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 6: Create Department Teams ----
+      case 'create-teams':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 6: Create Department Teams</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Create operational teams within each department.
+            </p>
+
+            {/* Existing teams grouped by department */}
+            {teams.length > 0 && (
+              <div style={{ marginBottom: '1.5rem' }}>
+                <p style={{ ...fieldStyles.label, marginBottom: '8px' }}>
+                  {teams.length} team{teams.length !== 1 ? 's' : ''} created
+                </p>
+                {(() => {
+                  const grouped: Record<string, Team[]> = {};
+                  teams.forEach((t) => {
+                    if (!grouped[t.departmentCode]) grouped[t.departmentCode] = [];
+                    grouped[t.departmentCode].push(t);
+                  });
+                  return Object.entries(grouped).map(([deptCode, deptTeams]) => (
+                    <div key={deptCode} style={{ marginBottom: '1rem' }}>
+                      <p style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--text-secondary)', marginBottom: '6px' }}>
+                        {deptTeams[0].departmentName} ({deptCode})
+                      </p>
+                      <ul style={pageStyles.deptList}>
+                        {deptTeams.map((team) => (
+                          <li key={`${team.departmentCode}-${team.name}`} style={pageStyles.deptItem}>
+                            <div>
+                              <span style={pageStyles.deptName}>{team.name}</span>
+                            </div>
+                            <button
+                              type="button"
+                              onClick={() => handleRemoveTeam(team.name, team.departmentCode)}
+                              style={pageStyles.removeBtn}
+                              aria-label={`Remove ${team.name}`}
+                            >
+                              <svg width="14" height="14" fill="none" stroke="currentColor" strokeWidth="2" viewBox="0 0 24 24">
+                                <line x1="18" y1="6" x2="6" y2="18" />
+                                <line x1="6" y1="6" x2="18" y2="18" />
+                              </svg>
+                            </button>
+                          </li>
+                        ))}
+                      </ul>
+                    </div>
+                  ));
+                })()}
+              </div>
+            )}
+
+            {/* Add team form */}
+            <div style={pageStyles.addDeptForm}>
+              <p style={{ ...fieldStyles.label, marginBottom: '0.75rem' }}>Add Team</p>
+              <div style={pageStyles.deptGrid}>
+                <div style={fieldStyles.group}>
+                  <label style={fieldStyles.label}>Department</label>
+                  <select
+                    value={newTeamDeptCode}
+                    onChange={(e) => setNewTeamDeptCode(e.target.value)}
+                    style={fieldStyles.select}
+                  >
+                    <option value="">Select department...</option>
+                    {departments.map((dept) => (
+                      <option key={dept.code} value={dept.code}>
+                        {dept.name} ({dept.code})
+                      </option>
+                    ))}
+                  </select>
+                </div>
+                <div style={fieldStyles.group}>
+                  <label style={fieldStyles.label}>Team Name</label>
+                  <input
+                    type="text"
+                    placeholder="e.g. Revenue Collection"
+                    value={newTeamName}
+                    onChange={(e) => setNewTeamName(e.target.value)}
+                    style={fieldStyles.input}
+                    onKeyDown={(e) => { if (e.key === 'Enter') handleAddTeam(); }}
+                  />
+                </div>
+              </div>
+              <Button
+                variant="secondary"
+                size="sm"
+                onClick={handleAddTeam}
+                disabled={!newTeamName.trim() || !newTeamDeptCode}
+              >
+                + Add Team
+              </Button>
+            </div>
+
+            {departments.length === 0 && (
+              <div style={fieldStyles.warningBox}>
+                No departments created yet. Go back to Step 2 to add departments first.
+              </div>
+            )}
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>
+                  Skip for now
+                </Button>
+                <Button variant="primary" onClick={handleNext} disabled={teams.length === 0}>
+                  Next
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 7: Invite Team Supervisors ----
+      case 'invite-supervisors':
+        return (
+          <div style={pageStyles.stepContent}>
+            <h2 style={pageStyles.stepTitle}>Step 7: Invite Team Supervisors</h2>
+            <p style={pageStyles.stepSubtitle}>
+              Invite a supervisor for each team created.
+            </p>
+
+            {supervisorInvites.length === 0 ? (
+              <div style={fieldStyles.warningBox}>
+                No teams created yet. Go back to Step 6 to create teams first.
+              </div>
+            ) : (
+              <div style={pageStyles.inviteTable}>
+                {supervisorInvites.map((invite, i) => (
+                  <div key={`${invite.departmentCode}-${invite.teamName}`} style={pageStyles.inviteRow}>
+                    <div style={pageStyles.inviteRoleCol}>
+                      <span style={pageStyles.inviteRoleLabel}>{invite.teamName}</span>
+                      <span style={pageStyles.inviteRoleCode}>{invite.departmentCode}</span>
+                    </div>
+                    <div style={pageStyles.inviteEmailCol}>
+                      <input
+                        type="email"
+                        placeholder="supervisor@municipality.gov.za"
+                        value={invite.email}
+                        onChange={(e) =>
+                          setSupervisorInvites((prev) =>
+                            prev.map((s, idx) => (idx === i ? { ...s, email: e.target.value } : s))
+                          )
+                        }
+                        style={fieldStyles.input}
+                      />
+                    </div>
+                    <div style={pageStyles.inviteCheckCol}>
+                      {invite.sent ? (
+                        <span style={pageStyles.sentBadge}>
+                          <svg width="14" height="14" fill="none" stroke="var(--color-teal)" strokeWidth="2.5" viewBox="0 0 24 24">
+                            <polyline points="20 6 9 17 4 12" />
+                          </svg>
+                          Sent
+                        </span>
+                      ) : (
+                        <label style={pageStyles.checkLabel}>
+                          <input
+                            type="checkbox"
+                            checked={invite.sendInvite}
+                            onChange={(e) =>
+                              setSupervisorInvites((prev) =>
+                                prev.map((s, idx) => (idx === i ? { ...s, sendInvite: e.target.checked } : s))
+                              )
+                            }
+                            style={{ accentColor: 'var(--color-teal)' }}
+                          />
+                          Send
+                        </label>
+                      )}
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div style={pageStyles.navRow}>
+              <Button variant="ghost" onClick={handleBack}>Back</Button>
+              <div style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                <Button variant="ghost" onClick={handleSkip}>
+                  I'll invite later
+                </Button>
+                <Button variant="primary" onClick={handleNext} loading={isLoading}>
+                  Send & Continue
+                </Button>
+              </div>
+            </div>
+          </div>
+        );
+
+      // ---- Step 8: SLA & Ward Configuration ----
       case 'sla-config':
         return (
           <div style={pageStyles.stepContent}>
-            <h2 style={pageStyles.stepTitle}>Step 5: SLA & Ward Configuration</h2>
+            <h2 style={pageStyles.stepTitle}>Step 8: SLA & Ward Configuration</h2>
             <p style={pageStyles.stepSubtitle}>
               Set service level targets and ward count. These configure operational response expectations.
             </p>
@@ -1046,11 +1570,11 @@ export function OnboardingWizardPage() {
           </div>
         );
 
-      // ---- Step 6: PMS Readiness Gate ----
+      // ---- Step 9: PMS Readiness Gate ----
       case 'pms-gate':
         return (
           <div style={pageStyles.stepContent}>
-            <h2 style={pageStyles.stepTitle}>Step 6: Municipality Readiness Check</h2>
+            <h2 style={pageStyles.stepTitle}>Step 9: Municipality Readiness Check</h2>
             <p style={pageStyles.stepSubtitle}>
               Review your setup status before going live. You can always complete missing items from the dashboard.
             </p>
@@ -1093,6 +1617,31 @@ export function OnboardingWizardPage() {
                   <ChecklistItem
                     label="SLA configured"
                     pass={pmsReadiness.checklist.sla}
+                  />
+                </div>
+
+                {/* Optional checklist items for new steps */}
+                <div style={{ ...pageStyles.checklistBox, marginTop: '1rem' }}>
+                  <div style={{ padding: '0.5rem 0.75rem', borderBottom: '1px solid var(--border-subtle)' }}>
+                    <span style={{ fontSize: '0.75rem', fontWeight: 600, color: 'var(--color-gold)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                      Optional
+                    </span>
+                  </div>
+                  <ChecklistItem
+                    label="Department Managers invited"
+                    pass={deptManagerInvites.some((d) => d.sent)}
+                    optional
+                  />
+                  <ChecklistItem
+                    label="Teams created"
+                    pass={teams.length > 0}
+                    detail={teams.length > 0 ? `${teams.length} team${teams.length !== 1 ? 's' : ''}` : undefined}
+                    optional
+                  />
+                  <ChecklistItem
+                    label="Supervisors invited"
+                    pass={supervisorInvites.some((s) => s.sent)}
+                    optional
                   />
                 </div>
 
@@ -1159,7 +1708,8 @@ export function OnboardingWizardPage() {
 
   return (
     <div style={pageStyles.container}>
-      <AnimatedGradientBg />
+      <div className="auth-skyline-bg" />
+      <div className="auth-skyline-overlay" />
       <div style={pageStyles.inner}>
         <GlassCard style={pageStyles.card}>
           {/* Step indicator */}
@@ -1184,23 +1734,35 @@ function ChecklistItem({
   label,
   pass,
   detail,
+  optional,
 }: {
   label: string;
   pass: boolean;
   detail?: string;
+  optional?: boolean;
 }) {
   return (
     <div style={checklistStyles.row}>
       <div
         style={{
           ...checklistStyles.icon,
-          background: pass ? 'rgba(0, 191, 165, 0.15)' : 'rgba(239, 68, 68, 0.1)',
-          border: `1px solid ${pass ? 'rgba(0, 191, 165, 0.3)' : 'rgba(239, 68, 68, 0.3)'}`,
+          background: pass
+            ? optional ? 'rgba(251, 191, 36, 0.15)' : 'rgba(0, 191, 165, 0.15)'
+            : optional ? 'rgba(251, 191, 36, 0.05)' : 'rgba(239, 68, 68, 0.1)',
+          border: `1px solid ${
+            pass
+              ? optional ? 'rgba(251, 191, 36, 0.3)' : 'rgba(0, 191, 165, 0.3)'
+              : optional ? 'rgba(251, 191, 36, 0.2)' : 'rgba(239, 68, 68, 0.3)'
+          }`,
         }}
       >
         {pass ? (
-          <svg width="12" height="12" fill="none" stroke="var(--color-teal)" strokeWidth="3" viewBox="0 0 24 24">
+          <svg width="12" height="12" fill="none" stroke={optional ? 'var(--color-gold)' : 'var(--color-teal)'} strokeWidth="3" viewBox="0 0 24 24">
             <polyline points="20 6 9 17 4 12" />
+          </svg>
+        ) : optional ? (
+          <svg width="12" height="12" fill="none" stroke="var(--color-gold)" strokeWidth="2" viewBox="0 0 24 24">
+            <line x1="5" y1="12" x2="19" y2="12" />
           </svg>
         ) : (
           <svg width="12" height="12" fill="none" stroke="var(--color-coral)" strokeWidth="3" viewBox="0 0 24 24">
@@ -1221,10 +1783,12 @@ function ChecklistItem({
         style={{
           fontSize: '0.8rem',
           fontWeight: 600,
-          color: pass ? 'var(--color-teal)' : 'var(--color-coral)',
+          color: pass
+            ? optional ? 'var(--color-gold)' : 'var(--color-teal)'
+            : optional ? 'var(--text-muted)' : 'var(--color-coral)',
         }}
       >
-        {pass ? 'Complete' : 'Pending'}
+        {pass ? 'Complete' : optional ? 'Skipped' : 'Pending'}
       </span>
     </div>
   );
