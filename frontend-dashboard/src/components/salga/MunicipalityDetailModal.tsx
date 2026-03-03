@@ -103,7 +103,7 @@ export function MunicipalityDetailModal({ municipality: m, onClose }: Municipali
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div data-lenis-prevent style={styles.body}>
           {/* Overall Performance Score */}
           <div style={styles.scoreSection}>
             <div style={styles.scoreLeft}>

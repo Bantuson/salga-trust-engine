@@ -168,7 +168,7 @@ export function CreateDepartmentModal({
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div data-lenis-prevent style={styles.body}>
           {/* Error banner */}
           {error && <div style={styles.errorBanner}>{error}</div>}
 

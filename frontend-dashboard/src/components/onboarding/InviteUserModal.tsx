@@ -200,7 +200,7 @@ export function InviteUserModal({
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div data-lenis-prevent style={styles.body}>
           {/* Success state */}
           {success ? (
             <div style={styles.successBanner}>
