@@ -266,7 +266,7 @@ Plans:
 **Goal:** Replace all native `<select>` elements with a unified glass-styled custom Select component across both dashboards (frontend-dashboard and frontend-public). Consolidate two overlapping custom dropdown implementations (shared/Select.tsx keyboard nav + GlassSelect.tsx glass styling) into one canonical component. Migrate 23 files in ops dashboard and 2 files in public dashboard, then delete GlassSelect.tsx.
 **Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 1/3 plans executed
+**Plans:** 2/3 plans executed
 
 Plans:
 - [ ] 34.2-01-PLAN.md — Upgrade shared Select.tsx to unified glass-styled component (size presets, autoFlip, ARIA, data-lenis-prevent), migrate GlassSelect consumers (AuditLogSection, TeamDefaultsSection) + RoleSwitcher special case, delete GlassSelect.tsx [Wave 1]
