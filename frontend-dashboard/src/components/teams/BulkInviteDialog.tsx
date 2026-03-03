@@ -173,7 +173,7 @@ export function BulkInviteDialog({ teamId, isOpen, onClose, onInvited }: BulkInv
           </div>
 
           {/* Body */}
-          <div style={styles.body}>
+          <div data-lenis-prevent style={styles.body}>
             {/* Email textarea */}
             <div style={styles.fieldGroup}>
               <label style={styles.label}>Email Addresses</label>

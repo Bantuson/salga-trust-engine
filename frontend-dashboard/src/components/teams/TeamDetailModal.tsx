@@ -67,7 +67,7 @@ export function TeamDetailModal({ team, onClose, currentUserRole = 'manager' }: 
       aria-label={`${team.manager_name || 'Team'} details`}
     >
       {/* Modal content — stop propagation so clicks inside don't close */}
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div data-lenis-prevent style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>

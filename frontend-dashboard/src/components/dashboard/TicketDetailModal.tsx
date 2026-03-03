@@ -211,7 +211,7 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
 
   return (
     <div style={styles.overlay} onClick={onClose} role="dialog" aria-modal="true" aria-label={`Ticket ${ticket.tracking_number} details`}>
-      <div style={styles.modal} onClick={(e) => e.stopPropagation()}>
+      <div data-lenis-prevent style={styles.modal} onClick={(e) => e.stopPropagation()}>
         {/* Header */}
         <div style={styles.header}>
           <div style={styles.headerLeft}>
