@@ -9,7 +9,7 @@
  * Key assertion: page.scrollY must NOT change after wheeling inside a modal.
  */
 
-import { test as authTest, expect } from '../../fixtures/auth';
+import { test as authTest, expect } from '../fixtures/auth';
 
 authTest.describe('Modal scroll — mouse wheel support', () => {
   authTest('TeamCreateModal: mouse wheel scrolls body, not page', async ({ managerPage: page }) => {

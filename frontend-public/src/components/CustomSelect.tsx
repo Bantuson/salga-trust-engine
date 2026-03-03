@@ -119,6 +119,7 @@ export function CustomSelect({ options, value, onChange, placeholder = 'Select..
         <div
           ref={listRef}
           role="listbox"
+          data-lenis-prevent
           style={{
             position: 'absolute',
             top: 'calc(100% + 4px)',

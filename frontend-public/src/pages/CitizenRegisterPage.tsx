@@ -76,6 +76,7 @@ function MunicipalityDropdown({
 
       {isOpen && (
         <div
+          data-lenis-prevent
           style={{
             position: 'absolute',
             top: 'calc(100% + 4px)',
