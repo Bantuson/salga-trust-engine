@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-03T19:23:21.438Z"
+progress:
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 34
+  completed_plans: 32
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-02T22:48:35.626Z"
 progress:
   total_phases: 8
@@ -187,16 +200,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** v2.0 complete — Phase 34: Municipal Onboarding Production Readiness (all 6 plans done)
+**Current focus:** Phase 34.1 COMPLETE — Demo mode fetch fixes for IDP and SDBIP pages (all 1 plan done)
 
 ## Current Position
 
-Phase: 34 of 34 (Municipal Onboarding Production Readiness)
-Plan: 6 of 6 complete
-Status: Phase 34 COMPLETE — Plan 34-06 complete (production readiness gate: 48/48 E2E journey tests pass, 34-VERIFICATION.md created, JOURNEY-02 verified)
-Last activity: 2026-03-03 — 34-06 complete: 34-VERIFICATION.md created with pass/fail for all 10 Phase 34 requirements; 48/48 Playwright journey tests pass across all 9 PMS role specs; TypeScript build errors confirmed pre-existing via git stash check; REQUIREMENTS.md JOURNEY-02 checked; ROADMAP.md Phase 33 and 34 marked complete; v2.0 milestone complete.
+Phase: 34.1 of 34.1 (Demo Mode Fetch Fixes for IDP and SDBIP Pages)
+Plan: 1 of 1 complete
+Status: Phase 34.1 COMPLETE — Plan 34.1-01 complete (DEMO_MODE guards added to IdpDetailPage, ActualsPage, EvidencePage; all 7 mutation handlers guarded as no-ops; 0 TypeScript errors introduced)
+Last activity: 2026-03-03 — 34.1-01 complete: DEMO_MODE import, demo data constants, and fetchAll guards added to all 3 missed PMS secondary pages; demo sweep now covers all PMS pages.
 
-Progress: [██████████] 100% (Plan 6/6 of Phase 34 done — v2.0 COMPLETE)
+Progress: [██████████] 100% (Plan 1/1 of Phase 34.1 done — Phase 34.1 COMPLETE)
 
 ## Performance Metrics
 
@@ -237,6 +250,7 @@ Progress: [██████████] 100% (Plan 6/6 of Phase 34 done — v
 | Phase 34 P05 | 25 | 2 tasks | 11 files |
 | Phase 34 P06 | 20 | 1 task | 1 file |
 | Phase 34 P06 | 20 | 1 tasks | 1 files |
+| Phase 34.1-demo-mode-fetch-fixes-for-idp-and-sdbip-pages P01 | 3 | 2 tasks | 3 files |
 
 ## Accumulated Context
 
@@ -357,6 +371,7 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34-06]: 48/48 journey tests pass confirms JOURNEY-02 production readiness gate is satisfied — all 9 role journey specs execute successfully on dashboard-chromium
 - [Phase 34]: TypeScript build errors documented as pre-existing (git stash + rebuild confirms no Phase 34 regression) — strict mode enforcement is a separate future task
 - [Phase 34]: 48/48 journey tests pass confirms JOURNEY-02 production readiness gate is satisfied — all 9 role journey specs execute successfully on dashboard-chromium
+- [Phase 34.1-demo-mode-fetch-fixes-for-idp-and-sdbip-pages]: DEMO_MODE guard placed before setLoading(true) in fetchAll — prevents loading flash since useState(true) is initial state; setLoading(false) mandatory in demo branch
 
 ### Pending Todos
 
@@ -368,6 +383,10 @@ From Phase 29 execution (Plan 29-02):
 ### Roadmap Evolution
 
 - Phase 34 added after Phase 33: Municipal Onboarding Production Readiness — comprehensive onboarding wizard, tier 1-4 user creation, department activation gates, UI consistency fixes, per-role user journeys, Playwright E2E production readiness validation
+- Phase 34.1 inserted after Phase 34: Demo mode fetch fixes for IDP and SDBIP pages (URGENT)
+- Phase 34.2 inserted after Phase 34: Dropdown menu styling across all roles and pages (URGENT)
+- Phase 34.3 inserted after Phase 34: Modal scroll fix for mouse wheel support (URGENT)
+- Phase 34.4 inserted after Phase 34: Public dashboard municipal analytics enhancement (URGENT)
 
 ### Blockers/Concerns
 

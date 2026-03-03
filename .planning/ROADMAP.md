@@ -240,3 +240,43 @@ Plans:
 ---
 *Roadmap created: 2026-02-09*
 *Last updated: 2026-03-02 (Phase 34 planned — 6 plans across 4 waves)*
+
+### Phase 34.4: Public dashboard municipal analytics enhancement (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 34
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 34.4 to break down)
+
+### Phase 34.3: Modal scroll fix for mouse wheel support (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 34
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 34.3 to break down)
+
+### Phase 34.2: Dropdown menu styling across all roles and pages (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 34
+**Plans:** 0 plans
+
+Plans:
+- [ ] TBD (run /gsd:plan-phase 34.2 to break down)
+
+### Phase 34.1: Demo mode fetch fixes for IDP and SDBIP pages (INSERTED)
+
+**Goal:** [Urgent work - to be planned]
+**Requirements**: TBD
+**Depends on:** Phase 34
+**Plans:** 1/1 plans complete
+
+Plans:
+- [x] TBD (run /gsd:plan-phase 34.1 to break down) (completed 2026-03-03)
