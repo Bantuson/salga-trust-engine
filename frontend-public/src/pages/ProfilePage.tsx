@@ -16,6 +16,7 @@ import { useAuth } from '../hooks/useAuth';
 import { AnimatedGradientBg } from '@shared/components/AnimatedGradientBg';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { ProofOfResidence } from '../components/citizen/ProofOfResidence';
 import { supabase } from '../lib/supabase';
 
@@ -471,32 +472,17 @@ export function ProfilePage() {
                 >
                   Municipality
                 </label>
-                <select
-                  id="municipality"
+                <Select
                   value={municipality}
-                  onChange={(e) => setMunicipality(e.target.value)}
+                  onChange={(value) => setMunicipality(value)}
                   disabled={!isEditing}
-                  style={{
-                    width: '100%',
-                    padding: '0.75rem 1rem',
-                    borderRadius: '8px',
-                    border: '2px solid var(--border-subtle)',
-                    background: isEditing ? 'rgba(255, 255, 255, 0.05)' : 'rgba(255, 255, 255, 0.02)',
-                    color: 'var(--text-primary)',
-                    fontSize: '1rem',
-                    fontFamily: 'var(--font-body)',
-                    outline: 'none',
-                    transition: 'all 0.3s ease',
-                    cursor: isEditing ? 'pointer' : 'not-allowed',
-                  }}
-                >
-                  <option value="">Select your municipality (optional)</option>
-                  {PILOT_MUNICIPALITIES.map((muni) => (
-                    <option key={muni} value={muni}>
-                      {muni}
-                    </option>
-                  ))}
-                </select>
+                  options={[
+                    { value: '', label: 'Select your municipality (optional)' },
+                    ...PILOT_MUNICIPALITIES.map((muni) => ({ value: muni, label: muni })),
+                  ]}
+                  size="md"
+                  ariaLabel="Municipality"
+                />
               </div>
 
               {/* Account Created (readonly) */}

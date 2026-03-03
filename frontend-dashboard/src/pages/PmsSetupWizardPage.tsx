@@ -23,15 +23,23 @@ import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { OrganogramTree } from '../components/organogram/OrganogramTree';
-import type { OrgNode } from '../components/organogram/OrganogramTree';
 import { PmsReadinessGate } from '../components/rbac/PmsReadinessGate';
 import type { PmsChecklist } from '../components/rbac/PmsReadinessGate';
 
 // ---------------------------------------------------------------------------
 // Types
 // ---------------------------------------------------------------------------
+
+/** Legacy OrgNode shape for D3-tree API data (OrganogramTree no longer exports this) */
+interface OrgNode {
+  name: string;
+  attributes?: Record<string, string>;
+  children?: OrgNode[];
+}
 
 interface Department {
   id: string;
@@ -420,6 +428,7 @@ function clearDraft() {
 export function PmsSetupWizardPage() {
   const navigate = useNavigate();
   const { getAccessToken } = useAuth();
+  usePageHeader('PMS Department Setup');
 
   // Restore draft from localStorage on mount
   const draft = loadDraft();
@@ -683,12 +692,6 @@ export function PmsSetupWizardPage() {
   }
 
   // ---------------------------------------------------------------------------
-  // Styled select helper — applies option styling inline
-  // ---------------------------------------------------------------------------
-
-  const optStyle = fieldStyles.selectOption as React.CSSProperties;
-
-  // ---------------------------------------------------------------------------
   // Render steps
   // ---------------------------------------------------------------------------
 
@@ -704,16 +707,17 @@ export function PmsSetupWizardPage() {
                 Municipality Category
                 <span style={fieldStyles.required}>*</span>
               </label>
-              <select
+              <Select
                 value={settings.category}
-                onChange={(e) => setSettings((s) => ({ ...s, category: e.target.value as 'A' | 'B' | 'C' }))}
-                style={fieldStyles.select}
-              >
-                <option value="" style={optStyle}>Select category...</option>
-                <option value="A" style={optStyle}>A — Metro Municipality</option>
-                <option value="B" style={optStyle}>B — Local Municipality</option>
-                <option value="C" style={optStyle}>C — District Municipality</option>
-              </select>
+                onChange={(value) => setSettings((s) => ({ ...s, category: value as 'A' | 'B' | 'C' }))}
+                options={[
+                  { value: '', label: 'Select category...' },
+                  { value: 'A', label: 'A — Metro Municipality' },
+                  { value: 'B', label: 'B — Local Municipality' },
+                  { value: 'C', label: 'C — District Municipality' },
+                ]}
+                size="md"
+              />
             </div>
 
             <div style={fieldStyles.group}>
@@ -728,32 +732,22 @@ export function PmsSetupWizardPage() {
 
             <div style={fieldStyles.group}>
               <label style={fieldStyles.label}>SDBIP Layers</label>
-              <select
-                value={settings.sdbip_layers}
-                onChange={(e) => setSettings((s) => ({ ...s, sdbip_layers: parseInt(e.target.value, 10) }))}
-                style={fieldStyles.select}
-              >
-                {SDBIP_LAYER_OPTIONS.map((n) => (
-                  <option key={n} value={n} style={optStyle}>
-                    {n} layer{n !== 1 ? 's' : ''}
-                  </option>
-                ))}
-              </select>
+              <Select
+                value={String(settings.sdbip_layers)}
+                onChange={(value) => setSettings((s) => ({ ...s, sdbip_layers: parseInt(value, 10) }))}
+                options={SDBIP_LAYER_OPTIONS.map((n) => ({ value: String(n), label: `${n} layer${n !== 1 ? 's' : ''}` }))}
+                size="md"
+              />
             </div>
 
             <div style={fieldStyles.group}>
               <label style={fieldStyles.label}>Scoring Method</label>
-              <select
+              <Select
                 value={settings.scoring_method}
-                onChange={(e) => setSettings((s) => ({ ...s, scoring_method: e.target.value }))}
-                style={fieldStyles.select}
-              >
-                {SCORING_METHODS.map((m) => (
-                  <option key={m} value={m} style={optStyle}>
-                    {m.charAt(0).toUpperCase() + m.slice(1)}
-                  </option>
-                ))}
-              </select>
+                onChange={(value) => setSettings((s) => ({ ...s, scoring_method: value }))}
+                options={SCORING_METHODS.map((m) => ({ value: m, label: m.charAt(0).toUpperCase() + m.slice(1) }))}
+                size="md"
+              />
             </div>
           </div>
         );
@@ -834,20 +828,17 @@ export function PmsSetupWizardPage() {
                       <p style={fieldStyles.deptCode}>{dept.code}</p>
                     </div>
                     {availableDirectors.length > 0 ? (
-                      <select
+                      <Select
                         value={directorMap[dept.id] ?? ''}
-                        onChange={(e) =>
-                          setDirectorMap((prev) => ({ ...prev, [dept.id]: e.target.value }))
+                        onChange={(value) =>
+                          setDirectorMap((prev) => ({ ...prev, [dept.id]: value }))
                         }
-                        style={{ ...fieldStyles.select, width: 'auto', minWidth: '200px' }}
-                      >
-                        <option value="" style={optStyle}>No director assigned</option>
-                        {availableDirectors.map((dir) => (
-                          <option key={dir.id} value={dir.id} style={optStyle}>
-                            {dir.full_name}
-                          </option>
-                        ))}
-                      </select>
+                        options={[
+                          { value: '', label: 'No director assigned' },
+                          ...availableDirectors.map((dir) => ({ value: dir.id, label: dir.full_name })),
+                        ]}
+                        size="md"
+                      />
                     ) : (
                       <Input
                         type="text"
@@ -885,20 +876,17 @@ export function PmsSetupWizardPage() {
                     <span style={fieldStyles.categoryLabel}>
                       {cat.replace(/_/g, ' ')}
                     </span>
-                    <select
+                    <Select
                       value={categoryMap[cat] ?? ''}
-                      onChange={(e) =>
-                        setCategoryMap((prev) => ({ ...prev, [cat]: e.target.value }))
+                      onChange={(value) =>
+                        setCategoryMap((prev) => ({ ...prev, [cat]: value }))
                       }
-                      style={{ ...fieldStyles.select, width: 'auto', minWidth: '160px' }}
-                    >
-                      <option value="" style={optStyle}>Not mapped</option>
-                      {departments.map((dept) => (
-                        <option key={dept.id} value={dept.id} style={optStyle}>
-                          {dept.name}
-                        </option>
-                      ))}
-                    </select>
+                      options={[
+                        { value: '', label: 'Not mapped' },
+                        ...departments.map((dept) => ({ value: dept.id, label: dept.name })),
+                      ]}
+                      size="md"
+                    />
                   </div>
                 ))}
               </div>
@@ -1000,14 +988,6 @@ export function PmsSetupWizardPage() {
   return (
     <div style={pageStyles.container}>
       <div style={pageStyles.content}>
-        {/* Page header */}
-        <div style={pageStyles.header}>
-          <h1 style={pageStyles.title}>PMS Department Setup</h1>
-          <p style={pageStyles.subtitle}>
-            Configure your municipality's department structure for Performance Management.
-          </p>
-        </div>
-
         {/* Stepper */}
         <StepIndicator steps={STEPS} currentIndex={currentStep} />
 

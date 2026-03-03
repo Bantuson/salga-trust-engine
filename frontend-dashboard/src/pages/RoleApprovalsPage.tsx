@@ -10,6 +10,7 @@
  * Approval table: Requester Name, Requested Role, Municipality, Date, Status, Actions
  * Actions: Approve (green) / Reject (red) on pending rows; badges on decided rows
  * Pagination: simple prev/next at 20 items per page
+ * Clicking a row opens an inline detail modal (glass-pink-frost pattern).
  *
  * Error fallback: mock data (3 pending, 2 approved, 1 rejected) with banner
  * Empty state: "No pending requests" message
@@ -25,6 +26,7 @@
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { usePageHeader } from '../hooks/usePageHeader';
+import { Select } from '@shared/components/ui/Select';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -193,6 +195,128 @@ function StatusBadge({ status }: { status: 'pending' | 'approved' | 'rejected' }
 }
 
 // ---------------------------------------------------------------------------
+// Inline Modal Styles (follows MunicipalityDetailModal pattern exactly)
+// ---------------------------------------------------------------------------
+
+const modalStyles = {
+  overlay: {
+    position: 'fixed' as const,
+    inset: 0,
+    background: 'rgba(0, 0, 0, 0.5)',
+    backdropFilter: 'blur(4px)',
+    WebkitBackdropFilter: 'blur(4px)',
+    zIndex: 1000,
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    padding: '1rem',
+  } as React.CSSProperties,
+  modal: {
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    border: '1px solid var(--glass-border)',
+    borderRadius: 'var(--radius-xl)',
+    maxWidth: '640px',
+    width: '100%',
+    maxHeight: '85vh',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    overflow: 'hidden' as const,
+  } as React.CSSProperties,
+  header: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'flex-start',
+    padding: 'var(--glass-card-padding)',
+    paddingBottom: 'var(--space-md)',
+    borderBottom: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    top: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+    zIndex: 1,
+  } as React.CSSProperties,
+  headerLeft: {
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '0.5rem',
+  } as React.CSSProperties,
+  headerTitle: {
+    fontSize: '1.25rem',
+    fontWeight: 700,
+    color: 'var(--text-primary)',
+    margin: 0,
+    lineHeight: 1.3,
+  } as React.CSSProperties,
+  closeButton: {
+    flexShrink: 0,
+    background: 'none',
+    border: 'none',
+    color: 'var(--text-muted)',
+    cursor: 'pointer',
+    padding: '4px',
+    display: 'flex',
+    alignItems: 'center',
+    justifyContent: 'center',
+    borderRadius: 'var(--radius-sm)',
+    transition: 'color 0.15s ease',
+    marginLeft: '1rem',
+  } as React.CSSProperties,
+  body: {
+    flex: 1,
+    overflowY: 'auto' as const,
+    padding: 'var(--glass-card-padding)',
+  } as React.CSSProperties,
+  section: {
+    background: 'rgba(255, 255, 255, 0.06)',
+    border: '1px solid rgba(255, 255, 255, 0.18)',
+    borderRadius: 'var(--radius-lg)',
+    padding: 'var(--glass-card-padding)',
+    marginBottom: 'var(--space-lg)',
+  } as React.CSSProperties,
+  sectionTitle: {
+    fontSize: '0.78rem',
+    fontWeight: 600,
+    color: 'var(--text-secondary)',
+    marginTop: 0,
+    marginBottom: 'var(--space-md)',
+    textTransform: 'uppercase' as const,
+    letterSpacing: '0.05em',
+  } as React.CSSProperties,
+  detailRow: {
+    display: 'flex',
+    justifyContent: 'space-between',
+    alignItems: 'center',
+    padding: '0.35rem 0',
+    borderBottom: '1px solid rgba(255,255,255,0.04)',
+  } as React.CSSProperties,
+  detailLabel: {
+    fontSize: '0.875rem',
+    color: 'var(--text-secondary)',
+  } as React.CSSProperties,
+  detailValue: {
+    fontSize: '0.875rem',
+    fontWeight: 600,
+    color: 'var(--text-primary)',
+  } as React.CSSProperties,
+  footer: {
+    display: 'flex',
+    justifyContent: 'flex-end',
+    alignItems: 'center',
+    gap: 'var(--space-sm)',
+    padding: 'var(--glass-card-padding)',
+    borderTop: '1px solid var(--glass-border)',
+    position: 'sticky' as const,
+    bottom: 0,
+    background: 'var(--glass-pink-frost)',
+    backdropFilter: 'blur(var(--glass-blur-medium))',
+    WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
+  } as React.CSSProperties,
+};
+
+// ---------------------------------------------------------------------------
 // Component
 // ---------------------------------------------------------------------------
 
@@ -214,6 +338,9 @@ export function RoleApprovalsPage() {
 
   // Pagination state
   const [page, setPage] = useState(0);
+
+  // Modal state
+  const [selectedApproval, setSelectedApproval] = useState<ApprovalRequest | null>(null);
 
   const token = session?.access_token;
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
@@ -383,6 +510,39 @@ export function RoleApprovalsPage() {
     filterRole || filterMunicipality || filterStatus || filterDateFrom || filterDateTo;
 
   // ---------------------------------------------------------------------------
+  // Modal effects
+  // ---------------------------------------------------------------------------
+
+  // Body scroll lock while modal is open
+  useEffect(() => {
+    if (!selectedApproval) return;
+    const original = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = original;
+    };
+  }, [selectedApproval]);
+
+  // Close on Escape
+  useEffect(() => {
+    if (!selectedApproval) return;
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setSelectedApproval(null);
+    };
+    document.addEventListener('keydown', handleKeyDown);
+    return () => document.removeEventListener('keydown', handleKeyDown);
+  }, [selectedApproval]);
+
+  // Keep modal in sync with state changes (e.g. after approve/reject)
+  useEffect(() => {
+    if (!selectedApproval) return;
+    const updated = requests.find((r) => r.id === selectedApproval.id);
+    if (updated && updated.status !== selectedApproval.status) {
+      setSelectedApproval(updated);
+    }
+  }, [requests, selectedApproval]);
+
+  // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
@@ -433,50 +593,45 @@ export function RoleApprovalsPage() {
         {/* Role filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '160px', flex: '1 1 160px' }}>
           <label style={styles.filterLabel}>Role</label>
-          <select
+          <Select
             value={filterRole}
-            onChange={(e) => { setFilterRole(e.target.value); setPage(0); }}
-            style={styles.filterSelect}
-          >
-            <option value="">All Roles</option>
-            {TIER1_ROLES.map((r) => (
-              <option key={r.value} value={r.value}>
-                {r.label}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => { setFilterRole(value); setPage(0); }}
+            options={[
+              { value: '', label: 'All Roles' },
+              ...TIER1_ROLES.map((r) => ({ value: r.value, label: r.label })),
+            ]}
+            size="md"
+          />
         </div>
 
         {/* Municipality filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '200px', flex: '2 1 200px' }}>
           <label style={styles.filterLabel}>Municipality</label>
-          <select
+          <Select
             value={filterMunicipality}
-            onChange={(e) => { setFilterMunicipality(e.target.value); setPage(0); }}
-            style={styles.filterSelect}
-          >
-            <option value="">All Municipalities</option>
-            {municipalities.map((m) => (
-              <option key={m} value={m}>
-                {m}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => { setFilterMunicipality(value); setPage(0); }}
+            options={[
+              { value: '', label: 'All Municipalities' },
+              ...municipalities.map((m) => ({ value: m, label: m })),
+            ]}
+            size="md"
+          />
         </div>
 
         {/* Status filter */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', minWidth: '140px', flex: '1 1 140px' }}>
           <label style={styles.filterLabel}>Status</label>
-          <select
+          <Select
             value={filterStatus}
-            onChange={(e) => { setFilterStatus(e.target.value as '' | 'pending' | 'approved' | 'rejected'); setPage(0); }}
-            style={styles.filterSelect}
-          >
-            <option value="">All Statuses</option>
-            <option value="pending">Pending</option>
-            <option value="approved">Approved</option>
-            <option value="rejected">Rejected</option>
-          </select>
+            onChange={(value) => { setFilterStatus(value as '' | 'pending' | 'approved' | 'rejected'); setPage(0); }}
+            options={[
+              { value: '', label: 'All Statuses' },
+              { value: 'pending', label: 'Pending' },
+              { value: 'approved', label: 'Approved' },
+              { value: 'rejected', label: 'Rejected' },
+            ]}
+            size="md"
+          />
         </div>
 
         {/* Date from */}
@@ -597,7 +752,14 @@ export function RoleApprovalsPage() {
                   : paginated.map((req) => (
                       <tr
                         key={req.id}
-                        style={{ borderBottom: '1px solid var(--glass-border)' }}
+                        style={{
+                          borderBottom: '1px solid var(--glass-border)',
+                          cursor: 'pointer',
+                          transition: 'background 0.15s ease',
+                        }}
+                        onClick={() => setSelectedApproval(req)}
+                        onMouseEnter={(e) => { (e.currentTarget as HTMLElement).style.background = 'rgba(255,255,255,0.04)'; }}
+                        onMouseLeave={(e) => { (e.currentTarget as HTMLElement).style.background = 'transparent'; }}
                       >
                         {/* Requester */}
                         <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
@@ -672,7 +834,10 @@ export function RoleApprovalsPage() {
                         {/* Actions */}
                         <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
                           {req.status === 'pending' ? (
-                            <div style={{ display: 'flex', gap: 'var(--space-xs)' }}>
+                            <div
+                              style={{ display: 'flex', gap: 'var(--space-xs)' }}
+                              onClick={(e) => e.stopPropagation()}
+                            >
                               <button
                                 disabled={deciding === req.id}
                                 onClick={() => handleApprove(req.id)}
@@ -770,6 +935,233 @@ export function RoleApprovalsPage() {
           >
             Next
           </button>
+        </div>
+      )}
+
+      {/* Role Approval Detail Modal */}
+      {selectedApproval && (
+        <div
+          style={modalStyles.overlay}
+          onClick={() => setSelectedApproval(null)}
+          role="dialog"
+          aria-modal="true"
+          aria-label={`${selectedApproval.user_name || selectedApproval.user_email} role approval detail`}
+        >
+          <div style={modalStyles.modal} onClick={(e) => e.stopPropagation()}>
+            {/* Header */}
+            <div style={modalStyles.header}>
+              <div style={modalStyles.headerLeft}>
+                <h2 style={modalStyles.headerTitle}>
+                  {selectedApproval.user_name || selectedApproval.user_email}
+                </h2>
+                <div style={{ marginTop: '0.25rem' }}>
+                  <span
+                    style={{
+                      display: 'inline-block',
+                      padding: '2px 10px',
+                      borderRadius: '12px',
+                      fontSize: 'var(--text-xs)',
+                      fontWeight: 600,
+                      background: 'rgba(251, 191, 36, 0.12)',
+                      color: 'var(--color-gold)',
+                      border: '1px solid rgba(251, 191, 36, 0.3)',
+                      whiteSpace: 'nowrap',
+                    }}
+                  >
+                    {formatRole(selectedApproval.requested_role)}
+                  </span>
+                </div>
+              </div>
+              <button
+                style={modalStyles.closeButton}
+                onClick={() => setSelectedApproval(null)}
+                aria-label="Close"
+              >
+                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                  <line x1="18" y1="6" x2="6" y2="18" />
+                  <line x1="6" y1="6" x2="18" y2="18" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Body */}
+            <div style={modalStyles.body}>
+              {/* Requester Details */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Requester Details</h3>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Full Name</span>
+                  <span style={modalStyles.detailValue}>
+                    {selectedApproval.user_name || '—'}
+                  </span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Email</span>
+                  <span style={modalStyles.detailValue}>{selectedApproval.user_email}</span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>User ID</span>
+                  <span style={{ ...modalStyles.detailValue, fontFamily: 'monospace', fontSize: '0.8rem' }}>
+                    {selectedApproval.user_id}
+                  </span>
+                </div>
+              </div>
+
+              {/* Request Details */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Request Details</h3>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Requested Role</span>
+                  <span style={modalStyles.detailValue}>
+                    <span
+                      style={{
+                        display: 'inline-block',
+                        padding: '2px 10px',
+                        borderRadius: '12px',
+                        fontSize: '0.8rem',
+                        fontWeight: 600,
+                        background: 'rgba(251, 191, 36, 0.12)',
+                        color: 'var(--color-gold)',
+                        border: '1px solid rgba(251, 191, 36, 0.3)',
+                      }}
+                    >
+                      {formatRole(selectedApproval.requested_role)}
+                    </span>
+                  </span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Municipality</span>
+                  <span style={modalStyles.detailValue}>
+                    {selectedApproval.municipality_name ?? '—'}
+                  </span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Requested Date</span>
+                  <span style={modalStyles.detailValue}>
+                    {formatDate(selectedApproval.requested_at)}
+                  </span>
+                </div>
+                <div style={modalStyles.detailRow}>
+                  <span style={modalStyles.detailLabel}>Current Status</span>
+                  <span style={modalStyles.detailValue}>
+                    <StatusBadge status={selectedApproval.status} />
+                  </span>
+                </div>
+              </div>
+
+              {/* Decision History */}
+              <div style={modalStyles.section}>
+                <h3 style={modalStyles.sectionTitle}>Decision History</h3>
+                {selectedApproval.decided_at ? (
+                  <>
+                    <div style={modalStyles.detailRow}>
+                      <span style={modalStyles.detailLabel}>Decided By</span>
+                      <span style={modalStyles.detailValue}>
+                        {selectedApproval.decided_by ?? '—'}
+                      </span>
+                    </div>
+                    <div style={modalStyles.detailRow}>
+                      <span style={modalStyles.detailLabel}>Decided At</span>
+                      <span style={modalStyles.detailValue}>
+                        {formatDate(selectedApproval.decided_at)}
+                      </span>
+                    </div>
+                  </>
+                ) : (
+                  <div style={{ padding: '0.35rem 0', color: 'var(--text-muted)', fontSize: '0.875rem', fontStyle: 'italic' }}>
+                    Awaiting decision
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Footer */}
+            <div style={modalStyles.footer}>
+              {selectedApproval.status === 'pending' ? (
+                <>
+                  <button
+                    type="button"
+                    disabled={deciding === selectedApproval.id}
+                    onClick={async () => {
+                      await handleApprove(selectedApproval.id);
+                      setSelectedApproval(null);
+                    }}
+                    style={{
+                      background: '#22c55e',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: deciding === selectedApproval.id ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                      opacity: deciding === selectedApproval.id ? 0.6 : 1,
+                    }}
+                  >
+                    Approve
+                  </button>
+                  <button
+                    type="button"
+                    disabled={deciding === selectedApproval.id}
+                    onClick={async () => {
+                      await handleReject(selectedApproval.id);
+                      setSelectedApproval(null);
+                    }}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--color-coral)',
+                      border: '1px solid var(--color-coral)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: deciding === selectedApproval.id ? 'not-allowed' : 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                      opacity: deciding === selectedApproval.id ? 0.6 : 1,
+                    }}
+                  >
+                    Reject
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedApproval(null)}
+                    style={{
+                      background: 'transparent',
+                      color: 'var(--text-primary)',
+                      border: '1px solid var(--glass-border)',
+                      borderRadius: 'var(--radius-sm)',
+                      padding: '0.5rem 1.25rem',
+                      fontWeight: 600,
+                      cursor: 'pointer',
+                      fontFamily: 'inherit',
+                      fontSize: '0.875rem',
+                    }}
+                  >
+                    Close
+                  </button>
+                </>
+              ) : (
+                <button
+                  type="button"
+                  onClick={() => setSelectedApproval(null)}
+                  style={{
+                    background: 'var(--color-teal)',
+                    color: 'white',
+                    border: 'none',
+                    borderRadius: 'var(--radius-sm)',
+                    padding: '0.5rem 1.5rem',
+                    fontWeight: 600,
+                    cursor: 'pointer',
+                    fontFamily: 'inherit',
+                    fontSize: '0.875rem',
+                  }}
+                >
+                  Close
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       )}
     </div>

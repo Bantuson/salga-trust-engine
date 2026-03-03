@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 import { GBVConsentDialog } from '../components/citizen/GBVConsentDialog';
 import { ReportReceipt } from '../components/citizen/ReportReceipt';
 import { supabase } from '../lib/supabase';
@@ -80,10 +81,8 @@ export function ReportIssuePage() {
   // Proof of residence check (simulated for now - no backend endpoint yet)
   const isResidenceVerified = user?.user_metadata?.residence_verified === true;
 
-  // Category change handler
-  const handleCategoryChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    const newCategory = e.target.value;
-
+  // Category change handler — preserves GBV trigger logic
+  const handleCategoryChange = (newCategory: string) => {
     if (newCategory === 'GBV/Abuse') {
       setShowGbvConsent(true);
       // Don't set category yet - wait for consent
@@ -511,31 +510,23 @@ export function ReportIssuePage() {
                 >
                   Category <span style={{ color: '#ff6b9d' }}>*</span>
                 </label>
-                <select
-                  id="category"
+                <Select
                   value={category}
                   onChange={handleCategoryChange}
+                  options={[
+                    { value: '', label: 'Select a category...' },
+                    { value: 'Water & Sanitation', label: 'Water & Sanitation' },
+                    { value: 'Electricity', label: 'Electricity' },
+                    { value: 'Roads & Potholes', label: 'Roads & Potholes' },
+                    { value: 'Waste Management', label: 'Waste Management' },
+                    { value: 'Public Safety', label: 'Public Safety' },
+                    { value: 'Housing', label: 'Housing' },
+                    { value: 'GBV/Abuse', label: 'GBV/Abuse' },
+                    { value: 'Other', label: 'Other' },
+                  ]}
+                  size="md"
                   required
-                  style={{
-                    width: '100%',
-                    padding: '12px',
-                    backgroundColor: 'rgba(255, 255, 255, 0.05)',
-                    border: '1px solid rgba(255, 255, 255, 0.2)',
-                    borderRadius: '8px',
-                    color: '#fff',
-                    fontSize: '1rem',
-                  }}
-                >
-                  <option value="">Select a category...</option>
-                  <option value="Water & Sanitation">Water & Sanitation</option>
-                  <option value="Electricity">Electricity</option>
-                  <option value="Roads & Potholes">Roads & Potholes</option>
-                  <option value="Waste Management">Waste Management</option>
-                  <option value="Public Safety">Public Safety</option>
-                  <option value="Housing">Housing</option>
-                  <option value="GBV/Abuse">GBV/Abuse</option>
-                  <option value="Other">Other</option>
-                </select>
+                />
               </div>
 
               {/* Description */}

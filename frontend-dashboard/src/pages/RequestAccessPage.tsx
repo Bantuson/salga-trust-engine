@@ -21,6 +21,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 import { supabase } from '../lib/supabase';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
@@ -385,24 +386,17 @@ export function RequestAccessPage() {
               <label htmlFor="province" style={styles.label}>
                 Province *
               </label>
-              <select
-                id="province"
+              <Select
                 value={formData.province}
-                onChange={(e) => handleInputChange('province', e.target.value)}
-                style={{
-                  ...styles.select,
-                  ...(validationErrors.province ? { borderColor: 'var(--color-coral)' } : {}),
-                }}
+                onChange={(value) => handleInputChange('province', value)}
+                options={[
+                  { value: '', label: 'Select province' },
+                  ...SA_PROVINCES.map((province) => ({ value: province, label: province })),
+                ]}
                 disabled={isDisabled}
-                autoComplete="address-level1"
-              >
-                <option value="">Select province</option>
-                {SA_PROVINCES.map((province) => (
-                  <option key={province} value={province}>
-                    {province}
-                  </option>
-                ))}
-              </select>
+                size="md"
+                ariaLabel="Province"
+              />
               {validationErrors.province && (
                 <div style={styles.fieldError}>{validationErrors.province}</div>
               )}
@@ -412,23 +406,17 @@ export function RequestAccessPage() {
               <label htmlFor="category" style={styles.label}>
                 Municipality Category *
               </label>
-              <select
-                id="category"
+              <Select
                 value={formData.category}
-                onChange={(e) => handleInputChange('category', e.target.value)}
-                style={{
-                  ...styles.select,
-                  ...(validationErrors.category ? { borderColor: 'var(--color-coral)' } : {}),
-                }}
+                onChange={(value) => handleInputChange('category', value)}
+                options={[
+                  { value: '', label: 'Select category' },
+                  ...MUNICIPALITY_CATEGORIES.map((cat) => ({ value: cat.value, label: cat.label })),
+                ]}
                 disabled={isDisabled}
-              >
-                <option value="">Select category</option>
-                {MUNICIPALITY_CATEGORIES.map((cat) => (
-                  <option key={cat.value} value={cat.value}>
-                    {cat.label}
-                  </option>
-                ))}
-              </select>
+                size="md"
+                ariaLabel="Municipality Category"
+              />
               {validationErrors.category && (
                 <div style={styles.fieldError}>{validationErrors.category}</div>
               )}
