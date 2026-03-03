@@ -7,6 +7,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { Input } from '@shared/components/ui/Input';
+import { Select } from '@shared/components/ui/Select';
 
 const SA_PROVINCES = [
   'Eastern Cape',
@@ -83,19 +84,16 @@ export const ProfileStep: React.FC<ProfileStepProps> = ({ initialData, onDataCha
           <label htmlFor="province" style={styles.label}>
             Province *
           </label>
-          <select
-            id="province"
+          <Select
             value={formData.province}
-            onChange={(e) => handleChange('province', e.target.value)}
-            style={styles.select}
-          >
-            <option value="">Select province</option>
-            {SA_PROVINCES.map((province) => (
-              <option key={province} value={province}>
-                {province}
-              </option>
-            ))}
-          </select>
+            onChange={(value) => handleChange('province', value)}
+            options={[
+              { value: '', label: 'Select province' },
+              ...SA_PROVINCES.map((province) => ({ value: province, label: province })),
+            ]}
+            size="md"
+            ariaLabel="Select province"
+          />
         </div>
 
         <Input
@@ -162,17 +160,5 @@ const styles = {
     fontSize: '0.875rem',
     fontWeight: '500',
     color: 'var(--text-secondary)',
-  } as React.CSSProperties,
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: 'var(--text-base)',
-    fontFamily: 'var(--font-body)',
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--text-primary)',
-    outline: 'none',
-    transition: 'var(--transition-base)',
   } as React.CSSProperties,
 };

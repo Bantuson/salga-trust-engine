@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { Select } from '@shared/components/ui/Select';
 import type { TicketFilters } from '../../types/dashboard';
 
 interface FilterBarProps {
@@ -63,58 +64,44 @@ export function FilterBar({ filters, onFilterChange, onReset }: FilterBarProps) 
       </div>
 
       <div style={{ minWidth: '150px' }}>
-        <label htmlFor="status" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
           Status
         </label>
-        <select
-          id="status"
+        <Select
           value={filters.status || ''}
-          onChange={(e) => onFilterChange('status', e.target.value || undefined)}
-          style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '4px',
-            fontSize: '0.875rem',
-            backgroundColor: 'var(--surface-elevated)',
-            color: 'var(--text-primary)',
-          }}
-        >
-          <option value="">All</option>
-          <option value="open">Open</option>
-          <option value="in_progress">In Progress</option>
-          <option value="escalated">Escalated</option>
-          <option value="resolved">Resolved</option>
-          <option value="closed">Closed</option>
-        </select>
+          onChange={(value) => onFilterChange('status', value || undefined)}
+          options={[
+            { value: '', label: 'All' },
+            { value: 'open', label: 'Open' },
+            { value: 'in_progress', label: 'In Progress' },
+            { value: 'escalated', label: 'Escalated' },
+            { value: 'resolved', label: 'Resolved' },
+            { value: 'closed', label: 'Closed' },
+          ]}
+          size="md"
+          ariaLabel="Filter by status"
+        />
       </div>
 
       <div style={{ minWidth: '150px' }}>
-        <label htmlFor="category" style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
+        <label style={{ display: 'block', marginBottom: '0.25rem', fontSize: '0.875rem', fontWeight: '500', color: 'var(--text-primary)' }}>
           Category
         </label>
-        <select
-          id="category"
+        <Select
           value={filters.category || ''}
-          onChange={(e) => onFilterChange('category', e.target.value || undefined)}
-          style={{
-            width: '100%',
-            padding: '0.5rem',
-            border: '1px solid var(--glass-border)',
-            borderRadius: '4px',
-            fontSize: '0.875rem',
-            backgroundColor: 'var(--surface-elevated)',
-            color: 'var(--text-primary)',
-          }}
-        >
-          <option value="">All</option>
-          <option value="water">Water</option>
-          <option value="roads">Roads</option>
-          <option value="electricity">Electricity</option>
-          <option value="waste">Waste</option>
-          <option value="sanitation">Sanitation</option>
-          <option value="other">Other</option>
-        </select>
+          onChange={(value) => onFilterChange('category', value || undefined)}
+          options={[
+            { value: '', label: 'All' },
+            { value: 'water', label: 'Water' },
+            { value: 'roads', label: 'Roads' },
+            { value: 'electricity', label: 'Electricity' },
+            { value: 'waste', label: 'Waste' },
+            { value: 'sanitation', label: 'Sanitation' },
+            { value: 'other', label: 'Other' },
+          ]}
+          size="md"
+          ariaLabel="Filter by category"
+        />
       </div>
 
       <div style={{ alignSelf: 'flex-end' }}>

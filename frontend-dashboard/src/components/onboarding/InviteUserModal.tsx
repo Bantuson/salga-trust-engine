@@ -17,6 +17,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { Select } from '@shared/components/ui/Select';
 
 // ---------------------------------------------------------------------------
 // Role definitions — field_worker and saps_liaison intentionally excluded
@@ -259,19 +260,14 @@ export function InviteUserModal({
                       <span style={styles.tierBadge}>Tier {availableRoles[0].tier}</span>
                     </div>
                   ) : (
-                    <select
-                      id="invite-role"
+                    <Select
                       value={role}
-                      onChange={(e: React.ChangeEvent<HTMLSelectElement>) => setRole(e.target.value)}
-                      style={styles.select}
+                      onChange={(value) => setRole(value)}
+                      options={availableRoles.map((r) => ({ value: r.value, label: `${r.label} (Tier ${r.tier})` }))}
+                      size="md"
                       disabled={isSubmitting}
-                    >
-                      {availableRoles.map((r) => (
-                        <option key={r.value} value={r.value}>
-                          {r.label} (Tier {r.tier})
-                        </option>
-                      ))}
-                    </select>
+                      ariaLabel="Select role"
+                    />
                   )}
                 </div>
 
@@ -442,19 +438,6 @@ const styles: Record<string, React.CSSProperties> = {
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.15s ease',
-  },
-  select: {
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
-    width: '100%',
-    outline: 'none',
-    cursor: 'pointer',
-    boxSizing: 'border-box',
   },
   singleRoleDisplay: {
     display: 'flex',

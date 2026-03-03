@@ -11,6 +11,7 @@
 import { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { useAuth } from '../../hooks/useAuth';
+import { Select } from '@shared/components/ui/Select';
 import {
   fetchTicketDetail,
   assignTicket,
@@ -307,16 +308,16 @@ export function TicketDetailModal({ ticket, onClose, onUpdated }: TicketDetailMo
                       <h3 style={styles.sectionTitle}>Assign Ticket</h3>
                       <div style={styles.formGroup}>
                         <label style={styles.formLabel}>Team</label>
-                        <select
-                          style={styles.select}
+                        <Select
                           value={selectedTeamId}
-                          onChange={(e) => setSelectedTeamId(e.target.value)}
-                        >
-                          <option value="">Select team...</option>
-                          {teams.map((t) => (
-                            <option key={t.id} value={t.id}>{t.name}</option>
-                          ))}
-                        </select>
+                          onChange={(value) => setSelectedTeamId(value)}
+                          options={[
+                            { value: '', label: 'Select team...' },
+                            ...teams.map((t) => ({ value: t.id, label: t.name })),
+                          ]}
+                          size="md"
+                          ariaLabel="Select team for assignment"
+                        />
                       </div>
                       <button
                         style={styles.actionBtn}
@@ -677,16 +678,6 @@ const styles = {
     color: 'var(--text-secondary)',
     marginBottom: '0.375rem',
     fontWeight: '500' as const,
-  },
-  select: {
-    width: '100%',
-    padding: '0.5rem 0.75rem',
-    borderRadius: 'var(--radius-sm)',
-    border: '1px solid var(--glass-border)',
-    background: 'var(--surface-base)',
-    color: 'var(--text-primary)',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
   },
   actionBtn: {
     width: '100%',

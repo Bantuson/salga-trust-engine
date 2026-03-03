@@ -18,6 +18,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { Select } from '@shared/components/ui/Select';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -216,22 +217,17 @@ export function CreateDepartmentModal({
               <label style={styles.label} htmlFor="dept-parent">
                 Parent Department (optional)
               </label>
-              <select
-                id="dept-parent"
+              <Select
                 value={parentId}
-                onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
-                  setParentId(e.target.value)
-                }
-                style={styles.select}
+                onChange={(value) => setParentId(value)}
+                options={[
+                  { value: '', label: '— None (top-level department) —' },
+                  ...parentOptions.map((d) => ({ value: d.id, label: `${d.name} (${d.code})` })),
+                ]}
+                size="md"
                 disabled={isSubmitting}
-              >
-                <option value="">— None (top-level department) —</option>
-                {parentOptions.map((d) => (
-                  <option key={d.id} value={d.id}>
-                    {d.name} ({d.code})
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Select parent department"
+              />
               <span style={styles.fieldHint}>
                 Set a parent only if this is a sub-department
               </span>
@@ -388,19 +384,6 @@ const styles: Record<string, React.CSSProperties> = {
     outline: 'none',
     boxSizing: 'border-box',
     transition: 'border-color 0.15s ease',
-  },
-  select: {
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
-    width: '100%',
-    outline: 'none',
-    cursor: 'pointer',
-    boxSizing: 'border-box',
   },
   footer: {
     display: 'flex',

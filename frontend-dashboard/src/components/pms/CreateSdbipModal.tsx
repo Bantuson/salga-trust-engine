@@ -11,6 +11,7 @@
 
 import { useState, useEffect } from 'react';
 import { useAuth } from '../../hooks/useAuth';
+import { Select } from '@shared/components/ui/Select';
 
 type SdbipLayer = 'top_layer' | 'departmental';
 
@@ -133,7 +134,7 @@ export function CreateSdbipModal({ onClose, onCreated }: CreateSdbipModalProps) 
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div data-lenis-prevent style={styles.body}>
           {error && <div style={styles.errorBanner}>{error}</div>}
 
           <div style={styles.section}>
@@ -167,36 +168,36 @@ export function CreateSdbipModal({ onClose, onCreated }: CreateSdbipModalProps) 
 
             <div style={styles.fieldGroup}>
               <label style={styles.label}>Layer *</label>
-              <select
+              <Select
                 value={layer}
-                onChange={(e) => {
-                  setLayer(e.target.value as SdbipLayer);
-                  if (e.target.value === 'top_layer') setDepartment('');
+                onChange={(value) => {
+                  setLayer(value as SdbipLayer);
+                  if (value === 'top_layer') setDepartment('');
                 }}
-                style={styles.select}
+                options={[
+                  { value: 'top_layer', label: 'Top Layer' },
+                  { value: 'departmental', label: 'Departmental' },
+                ]}
+                size="md"
                 disabled={isSubmitting}
-              >
-                <option value="top_layer">Top Layer</option>
-                <option value="departmental">Departmental</option>
-              </select>
+                ariaLabel="Select SDBIP layer"
+              />
             </div>
 
             {layer === 'departmental' && (
               <div style={styles.fieldGroup}>
                 <label style={styles.label}>Department *</label>
-                <select
+                <Select
                   value={department}
-                  onChange={(e) => setDepartment(e.target.value)}
-                  style={styles.select}
+                  onChange={(value) => setDepartment(value)}
+                  options={[
+                    { value: '', label: 'Select department...' },
+                    ...DEPARTMENTS.map((dept) => ({ value: dept, label: dept })),
+                  ]}
+                  size="md"
                   disabled={isSubmitting}
-                >
-                  <option value="">Select department...</option>
-                  {DEPARTMENTS.map((dept) => (
-                    <option key={dept} value={dept}>
-                      {dept}
-                    </option>
-                  ))}
-                </select>
+                  ariaLabel="Select department"
+                />
               </div>
             )}
           </div>
@@ -262,8 +263,7 @@ const styles = {
     padding: 'var(--glass-card-padding)',
     paddingBottom: 'var(--space-md)',
     borderBottom: '1px solid var(--glass-border)',
-    position: 'sticky' as const,
-    top: 0,
+    flexShrink: 0,
     background: 'var(--glass-pink-frost)',
     backdropFilter: 'blur(var(--glass-blur-medium))',
     WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
@@ -342,19 +342,6 @@ const styles = {
     outline: 'none',
     boxSizing: 'border-box' as const,
   } as React.CSSProperties,
-  select: {
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-sm)',
-    color: 'var(--text-primary)',
-    padding: '0.5rem 0.75rem',
-    fontSize: '0.875rem',
-    fontFamily: 'inherit',
-    width: '100%',
-    outline: 'none',
-    cursor: 'pointer',
-    boxSizing: 'border-box' as const,
-  } as React.CSSProperties,
   footer: {
     display: 'flex',
     justifyContent: 'flex-end',
@@ -362,8 +349,7 @@ const styles = {
     gap: 'var(--space-md)',
     padding: 'var(--glass-card-padding)',
     borderTop: '1px solid var(--glass-border)',
-    position: 'sticky' as const,
-    bottom: 0,
+    flexShrink: 0,
     background: 'var(--glass-pink-frost)',
     backdropFilter: 'blur(var(--glass-blur-medium))',
     WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',

@@ -8,6 +8,7 @@
 import React, { useState } from 'react';
 import { Input } from '@shared/components/ui/Input';
 import { Button } from '@shared/components/ui/Button';
+import { Select } from '@shared/components/ui/Select';
 
 const TEAM_ROLES = [
   { value: 'manager', label: 'Manager' },
@@ -113,18 +114,14 @@ export const InviteTeamStep: React.FC<InviteTeamStepProps> = ({
             </div>
 
             <div style={styles.roleField}>
-              <select
+              <Select
                 value={invitation.role}
-                onChange={(e) => handleChange(index, 'role', e.target.value)}
-                style={styles.select}
+                onChange={(value) => handleChange(index, 'role', value)}
+                options={TEAM_ROLES}
+                size="md"
                 disabled={isSubmitting || submitSuccess}
-              >
-                {TEAM_ROLES.map((role) => (
-                  <option key={role.value} value={role.value}>
-                    {role.label}
-                  </option>
-                ))}
-              </select>
+                ariaLabel="Select role for invitee"
+              />
             </div>
 
             <button
@@ -218,18 +215,6 @@ const styles = {
   } as React.CSSProperties,
   roleField: {
     flex: 1,
-  } as React.CSSProperties,
-  select: {
-    width: '100%',
-    padding: '12px 16px',
-    fontSize: 'var(--text-base)',
-    fontFamily: 'var(--font-body)',
-    background: 'var(--surface-elevated)',
-    border: '1px solid var(--border-subtle)',
-    borderRadius: 'var(--radius-md)',
-    color: 'var(--text-primary)',
-    outline: 'none',
-    transition: 'var(--transition-base)',
   } as React.CSSProperties,
   removeButton: {
     flexShrink: 0,
