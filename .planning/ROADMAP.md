@@ -253,13 +253,14 @@ Plans:
 
 ### Phase 34.3: Modal scroll fix for mouse wheel support (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Add `data-lenis-prevent` to all modal and dropdown scrollable elements that are missing it, so mouse wheel events scroll the modal/dropdown body rather than the background page. Fixes 13 elements across 13 files (8 team/ticket modals, 3 dashboard onboarding/department/salga modals, 2 public frontend dropdowns). Creates a Playwright E2E spec to validate mouse wheel scroll behavior.
+**Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 0 plans
+**Plans:** 1/2 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 34.3 to break down)
+- [ ] 34.3-01-PLAN.md — Wave 0: Create E2E modal scroll spec; Wave 1: Add data-lenis-prevent to 8 teams/TicketDetailModal files (Pattern A: TeamCreateModal body, BulkInviteDialog body; Pattern B: TeamDetailModal, MemberDetailModal, AssignmentDetailModal, MemberScheduleModal, ReviewDetailModal modal containers + TicketDetailModal modal container) [Wave 1]
+- [ ] 34.3-02-PLAN.md — Fix 3 remaining dashboard modals (InviteUserModal body, CreateDepartmentModal body, MunicipalityDetailModal — pattern confirmed by reading) + fix 2 public frontend dropdowns (CustomSelect.tsx listbox div, CitizenRegisterPage.tsx inline dropdown div) + run full verification [Wave 2]
 
 ### Phase 34.2: Dropdown menu styling across all roles and pages (INSERTED)
 

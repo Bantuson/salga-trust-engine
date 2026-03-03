@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-03T21:08:23.761Z"
+last_updated: "2026-03-03T22:02:58.276Z"
 progress:
   total_phases: 12
   completed_phases: 9
-  total_plans: 37
-  completed_plans: 35
+  total_plans: 39
+  completed_plans: 36
 ---
 
 ---
@@ -239,16 +239,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.2 COMPLETE — Dropdown menu styling across all roles and pages (All 3 plans done)
+**Current focus:** Phase 34.3 IN PROGRESS — Modal scroll fix for mouse wheel support (Plan 1 of 2 done)
 
 ## Current Position
 
-Phase: 34.2 of 34.2 (Dropdown Menu Styling Across All Roles and Pages)
-Plan: 3 of 3 complete
-Status: Plan 34.2-03 complete — all 11 page files migrated from native select to unified glass-styled Select; zero native selects remain anywhere in either dashboard's pages directories.
-Last activity: 2026-03-03 — 34.2-03 complete: AccessRequestsPage, ActualsPage, IdpDetailPage, OnboardingWizardPage, OversightDashboardPage, PmsSetupWizardPage, RequestAccessPage, RoleApprovalsPage, SdbipKpiPage, ProfilePage (public), ReportIssuePage (public) all migrated. Phase 34.2 fully complete.
+Phase: 34.3 of 34.3 (Modal Scroll Fix for Mouse Wheel Support)
+Plan: 1 of 2 complete
+Status: Plan 34.3-01 complete — E2E modal scroll spec created; data-lenis-prevent added to 8 team/ticket modal files (2 Pattern A, 6 Pattern B).
+Last activity: 2026-03-04 — 34.3-01 complete: modal-scroll.spec.ts created with 2 authTest cases; TeamCreateModal, BulkInviteDialog, TeamDetailModal, MemberDetailModal, AssignmentDetailModal, MemberScheduleModal, ReviewDetailModal, TicketDetailModal all fixed. Commits c9df08f and 5cffdaa.
 
-Progress: [██████████] 100% (Plan 3/3 of Phase 34.2 done)
+Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.3 done)
 
 ## Performance Metrics
 
@@ -293,6 +293,7 @@ Progress: [██████████] 100% (Plan 3/3 of Phase 34.2 done)
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P01 | 7 | 2 tasks | 5 files |
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P03 | 20 | 2 tasks | 11 files |
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P02 | 9 | 2 tasks | 13 files |
+| Phase 34.3 P01 | 12 | 2 tasks | 9 files |
 
 ## Accumulated Context
 
@@ -424,6 +425,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.2-02]: Select size=sm for MemberScheduleModal inline edit row selects — compact context requires smaller controls
 - [Phase 34.2-02]: roleSelectWrapper div introduced in QuickInviteForm to preserve flex: 0 1 160px sizing around unified Select
 - [Phase 34.2-02]: TEAM_ROLES array passed directly as options prop in InviteTeamStep (already has value/label shape)
+- [Phase 34.3-01]: Pattern A vs B: inspect overflowY location to determine which div gets data-lenis-prevent (body div for Pattern A, modal div for Pattern B)
+- [Phase 34.3-01]: One data-lenis-prevent on outermost scrollable modal container covers all descendants — Lenis traverses upward from scroll target
 
 ### Pending Todos
 
