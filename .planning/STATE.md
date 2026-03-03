@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-03T20:41:27.242Z"
+progress:
+  total_phases: 12
+  completed_phases: 8
+  total_plans: 37
+  completed_plans: 33
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-03T19:23:21.438Z"
 progress:
   total_phases: 12
@@ -200,16 +213,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.1 COMPLETE — Demo mode fetch fixes for IDP and SDBIP pages (all 1 plan done)
+**Current focus:** Phase 34.2 IN PROGRESS — Dropdown menu styling across all roles and pages (Plan 1 of 3 done)
 
 ## Current Position
 
-Phase: 34.1 of 34.1 (Demo Mode Fetch Fixes for IDP and SDBIP Pages)
-Plan: 1 of 1 complete
-Status: Phase 34.1 COMPLETE — Plan 34.1-01 complete (DEMO_MODE guards added to IdpDetailPage, ActualsPage, EvidencePage; all 7 mutation handlers guarded as no-ops; 0 TypeScript errors introduced)
-Last activity: 2026-03-03 — 34.1-01 complete: DEMO_MODE import, demo data constants, and fetchAll guards added to all 3 missed PMS secondary pages; demo sweep now covers all PMS pages.
+Phase: 34.2 of 34.2 (Dropdown Menu Styling Across All Roles and Pages)
+Plan: 1 of 3 complete
+Status: Plan 34.2-01 complete — unified glass-styled Select component upgraded at shared/components/ui/Select.tsx, GlassSelect.tsx deleted, AuditLogSection/TeamDefaultsSection/RoleSwitcher migrated
+Last activity: 2026-03-03 — 34.2-01 complete: glass styling merged into shared Select, size presets (sm/md/lg), autoFlip, ariaLabel, data-lenis-prevent; GlassSelect.tsx eliminated.
 
-Progress: [██████████] 100% (Plan 1/1 of Phase 34.1 done — Phase 34.1 COMPLETE)
+Progress: [███░░░░░░░] 33% (Plan 1/3 of Phase 34.2 done)
 
 ## Performance Metrics
 
@@ -251,6 +264,7 @@ Progress: [██████████] 100% (Plan 1/1 of Phase 34.1 done —
 | Phase 34 P06 | 20 | 1 task | 1 file |
 | Phase 34 P06 | 20 | 1 tasks | 1 files |
 | Phase 34.1-demo-mode-fetch-fixes-for-idp-and-sdbip-pages P01 | 3 | 2 tasks | 3 files |
+| Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P01 | 7 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -372,6 +386,10 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34]: TypeScript build errors documented as pre-existing (git stash + rebuild confirms no Phase 34 regression) — strict mode enforcement is a separate future task
 - [Phase 34]: 48/48 journey tests pass confirms JOURNEY-02 production readiness gate is satisfied — all 9 role journey specs execute successfully on dashboard-chromium
 - [Phase 34.1-demo-mode-fetch-fixes-for-idp-and-sdbip-pages]: DEMO_MODE guard placed before setLoading(true) in fetchAll — prevents loading flash since useState(true) is initial state; setLoading(false) mandatory in demo branch
+- [Phase 34.2-01]: SIZE_STYLES[sm] uses 28px right padding to accommodate chevron in compact contexts
+- [Phase 34.2-01]: Selected item background highlight rgba(0,191,165,0.25) added — existing Select only changed color not background
+- [Phase 34.2-01]: RoleSwitcher container stripped of surface-elevated pill styling — unified Select sm size carries its own glass border
+- [Phase 34.2-01]: TeamDefaultsSection maxWidth='320px' via wrapper div — GlassSelect maxWidth prop not ported to unified Select API
 
 ### Pending Todos
 
@@ -395,5 +413,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 34-06-PLAN.md — 34-VERIFICATION.md created; 48/48 E2E journey tests pass; JOURNEY-02 verified; Phase 34 production readiness gate passed; v2.0 COMPLETE. Checkpoint: awaiting human visual verification of UI changes (start `frontend-dashboard && npm run dev`, verify 9 UI items in 34-VERIFICATION.md checklist).
+Stopped at: Completed 34.2-01-PLAN.md — unified glass Select component upgraded (size presets, autoFlip, ariaLabel, data-lenis-prevent, muted chevron, no box-shadow glow); GlassSelect.tsx deleted; AuditLogSection, TeamDefaultsSection, RoleSwitcher migrated. Phase 34.2 Plan 1/3 done.
 Resume file: None

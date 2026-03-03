@@ -263,13 +263,15 @@ Plans:
 
 ### Phase 34.2: Dropdown menu styling across all roles and pages (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Replace all native `<select>` elements with a unified glass-styled custom Select component across both dashboards (frontend-dashboard and frontend-public). Consolidate two overlapping custom dropdown implementations (shared/Select.tsx keyboard nav + GlassSelect.tsx glass styling) into one canonical component. Migrate 23 files in ops dashboard and 2 files in public dashboard, then delete GlassSelect.tsx.
+**Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 0 plans
+**Plans:** 1/3 plans executed
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 34.2 to break down)
+- [ ] 34.2-01-PLAN.md — Upgrade shared Select.tsx to unified glass-styled component (size presets, autoFlip, ARIA, data-lenis-prevent), migrate GlassSelect consumers (AuditLogSection, TeamDefaultsSection) + RoleSwitcher special case, delete GlassSelect.tsx [Wave 1]
+- [ ] 34.2-02-PLAN.md — Migrate 13 component files in frontend-dashboard/src/components/ from native `<select>` to unified Select [Wave 2]
+- [ ] 34.2-03-PLAN.md — Migrate 9 page files in frontend-dashboard/src/pages/ + 2 page files in frontend-public/src/pages/ from native `<select>` to unified Select [Wave 2]
 
 ### Phase 34.1: Demo mode fetch fixes for IDP and SDBIP pages (INSERTED)
 
