@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-03T21:08:23.761Z"
+progress:
+  total_phases: 12
+  completed_phases: 9
+  total_plans: 37
+  completed_plans: 35
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-03T20:55:55.195Z"
 progress:
   total_phases: 12
