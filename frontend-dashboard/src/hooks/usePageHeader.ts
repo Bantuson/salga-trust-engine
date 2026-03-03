@@ -60,5 +60,6 @@ export function usePageHeader(title: string, actions?: ReactNode): void {
     return () => {
       setHeaderContent(null);
     };
-  }, [title, actions, setHeaderContent]);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [title, setHeaderContent]);
 }
