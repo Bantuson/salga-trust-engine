@@ -7,7 +7,7 @@
 
 import React, { useState } from 'react';
 import { SettingsSection } from './SettingsSection';
-import { GlassSelect } from './GlassSelect';
+import { Select } from '@shared/components/ui/Select';
 import { CATEGORY_CONFIG } from '../../constants/categories';
 
 interface TeamDefaults {
@@ -75,15 +75,17 @@ export function TeamDefaultsSection() {
           <p style={styles.fieldDescription}>
             The SLA configuration applied to new teams by default. Team managers can override this.
           </p>
-          <GlassSelect
-            id="default-sla-category"
-            value={defaults.default_sla_category}
-            onChange={(val) =>
-              setDefaults((prev) => ({ ...prev, default_sla_category: val }))
-            }
-            options={CATEGORY_OPTIONS}
-            maxWidth="320px"
-          />
+          <div style={{ maxWidth: '320px' }}>
+            <Select
+              value={defaults.default_sla_category}
+              onChange={(val) =>
+                setDefaults((prev) => ({ ...prev, default_sla_category: val }))
+              }
+              options={CATEGORY_OPTIONS}
+              ariaLabel="Default SLA Template"
+              size="md"
+            />
+          </div>
         </div>
 
         {/* Auto-assign manager */}

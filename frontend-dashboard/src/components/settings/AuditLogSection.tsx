@@ -10,7 +10,7 @@
 import React, { useState, useEffect, useCallback } from 'react';
 import { format } from 'date-fns';
 import { SettingsSection } from './SettingsSection';
-import { GlassSelect } from './GlassSelect';
+import { Select } from '@shared/components/ui/Select';
 import { fetchAuditLogs } from '../../services/api';
 import type { AuditLogEntry } from '../../types/settings';
 
@@ -101,19 +101,21 @@ export function AuditLogSection() {
     >
       {/* Filters */}
       <div style={styles.filters}>
-        <GlassSelect
+        <Select
           value={filterTable}
           onChange={setFilterTable}
           ariaLabel="Filter by table"
+          size="md"
           options={[
             { value: '', label: 'All tables' },
             ...TABLE_OPTIONS.filter(Boolean).map((t) => ({ value: t, label: t })),
           ]}
         />
-        <GlassSelect
+        <Select
           value={filterOperation}
           onChange={setFilterOperation}
           ariaLabel="Filter by operation"
+          size="md"
           options={[
             { value: '', label: 'All operations' },
             ...OPERATION_OPTIONS.filter(Boolean).map((op) => ({ value: op, label: op })),

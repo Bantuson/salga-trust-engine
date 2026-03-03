@@ -18,6 +18,7 @@
  */
 
 import React from 'react';
+import { Select } from '@shared/components/ui/Select';
 
 /** Human-readable labels for all 18 roles in the RBAC hierarchy. */
 const ROLE_LABELS: Record<string, string> = {
@@ -66,18 +67,18 @@ export function RoleSwitcher({ allRoles, activeRole, onRoleSwitch }: RoleSwitche
   return (
     <div style={styles.container}>
       <span style={styles.label}>View as:</span>
-      <select
+      <Select
+        options={allRoles.map((role) => ({
+          value: role,
+          label: ROLE_LABELS[role] ?? role,
+        }))}
         value={activeRole}
-        onChange={(e) => onRoleSwitch(e.target.value)}
-        style={styles.select}
-        aria-label="Switch dashboard view role"
-      >
-        {allRoles.map((role) => (
-          <option key={role} value={role} style={styles.option}>
-            {ROLE_LABELS[role] ?? role}
-          </option>
-        ))}
-      </select>
+        onChange={onRoleSwitch}
+        size="sm"
+        fullWidth={false}
+        ariaLabel="Switch dashboard view role"
+        autoFlip={true}
+      />
     </div>
   );
 }
@@ -87,31 +88,12 @@ const styles: Record<string, React.CSSProperties> = {
     display: 'flex',
     alignItems: 'center',
     gap: '8px',
-    padding: '6px 12px',
-    borderRadius: 'var(--radius-md)',
-    background: 'var(--surface-elevated)',
-    backdropFilter: 'blur(var(--glass-blur-subtle))',
-    WebkitBackdropFilter: 'blur(var(--glass-blur-subtle))',
-    border: '1px solid var(--border-subtle)',
+    padding: '0',
   },
   label: {
     fontSize: 'var(--text-xs)',
     color: 'var(--text-muted)',
     whiteSpace: 'nowrap',
     fontWeight: 500,
-  },
-  select: {
-    fontSize: 'var(--text-sm)',
-    background: 'transparent',
-    border: 'none',
-    outline: 'none',
-    cursor: 'pointer',
-    color: 'var(--text-primary)',
-    fontFamily: 'var(--font-body)',
-    fontWeight: 500,
-  },
-  option: {
-    background: 'var(--color-rose-deep)',
-    color: 'var(--text-primary)',
   },
 };
