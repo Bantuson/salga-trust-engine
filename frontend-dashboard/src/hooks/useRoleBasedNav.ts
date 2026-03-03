@@ -122,6 +122,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'salga_admin':
         return [...base,
           { label: 'Municipalities', path: '/municipalities', icon: 'building' },
+          { label: 'Access Requests', path: '/access-requests', icon: 'inbox' },
           { label: 'Role Approvals', path: '/role-approvals', icon: 'users' },
           pmsNavItem,
           { label: 'System', path: '/system', icon: 'settings' },

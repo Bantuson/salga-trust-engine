@@ -40,87 +40,14 @@ import { SALGAAdminDashboardPage } from './pages/SALGAAdminDashboardPage';
 import { Section56DirectorDashboardPage } from './pages/Section56DirectorDashboardPage';
 import { DepartmentsPage } from './pages/DepartmentsPage';
 import { RoleApprovalsPage } from './pages/RoleApprovalsPage';
+import { MunicipalitiesPage } from './pages/MunicipalitiesPage';
+import { AccessRequestsPage } from './pages/AccessRequestsPage';
 import { GoldenThreadPage } from './pages/GoldenThreadPage';
 import { LenisProvider } from './providers/LenisProvider';
 import { PageTransition } from './components/PageTransition';
 import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
-
-/**
- * MunicipalitiesPlaceholderPage — mock municipalities list for SALGA Admin.
- * Shows realistic municipality data. Full implementation deferred to Phase 32+.
- */
-function MunicipalitiesPlaceholderPage() {
-  const municipalities = [
-    { name: 'eThekwini Metropolitan', province: 'KwaZulu-Natal', category: 'A', status: 'Active', population: '3.9M' },
-    { name: 'City of Tshwane', province: 'Gauteng', category: 'A', status: 'Active', population: '3.3M' },
-    { name: 'Mangaung Metropolitan', province: 'Free State', category: 'A', status: 'Active', population: '787K' },
-    { name: 'Nelson Mandela Bay', province: 'Eastern Cape', category: 'A', status: 'Active', population: '1.3M' },
-    { name: 'Buffalo City Metropolitan', province: 'Eastern Cape', category: 'A', status: 'Active', population: '834K' },
-    { name: 'Sol Plaatje Local', province: 'Northern Cape', category: 'B', status: 'Onboarding', population: '255K' },
-  ];
-
-  return (
-    <div style={{ padding: 'var(--space-lg)' }}>
-      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
-        Municipalities
-      </h1>
-      <div style={{
-        background: 'var(--glass-bg)',
-        border: '1px solid var(--glass-border)',
-        borderRadius: 'var(--radius-lg)',
-        overflow: 'hidden',
-      }}>
-        <table style={{ width: '100%', borderCollapse: 'collapse' }}>
-          <thead>
-            <tr style={{ borderBottom: '1px solid var(--glass-border)' }}>
-              {['Municipality', 'Province', 'Category', 'Status', 'Population'].map(h => (
-                <th key={h} style={{
-                  padding: 'var(--space-sm) var(--space-md)',
-                  textAlign: 'left' as const,
-                  fontSize: 'var(--text-xs)',
-                  fontWeight: 600,
-                  color: 'var(--text-muted)',
-                  textTransform: 'uppercase' as const,
-                  letterSpacing: '0.05em',
-                }}>{h}</th>
-              ))}
-            </tr>
-          </thead>
-          <tbody>
-            {municipalities.map((m, i) => (
-              <tr key={i} style={{
-                borderBottom: '1px solid var(--glass-border)',
-                cursor: 'pointer',
-              }}>
-                <td style={{ padding: 'var(--space-sm) var(--space-md)', fontWeight: 600, color: 'var(--text-primary)' }}>{m.name}</td>
-                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.province}</td>
-                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.category}</td>
-                <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
-                  <span style={{
-                    display: 'inline-block',
-                    padding: '2px 10px',
-                    borderRadius: '12px',
-                    fontSize: 'var(--text-sm)',
-                    fontWeight: 600,
-                    background: m.status === 'Active' ? 'rgba(45, 212, 191, 0.15)' : 'rgba(251, 191, 36, 0.15)',
-                    color: m.status === 'Active' ? 'var(--color-teal)' : 'var(--color-gold)',
-                    border: `1px solid ${m.status === 'Active' ? 'rgba(45, 212, 191, 0.3)' : 'rgba(251, 191, 36, 0.3)'}`,
-                  }}>{m.status}</span>
-                </td>
-                <td style={{ padding: 'var(--space-sm) var(--space-md)', color: 'var(--text-secondary)' }}>{m.population}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-      </div>
-      <p style={{ marginTop: 'var(--space-md)', color: 'var(--text-muted)', fontSize: 'var(--text-sm)' }}>
-        Showing {municipalities.length} onboarded municipalities. Full management interface available in a future release.
-      </p>
-    </div>
-  );
-}
 
 /**
  * SystemPlaceholderPage — mock system health page for platform admin / SALGA Admin.
@@ -274,7 +201,8 @@ function AppRoutes() {
         <Route path="/role-approvals" element={<DashboardLayout><RoleApprovalsPage /></DashboardLayout>} />
         {/* BUG-4: PMS setup as standalone route — was only accessible via ?view=setup in PmsHub */}
         <Route path="/pms-setup" element={<DashboardLayout><PmsSetupWizardPage /></DashboardLayout>} />
-        <Route path="/municipalities" element={<DashboardLayout><MunicipalitiesPlaceholderPage /></DashboardLayout>} />
+        <Route path="/municipalities" element={<DashboardLayout><MunicipalitiesPage /></DashboardLayout>} />
+        <Route path="/access-requests" element={<DashboardLayout><AccessRequestsPage /></DashboardLayout>} />
         <Route path="/teams" element={<DashboardLayout><TeamsPage /></DashboardLayout>} />
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
