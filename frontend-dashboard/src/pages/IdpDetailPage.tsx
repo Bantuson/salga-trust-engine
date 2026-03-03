@@ -13,6 +13,7 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { useAuth } from '../hooks/useAuth';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface IDPCycle {
   id: string;
@@ -66,6 +67,36 @@ const STATUS_COLORS: Record<string, string> = {
   under_review: 'var(--color-coral)',
 };
 
+// -- Demo data for VITE_DEMO_MODE --
+const DEMO_IDP_CYCLE: IDPCycle = {
+  id: 'demo-1',
+  title: 'Umsobomvu IDP 2022-2027',
+  vision: 'A prosperous and united Umsobomvu',
+  mission: 'Deliver sustainable basic services to all communities',
+  start_year: 2022,
+  end_year: 2027,
+  status: 'approved',
+};
+
+const DEMO_IDP_GOALS: IDPGoal[] = [
+  { id: 'goal-1', title: 'Reliable water and sanitation for all', national_kpa: 'basic_service_delivery' },
+  { id: 'goal-2', title: 'Stimulate local economic development', national_kpa: 'local_economic_development' },
+  { id: 'goal-3', title: 'Strengthen financial management and accountability', national_kpa: 'municipal_financial_viability' },
+];
+
+const DEMO_OBJECTIVES_BY_GOAL: Record<string, IDPObjective[]> = {
+  'goal-1': [
+    { id: 'obj-1a', title: 'Reduce non-revenue water losses in Colesburg network', goal_id: 'goal-1' },
+    { id: 'obj-1b', title: 'Extend waterborne sanitation to Lowryville', goal_id: 'goal-1' },
+  ],
+  'goal-2': [
+    { id: 'obj-2a', title: 'Support SMMEs along the N1 corridor', goal_id: 'goal-2' },
+  ],
+  'goal-3': [
+    { id: 'obj-3a', title: 'Improve revenue collection from rates and charges', goal_id: 'goal-3' },
+  ],
+};
+
 export function IdpDetailPage() {
   const { cycleId } = useParams<{ cycleId: string }>();
   const { getAccessToken } = useAuth();
@@ -92,6 +123,13 @@ export function IdpDetailPage() {
 
   const fetchAll = useCallback(async () => {
     if (!cycleId) return;
+    if (DEMO_MODE) {
+      setCycle(DEMO_IDP_CYCLE);
+      setGoals(DEMO_IDP_GOALS);
+      setObjectivesByGoal(DEMO_OBJECTIVES_BY_GOAL);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -136,6 +174,7 @@ export function IdpDetailPage() {
 
   const handleTransition = async (event: string) => {
     if (!cycleId) return;
+    if (DEMO_MODE) return;
     setTransitioning(true);
     try {
       const token = getAccessToken();
@@ -159,6 +198,7 @@ export function IdpDetailPage() {
   const handleAddGoal = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!cycleId) return;
+    if (DEMO_MODE) return;
     setGoalSubmitting(true);
     setGoalError(null);
     try {
@@ -188,6 +228,7 @@ export function IdpDetailPage() {
 
   const handleAddObjective = async (e: React.FormEvent, goalId: string) => {
     e.preventDefault();
+    if (DEMO_MODE) return;
     setObjSubmitting(true);
     setObjError(null);
     try {
