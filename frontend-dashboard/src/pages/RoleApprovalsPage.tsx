@@ -24,6 +24,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 
 // ---------------------------------------------------------------------------
 // Types
@@ -256,6 +257,26 @@ export function RoleApprovalsPage() {
     fetchApprovals();
   }, [fetchApprovals]);
 
+  // Layout header
+  const refreshBtn = useMemo(() => (
+    <button
+      onClick={fetchApprovals}
+      style={{
+        padding: 'var(--space-xs) var(--space-md)',
+        background: 'var(--glass-bg)',
+        border: '1px solid var(--glass-border)',
+        borderRadius: 'var(--radius-md)',
+        color: 'var(--text-primary)',
+        fontSize: 'var(--text-sm)',
+        fontWeight: 500,
+        cursor: 'pointer',
+      }}
+    >
+      Refresh
+    </button>
+  ), [fetchApprovals]);
+  usePageHeader('Role Approval Queue', refreshBtn);
+
   // ---------------------------------------------------------------------------
   // Approve / Reject
   // ---------------------------------------------------------------------------
@@ -367,58 +388,6 @@ export function RoleApprovalsPage() {
 
   return (
     <div style={{ padding: 'var(--space-lg)', maxWidth: '1200px' }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'flex-start',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 'var(--space-sm)',
-          minHeight: '48px',
-          padding: 'var(--space-md) 0',
-          marginBottom: 'var(--space-lg)',
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: 'var(--text-2xl)',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              margin: 0,
-            }}
-          >
-            Role Approval Queue
-          </h1>
-          <p
-            style={{
-              color: 'var(--text-secondary)',
-              fontSize: 'var(--text-sm)',
-              marginTop: 'var(--space-xs)',
-              marginBottom: 0,
-            }}
-          >
-            Manage Tier 1 role assignment requests across all municipalities
-          </p>
-        </div>
-        <button
-          onClick={fetchApprovals}
-          style={{
-            padding: 'var(--space-xs) var(--space-md)',
-            background: 'var(--glass-bg)',
-            border: '1px solid var(--glass-border)',
-            borderRadius: 'var(--radius-md)',
-            color: 'var(--text-primary)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 500,
-            cursor: 'pointer',
-          }}
-        >
-          Refresh
-        </button>
-      </div>
-
       {/* Mock data warning banner */}
       {usingMockData && (
         <div

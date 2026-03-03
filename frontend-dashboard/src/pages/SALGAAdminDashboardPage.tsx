@@ -14,9 +14,10 @@
  * Requirement: DASH-11
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { fetchSALGAAdminDashboard, exportSALGABenchmarkingCSV } from '../services/api';
 import { mockSALGAAdminDashboard } from '../mocks/mockRoleDashboards';
 import { GlassCard } from '@shared/components/ui/GlassCard';
@@ -104,13 +105,28 @@ export function SALGAAdminDashboardPage() {
     setSelectedMunicipality(municipality as MunicipalityData);
   };
 
+  // Layout header — title + action buttons rendered in DashboardLayout header bar
+  const headerActions = useMemo(() => (
+    <>
+      <Button variant="ghost" size="sm" onClick={loadData}>
+        Refresh
+      </Button>
+      <Button
+        variant="primary"
+        size="sm"
+        onClick={handleExportCSV}
+        disabled={exporting}
+      >
+        {exporting ? 'Downloading...' : 'Export CSV'}
+      </Button>
+    </>
+  ), [exporting, loadData, handleExportCSV]);
+  usePageHeader('SALGA Admin — Cross-Municipality Benchmarking', headerActions);
+
   // ---- Loading skeleton ----
   if (loading) {
     return (
       <div style={styles.container}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>SALGA Admin — Cross-Municipality Benchmarking</h1>
-        </div>
         <SkeletonTheme>
           <div style={styles.summaryGrid}>
             {[1, 2, 3, 4].map((i) => (
@@ -133,9 +149,6 @@ export function SALGAAdminDashboardPage() {
   if (error && !data) {
     return (
       <div style={styles.container}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>SALGA Admin — Cross-Municipality Benchmarking</h1>
-        </div>
         <div style={styles.errorBanner}>
           <span>{error}</span>
           <Button variant="ghost" size="sm" onClick={loadData} style={{ marginLeft: '1rem' }}>
@@ -152,12 +165,6 @@ export function SALGAAdminDashboardPage() {
   if (municipalities.length === 0) {
     return (
       <div style={styles.container}>
-        <div style={styles.header}>
-          <h1 style={styles.title}>SALGA Admin — Cross-Municipality Benchmarking</h1>
-          <Button variant="ghost" size="sm" onClick={loadData}>
-            Refresh
-          </Button>
-        </div>
         <GlassCard style={styles.emptyCard}>
           <p style={styles.emptyText}>
             No municipality data available. Municipalities must configure PMS to appear here.
@@ -184,25 +191,6 @@ export function SALGAAdminDashboardPage() {
 
   return (
     <div style={styles.container}>
-      {/* Page header */}
-      <div style={styles.header}>
-        <h1 style={styles.title}>SALGA Admin — Cross-Municipality Benchmarking</h1>
-        <div style={styles.headerActions}>
-          <Button variant="ghost" size="sm" onClick={loadData}>
-            Refresh
-          </Button>
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={handleExportCSV}
-            disabled={exporting}
-            style={{ marginLeft: '0.5rem' }}
-          >
-            {exporting ? 'Downloading...' : 'Export CSV'}
-          </Button>
-        </div>
-      </div>
-
       {/* Error banner (non-blocking — shown alongside data if export fails) */}
       {error && (
         <div style={styles.errorBanner}>
