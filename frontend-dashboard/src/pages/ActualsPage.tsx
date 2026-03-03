@@ -14,6 +14,7 @@ import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { useAuth } from '../hooks/useAuth';
 import { TrafficLightBadge } from '../components/pms/TrafficLightBadge';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface SDBIPKpi {
   id: string;
@@ -48,6 +49,40 @@ const QUARTER_LABELS: Record<string, string> = {
 
 const PMS_ROLES = ['pms_officer', 'admin', 'salga_admin'];
 
+// -- Demo data for VITE_DEMO_MODE --
+const DEMO_KPI: SDBIPKpi = {
+  id: 'demo-kpi-1',
+  kpi_number: 'KPI-BSD-001',
+  description: 'Percentage reduction in non-revenue water losses',
+  unit_of_measurement: 'percentage',
+  annual_target: '12',
+};
+
+const DEMO_ACTUALS: SDBIPActual[] = [
+  {
+    id: 'demo-actual-1',
+    quarter: 'Q1',
+    financial_year: '2025/26',
+    actual_value: '3.2',
+    achievement_pct: '26.7',
+    traffic_light_status: 'red',
+    is_validated: true,
+    is_auto_populated: false,
+    submitted_at: '2025-10-15T08:00:00Z',
+  },
+  {
+    id: 'demo-actual-2',
+    quarter: 'Q2',
+    financial_year: '2025/26',
+    actual_value: '6.5',
+    achievement_pct: '54.2',
+    traffic_light_status: 'amber',
+    is_validated: false,
+    is_auto_populated: true,
+    submitted_at: '2026-01-10T08:00:00Z',
+  },
+];
+
 export function ActualsPage() {
   const { kpiId } = useParams<{ kpiId: string }>();
   const { getAccessToken, getUserRole } = useAuth();
@@ -73,6 +108,12 @@ export function ActualsPage() {
 
   const fetchAll = useCallback(async () => {
     if (!kpiId) return;
+    if (DEMO_MODE) {
+      setKpi(DEMO_KPI);
+      setActuals(DEMO_ACTUALS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -105,6 +146,7 @@ export function ActualsPage() {
 
   const handleSubmitActual = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (DEMO_MODE) return;
     setSubmitting(true);
     setFormError(null);
     try {
@@ -137,6 +179,7 @@ export function ActualsPage() {
   };
 
   const handleValidate = async (actualId: string) => {
+    if (DEMO_MODE) return;
     setValidating(actualId);
     try {
       const token = getAccessToken();

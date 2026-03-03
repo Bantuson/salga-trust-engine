@@ -12,6 +12,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { useAuth } from '../hooks/useAuth';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface EvidenceDocument {
   id: string;
@@ -50,6 +51,35 @@ function formatFileSize(bytes: number): string {
   return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
 }
 
+// -- Demo data for VITE_DEMO_MODE --
+const DEMO_ACTUAL: ActualInfo = {
+  id: 'demo-actual-1',
+  quarter: 'Q1',
+  financial_year: '2025/26',
+  actual_value: '3.2',
+};
+
+const DEMO_DOCUMENTS: EvidenceDocument[] = [
+  {
+    id: 'demo-doc-1',
+    filename: 'Q1_2025_Water_Loss_Audit_Report.pdf',
+    content_type: 'application/pdf',
+    file_size: 2457600,
+    scan_status: 'clean',
+    uploaded_by: 'demo-user',
+    created_at: '2025-10-20T14:30:00Z',
+  },
+  {
+    id: 'demo-doc-2',
+    filename: 'Photo_Evidence_BSD001_Meter_Reading.jpg',
+    content_type: 'image/jpeg',
+    file_size: 845000,
+    scan_status: 'clean',
+    uploaded_by: 'demo-user',
+    created_at: '2025-10-21T09:15:00Z',
+  },
+];
+
 export function EvidencePage() {
   const { actualId } = useParams<{ actualId: string }>();
   const { getAccessToken } = useAuth();
@@ -67,6 +97,12 @@ export function EvidencePage() {
 
   const fetchAll = useCallback(async () => {
     if (!actualId) return;
+    if (DEMO_MODE) {
+      setActual(DEMO_ACTUAL);
+      setDocuments(DEMO_DOCUMENTS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -98,6 +134,7 @@ export function EvidencePage() {
   }, [fetchAll]);
 
   const handleUpload = async (file: File) => {
+    if (DEMO_MODE) return;
     setUploading(true);
     setUploadError(null);
     setUploadSuccess(false);
@@ -140,6 +177,7 @@ export function EvidencePage() {
   };
 
   const handleDownload = async (docId: string, filename: string) => {
+    if (DEMO_MODE) return;
     try {
       const token = getAccessToken();
       const res = await fetch(`/api/v1/sdbip/evidence/${docId}/download`, {
