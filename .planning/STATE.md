@@ -226,16 +226,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.2 IN PROGRESS — Dropdown menu styling across all roles and pages (Plan 2 of 3 done)
+**Current focus:** Phase 34.2 COMPLETE — Dropdown menu styling across all roles and pages (All 3 plans done)
 
 ## Current Position
 
 Phase: 34.2 of 34.2 (Dropdown Menu Styling Across All Roles and Pages)
-Plan: 2 of 3 complete
-Status: Plan 34.2-02 complete — all 13 component files migrated from native select to unified glass-styled Select; zero native selects remain in frontend-dashboard/src/components/
-Last activity: 2026-03-03 — 34.2-02 complete: FilterBar, TicketDetailModal, CreateDepartmentModal, InviteTeamStep, InviteUserModal, ProfileStep, CreateSdbipModal, ReportForm, BulkInviteDialog, MemberScheduleModal, QuickInviteForm, TeamCreateCard, TeamCreateModal all migrated.
+Plan: 3 of 3 complete
+Status: Plan 34.2-03 complete — all 11 page files migrated from native select to unified glass-styled Select; zero native selects remain anywhere in either dashboard's pages directories.
+Last activity: 2026-03-03 — 34.2-03 complete: AccessRequestsPage, ActualsPage, IdpDetailPage, OnboardingWizardPage, OversightDashboardPage, PmsSetupWizardPage, RequestAccessPage, RoleApprovalsPage, SdbipKpiPage, ProfilePage (public), ReportIssuePage (public) all migrated. Phase 34.2 fully complete.
 
-Progress: [██████░░░░] 66% (Plan 2/3 of Phase 34.2 done)
+Progress: [██████████] 100% (Plan 3/3 of Phase 34.2 done)
 
 ## Performance Metrics
 
@@ -278,6 +278,7 @@ Progress: [██████░░░░] 66% (Plan 2/3 of Phase 34.2 done)
 | Phase 34 P06 | 20 | 1 tasks | 1 files |
 | Phase 34.1-demo-mode-fetch-fixes-for-idp-and-sdbip-pages P01 | 3 | 2 tasks | 3 files |
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P01 | 7 | 2 tasks | 5 files |
+| Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P03 | 20 | 2 tasks | 11 files |
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P02 | 9 | 2 tasks | 13 files |
 
 ## Accumulated Context
@@ -404,6 +405,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.2-01]: Selected item background highlight rgba(0,191,165,0.25) added — existing Select only changed color not background
 - [Phase 34.2-01]: RoleSwitcher container stripped of surface-elevated pill styling — unified Select sm size carries its own glass border
 - [Phase 34.2-01]: TeamDefaultsSection maxWidth='320px' via wrapper div — GlassSelect maxWidth prop not ported to unified Select API
+- [Phase 34.2-03]: optStyle const removed from PmsSetupWizardPage after all 5 native selects migrated — was only used for option element styling
+- [Phase 34.2-03]: handleCategoryChange in ReportIssuePage refactored from (e: ChangeEvent) to (value: string) — GBV trigger logic fully preserved, only signature changed
+- [Phase 34.2-03]: ProfilePage municipality Select uses disabled={!isEditing} — unified Select disabled prop works identically to native select disabled
 - [Phase 34.2-02]: Select size=sm for MemberScheduleModal inline edit row selects — compact context requires smaller controls
 - [Phase 34.2-02]: roleSelectWrapper div introduced in QuickInviteForm to preserve flex: 0 1 160px sizing around unified Select
 - [Phase 34.2-02]: TEAM_ROLES array passed directly as options prop in InviteTeamStep (already has value/label shape)
@@ -430,5 +434,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-03
-Stopped at: Completed 34.2-02-PLAN.md — all 13 component files migrated from native select to unified glass-styled Select; zero native selects remain in components/; commits c8d2422 and b74b205. Phase 34.2 Plan 2/3 done.
+Stopped at: Completed 34.2-03-PLAN.md — all 11 page files migrated (9 dashboard + 2 public); zero native selects in pages dirs; PmsSetupWizardPage parseInt preserved; ReportIssuePage GBV logic preserved; ProfilePage disabled state preserved; commits 9adfdcf and 6c0bbfc. Phase 34.2 fully complete.
 Resume file: None
