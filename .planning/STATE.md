@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-04T05:50:12.261Z"
+progress:
+  total_phases: 12
+  completed_phases: 11
+  total_plans: 41
+  completed_plans: 39
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-04T05:43:29.126Z"
 progress:
   total_phases: 12
@@ -265,16 +278,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.4 IN PROGRESS — Public dashboard municipal analytics enhancement (plan 1/2 done)
+**Current focus:** Phase 34.4 COMPLETE — Public dashboard municipal analytics enhancement (2/2 plans done)
 
 ## Current Position
 
 Phase: 34.4 of 34.4 (Public Dashboard Municipal Analytics Enhancement)
-Plan: 1 of 2 complete
-Status: Plan 34.4-01 complete — data foundation: LeaderboardEntry type, SA FY utility, quarter-aware hooks (useResponseTimes/useResolutionRates/useCategoryBreakdown), TimePeriodControls component. All unused heatmap/system summary code deleted.
-Last activity: 2026-03-04 — 34.4-01 complete: saFinancialYear.ts utility created, mockLeaderboard added, 3 hooks extended with financialYear+quarter params, TimePeriodControls component created. Commits 4517913 and 5eed349.
+Plan: 2 of 2 complete — PHASE COMPLETE
+Status: Plan 34.4-02 complete — Recharts visualizations: LineChart trend, PieChart donut, RadialBarChart gauges, MunicipalityLeaderboard, TimePeriodControls wired to all hooks. TransparencyDashboardPage fully orchestrated.
+Last activity: 2026-03-04 — 34.4-02 complete: ResolutionTrendChart, CategoryDonutChart, SdbipGaugeChart, MunicipalityLeaderboard created. ServicePerformanceStats refactored. TransparencyDashboardPage orchestrates leaderboard + charts + gauges + TimePeriodControls. Commits e3a4e9e and 39685f4.
 
-Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.4 done)
+Progress: [██████████] 100% (Plan 2/2 of Phase 34.4 done — phase complete)
 
 ## Performance Metrics
 
@@ -322,6 +335,7 @@ Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.4 done)
 | Phase 34.3 P01 | 12 | 2 tasks | 9 files |
 | Phase 34.3 P34.3-02 | 35 | 2 tasks | 6 files |
 | Phase 34.4-01 P01 | 20 | 2 tasks | 5 files |
+| Phase 34.4 P02 | 4 | 2 tasks | 6 files |
 
 ## Accumulated Context
 
@@ -461,6 +475,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.4-01]: getDefaultTimePeriod exported from TimePeriodControls for initializing component state — avoids duplicating getSAFinancialYear/getCurrentSAQuarter calls in consuming pages
 - [Phase 34.4-01]: useCategoryBreakdown and useResponseTimes queries now include report_date field for quarter date range filtering — no breaking change to response shape
 - [Phase 34.4-01]: TimePeriodControls generates year list dynamically from current date — always shows current and previous FY, no hardcoded years
+- [Phase 34.4]: CategoryDonutChart uses custom flex-wrap legend div instead of built-in Recharts Legend to avoid overflow issues
+- [Phase 34.4]: SdbipGaugeChart uses startAngle=180 endAngle=0 for semi-circle gauge and cy=80% to vertically center arc
+- [Phase 34.4]: ServicePerformanceStats returns null for all-municipalities view — MunicipalityLeaderboard fully replaces it from TransparencyDashboardPage
 
 ### Pending Todos
 
@@ -484,5 +501,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 34.4-01-PLAN.md — data foundation for public dashboard analytics: LeaderboardEntry type, SA FY utility (saFinancialYear.ts), quarter-aware useResponseTimes/useResolutionRates/useCategoryBreakdown hooks, TimePeriodControls component, mockLeaderboard data. All heatmap/system summary code deleted. TypeScript compiles clean, build passes. Commits 4517913 and 5eed349.
+Stopped at: Completed 34.4-02-PLAN.md — Recharts visualizations for public dashboard: ResolutionTrendChart (LineChart), CategoryDonutChart (PieChart donut), SdbipGaugeChart (RadialBarChart semi-circle), MunicipalityLeaderboard (sortable with rank deltas). ServicePerformanceStats refactored. TransparencyDashboardPage orchestrates all components with TimePeriodControls + financialYear/quarter state. Phase 34.4 COMPLETE. Commits e3a4e9e and 39685f4.
 Resume file: None
