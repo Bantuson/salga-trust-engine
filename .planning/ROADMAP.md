@@ -246,7 +246,7 @@ Plans:
 **Goal:** Replace the stale graceful-skip onboarding and auth E2E specs with strict, comprehensive tests. Delete onboarding.spec.ts and onboarding-journey.spec.ts. Rewrite OnboardingWizardPage page object for the 9-step v2 wizard. Create auth-login.spec.ts (5-role login + invalid credentials) and onboarding-pipeline.spec.ts (request-access form validation, SALGA admin approval/rejection, wizard step navigation). All tests use strict assertions — no graceful skip patterns.
 **Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 2 plans across 2 waves
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 34.5-01-PLAN.md — Delete old onboarding.spec.ts + onboarding-journey.spec.ts, rewrite OnboardingWizardPage for 9-step v2 wizard, create strict auth-login.spec.ts (5-role login + invalid credentials) [Wave 1]

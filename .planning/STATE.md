@@ -3,6 +3,19 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
+last_updated: "2026-03-04T08:48:25.199Z"
+progress:
+  total_phases: 13
+  completed_phases: 11
+  total_plans: 43
+  completed_plans: 40
+---
+
+---
+gsd_state_version: 1.0
+milestone: v2.0
+milestone_name: Senior Municipal Roles & PMS Integration
+status: unknown
 last_updated: "2026-03-04T05:56:14.895Z"
 progress:
   total_phases: 12
@@ -349,6 +362,7 @@ Progress: [██████████] 100% (Plan 2/2 of Phase 34.4 done —
 | Phase 34.3 P34.3-02 | 35 | 2 tasks | 6 files |
 | Phase 34.4-01 P01 | 20 | 2 tasks | 5 files |
 | Phase 34.4 P02 | 4 | 2 tasks | 6 files |
+| Phase 34.5-municipal-onboarding-auth-system-tests P01 | 6 | 2 tasks | 4 files |
 
 ## Accumulated Context
 
@@ -491,6 +505,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.4]: CategoryDonutChart uses custom flex-wrap legend div instead of built-in Recharts Legend to avoid overflow issues
 - [Phase 34.4]: SdbipGaugeChart uses startAngle=180 endAngle=0 for semi-circle gauge and cy=80% to vertically center arc
 - [Phase 34.4]: ServicePerformanceStats returns null for all-municipalities view — MunicipalityLeaderboard fully replaces it from TransparencyDashboardPage
+- [Phase 34.5-01]: Deleted pervasive graceful-skip onboarding specs instead of fixing — test.skip() patterns make them deceptive safety theater
+- [Phase 34.5-01]: OnboardingWizardPage rewrites storage key to salga_onboarding_wizard_v3 (v3) and uses step indicator regex /Step \d+ of 9:/i for v2 9-step wizard detection
+- [Phase 34.5-01]: auth-login.spec.ts creates fresh browser context per test (NOT pre-cached fixtures) — tests the login flow itself, not cached session reuse
 
 ### Pending Todos
 
