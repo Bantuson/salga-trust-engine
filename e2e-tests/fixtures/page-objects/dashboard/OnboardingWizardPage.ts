@@ -1,23 +1,22 @@
 /**
  * Page Object: Municipal Dashboard Onboarding Wizard Page
  *
- * Encapsulates interactions with OnboardingWizardPage.tsx
- * Multi-step wizard: Welcome → Profile → Team → Wards → SLA → Completion
+ * Encapsulates interactions with OnboardingWizardPage.tsx (v2 — 9-step wizard).
  *
- * Actual step titles from the components:
- * - Welcome: h1 "Welcome to SALGA Trust Engine!"
- * - Profile: h2 "Municipality Profile"
- * - Team: h2 "Invite Your Team"
- * - Wards: h2 "Configure Your Wards"
- * - SLA: h2 "Set SLA Targets"
- * - Completion: h1 "Your Dashboard is Ready!"
+ * Step indicator text: "Step N of 9: {STEP_LABELS[step]}"
  *
- * Navigation buttons are <Button> components rendered by OnboardingWizardPage:
- * - "Back" (ghost variant)
- * - "Skip" (ghost variant, only for team/wards/sla steps)
- * - "Next" or "Finish" (primary variant)
- * Welcome has "Start Setup" button from WelcomeStep component.
- * Completion has "Go to Dashboard" button from CompletionStep.
+ * Storage key: 'salga_onboarding_wizard_v3'
+ *
+ * Steps (in order):
+ *   1. welcome        — Welcome
+ *   2. departments    — Departments
+ *   3. invite-tier1   — Tier 1 Leaders
+ *   4. invite-directors — Directors
+ *   5. invite-dept-managers — Dept Managers
+ *   6. create-teams   — Teams
+ *   7. invite-supervisors — Supervisors
+ *   8. sla-config     — SLA & Wards
+ *   9. pms-gate       — Readiness Check
  */
 
 import { Page, Locator } from '@playwright/test';
@@ -25,119 +24,150 @@ import { Page, Locator } from '@playwright/test';
 export class OnboardingWizardPage {
   readonly page: Page;
 
-  // Navigation buttons (from OnboardingWizardPage step navigation bar)
+  // Step definitions matching frontend OnboardingWizardPage.tsx v3
+  static readonly STEPS = [
+    'welcome',
+    'departments',
+    'invite-tier1',
+    'invite-directors',
+    'invite-dept-managers',
+    'create-teams',
+    'invite-supervisors',
+    'sla-config',
+    'pms-gate',
+  ] as const;
+
+  static readonly STEP_LABELS: Record<string, string> = {
+    welcome: 'Welcome',
+    departments: 'Departments',
+    'invite-tier1': 'Tier 1 Leaders',
+    'invite-directors': 'Directors',
+    'invite-dept-managers': 'Dept Managers',
+    'create-teams': 'Teams',
+    'invite-supervisors': 'Supervisors',
+    'sla-config': 'SLA & Wards',
+    'pms-gate': 'Readiness Check',
+  };
+
+  // Step indicator — "Step N of 9: {label}"
+  readonly stepIndicator: Locator;
+
+  // Navigation buttons
   readonly nextButton: Locator;
   readonly backButton: Locator;
   readonly skipButton: Locator;
 
-  // Welcome step button (separate from nav, inside WelcomeStep component)
+  // Welcome step button
   readonly startButton: Locator;
 
-  // Completion step button
-  readonly dashboardButton: Locator;
-
-  // Step-specific locators based on actual rendered headings
-  readonly welcomeStepTitle: Locator;
-  readonly profileStepTitle: Locator;
-  readonly teamStepTitle: Locator;
-  readonly wardsStepTitle: Locator;
-  readonly slaStepTitle: Locator;
-  readonly completionStepTitle: Locator;
+  // Final step button
+  readonly finishButton: Locator;
 
   constructor(page: Page) {
     this.page = page;
 
-    // Navigation buttons — these are the shared <Button> components
-    // "Next" or "Finish" text depending on step
-    this.nextButton = page.locator('button').filter({ hasText: /^Next$|^Finish$/i });
+    this.stepIndicator = page.locator('span').filter({ hasText: /Step \d+ of 9:/i });
+
+    this.nextButton = page.locator('button').filter({ hasText: /^Next$/i });
     this.backButton = page.locator('button').filter({ hasText: /^Back$/i });
     this.skipButton = page.locator('button').filter({ hasText: /^Skip$/i });
 
-    // Welcome step "Start Setup" button (inside WelcomeStep, not in nav bar)
-    this.startButton = page.locator('button').filter({ hasText: /Start Setup/i });
-
-    // Completion step "Go to Dashboard" button
-    this.dashboardButton = page.locator('button').filter({ hasText: /Go to Dashboard/i });
-
-    // Step titles — match actual h1/h2 text from each step component
-    this.welcomeStepTitle = page.locator('h1').filter({ hasText: /Welcome/i });
-    this.profileStepTitle = page.locator('h2').filter({ hasText: /Municipality Profile/i });
-    this.teamStepTitle = page.locator('h2').filter({ hasText: /Invite Your Team/i });
-    this.wardsStepTitle = page.locator('h2').filter({ hasText: /Configure Your Wards/i });
-    this.slaStepTitle = page.locator('h2').filter({ hasText: /Set SLA Targets/i });
-    this.completionStepTitle = page.locator('h1').filter({ hasText: /Your Dashboard is Ready/i });
+    this.startButton = page.locator('button').filter({ hasText: /Start Setup|Get Started|Begin/i });
+    this.finishButton = page.locator('button').filter({ hasText: /Finish|Complete|Go to Dashboard/i });
   }
 
   /**
    * Navigate to onboarding wizard.
-   * Clears cached wizard state to ensure fresh start.
-   * Returns true if wizard is visible, false if redirected to dashboard.
+   * Clears the v3 wizard storage key, navigates to /onboarding,
+   * suppresses GSAP to speed up transitions, then verifies the wizard loaded.
    */
   async goto(): Promise<boolean> {
-    // Clear any cached wizard state from prior test runs
-    // May fail if page hasn't navigated to the app yet — that's fine
-    await this.page.evaluate(() => {
-      try { localStorage.removeItem('salga_onboarding_wizard_data'); } catch (_) {}
-    }).catch(() => {});
-
+    // Navigate first so we have a page context, then clear storage
     await this.page.goto('/onboarding', { waitUntil: 'domcontentloaded' });
 
-    // Wait for loading state ("Loading your progress...") to disappear
-    const loadingText = this.page.locator('p', { hasText: /Loading your progress/i });
-    await loadingText.waitFor({ state: 'hidden', timeout: 15000 }).catch(() => {});
+    // Clear correct v3 storage key to ensure fresh start
+    await this.page.evaluate(() => {
+      try {
+        localStorage.removeItem('salga_onboarding_wizard_v3');
+      } catch (_) {
+        // Ignore storage errors
+      }
+    });
 
-    // Wait for GSAP entrance animation to complete
-    await this.page.waitForTimeout(2000);
+    // Reload after clearing storage so wizard initializes from scratch
+    await this.page.reload({ waitUntil: 'domcontentloaded' });
 
-    // Check if we're on the wizard or redirected to dashboard
-    const onWizard =
-      (await this.welcomeStepTitle.isVisible().catch(() => false)) ||
-      (await this.profileStepTitle.isVisible().catch(() => false)) ||
-      (await this.teamStepTitle.isVisible().catch(() => false)) ||
-      (await this.wardsStepTitle.isVisible().catch(() => false)) ||
-      (await this.slaStepTitle.isVisible().catch(() => false)) ||
-      (await this.completionStepTitle.isVisible().catch(() => false));
+    // Suppress GSAP animations to speed up test execution
+    await this.page.evaluate(() => {
+      if ((window as any).gsap) {
+        (window as any).gsap.globalTimeline.timeScale(100);
+      }
+    });
 
-    return onWizard;
-  }
-
-  /**
-   * Get current step based on visible title.
-   * Waits briefly for GSAP transitions to settle before checking visibility.
-   */
-  async getCurrentStep(): Promise<string> {
-    // Allow GSAP transition to settle
+    // Wait for animations to settle
     await this.page.waitForTimeout(500);
 
-    // Check each step title visibility (order matters for disambiguation)
-    // Use waitFor with short timeout to be more reliable than bare isVisible
-    try { await this.welcomeStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'welcome'; } catch {}
-    try { await this.profileStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'profile'; } catch {}
-    try { await this.teamStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'team'; } catch {}
-    try { await this.wardsStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'wards'; } catch {}
-    try { await this.slaStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'sla'; } catch {}
-    try { await this.completionStepTitle.waitFor({ state: 'visible', timeout: 3000 }); return 'complete'; } catch {}
-    return 'unknown';
+    // Check if step indicator is visible (wizard loaded)
+    return await this.stepIndicator.isVisible().catch(() => false);
   }
 
   /**
-   * Click "Start Setup" on welcome screen
+   * Get current step key by parsing the step indicator text.
+   * Returns the step key (e.g. 'welcome', 'departments') or 'unknown' if not found.
+   */
+  async getCurrentStep(): Promise<string> {
+    // Allow GSAP transition to settle (suppressed — 500ms is sufficient)
+    await this.page.waitForTimeout(500);
+
+    try {
+      const indicatorText = await this.stepIndicator.textContent({ timeout: 3000 });
+      if (!indicatorText) return 'unknown';
+
+      const match = indicatorText.match(/Step (\d+) of 9:/i);
+      if (!match) return 'unknown';
+
+      const stepNumber = parseInt(match[1], 10);
+      const stepKey = OnboardingWizardPage.STEPS[stepNumber - 1];
+      return stepKey ?? 'unknown';
+    } catch {
+      return 'unknown';
+    }
+  }
+
+  /**
+   * Get current step number (1-based) by parsing the step indicator text.
+   * Returns 0 if not found.
+   */
+  async getStepNumber(): Promise<number> {
+    try {
+      const indicatorText = await this.stepIndicator.textContent({ timeout: 3000 });
+      if (!indicatorText) return 0;
+
+      const match = indicatorText.match(/Step (\d+) of 9:/i);
+      if (!match) return 0;
+
+      return parseInt(match[1], 10);
+    } catch {
+      return 0;
+    }
+  }
+
+  /**
+   * Click "Start Setup" / "Get Started" / "Begin" on the welcome step
    */
   async clickStart() {
     await this.startButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.startButton.click();
-    // Wait for GSAP transition to next step
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForTimeout(500);
   }
 
   /**
-   * Go to next step (clicks "Next" or "Finish" button)
+   * Go to next step (clicks "Next" button)
    */
   async goToNextStep() {
     await this.nextButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.nextButton.click();
-    // Wait for GSAP transition + possible backend round-trip
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -146,8 +176,7 @@ export class OnboardingWizardPage {
   async goBack() {
     await this.backButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.backButton.click();
-    // Wait for GSAP transition
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForTimeout(500);
   }
 
   /**
@@ -156,95 +185,15 @@ export class OnboardingWizardPage {
   async skipStep() {
     await this.skipButton.waitFor({ state: 'visible', timeout: 30000 });
     await this.skipButton.click();
-    // Wait for GSAP transition
-    await this.page.waitForTimeout(1500);
+    await this.page.waitForTimeout(500);
   }
 
   /**
-   * Fill profile step using .input-wrapper label matching.
-   * ProfileStep renders these inputs via shared Input component:
-   * - "Full Municipality Name *"
-   * - "Municipality Code *"
-   * - Province <select id="province">
-   * - "Contact Email *" (type="email")
-   * - "Contact Phone *" (type="tel")
-   * - "Primary Contact Person Name *"
-   * - "Primary Contact Person Title"
+   * Click finish/complete button on the final step
    */
-  async fillProfileStep(data: {
-    municipalityName?: string;
-    municipalityCode?: string;
-    province?: string;
-    contactEmail?: string;
-    contactPhone?: string;
-    contactPersonName?: string;
-  }) {
-    if (data.municipalityName) {
-      const nameInput = this.page
-        .locator('.input-wrapper')
-        .filter({ hasText: /Full Municipality Name/i })
-        .locator('input');
-      await nameInput.waitFor({ state: 'visible', timeout: 30000 });
-      await nameInput.fill(data.municipalityName);
-    }
-
-    if (data.municipalityCode) {
-      const codeInput = this.page
-        .locator('.input-wrapper')
-        .filter({ hasText: /Municipality Code/i })
-        .locator('input');
-      await codeInput.fill(data.municipalityCode);
-    }
-
-    if (data.province) {
-      await this.page.locator('select#province').selectOption(data.province);
-    }
-
-    if (data.contactEmail) {
-      const emailInput = this.page
-        .locator('.input-wrapper')
-        .filter({ hasText: /Contact Email/i })
-        .locator('input');
-      await emailInput.fill(data.contactEmail);
-    }
-
-    if (data.contactPhone) {
-      const phoneInput = this.page
-        .locator('.input-wrapper')
-        .filter({ hasText: /Contact Phone/i })
-        .locator('input');
-      await phoneInput.fill(data.contactPhone);
-    }
-
-    if (data.contactPersonName) {
-      const personInput = this.page
-        .locator('.input-wrapper')
-        .filter({ hasText: /Primary Contact Person Name/i })
-        .locator('input');
-      await personInput.fill(data.contactPersonName);
-    }
-  }
-
-  /**
-   * Fill team step (invite team members)
-   */
-  async fillTeamStep(data: { invitations: Array<{ email: string; role: string }> }) {
-    for (const invite of data.invitations) {
-      const emailInput = this.page.locator('input[type="email"]').last();
-      const roleSelect = this.page.locator('select').last();
-      const addButton = this.page.locator('button').filter({ hasText: /Add Another/i }).last();
-
-      await emailInput.waitFor({ state: 'visible', timeout: 30000 });
-      await emailInput.fill(invite.email);
-      await roleSelect.selectOption(invite.role);
-      await addButton.click();
-    }
-  }
-
-  /**
-   * Check if wizard is complete
-   */
-  async isComplete(): Promise<boolean> {
-    return await this.completionStepTitle.isVisible();
+  async clickFinish() {
+    await this.finishButton.waitFor({ state: 'visible', timeout: 30000 });
+    await this.finishButton.click();
+    await this.page.waitForTimeout(500);
   }
 }
