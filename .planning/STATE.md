@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-03T22:46:51.607Z"
+last_updated: "2026-03-04T05:43:29.126Z"
 progress:
   total_phases: 12
   completed_phases: 10
-  total_plans: 39
-  completed_plans: 37
+  total_plans: 41
+  completed_plans: 38
 ---
 
 ---
@@ -265,16 +265,16 @@ progress:
 See: .planning/PROJECT.md (updated 2026-02-28)
 
 **Core value:** Citizens report a problem and the municipality visibly responds — now connected end-to-end from citizen complaint to Council statutory report.
-**Current focus:** Phase 34.3 COMPLETE — Modal scroll fix for mouse wheel support (all 2 plans done)
+**Current focus:** Phase 34.4 IN PROGRESS — Public dashboard municipal analytics enhancement (plan 1/2 done)
 
 ## Current Position
 
-Phase: 34.3 of 34.3 (Modal Scroll Fix for Mouse Wheel Support)
-Plan: 2 of 2 complete
-Status: Plan 34.3-02 complete — data-lenis-prevent added to 3 remaining dashboard modal body divs + 2 public frontend dropdown panels; modal-scroll spec import path fixed.
-Last activity: 2026-03-04 — 34.3-02 complete: InviteUserModal, CreateDepartmentModal, MunicipalityDetailModal (Pattern A body divs), CustomSelect (listbox div), CitizenRegisterPage MunicipalityDropdown panel all fixed. Spec import bug fixed. Commits ad5057b and 25a739b.
+Phase: 34.4 of 34.4 (Public Dashboard Municipal Analytics Enhancement)
+Plan: 1 of 2 complete
+Status: Plan 34.4-01 complete — data foundation: LeaderboardEntry type, SA FY utility, quarter-aware hooks (useResponseTimes/useResolutionRates/useCategoryBreakdown), TimePeriodControls component. All unused heatmap/system summary code deleted.
+Last activity: 2026-03-04 — 34.4-01 complete: saFinancialYear.ts utility created, mockLeaderboard added, 3 hooks extended with financialYear+quarter params, TimePeriodControls component created. Commits 4517913 and 5eed349.
 
-Progress: [██████████] 100% (Plan 2/2 of Phase 34.3 done)
+Progress: [█████░░░░░] 50% (Plan 1/2 of Phase 34.4 done)
 
 ## Performance Metrics
 
@@ -321,6 +321,7 @@ Progress: [██████████] 100% (Plan 2/2 of Phase 34.3 done)
 | Phase 34.2-dropdown-menu-styling-across-all-roles-and-pages P02 | 9 | 2 tasks | 13 files |
 | Phase 34.3 P01 | 12 | 2 tasks | 9 files |
 | Phase 34.3 P34.3-02 | 35 | 2 tasks | 6 files |
+| Phase 34.4-01 P01 | 20 | 2 tasks | 5 files |
 
 ## Accumulated Context
 
@@ -457,6 +458,9 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.3]: [Phase 34.3-02]: All 3 remaining dashboard modals confirmed Pattern A — styles.modal has overflow:hidden, styles.body has overflowY:auto; data-lenis-prevent goes on body div not modal div
 - [Phase 34.3]: [Phase 34.3-02]: modal-scroll.spec.ts import path bug fixed — spec at tests/modal-scroll.spec.ts needs ../fixtures/auth not ../../fixtures/auth
 - [Phase 34.3]: [Phase 34.3-02]: Inline dropdown panels (role=listbox, anonymous divs with overflowY:auto) need data-lenis-prevent same as modal body divs — applies to public frontend too
+- [Phase 34.4-01]: getDefaultTimePeriod exported from TimePeriodControls for initializing component state — avoids duplicating getSAFinancialYear/getCurrentSAQuarter calls in consuming pages
+- [Phase 34.4-01]: useCategoryBreakdown and useResponseTimes queries now include report_date field for quarter date range filtering — no breaking change to response shape
+- [Phase 34.4-01]: TimePeriodControls generates year list dynamically from current date — always shows current and previous FY, no hardcoded years
 
 ### Pending Todos
 
@@ -480,5 +484,5 @@ None.
 ## Session Continuity
 
 Last session: 2026-03-04
-Stopped at: Completed 34.3-02-PLAN.md — all 5 remaining scrollable elements fixed (3 dashboard modal body divs + 2 public dropdown panels); modal-scroll spec import path fixed; E2E 1 passed 1 skipped; Phase 34.3 fully complete. Commits ad5057b and 25a739b.
+Stopped at: Completed 34.4-01-PLAN.md — data foundation for public dashboard analytics: LeaderboardEntry type, SA FY utility (saFinancialYear.ts), quarter-aware useResponseTimes/useResolutionRates/useCategoryBreakdown hooks, TimePeriodControls component, mockLeaderboard data. All heatmap/system summary code deleted. TypeScript compiles clean, build passes. Commits 4517913 and 5eed349.
 Resume file: None

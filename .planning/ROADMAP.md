@@ -246,7 +246,7 @@ Plans:
 **Goal:** Enhance the public TransparencyDashboardPage with Recharts data visualizations (line chart for resolution trends, donut chart for category breakdown, radial gauge for SDBIP achievement), replace the basic "All Municipalities" table with a sortable ranking leaderboard with quarterly position deltas, add SA financial year + quarter filtering controls, and delete unused heatmap/summary hooks and types.
 **Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 2 plans
+**Plans:** 1/2 plans executed
 
 Plans:
 - [ ] 34.4-01-PLAN.md — Delete unused heatmap/summary code (hooks, types, mock data), add LeaderboardEntry type, create SA financial year utility, extend hooks with quarter/year filtering, create TimePeriodControls component, add mock leaderboard data [Wave 1]
