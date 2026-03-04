@@ -54,12 +54,12 @@ Full details: `milestones/v1.0-ROADMAP.md`
 
 **Milestone Goal:** Transform the Trust Engine from a citizen service delivery platform into a full-stack municipal operating system — connecting citizen complaints on the ground to Council statutory reporting at the top — by implementing the Performance Management System (PMS) modules mandated by the Municipal Systems Act (MSA) and Municipal Finance Management Act (MFMA).
 
-- [x] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality (completed 2026-02-28)
+- [x] **Phase 27: RBAC Foundation & Tenant Configuration** - Extend role hierarchy to 4 tiers, configure department structure per municipality (completed 2026-02-28)
 - [x] **Phase 28: IDP, SDBIP Core & Performance Monitoring** - Build the data backbone: strategic plans, KPIs, quarterly actuals, evidence, and the auto-population engine (completed 2026-03-01)
-- [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
-- [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
-- [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
-- [x] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data (completed 2026-03-02)
+- [x] **Phase 29: Individual Performance Agreements** - Section 57 manager agreements, quarterly reviews, annual assessments (completed 2026-03-01)
+- [x] **Phase 30: Statutory Reporting & Approval Workflows** - Auto-generate Section 52/72/46/121 reports with AG-compliant approval chains and deadline tracking (completed 2026-03-01)
+- [x] **Phase 31: Role-Specific Dashboards** - CFO, Municipal Manager, Mayor, Council, and oversight dashboards for all 12 senior roles (completed 2026-03-02)
+- [x] **Phase 32: Risk Register & Public Transparency** - KPI-linked risk register and public SDBIP achievement data (completed 2026-03-02)
 - [x] **Phase 33: Comprehensive v2.0 Gap Closure** - Fix all integration bugs (BUG-1–4), missing pages/routes, PA-01 form gap, IDP-04 route, Phase 27/28 verification, stale tracking, PMS readiness gate (completed 2026-03-02)
 - [x] **Phase 34: Municipal Onboarding Production Readiness** - Onboarding wizard, tier 1-4 user creation, department activation gates, UI fixes, page deduplication, per-role user journeys, Playwright E2E production readiness validation (completed 2026-03-03)
 
@@ -239,17 +239,18 @@ Plans:
 
 ---
 *Roadmap created: 2026-02-09*
-*Last updated: 2026-03-02 (Phase 34 planned — 6 plans across 4 waves)*
+*Last updated: 2026-03-04 (Phase 34.4 planned — 2 plans across 2 waves)*
 
 ### Phase 34.4: Public dashboard municipal analytics enhancement (INSERTED)
 
-**Goal:** [Urgent work - to be planned]
-**Requirements**: TBD
+**Goal:** Enhance the public TransparencyDashboardPage with Recharts data visualizations (line chart for resolution trends, donut chart for category breakdown, radial gauge for SDBIP achievement), replace the basic "All Municipalities" table with a sortable ranking leaderboard with quarterly position deltas, add SA financial year + quarter filtering controls, and delete unused heatmap/summary hooks and types.
+**Requirements**: None (inserted urgent work)
 **Depends on:** Phase 34
-**Plans:** 0 plans
+**Plans:** 2 plans
 
 Plans:
-- [ ] TBD (run /gsd:plan-phase 34.4 to break down)
+- [ ] 34.4-01-PLAN.md — Delete unused heatmap/summary code (hooks, types, mock data), add LeaderboardEntry type, create SA financial year utility, extend hooks with quarter/year filtering, create TimePeriodControls component, add mock leaderboard data [Wave 1]
+- [ ] 34.4-02-PLAN.md — Create 3 Recharts chart components (ResolutionTrendChart, CategoryDonutChart, SdbipGaugeChart) + MunicipalityLeaderboard, refactor ServicePerformanceStats to use charts, rewire TransparencyDashboardPage with time period state and leaderboard [Wave 2]
 
 ### Phase 34.3: Modal scroll fix for mouse wheel support (INSERTED)
 
