@@ -12,6 +12,7 @@ interface MunicipalityLeaderboardProps {
   responseTimes: ResponseTimeData[];
   resolutionRates: ResolutionRateData[];
   sdbipData: SdbipAchievementData[];
+  onSelectMunicipality?: (entry: LeaderboardEntry) => void;
 }
 
 type SortKey = 'resolution_rate' | 'avg_response_hours' | 'sdbip_achievement_pct' | 'total_tickets';
@@ -135,6 +136,7 @@ export function MunicipalityLeaderboard({
   responseTimes,
   resolutionRates,
   sdbipData,
+  onSelectMunicipality,
 }: MunicipalityLeaderboardProps) {
   const [sortKey, setSortKey] = useState<SortKey>('resolution_rate');
 
@@ -232,10 +234,23 @@ export function MunicipalityLeaderboard({
             {leaderboard.map(entry => (
               <tr
                 key={entry.municipality_id}
+                onClick={() => onSelectMunicipality?.(entry)}
                 style={{
                   ...getRowStyle(entry.current_rank),
                   borderBottom: '1px solid rgba(255,255,255,0.06)',
                   transition: 'background 0.15s ease',
+                  cursor: onSelectMunicipality ? 'pointer' : 'default',
+                }}
+                onMouseEnter={(e) => {
+                  if (onSelectMunicipality) {
+                    e.currentTarget.style.background = 'rgba(0, 191, 165, 0.12)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (onSelectMunicipality) {
+                    const style = getRowStyle(entry.current_rank);
+                    e.currentTarget.style.background = style.background as string || '';
+                  }
                 }}
               >
                 {/* Rank + delta */}

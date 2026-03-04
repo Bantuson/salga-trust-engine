@@ -4,7 +4,9 @@ import { MunicipalitySelector } from '../components/MunicipalitySelector';
 import { ServicePerformanceStats } from '../components/ServicePerformanceStats';
 import { TimePeriodControls } from '../components/TimePeriodControls';
 import { MunicipalityLeaderboard } from '../components/MunicipalityLeaderboard';
+import { MunicipalityDetailModal } from '../components/MunicipalityDetailModal';
 import { SdbipGaugeChart } from '../components/SdbipGaugeChart';
+import type { LeaderboardEntry } from '../types/public';
 import {
   useResponseTimes,
   useResolutionRates,
@@ -19,6 +21,9 @@ export function TransparencyDashboardPage() {
   // Time period state — defaults to current SA financial year and quarter
   const [financialYear, setFinancialYear] = useState<string>(() => getSAFinancialYear(new Date()));
   const [quarter, setQuarter] = useState<1 | 2 | 3 | 4>(() => getCurrentSAQuarter(new Date()));
+
+  // Municipality detail modal state
+  const [modalEntry, setModalEntry] = useState<LeaderboardEntry | null>(null);
 
   // Load metrics based on selected municipality and time period
   // NOTE: useSdbipAchievement does NOT receive quarter/year — annual data (locked decision)
@@ -78,6 +83,7 @@ export function TransparencyDashboardPage() {
               responseTimes={responseTimes}
               resolutionRates={resolutionRates}
               sdbipData={sdbipData}
+              onSelectMunicipality={setModalEntry}
             />
           ) : (
             <ServicePerformanceStats
@@ -189,16 +195,17 @@ export function TransparencyDashboardPage() {
           )}
         </div>
 
-        {/* Privacy Notice */}
-        <GlassCard variant="elevated" style={{ marginTop: '48px' }}>
-          <div className="privacy-notice">
-            <strong>Privacy Notice:</strong> GBV and sensitive report statistics are included in aggregate figures on this dashboard.
-            However, all personal case data, victim identities, and individual report details are kept strictly
-            private and protected. Individual addresses are not displayed; the heatmap shows aggregated density
-            only (k-anonymity threshold ≥3).
-          </div>
-        </GlassCard>
       </div>
+
+      {/* Municipality Detail Modal */}
+      <MunicipalityDetailModal
+        isOpen={modalEntry !== null}
+        onClose={() => setModalEntry(null)}
+        entry={modalEntry}
+        resolutionRates={resolutionRates}
+        categoryBreakdown={categoryBreakdown}
+        sdbipData={sdbipData}
+      />
     </div>
   );
 }

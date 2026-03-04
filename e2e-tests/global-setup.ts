@@ -35,6 +35,7 @@ import { profile as internalAuditor } from './profiles/municipal/internal-audito
 import { profile as mpacMember } from './profiles/municipal/mpac-member.profile.js';
 import { profile as salgaAdmin } from './profiles/municipal/salga-admin.profile.js';
 import { profile as section56Director } from './profiles/municipal/section56-director.profile.js';
+import { profile as pmsOfficer } from './profiles/municipal/pms-officer.profile.js';
 
 // Load .env.test
 const __filename = fileURLToPath(import.meta.url);
@@ -111,6 +112,7 @@ async function globalSetup() {
       mpacMember,
       salgaAdmin,
       section56Director,
+      pmsOfficer,
     ];
 
     for (const profile of allProfiles) {

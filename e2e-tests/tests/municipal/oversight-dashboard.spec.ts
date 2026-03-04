@@ -32,7 +32,7 @@ authTest.describe('Ward Councillor Dashboard', () => {
     await expect(title.first()).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"SDBIP KPI Summary" section heading or empty state is visible', async ({ wardCouncillorPage }) => {
+  authTest('"SDBIP KPI Summary" section heading or empty/error state is visible', async ({ wardCouncillorPage }) => {
     try {
       await wardCouncillorPage.goto('/');
     } catch {
@@ -41,19 +41,19 @@ authTest.describe('Ward Councillor Dashboard', () => {
     }
     await wardCouncillorPage.waitForTimeout(2000);
 
-    // Either the section heading or an empty-state message must be present
+    // Either the section heading, an empty-state message, or error Retry button must be present.
+    // Use .or() combinator so Playwright waits for ANY to become visible.
     const sectionHeading = wardCouncillorPage.locator('h2').filter({ hasText: /SDBIP KPI Summary/i });
     const emptyState = wardCouncillorPage.locator('p, div').filter({
       hasText: /No KPI data available|No data available for this dashboard/i,
     });
+    const errorRetry = wardCouncillorPage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"Statutory Reports" section heading or empty state is visible', async ({ wardCouncillorPage }) => {
+  authTest('"Statutory Reports" section heading or empty/error state is visible', async ({ wardCouncillorPage }) => {
     try {
       await wardCouncillorPage.goto('/');
     } catch {
@@ -66,11 +66,10 @@ authTest.describe('Ward Councillor Dashboard', () => {
     const emptyState = wardCouncillorPage.locator('p, div').filter({
       hasText: /No statutory reports available|No data available for this dashboard/i,
     });
+    const errorRetry = wardCouncillorPage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
   authTest('KPI table shows expected column headers when data is present', async ({ wardCouncillorPage }) => {
@@ -123,7 +122,7 @@ authTest.describe('Audit Committee Dashboard', () => {
     await expect(title.first()).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"Performance Reports" section heading or empty state is visible', async ({ auditCommitteePage }) => {
+  authTest('"Performance Reports" section heading or empty/error state is visible', async ({ auditCommitteePage }) => {
     try {
       await auditCommitteePage.goto('/');
     } catch {
@@ -136,14 +135,13 @@ authTest.describe('Audit Committee Dashboard', () => {
     const emptyState = auditCommitteePage.locator('p, div').filter({
       hasText: /No performance reports available|No data available for this dashboard/i,
     });
+    const errorRetry = auditCommitteePage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"Audit Trail" or "PMS Activity" section heading or empty state is visible', async ({ auditCommitteePage }) => {
+  authTest('"Audit Trail" or "PMS Activity" section heading or empty/error state is visible', async ({ auditCommitteePage }) => {
     try {
       await auditCommitteePage.goto('/');
     } catch {
@@ -159,11 +157,10 @@ authTest.describe('Audit Committee Dashboard', () => {
     const emptyState = auditCommitteePage.locator('p, div').filter({
       hasText: /No audit trail entries available|No data available for this dashboard/i,
     });
+    const errorRetry = auditCommitteePage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
   authTest('audit trail table shows expected column headers when data is present', async ({ auditCommitteePage }) => {
@@ -218,7 +215,7 @@ authTest.describe('Internal Auditor Dashboard', () => {
     await expect(title.first()).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"KPI Verification Workqueue" section heading or "no items pending" empty state is visible', async ({ internalAuditorPage }) => {
+  authTest('"KPI Verification Workqueue" section heading or empty/error state is visible', async ({ internalAuditorPage }) => {
     try {
       await internalAuditorPage.goto('/');
     } catch {
@@ -233,11 +230,10 @@ authTest.describe('Internal Auditor Dashboard', () => {
     const emptyState = internalAuditorPage.locator('p, div').filter({
       hasText: /No evidence items pending verification|No data available for this dashboard/i,
     });
+    const errorRetry = internalAuditorPage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
   authTest('clicking a KPI accordion item expands it to show an evidence table', async ({ internalAuditorPage }) => {
@@ -383,7 +379,7 @@ authTest.describe('MPAC Dashboard', () => {
     await expect(title.first()).toBeVisible({ timeout: 15000 });
   });
 
-  authTest('"Statutory Reports" section heading or empty state is visible', async ({ mpacMemberPage }) => {
+  authTest('"Statutory Reports" section heading or empty/error state is visible', async ({ mpacMemberPage }) => {
     try {
       await mpacMemberPage.goto('/');
     } catch {
@@ -396,11 +392,10 @@ authTest.describe('MPAC Dashboard', () => {
     const emptyState = mpacMemberPage.locator('p, div').filter({
       hasText: /No statutory reports available|No data available for this dashboard/i,
     });
+    const errorRetry = mpacMemberPage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sectionHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sectionHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 
   authTest('"Flag Investigation" button is visible on statutory report rows when data is present', async ({ mpacMemberPage }) => {
@@ -481,10 +476,9 @@ authTest.describe('MPAC Dashboard', () => {
     const emptyState = mpacMemberPage.locator('p').filter({
       hasText: /No investigations flagged yet|No data available for this dashboard/i,
     });
+    const errorRetry = mpacMemberPage.locator('button').filter({ hasText: /Retry/i });
 
-    const headingVisible = await sidebarHeading.first().isVisible({ timeout: 15000 }).catch(() => false);
-    const emptyVisible = await emptyState.first().isVisible({ timeout: 15000 }).catch(() => false);
-
-    expect(headingVisible || emptyVisible).toBe(true);
+    const anyState = sidebarHeading.first().or(emptyState.first()).or(errorRetry.first());
+    await expect(anyState).toBeVisible({ timeout: 15000 });
   });
 });

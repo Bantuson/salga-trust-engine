@@ -17,6 +17,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { fetchMMDashboard, fetchRiskRegister } from '../services/api';
 import { mockMMDashboard, mockRiskRegister } from '../mocks/mockRoleDashboards';
+import { DEMO_MODE } from '../lib/demoMode';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -48,6 +49,12 @@ export function MunicipalManagerDashboardPage() {
   const [riskData, setRiskData] = useState<any[]>([]);
 
   const loadData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setData(mockMMDashboard);
+      setRiskData(mockRiskRegister);
+      setLoading(false);
+      return;
+    }
     if (!session?.access_token) return;
     setLoading(true);
     setError(null);

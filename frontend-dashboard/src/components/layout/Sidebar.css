@@ -19,7 +19,7 @@
   display: flex;
   flex-direction: column;
   transition: width 0.3s ease;
-  z-index: 100;
+  z-index: 200;
   overflow: hidden;
 }
 
@@ -118,8 +118,22 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
-  overflow-y: auto;
+  overflow-y: hidden;
   overflow-x: hidden;
+}
+
+.sidebar-nav:hover {
+  overflow-y: auto;
+}
+
+/* Hide scrollbar visually but keep scroll functionality */
+.sidebar-nav::-webkit-scrollbar {
+  width: 0;
+  background: transparent;
+}
+
+.sidebar-nav {
+  scrollbar-width: none;
 }
 
 .sidebar-nav-item {

@@ -3,6 +3,8 @@
  * in the DashboardLayout header bar via LayoutHeaderContext.
  *
  * Clears header content on unmount so stale headers don't persist across navigations.
+ *
+ * When title is '', the h1 is skipped and only actions are rendered (full-width).
  */
 
 import { useEffect, type ReactNode, createElement } from 'react';
@@ -12,34 +14,9 @@ export function usePageHeader(title: string, actions?: ReactNode): void {
   const { setHeaderContent } = useLayoutHeader();
 
   useEffect(() => {
-    setHeaderContent(
-      createElement(
-        'div',
-        {
-          style: {
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            width: '100%',
-            gap: 'var(--space-sm)',
-          },
-        },
-        createElement(
-          'h1',
-          {
-            style: {
-              fontSize: 'var(--text-lg)',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              fontFamily: 'var(--font-display)',
-              margin: 0,
-              whiteSpace: 'nowrap',
-              overflow: 'hidden',
-              textOverflow: 'ellipsis',
-            },
-          },
-          title
-        ),
+    // When title is empty, render only the actions at full width
+    if (title === '') {
+      setHeaderContent(
         actions
           ? createElement(
               'div',
@@ -47,15 +24,60 @@ export function usePageHeader(title: string, actions?: ReactNode): void {
                 style: {
                   display: 'flex',
                   alignItems: 'center',
-                  gap: 'var(--space-xs)',
-                  flexShrink: 0,
+                  width: '100%',
                 },
               },
               actions
             )
           : null
-      )
-    );
+      );
+    } else {
+      setHeaderContent(
+        createElement(
+          'div',
+          {
+            style: {
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'flex-start',
+              width: '100%',
+              gap: 'var(--space-lg)',
+            },
+          },
+          createElement(
+            'h1',
+            {
+              style: {
+                fontSize: 'var(--text-lg)',
+                fontWeight: 700,
+                color: 'var(--text-primary)',
+                fontFamily: 'var(--font-display)',
+                margin: 0,
+                whiteSpace: 'nowrap',
+                overflow: 'hidden',
+                textOverflow: 'ellipsis',
+              },
+            },
+            title
+          ),
+          actions
+            ? createElement(
+                'div',
+                {
+                  style: {
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 'var(--space-xs)',
+                    flexShrink: 0,
+                    marginLeft: 'auto',
+                  },
+                },
+                actions
+              )
+            : null
+        )
+      );
+    }
 
     return () => {
       setHeaderContent(null);

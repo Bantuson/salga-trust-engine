@@ -2,7 +2,7 @@
  * SettingsPage — Municipal settings management.
  *
  * Single scrollable page with 8 clearly separated sections.
- * Anchor navigation at top with smooth scroll + active section tracking.
+ * Pink pill-tab navigation embedded in the layout header bar.
  * Role-gated visibility: admin-only sections hidden from managers.
  * beforeunload warning when any section has unsaved changes.
  *
@@ -17,9 +17,12 @@
  *   8. Audit Log (admin-only)
  */
 
-import { useState, useEffect, useRef, useCallback } from 'react';
+import { useState, useEffect, useRef, useCallback, type ReactElement } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { useLayoutHeader } from '../contexts/LayoutHeaderContext';
 import { useSettings } from '../hooks/useSettings';
+import { NotificationBell } from '../components/layout/NotificationBell';
 import { MunicipalityProfile } from '../components/settings/MunicipalityProfile';
 import { SLATargetsSection } from '../components/settings/SLATargetsSection';
 import { NotificationsSection } from '../components/settings/NotificationsSection';
@@ -46,6 +49,97 @@ const ALL_NAV_ITEMS: NavItem[] = [
   { id: 'audit-log', label: 'Audit Log', adminOnly: true },
 ];
 
+const navLinkStyle: React.CSSProperties = {
+  padding: '0.4rem 0.875rem',
+  borderRadius: '999px',
+  border: '1px solid transparent',
+  backgroundColor: 'transparent',
+  color: 'rgba(255, 255, 255, 0.75)',
+  fontSize: '0.875rem',
+  fontWeight: 500,
+  cursor: 'pointer',
+  whiteSpace: 'nowrap',
+  transition: 'var(--transition-fast)',
+  fontFamily: 'var(--font-body)',
+};
+
+const navLinkActiveStyle: React.CSSProperties = {
+  backgroundColor: 'rgba(255, 255, 255, 0.2)',
+  borderColor: 'rgba(255, 255, 255, 0.35)',
+  color: '#ffffff',
+};
+
+function SettingsHeaderNav({
+  navItems,
+  activeSection,
+  isLoading,
+  onScrollTo,
+}: {
+  navItems: NavItem[];
+  activeSection: string;
+  isLoading: boolean;
+  onScrollTo: (id: string) => void;
+}): ReactElement {
+  return (
+    <div
+      style={{
+        position: 'fixed',
+        top: 0,
+        left: '64px',
+        right: 0,
+        height: '48px',
+        display: 'flex',
+        alignItems: 'center',
+        backgroundColor: 'rgba(205, 94, 129, 0.6)',
+        backdropFilter: 'blur(12px)',
+        WebkitBackdropFilter: 'blur(12px)',
+        padding: '0 var(--space-xl)',
+        gap: '0.25rem',
+        zIndex: 101,
+      }}
+    >
+      <div
+        style={{
+          display: 'flex',
+          gap: '0.25rem',
+          overflowX: 'auto',
+          flex: 1,
+          minWidth: 0,
+        }}
+      >
+        {isLoading
+          ? Array.from({ length: 6 }).map((_, i) => (
+              <div
+                key={i}
+                style={{
+                  width: '80px',
+                  height: '30px',
+                  borderRadius: '999px',
+                  backgroundColor: 'var(--skeleton-base)',
+                  flexShrink: 0,
+                }}
+              />
+            ))
+          : navItems.map((item) => (
+              <button
+                key={item.id}
+                onClick={() => onScrollTo(item.id)}
+                style={{
+                  ...navLinkStyle,
+                  ...(activeSection === item.id ? navLinkActiveStyle : {}),
+                }}
+              >
+                {item.label}
+              </button>
+            ))}
+      </div>
+      <div style={{ flexShrink: 0, marginLeft: '0.5rem' }}>
+        <NotificationBell />
+      </div>
+    </div>
+  );
+}
+
 export function SettingsPage() {
   const { getUserRole } = useAuth();
   const role = getUserRole();
@@ -61,7 +155,6 @@ export function SettingsPage() {
 
   const { slaConfigs, municipalityProfile, isLoading, error: settingsError, updateSLA, updateProfile } = useSettings();
 
-  // Treat any settings hook error as a load error for UI purposes
   const loadError = settingsError;
 
   // Active anchor tracking via IntersectionObserver
@@ -96,7 +189,6 @@ export function SettingsPage() {
       (entries) => {
         const visible = entries.filter((e) => e.isIntersecting);
         if (visible.length > 0) {
-          // Use the first visible section
           setActiveSection(visible[0].target.id);
         }
       },
@@ -144,50 +236,29 @@ export function SettingsPage() {
     [updateSLA]
   );
 
+  // Hide the default bell in DashboardLayout — we embed our own
+  const { setHideDefaultBell } = useLayoutHeader();
+  useEffect(() => {
+    setHideDefaultBell(true);
+    return () => setHideDefaultBell(false);
+  }, [setHideDefaultBell]);
+
+  // No usePageHeader — we render the pink bar directly as a fixed element
+  const { setHeaderContent } = useLayoutHeader();
+  useEffect(() => {
+    setHeaderContent(null);
+    return () => setHeaderContent(null);
+  }, [setHeaderContent]);
+
   return (
     <div>
-      {/* Page header row — aligns with notification bell (48px height) */}
-      <div style={{
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'space-between',
-        minHeight: '48px',
-        padding: 'var(--space-md) 0',
-        marginBottom: 'var(--space-sm)',
-      }}>
-        <h1 style={{
-          fontSize: '1.875rem',
-          fontWeight: 700,
-          color: 'var(--text-primary)',
-          margin: 0,
-          fontFamily: 'var(--font-display)',
-        }}>
-          Settings
-        </h1>
-      </div>
-
-      {/* Anchor navigation — full width, flush at top */}
-      <nav style={styles.anchorNav} aria-label="Settings sections">
-        <div style={styles.navInner}>
-          {isLoading
-            ? Array.from({ length: 6 }).map((_, i) => (
-                <div key={i} style={styles.navSkeleton} />
-              ))
-            : navItems.map((item) => (
-                <button
-                  key={item.id}
-                  onClick={() => scrollToSection(item.id)}
-                  style={{
-                    ...styles.navLink,
-                    ...(activeSection === item.id ? styles.navLinkActive : {}),
-                  }}
-                >
-                  {item.label}
-                </button>
-              ))}
-        </div>
-      </nav>
-
+      {/* Fixed pink header bar — spans full header area */}
+      <SettingsHeaderNav
+        navItems={navItems}
+        activeSection={activeSection}
+        isLoading={isLoading}
+        onScrollTo={scrollToSection}
+      />
       {/* Sections */}
       <div style={styles.container}>
       <div style={styles.sections}>
@@ -261,52 +332,6 @@ const styles: Record<string, React.CSSProperties> = {
     maxWidth: '1400px',
     margin: '0 auto',
     padding: '0 2rem 2rem 2rem',
-  },
-  anchorNav: {
-    position: 'sticky',
-    top: 0,
-    zIndex: 10,
-    backgroundColor: 'rgba(205, 94, 129, 0.6)',
-    backdropFilter: 'blur(12px)',
-    WebkitBackdropFilter: 'blur(12px)',
-    borderBottom: '1px solid var(--glass-border)',
-    marginTop: 'calc(-1 * var(--space-2xl))',
-    marginLeft: 'calc(-1 * var(--space-2xl))',
-    marginRight: 'calc(-1 * var(--space-2xl))',
-    paddingLeft: 'var(--space-2xl)',
-    paddingRight: 'var(--space-2xl)',
-    marginBottom: 'var(--space-lg)',
-  },
-  navInner: {
-    display: 'flex',
-    gap: '0.25rem',
-    overflowX: 'auto',
-    padding: '0.625rem 0',
-  },
-  navLink: {
-    padding: '0.4rem 0.875rem',
-    borderRadius: '999px',
-    border: '1px solid transparent',
-    backgroundColor: 'transparent',
-    color: 'var(--text-secondary)',
-    fontSize: '0.875rem',
-    fontWeight: 500,
-    cursor: 'pointer',
-    whiteSpace: 'nowrap',
-    transition: 'var(--transition-fast)',
-    fontFamily: 'var(--font-body)',
-  },
-  navLinkActive: {
-    backgroundColor: 'rgba(255, 255, 255, 0.15)',
-    borderColor: 'rgba(255, 255, 255, 0.25)',
-    color: 'var(--text-primary)',
-  },
-  navSkeleton: {
-    width: '80px',
-    height: '30px',
-    borderRadius: '999px',
-    backgroundColor: 'var(--skeleton-base)',
-    flexShrink: 0,
   },
   sections: {
     maxWidth: '960px',

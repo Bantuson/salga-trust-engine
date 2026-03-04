@@ -17,6 +17,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { fetchMayorDashboard, approveSdbip } from '../services/api';
 import { mockMayorDashboard } from '../mocks/mockRoleDashboards';
+import { DEMO_MODE } from '../lib/demoMode';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -45,6 +46,11 @@ export function MayorDashboardPage() {
   const [approveSuccess, setApproveSuccess] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setData(mockMayorDashboard);
+      setLoading(false);
+      return;
+    }
     if (!session?.access_token) return;
     setLoading(true);
     setError(null);

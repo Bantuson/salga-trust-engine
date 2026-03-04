@@ -8,12 +8,14 @@
  * Routes: /pms/idp (standalone) or embedded inside PmsHubPage
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface IDPCycle {
   id: string;
@@ -71,6 +73,12 @@ export function IdpPage({ embedded = false, showForm: externalShowForm, onToggle
   const showForm = embedded ? (externalShowForm ?? false) : internalShowForm;
   const toggleForm = embedded ? onToggleForm : () => setInternalShowForm(p => !p);
 
+  usePageHeader(
+    embedded ? '' : 'IDP Management',
+    !embedded ? createElement(Button, { variant: 'primary', size: 'sm', onClick: toggleForm },
+      showForm ? 'Cancel' : '+ Create IDP Cycle') : undefined
+  );
+
   const [form, setForm] = useState<CreateCycleForm>({
     title: '',
     vision: '',
@@ -80,6 +88,11 @@ export function IdpPage({ embedded = false, showForm: externalShowForm, onToggle
   });
 
   const fetchCycles = useCallback(async () => {
+    if (DEMO_MODE) {
+      setCycles(DEMO_CYCLES);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -163,79 +176,35 @@ export function IdpPage({ embedded = false, showForm: externalShowForm, onToggle
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      {/* Header — only shown in standalone mode */}
-      {!embedded && (
-        <div style={headerStyles}>
-          <div>
-            <h1 style={titleStyles}>IDP Management</h1>
-            <p style={subtitleStyles}>Manage Integrated Development Plan cycles for your municipality</p>
-          </div>
-          <Button variant="primary" size="sm" onClick={toggleForm}>
-            {showForm ? 'Cancel' : '+ Create IDP Cycle'}
-          </Button>
-        </div>
-      )}
-
       {showForm && (
-        <GlassCard style={formCardStyles}>
-          <h2 style={{ ...titleStyles, fontSize: 'var(--text-lg)', marginBottom: 'var(--space-lg)' }}>
-            New IDP Cycle
-          </h2>
-          {formError && <p style={errorTextStyles}>{formError}</p>}
-          <form onSubmit={handleCreate}>
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Title *"
-                value={form.title}
-                onChange={(e) => handleFormChange('title', e.target.value)}
-                placeholder="e.g., IDP 2022-2027"
-                required
-              />
+        <div style={modalOverlayStyles} onClick={() => toggleForm?.()}>
+          <div style={modalCardStyles} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+              <h2 style={{ ...titleStyles, fontSize: 'var(--text-lg)', margin: 0 }}>New IDP Cycle</h2>
+              <button onClick={() => toggleForm?.()} style={modalCloseStyles}>&times;</button>
             </div>
-            <div style={formGridStyles}>
-              <Input
-                label="Start Year *"
-                type="number"
-                value={form.start_year}
-                onChange={(e) => handleFormChange('start_year', e.target.value)}
-                placeholder="2022"
-                required
-              />
-              <Input
-                label="End Year *"
-                type="number"
-                value={form.end_year}
-                onChange={(e) => handleFormChange('end_year', e.target.value)}
-                placeholder="2027"
-                required
-              />
-            </div>
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Vision Statement"
-                value={form.vision}
-                onChange={(e) => handleFormChange('vision', e.target.value)}
-                placeholder="Municipal vision for the cycle period"
-              />
-            </div>
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Mission Statement"
-                value={form.mission}
-                onChange={(e) => handleFormChange('mission', e.target.value)}
-                placeholder="Municipal mission and mandate"
-              />
-            </div>
-            <div style={formActionsStyles}>
-              <Button type="submit" variant="primary" loading={submitting}>
-                Create Cycle
-              </Button>
-              <Button type="button" variant="ghost" onClick={toggleForm}>
-                Cancel
-              </Button>
-            </div>
-          </form>
-        </GlassCard>
+            {formError && <p style={errorTextStyles}>{formError}</p>}
+            <form onSubmit={handleCreate}>
+              <div style={{ marginBottom: 'var(--space-md)' }}>
+                <Input label="Title *" value={form.title} onChange={(e) => handleFormChange('title', e.target.value)} placeholder="e.g., IDP 2022-2027" required />
+              </div>
+              <div style={formGridStyles}>
+                <Input label="Start Year *" type="number" value={form.start_year} onChange={(e) => handleFormChange('start_year', e.target.value)} placeholder="2022" required />
+                <Input label="End Year *" type="number" value={form.end_year} onChange={(e) => handleFormChange('end_year', e.target.value)} placeholder="2027" required />
+              </div>
+              <div style={{ marginBottom: 'var(--space-md)' }}>
+                <Input label="Vision Statement" value={form.vision} onChange={(e) => handleFormChange('vision', e.target.value)} placeholder="Municipal vision for the cycle period" />
+              </div>
+              <div style={{ marginBottom: 'var(--space-md)' }}>
+                <Input label="Mission Statement" value={form.mission} onChange={(e) => handleFormChange('mission', e.target.value)} placeholder="Municipal mission and mandate" />
+              </div>
+              <div style={formActionsStyles}>
+                <Button type="submit" variant="primary" loading={submitting}>Create Cycle</Button>
+                <Button type="button" variant="ghost" onClick={toggleForm}>Cancel</Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {loading ? (
@@ -313,9 +282,21 @@ const cycleGridStyles: React.CSSProperties = {
   marginTop: 'var(--space-lg)',
 };
 
-const formCardStyles: React.CSSProperties = {
-  marginTop: 'var(--space-xl)',
-  padding: 'var(--space-xl)',
+const modalOverlayStyles: React.CSSProperties = {
+  position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center',
+  background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)',
+};
+
+const modalCardStyles: React.CSSProperties = {
+  width: '90%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto',
+  background: 'var(--surface-elevated)', border: '1px solid var(--glass-border)',
+  borderRadius: 'var(--radius-lg)', padding: 'var(--space-xl)',
+  boxShadow: '0 24px 48px rgba(0,0,0,0.4)',
+};
+
+const modalCloseStyles: React.CSSProperties = {
+  background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem',
+  cursor: 'pointer', padding: '4px 8px', lineHeight: 1,
 };
 
 const formGridStyles: React.CSSProperties = {

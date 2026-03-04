@@ -29,7 +29,7 @@
   z-index: 1;
   margin-left: 64px;
   min-height: 100vh;
-  padding: var(--space-2xl);
+  padding: var(--space-lg) var(--space-2xl) var(--space-2xl);
 }
 
 /* Mobile: No left margin (sidebar is overlay) */

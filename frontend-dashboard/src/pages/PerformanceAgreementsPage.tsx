@@ -7,12 +7,15 @@
  * Routes: /pms?view=performance-agreements (embedded inside PmsHubPage)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createElement } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { PaDetailModal } from '../components/pms/PaDetailModal';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface PerformanceAgreement {
   id: string;
@@ -107,9 +110,16 @@ export function PerformanceAgreementsPage({
   const [submitting, setSubmitting] = useState(false);
   const [formError, setFormError] = useState<string | null>(null);
   const [eligibleManagers, setEligibleManagers] = useState<EligibleManager[]>([]);
+  const [detailPa, setDetailPa] = useState<PerformanceAgreement | null>(null);
 
   const showForm = embedded ? (externalShowForm ?? false) : internalShowForm;
   const toggleForm = embedded ? onToggleForm : () => setInternalShowForm((p) => !p);
+
+  usePageHeader(
+    embedded ? '' : 'Performance Agreements',
+    !embedded ? createElement(Button, { variant: 'primary', size: 'sm', onClick: toggleForm },
+      showForm ? 'Cancel' : '+ Create Agreement') : undefined
+  );
 
   const [form, setForm] = useState<CreateAgreementForm>({
     financial_year: '',
@@ -118,6 +128,11 @@ export function PerformanceAgreementsPage({
   });
 
   const fetchAgreements = useCallback(async () => {
+    if (DEMO_MODE) {
+      setAgreements(DEMO_AGREEMENTS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -140,6 +155,7 @@ export function PerformanceAgreementsPage({
   }, [token]);
 
   const fetchEligibleManagers = useCallback(async () => {
+    if (DEMO_MODE) return;
     try {
       const res = await fetch('/api/v1/pa/eligible-managers', {
         headers: { Authorization: `Bearer ${token}` },
@@ -207,21 +223,6 @@ export function PerformanceAgreementsPage({
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      {/* Header — only shown in standalone mode */}
-      {!embedded && (
-        <div style={headerStyles}>
-          <div>
-            <h1 style={titleStyles}>Performance Agreements</h1>
-            <p style={subtitleStyles}>
-              Manage Section 57 manager Performance Agreements for your municipality
-            </p>
-          </div>
-          <Button variant="primary" size="sm" onClick={toggleForm}>
-            {showForm ? 'Cancel' : '+ Create Agreement'}
-          </Button>
-        </div>
-      )}
-
       {showForm && (
         <GlassCard style={formCardStyles}>
           <h2
@@ -315,7 +316,7 @@ export function PerformanceAgreementsPage({
       ) : (
         <div style={agreementGridStyles}>
           {agreements.map((pa) => (
-            <GlassCard key={pa.id} variant="interactive" glow="teal">
+            <GlassCard key={pa.id} variant="interactive" glow="teal" onClick={() => setDetailPa(pa)} style={{ cursor: 'pointer' }}>
               <div
                 style={{
                   display: 'flex',
@@ -387,6 +388,14 @@ export function PerformanceAgreementsPage({
             </GlassCard>
           ))}
         </div>
+      )}
+
+      {/* PA Detail Modal */}
+      {detailPa && (
+        <PaDetailModal
+          agreement={detailPa}
+          onClose={() => setDetailPa(null)}
+        />
       )}
     </div>
   );

@@ -97,6 +97,8 @@ design-references/
 
 # Remotion build output
 pitch-deck/out/
+pitch-deck/demo-screenshots/
+pitch-deck/org-chart.png
 
 # TypeScript build info
 *.tsbuildinfo

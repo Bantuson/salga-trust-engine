@@ -158,7 +158,7 @@ export function Sidebar({ userEmail, userPhone, userRole, allRoles, onRoleSwitch
   const sidebarContent = (
     <>
       {/* Navigation Items */}
-      <nav className="sidebar-nav">
+      <nav className="sidebar-nav" data-lenis-prevent>
         {navItems.map((item, idx) => (
           <span key={item.path}>
             {/* Section header — render when item has a section label that differs from previous item */}

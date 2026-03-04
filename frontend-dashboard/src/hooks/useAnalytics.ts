@@ -12,6 +12,7 @@ import { useState, useEffect, useCallback } from 'react';
 import { fetchAnalyticsData } from '../services/api';
 import type { TimeRange, AnalyticsData } from '../types/analytics';
 import { mockAnalyticsData } from '../mocks/mockAnalytics';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface UseAnalyticsOptions {
   wardId?: string;
@@ -70,6 +71,11 @@ export function useAnalytics({ wardId }: UseAnalyticsOptions = {}): UseAnalytics
   const [error, setError] = useState<string | null>(null);
 
   const fetchData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setData(mockAnalyticsData);
+      setIsLoading(false);
+      return;
+    }
     setIsLoading(true);
     setError(null);
     try {

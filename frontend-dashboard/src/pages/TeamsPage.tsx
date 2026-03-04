@@ -10,8 +10,9 @@
  * - Error state with retry
  */
 
-import { useState } from 'react';
+import { useState, createElement } from 'react';
 import { useTeams } from '../hooks/useTeams';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { TeamCard } from '../components/teams/TeamCard';
 import { TeamCreateModal } from '../components/teams/TeamCreateModal';
 import { TeamDetailModal } from '../components/teams/TeamDetailModal';
@@ -24,12 +25,14 @@ export function TeamsPage() {
     useTeams();
   const [showCreateModal, setShowCreateModal] = useState(false);
 
+  usePageHeader(
+    'Teams',
+    createElement(Button, { variant: 'primary', size: 'sm', onClick: () => setShowCreateModal(true) }, '+ Create Team')
+  );
+
   if (error) {
     return (
       <div style={styles.container}>
-        <header style={styles.header}>
-          <h1 style={styles.title}>Teams</h1>
-        </header>
         <GlassCard variant="default" style={styles.errorCard}>
           <p style={styles.errorText}>{error}</p>
           <Button variant="secondary" size="sm" onClick={refreshTeams}>
@@ -42,22 +45,6 @@ export function TeamsPage() {
 
   return (
     <div style={styles.container}>
-      <header style={styles.header}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-          <h1 style={styles.title}>Teams</h1>
-          <button
-            style={styles.addButton}
-            onClick={() => setShowCreateModal(true)}
-            aria-label="Create team"
-            title="Create team"
-          >
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <line x1="12" y1="5" x2="12" y2="19" />
-              <line x1="5" y1="12" x2="19" y2="12" />
-            </svg>
-          </button>
-        </div>
-      </header>
 
       {isLoading ? (
         <SkeletonTheme>

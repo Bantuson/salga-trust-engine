@@ -53,8 +53,8 @@ const variantStyles: Record<ButtonVariant, React.CSSProperties> = {
     color: 'var(--color-white)',
   },
   secondary: {
-    background: 'transparent',
-    color: 'var(--color-teal)',
+    background: 'var(--color-teal)',
+    color: 'var(--color-white, #fff)',
     border: '2px solid var(--color-teal)',
   },
   ghost: {
@@ -102,7 +102,7 @@ export const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
             ...(isHovered && variant === 'secondary'
               ? {
                   transform: 'scale(1.02)',
-                  background: 'rgba(0, 217, 166, 0.1)',
+                  boxShadow: '0 0 16px rgba(0, 217, 166, 0.3)',
                 }
               : {}),
             ...(isHovered && variant === 'ghost'

@@ -12,12 +12,13 @@
  * Route: /pms
  */
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, createElement } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { IdpPage } from './IdpPage';
 import { SdbipPage } from './SdbipPage';
 import { GoldenThreadPage } from './GoldenThreadPage';
@@ -92,29 +93,28 @@ export function PmsHubPage() {
     setShowCreateModal(false);
   };
 
+  usePageHeader(
+    'Performance',
+    createElement('div', { style: { display: 'flex', alignItems: 'center', gap: 'var(--space-sm)' } },
+      createElement(Select, {
+        options: availableViews.map(opt => ({ value: opt.value, label: opt.label })),
+        value: activeView,
+        onChange: (v: string) => handleViewChange(v as PmsView),
+        fullWidth: false,
+      }),
+      currentOption.createLabel && !isReadOnly
+        ? createElement(Button, {
+            variant: 'primary',
+            size: 'sm',
+            onClick: () => setShowCreateModal(true),
+            style: { background: 'var(--color-coral)', borderColor: 'var(--color-coral)' },
+          }, currentOption.createLabel)
+        : null
+    )
+  );
+
   return (
     <div style={styles.container}>
-      {/* Toolbar: dropdown (left) + create button (right) */}
-      <div style={styles.toolbar}>
-        <Select
-          options={availableViews.map(opt => ({ value: opt.value, label: opt.label }))}
-          value={activeView}
-          onChange={(v) => handleViewChange(v as PmsView)}
-          fullWidth={false}
-        />
-
-        {currentOption.createLabel && !isReadOnly && (
-          <Button
-            variant="primary"
-            size="sm"
-            onClick={() => setShowCreateModal(true)}
-            style={{ background: 'var(--color-coral)', borderColor: 'var(--color-coral)' }}
-          >
-            {currentOption.createLabel}
-          </Button>
-        )}
-      </div>
-
       {/* Active view content */}
       <div style={styles.content}>
         {activeView === 'idp' && (

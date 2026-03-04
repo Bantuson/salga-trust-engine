@@ -14,6 +14,8 @@ import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface GoldenThreadKpi {
   id: string;
@@ -216,6 +218,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
+  usePageHeader(embedded ? '' : 'Golden Thread');
   const { session } = useAuth();
   const token = session?.access_token ?? null;
   const [searchParams, setSearchParams] = useSearchParams();
@@ -232,6 +235,12 @@ export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
 
   // Fetch all cycles for the selector
   const fetchCycles = useCallback(async () => {
+    if (DEMO_MODE) {
+      setCycles(DEMO_CYCLES);
+      if (!selectedCycleId) setSelectedCycleId(DEMO_CYCLES[0].id);
+      setLoadingCycles(false);
+      return;
+    }
     setLoadingCycles(true);
     try {
       const res = await fetch('/api/v1/idp/cycles', {
@@ -262,6 +271,15 @@ export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
   // Fetch golden thread when cycle changes
   const fetchThread = useCallback(async () => {
     if (!selectedCycleId) return;
+    if (DEMO_MODE) {
+      const demoThread = DEMO_THREADS[selectedCycleId];
+      if (demoThread) {
+        setThread(demoThread);
+        setExpandedGoals(new Set(demoThread.goals.map((g) => g.id)));
+      }
+      setLoadingThread(false);
+      return;
+    }
     setLoadingThread(true);
     setError(null);
     try {
@@ -355,27 +373,35 @@ export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      {/* Header — only shown in standalone mode */}
-      {!embedded && (
-        <div style={{ marginBottom: 'var(--space-xl)' }}>
-          <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0, marginBottom: 'var(--space-xs)' }}>
-            Golden Thread
-          </h1>
-          <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 0 }}>
-            Statutory traceability: IDP Cycle &rarr; Strategic Goals &rarr; Objectives &rarr; SDBIP KPIs
-          </p>
-        </div>
-      )}
+      {/* Header removed — usePageHeader sets layout header in standalone mode */}
 
-      {/* Cycle Selector */}
+      {/* Cycle Selector + Header (merged) */}
       {!loadingCycles && cycles.length > 0 && (
-        <GlassCard style={{ marginBottom: 'var(--space-xl)', padding: 'var(--space-lg)' }}>
+        <GlassCard
+          variant="elevated"
+          style={{
+            marginBottom: 'var(--space-xl)',
+            padding: 'var(--space-lg)',
+            background: 'rgba(205, 94, 129, 0.08)',
+            border: '1px solid rgba(205, 94, 129, 0.2)',
+          }}
+        >
           <Select
             label="IDP Cycle"
             options={cycles.map((c) => ({ value: c.id, label: `${c.title} (${c.start_year}–${c.end_year})` }))}
             value={selectedCycleId}
             onChange={handleCycleChange}
           />
+          {thread && (
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-md)', flexWrap: 'wrap', marginTop: 'var(--space-md)', paddingTop: 'var(--space-md)', borderTop: '1px solid rgba(205, 94, 129, 0.15)' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--text-primary)', margin: 0 }}>
+                {thread.title}
+              </h2>
+              <span style={statusBadgeStyles(thread.status)}>
+                {STATUS_LABELS[thread.status] || thread.status}
+              </span>
+            </div>
+          )}
         </GlassCard>
       )}
 
@@ -394,25 +420,6 @@ export function GoldenThreadPage({ embedded = false }: GoldenThreadPageProps) {
         </div>
       ) : (
         <>
-          {/* Cycle Header */}
-          <GlassCard variant="elevated" style={{ marginBottom: 'var(--space-md)', padding: 'var(--space-lg)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 'var(--space-md)', flexWrap: 'wrap' }}>
-              <div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--space-xs)', marginBottom: 'var(--space-xs)' }}>
-                  <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    IDP Cycle
-                  </span>
-                </div>
-                <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--text-primary)', margin: 0 }}>
-                  {thread.title}
-                </h2>
-              </div>
-              <span style={statusBadgeStyles(thread.status)}>
-                {STATUS_LABELS[thread.status] || thread.status}
-              </span>
-            </div>
-          </GlassCard>
-
           {/* Goals */}
           {thread.goals.map((goal, gi) => (
             <div key={goal.id} style={{ marginBottom: 'var(--space-md)', marginLeft: 'var(--space-md)' }}>

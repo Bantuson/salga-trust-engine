@@ -119,9 +119,12 @@ base.describe('Request-Access Form Validation', () => {
     const mmNameInput = page.locator('input').nth(2);
     await mmNameInput.fill('Test Manager');
 
-    // Fill Municipal Manager Email with invalid value
+    // Fill Municipal Manager Email with an invalid value
     const mmEmailInput = page.locator('input[type="email"]').first();
     await mmEmailInput.fill('not-an-email');
+
+    // Disable HTML5 native form validation so the app's custom validateForm() fires
+    await page.locator('form').evaluate((form: HTMLFormElement) => { form.noValidate = true; });
 
     // Click submit
     const submitButton = page.locator('button').filter({ hasText: /submit.*registration|submit/i }).first();

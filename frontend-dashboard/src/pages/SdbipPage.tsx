@@ -7,13 +7,15 @@
  * Routes: /pms/sdbip (standalone) or embedded inside PmsHubPage
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, createElement } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface SDBIPScorecard {
   id: string;
@@ -76,6 +78,12 @@ export function SdbipPage({ embedded = false, showForm: externalShowForm, onTogg
   const showForm = embedded ? (externalShowForm ?? false) : internalShowForm;
   const toggleForm = embedded ? onToggleForm : () => setInternalShowForm(p => !p);
 
+  usePageHeader(
+    embedded ? '' : 'SDBIP Scorecards',
+    !embedded ? createElement(Button, { variant: 'primary', size: 'sm', onClick: toggleForm },
+      showForm ? 'Cancel' : '+ Create Scorecard') : undefined
+  );
+
   const [form, setForm] = useState<CreateScorecardForm>({
     financial_year: '',
     layer: 'top',
@@ -84,6 +92,11 @@ export function SdbipPage({ embedded = false, showForm: externalShowForm, onTogg
   });
 
   const fetchScorecards = useCallback(async () => {
+    if (DEMO_MODE) {
+      setScorecards(DEMO_SCORECARDS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -195,73 +208,34 @@ export function SdbipPage({ embedded = false, showForm: externalShowForm, onTogg
 
   return (
     <div style={{ maxWidth: '900px' }}>
-      {/* Header — only shown in standalone mode */}
-      {!embedded && (
-        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 'var(--space-xl)' }}>
-          <div>
-            <h1 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-h4)', color: 'var(--text-primary)', margin: 0 }}>
-              SDBIP Scorecards
-            </h1>
-            <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-secondary)', marginTop: 'var(--space-xs)' }}>
-              Service Delivery and Budget Implementation Plan scorecards
-            </p>
-          </div>
-          <Button variant="primary" size="sm" onClick={toggleForm}>
-            {showForm ? 'Cancel' : '+ Create Scorecard'}
-          </Button>
-        </div>
-      )}
-
       {showForm && (
-        <GlassCard style={{ marginTop: 'var(--space-xl)', marginBottom: 'var(--space-xl)', padding: 'var(--space-xl)' }}>
-          <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--text-primary)', margin: 0, marginBottom: 'var(--space-lg)' }}>
-            New SDBIP Scorecard
-          </h2>
-          {formError && <p style={errorStyles}>{formError}</p>}
-          <form onSubmit={handleCreate}>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Financial Year *"
-                value={form.financial_year}
-                onChange={(e) => setForm((p) => ({ ...p, financial_year: e.target.value }))}
-                placeholder="e.g., 2025/26"
-                required
-              />
-              <Select
-                label="Layer *"
-                options={[
-                  { value: 'top', label: 'Top Layer (Municipal)' },
-                  { value: 'departmental', label: 'Departmental' },
-                ]}
-                value={form.layer}
-                onChange={(v) => setForm((p) => ({ ...p, layer: v as 'top' | 'departmental' }))}
-                required
-              />
+        <div style={{ position: 'fixed', inset: 0, zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', background: 'rgba(0,0,0,0.6)', backdropFilter: 'blur(4px)' }} onClick={() => toggleForm?.()}>
+          <div style={{ width: '90%', maxWidth: '560px', maxHeight: '90vh', overflowY: 'auto', background: 'var(--surface-elevated)', border: '1px solid var(--glass-border)', borderRadius: 'var(--radius-lg)', padding: 'var(--space-xl)', boxShadow: '0 24px 48px rgba(0,0,0,0.4)' }} onClick={(e) => e.stopPropagation()}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 'var(--space-lg)' }}>
+              <h2 style={{ fontFamily: 'var(--font-display)', fontSize: 'var(--text-lg)', color: 'var(--text-primary)', margin: 0 }}>New SDBIP Scorecard</h2>
+              <button onClick={() => toggleForm?.()} style={{ background: 'none', border: 'none', color: 'var(--text-secondary)', fontSize: '1.5rem', cursor: 'pointer', padding: '4px 8px', lineHeight: 1 }}>&times;</button>
             </div>
-            {form.layer === 'departmental' && (
-              <div style={{ marginBottom: 'var(--space-md)' }}>
-                <Input
-                  label="Department ID"
-                  value={form.department_id}
-                  onChange={(e) => setForm((p) => ({ ...p, department_id: e.target.value }))}
-                  placeholder="UUID of the responsible department"
-                />
+            {formError && <p style={errorStyles}>{formError}</p>}
+            <form onSubmit={handleCreate}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', marginBottom: 'var(--space-md)' }}>
+                <Input label="Financial Year *" value={form.financial_year} onChange={(e) => setForm((p) => ({ ...p, financial_year: e.target.value }))} placeholder="e.g., 2025/26" required />
+                <Select label="Layer *" options={[{ value: 'top', label: 'Top Layer (Municipal)' }, { value: 'departmental', label: 'Departmental' }]} value={form.layer} onChange={(v) => setForm((p) => ({ ...p, layer: v as 'top' | 'departmental' }))} required />
               </div>
-            )}
-            <div style={{ marginBottom: 'var(--space-md)' }}>
-              <Input
-                label="Title (optional)"
-                value={form.title}
-                onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))}
-                placeholder="e.g., Infrastructure Services SDBIP 2025/26"
-              />
-            </div>
-            <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
-              <Button type="submit" variant="primary" loading={submitting}>Create Scorecard</Button>
-              <Button type="button" variant="ghost" onClick={toggleForm}>Cancel</Button>
-            </div>
-          </form>
-        </GlassCard>
+              {form.layer === 'departmental' && (
+                <div style={{ marginBottom: 'var(--space-md)' }}>
+                  <Input label="Department ID" value={form.department_id} onChange={(e) => setForm((p) => ({ ...p, department_id: e.target.value }))} placeholder="UUID of the responsible department" />
+                </div>
+              )}
+              <div style={{ marginBottom: 'var(--space-md)' }}>
+                <Input label="Title (optional)" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} placeholder="e.g., Infrastructure Services SDBIP 2025/26" />
+              </div>
+              <div style={{ display: 'flex', gap: 'var(--space-sm)' }}>
+                <Button type="submit" variant="primary" loading={submitting}>Create Scorecard</Button>
+                <Button type="button" variant="ghost" onClick={toggleForm}>Cancel</Button>
+              </div>
+            </form>
+          </div>
+        </div>
       )}
 
       {loading ? (

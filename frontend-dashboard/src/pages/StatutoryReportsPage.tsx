@@ -11,12 +11,14 @@
  * Requirements: REPORT-05 (approval workflow UI), REPORT-07 (deadline calendar), REPORT-08 (downloads)
  */
 
-import { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Button } from '@shared/components/ui/Button';
 import { Input } from '@shared/components/ui/Input';
 import { Select } from '@shared/components/ui/Select';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { DEMO_MODE } from '../lib/demoMode';
 
 // ── Types ──────────────────────────────────────────────────────────────────────
 
@@ -262,6 +264,7 @@ function autoTitle(type: string, fy: string, quarter: string): string {
 // ── Component ──────────────────────────────────────────────────────────────────
 
 export function StatutoryReportsPage({ showForm = false, onCloseForm }: StatutoryReportsPageProps) {
+  usePageHeader('Statutory Reports');
   const { session, getUserRole } = useAuth();
   const token = session?.access_token ?? null;
   const role = getUserRole();
@@ -277,6 +280,7 @@ export function StatutoryReportsPage({ showForm = false, onCloseForm }: Statutor
   const [generatingId, setGeneratingId] = useState<string | null>(null);
   const [transitioningId, setTransitioningId] = useState<string | null>(null);
   const [toast, setToast] = useState<string | null>(null);
+  const [expandedReportId, setExpandedReportId] = useState<string | null>(null);
 
   // Create form state
   const [formError, setFormError] = useState<string | null>(null);
@@ -299,6 +303,11 @@ export function StatutoryReportsPage({ showForm = false, onCloseForm }: Statutor
   // ── Fetch reports ────────────────────────────────────────────────────────────
 
   const fetchReports = useCallback(async () => {
+    if (DEMO_MODE) {
+      setReports(DEMO_REPORTS);
+      setLoading(false);
+      return;
+    }
     setLoading(true);
     setError(null);
     try {
@@ -321,6 +330,10 @@ export function StatutoryReportsPage({ showForm = false, onCloseForm }: Statutor
   }, [token, selectedFY, filterType]);
 
   const fetchDeadlines = useCallback(async () => {
+    if (DEMO_MODE) {
+      setDeadlines(DEMO_DEADLINES);
+      return;
+    }
     try {
       const params = new URLSearchParams({ financial_year: selectedFY });
       const res = await fetch(`/api/v1/statutory-reports/deadlines?${params.toString()}`, {
@@ -762,103 +775,149 @@ export function StatutoryReportsPage({ showForm = false, onCloseForm }: Statutor
                 </tr>
               </thead>
               <tbody>
-                {filteredReports.map((report) => (
-                  <tr
-                    key={report.id}
-                    style={{
-                      borderBottom: '1px solid rgba(255,255,255,0.05)',
-                    }}
-                  >
-                    {/* Report type + title */}
-                    <td style={{ padding: '12px', maxWidth: '280px' }}>
-                      <div
+                {filteredReports.map((report) => {
+                  const isExpanded = expandedReportId === report.id;
+                  return (
+                    <React.Fragment key={report.id}>
+                      <tr
                         style={{
-                          fontWeight: 600,
-                          color: 'var(--text-primary)',
-                          marginBottom: '2px',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap' as const,
+                          borderBottom: isExpanded ? 'none' : '1px solid rgba(255,255,255,0.05)',
+                          cursor: 'pointer',
                         }}
+                        onClick={() => setExpandedReportId(isExpanded ? null : report.id)}
                       >
-                        {reportTypeHumanLabel(report.report_type, report.quarter)}
-                      </div>
-                      <div
-                        style={{
-                          fontSize: 'var(--text-xs)',
-                          color: 'var(--text-muted)',
-                          overflow: 'hidden',
-                          textOverflow: 'ellipsis',
-                          whiteSpace: 'nowrap' as const,
-                          maxWidth: '260px',
-                        }}
-                      >
-                        {report.title}
-                      </div>
-                    </td>
-
-                    {/* Financial year */}
-                    <td style={{ padding: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' as const }}>
-                      {report.financial_year}
-                    </td>
-
-                    {/* Status badge */}
-                    <td style={{ padding: '12px' }}>
-                      <span style={statusBadge(report.status)}>
-                        {STATUS_LABELS[report.status] || report.status}
-                      </span>
-                    </td>
-
-                    {/* Generated timestamp */}
-                    <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' as const }}>
-                      {report.generated_at ? formatShortDate(report.generated_at) : 'Not generated'}
-                    </td>
-
-                    {/* Actions */}
-                    <td style={{ padding: '12px' }}>
-                      <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const, alignItems: 'center' }}>
-                        {/* Generate button */}
-                        {showGenerateButton(report) && (
-                          <Button
-                            size="sm"
-                            variant="primary"
-                            loading={generatingId === report.id}
-                            onClick={() => handleGenerate(report.id)}
+                        {/* Report type + title */}
+                        <td style={{ padding: '12px', maxWidth: '280px' }}>
+                          <div
                             style={{
-                              background: 'var(--color-coral, #f97316)',
-                              borderColor: 'var(--color-coral, #f97316)',
+                              fontWeight: 600,
+                              color: 'var(--text-primary)',
+                              marginBottom: '2px',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap' as const,
                             }}
                           >
-                            {report.pdf_storage_path ? 'Regenerate' : 'Generate'}
-                          </Button>
-                        )}
-
-                        {/* Transition button */}
-                        {renderTransitionButton(report)}
-
-                        {/* Download buttons */}
-                        {report.pdf_storage_path && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDownload(report.id, 'pdf')}
+                            {reportTypeHumanLabel(report.report_type, report.quarter)}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 'var(--text-xs)',
+                              color: 'var(--text-muted)',
+                              overflow: 'hidden',
+                              textOverflow: 'ellipsis',
+                              whiteSpace: 'nowrap' as const,
+                              maxWidth: '260px',
+                            }}
                           >
-                            PDF
-                          </Button>
-                        )}
-                        {report.docx_storage_path && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleDownload(report.id, 'docx')}
+                            {report.title}
+                          </div>
+                        </td>
+
+                        {/* Financial year */}
+                        <td style={{ padding: '12px', color: 'var(--text-secondary)', whiteSpace: 'nowrap' as const }}>
+                          {report.financial_year}
+                        </td>
+
+                        {/* Status badge */}
+                        <td style={{ padding: '12px' }}>
+                          <span style={statusBadge(report.status)}>
+                            {STATUS_LABELS[report.status] || report.status}
+                          </span>
+                        </td>
+
+                        {/* Generated timestamp */}
+                        <td style={{ padding: '12px', color: 'var(--text-secondary)', fontSize: 'var(--text-xs)', whiteSpace: 'nowrap' as const }}>
+                          {report.generated_at ? formatShortDate(report.generated_at) : 'Not generated'}
+                        </td>
+
+                        {/* Actions */}
+                        <td style={{ padding: '12px' }} onClick={(e) => e.stopPropagation()}>
+                          <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap' as const, alignItems: 'center' }}>
+                            {/* Generate button */}
+                            {showGenerateButton(report) && (
+                              <Button
+                                size="sm"
+                                variant="primary"
+                                loading={generatingId === report.id}
+                                onClick={() => handleGenerate(report.id)}
+                                style={{
+                                  background: 'var(--color-coral, #f97316)',
+                                  borderColor: 'var(--color-coral, #f97316)',
+                                }}
+                              >
+                                {report.pdf_storage_path ? 'Regenerate' : 'Generate'}
+                              </Button>
+                            )}
+
+                            {/* Transition button */}
+                            {renderTransitionButton(report)}
+
+                            {/* Download buttons */}
+                            {report.pdf_storage_path && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDownload(report.id, 'pdf')}
+                              >
+                                PDF
+                              </Button>
+                            )}
+                            {report.docx_storage_path && (
+                              <Button
+                                size="sm"
+                                variant="ghost"
+                                onClick={() => handleDownload(report.id, 'docx')}
+                              >
+                                DOCX
+                              </Button>
+                            )}
+                          </div>
+                        </td>
+                      </tr>
+
+                      {/* Expanded detail row */}
+                      {isExpanded && (
+                        <tr style={{ borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                          <td
+                            colSpan={5}
+                            style={{
+                              padding: '16px 20px',
+                              background: 'rgba(255, 255, 255, 0.03)',
+                            }}
                           >
-                            DOCX
-                          </Button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
+                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 'var(--space-md)', maxWidth: '600px' }}>
+                              <div>
+                                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em', marginBottom: '4px' }}>Title</div>
+                                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>{report.title}</div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em', marginBottom: '4px' }}>Period</div>
+                                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                                  {formatDate(report.period_start)} &ndash; {formatDate(report.period_end)}
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em', marginBottom: '4px' }}>Approved</div>
+                                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                                  {report.approved_at ? formatDate(report.approved_at) : 'Not yet approved'}
+                                </div>
+                              </div>
+                              <div>
+                                <div style={{ fontSize: 'var(--text-xs)', color: 'var(--text-muted)', textTransform: 'uppercase' as const, letterSpacing: '0.04em', marginBottom: '4px' }}>Status Timeline</div>
+                                <div style={{ fontSize: 'var(--text-sm)', color: 'var(--text-primary)' }}>
+                                  Created {formatShortDate(report.created_at)}
+                                  {report.generated_at && <> &rarr; Generated {formatShortDate(report.generated_at)}</>}
+                                  {report.approved_at && <> &rarr; Approved {formatShortDate(report.approved_at)}</>}
+                                </div>
+                              </div>
+                            </div>
+                          </td>
+                        </tr>
+                      )}
+                    </React.Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>

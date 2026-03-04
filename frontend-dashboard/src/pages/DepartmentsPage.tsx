@@ -15,10 +15,13 @@
  * Styling: CSS variables only (Phase 27-03 CSS lock — no Tailwind).
  */
 
-import { useState, useEffect, useCallback } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, useEffect, useCallback, createElement } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
+import { DEMO_MODE } from '../lib/demoMode';
 import { CreateDepartmentModal, type DepartmentOption } from '../components/departments/CreateDepartmentModal';
+import { DepartmentDetailModal } from '../components/departments/DepartmentDetailModal';
+import { OrganogramModal } from '../components/departments/OrganogramModal';
 import { InviteUserModal } from '../components/onboarding/InviteUserModal';
 
 // ---------------------------------------------------------------------------
@@ -188,9 +191,13 @@ export function DepartmentsPage() {
   const [showCreateModal, setShowCreateModal] = useState(false);
   const [editTarget, setEditTarget] = useState<Department | null>(null);
   const [inviteTarget, setInviteTarget] = useState<Department | null>(null);
+  const [detailTarget, setDetailTarget] = useState<Department | null>(null);
+  const [showOrganogram, setShowOrganogram] = useState(false);
 
   const role = getUserRole();
   const isAdmin = ['admin', 'salga_admin', 'municipal_manager', 'pms_officer'].includes(role);
+  const isViewOnly = ['executive_mayor', 'cfo', 'speaker'].includes(role);
+  const canEdit = isAdmin && !isViewOnly;
 
   const apiUrl = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
@@ -199,6 +206,11 @@ export function DepartmentsPage() {
   // ---------------------------------------------------------------------------
 
   const fetchDepartments = useCallback(async () => {
+    if (DEMO_MODE) {
+      setDepartments(MOCK_DEPARTMENTS);
+      setLoading(false);
+      return;
+    }
     if (!session?.access_token) return;
     setLoading(true);
     setError(null);
@@ -270,92 +282,51 @@ export function DepartmentsPage() {
     code: d.code,
   }));
 
+  // Page header in layout header bar
+  usePageHeader(
+    'Department Management',
+    createElement('div', { style: { display: 'flex', gap: 'var(--space-sm)', alignItems: 'center' } },
+      createElement('button', {
+        onClick: () => setShowOrganogram(true),
+        style: {
+          display: 'inline-flex',
+          alignItems: 'center',
+          padding: 'var(--space-xs) var(--space-md)',
+          background: 'rgba(255, 255, 255, 0.06)',
+          border: '1px solid var(--glass-border)',
+          borderRadius: 'var(--radius-md)',
+          color: 'var(--text-secondary)',
+          fontSize: 'var(--text-sm)',
+          fontWeight: 600,
+          cursor: 'pointer',
+        },
+      }, 'View Organogram'),
+      canEdit
+        ? createElement('button', {
+            onClick: () => { setEditTarget(null); setShowCreateModal(true); },
+            style: {
+              display: 'inline-flex',
+              alignItems: 'center',
+              padding: 'var(--space-xs) var(--space-md)',
+              background: 'var(--color-teal)',
+              border: 'none',
+              borderRadius: 'var(--radius-md)',
+              color: '#fff',
+              fontSize: 'var(--text-sm)',
+              fontWeight: 600,
+              cursor: 'pointer',
+            },
+          }, '+ Create Department')
+        : null,
+    )
+  );
+
   // ---------------------------------------------------------------------------
   // Render
   // ---------------------------------------------------------------------------
 
   return (
-    <div style={{ padding: 'var(--space-lg)', maxWidth: '1100px' }}>
-      {/* Header */}
-      <div
-        style={{
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          flexWrap: 'wrap',
-          gap: 'var(--space-sm)',
-          minHeight: '48px',
-          padding: 'var(--space-md) 0',
-          marginBottom: 'var(--space-lg)',
-        }}
-      >
-        <div>
-          <h1
-            style={{
-              fontSize: 'var(--text-2xl)',
-              fontWeight: 700,
-              color: 'var(--text-primary)',
-              margin: 0,
-            }}
-          >
-            Department Management
-          </h1>
-          <p
-            style={{
-              color: 'var(--text-secondary)',
-              fontSize: 'var(--text-sm)',
-              marginTop: 'var(--space-xs)',
-              marginBottom: 0,
-            }}
-          >
-            {loading
-              ? 'Loading...'
-              : `${departments.length} department${departments.length !== 1 ? 's' : ''} — CRUD, activation gates, director assignment`}
-          </p>
-        </div>
-        <div style={{ display: 'flex', gap: 'var(--space-sm)', flexWrap: 'wrap' }}>
-          <Link
-            to="/departments/organogram"
-            style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              padding: 'var(--space-xs) var(--space-md)',
-              background: 'var(--glass-bg)',
-              border: '1px solid var(--glass-border)',
-              borderRadius: 'var(--radius-md)',
-              color: 'var(--text-primary)',
-              fontSize: 'var(--text-sm)',
-              fontWeight: 500,
-              textDecoration: 'none',
-              cursor: 'pointer',
-            }}
-          >
-            View Organogram
-          </Link>
-          {isAdmin && (
-            <button
-              onClick={() => {
-                setEditTarget(null);
-                setShowCreateModal(true);
-              }}
-              style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                padding: 'var(--space-xs) var(--space-md)',
-                background: 'var(--color-teal)',
-                border: 'none',
-                borderRadius: 'var(--radius-md)',
-                color: '#fff',
-                fontSize: 'var(--text-sm)',
-                fontWeight: 600,
-                cursor: 'pointer',
-              }}
-            >
-              + Create Department
-            </button>
-          )}
-        </div>
-      </div>
+    <div style={{ maxWidth: '1100px' }}>
 
       {/* Mock data warning banner */}
       {usingMockData && (
@@ -425,7 +396,7 @@ export function DepartmentsPage() {
             <p style={{ color: 'var(--text-muted)', margin: 0, maxWidth: '400px', lineHeight: 1.6 }}>
               No departments configured. Create your first department to get started.
             </p>
-            {isAdmin && (
+            {canEdit && (
               <button
                 onClick={() => {
                   setEditTarget(null);
@@ -478,7 +449,8 @@ export function DepartmentsPage() {
                       return (
                         <tr
                           key={dept.id}
-                          style={{ borderBottom: '1px solid var(--glass-border)' }}
+                          style={{ borderBottom: '1px solid var(--glass-border)', cursor: 'pointer' }}
+                          onClick={() => setDetailTarget(dept)}
                         >
                           {/* Name */}
                           <td
@@ -537,7 +509,7 @@ export function DepartmentsPage() {
                           </td>
 
                           {/* Actions */}
-                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }}>
+                          <td style={{ padding: 'var(--space-sm) var(--space-md)' }} onClick={(e) => e.stopPropagation()}>
                             <div
                               style={{
                                 display: 'flex',
@@ -546,7 +518,7 @@ export function DepartmentsPage() {
                               }}
                             >
                               {/* Invite Director — only when no director assigned */}
-                              {isAdmin && !dept.director_id && (
+                              {canEdit && !dept.director_id && (
                                 <button
                                   onClick={() => setInviteTarget(dept)}
                                   style={{
@@ -566,7 +538,7 @@ export function DepartmentsPage() {
                               )}
 
                               {/* Edit */}
-                              {isAdmin && (
+                              {canEdit && (
                                 <button
                                   onClick={() => {
                                     setEditTarget(dept);
@@ -588,7 +560,7 @@ export function DepartmentsPage() {
                               )}
 
                               {/* Deactivate */}
-                              {isAdmin && dept.is_active && (
+                              {canEdit && dept.is_active && (
                                 <button
                                   onClick={() => handleDeactivate(dept)}
                                   style={{
@@ -682,6 +654,21 @@ export function DepartmentsPage() {
           departmentId={inviteTarget.id}
           departmentName={inviteTarget.name}
         />
+      )}
+
+      {/* Department Detail Modal */}
+      {detailTarget && (
+        <DepartmentDetailModal
+          department={detailTarget}
+          onClose={() => setDetailTarget(null)}
+          canEdit={canEdit}
+          onEdit={() => { setEditTarget(detailTarget); setShowCreateModal(true); setDetailTarget(null); }}
+        />
+      )}
+
+      {/* Organogram Modal */}
+      {showOrganogram && (
+        <OrganogramModal onClose={() => setShowOrganogram(false)} />
       )}
     </div>
   );

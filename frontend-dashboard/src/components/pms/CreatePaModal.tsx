@@ -114,7 +114,7 @@ export function CreatePaModal({ onClose, onCreated }: CreatePaModalProps) {
         </div>
 
         {/* Body */}
-        <div style={styles.body}>
+        <div data-lenis-prevent style={styles.body}>
           {error && <div style={styles.errorBanner}>{error}</div>}
 
           <div style={styles.section}>
@@ -220,8 +220,7 @@ const styles = {
     padding: 'var(--glass-card-padding)',
     paddingBottom: 'var(--space-md)',
     borderBottom: '1px solid var(--glass-border)',
-    position: 'sticky' as const,
-    top: 0,
+    flexShrink: 0,
     background: 'var(--glass-pink-frost)',
     backdropFilter: 'blur(var(--glass-blur-medium))',
     WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',
@@ -320,8 +319,7 @@ const styles = {
     gap: 'var(--space-md)',
     padding: 'var(--glass-card-padding)',
     borderTop: '1px solid var(--glass-border)',
-    position: 'sticky' as const,
-    bottom: 0,
+    flexShrink: 0,
     background: 'var(--glass-pink-frost)',
     backdropFilter: 'blur(var(--glass-blur-medium))',
     WebkitBackdropFilter: 'blur(var(--glass-blur-medium))',

@@ -10,8 +10,9 @@
  * Updates in real-time via Supabase Realtime. Ward councillors see filtered data.
  */
 
-import { useEffect, useCallback, useState } from 'react';
+import { useEffect, useCallback, useState, createElement } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { useRealtimeTickets } from '../hooks/useRealtimeTickets';
 import { useDashboardStore } from '../stores/dashboardStore';
 import { MetricsCards } from '../components/dashboard/MetricsCards';
@@ -28,6 +29,7 @@ import {
 } from '../services/api';
 import { mockDashboardMetrics, mockVolumeData, mockSLAData, mockWorkloadData } from '../mocks/mockAnalytics';
 import { PmsSetupBanner } from '../components/rbac/PmsSetupBanner';
+import { DEMO_MODE } from '../lib/demoMode';
 
 interface DashboardPageProps {
   wardId?: string;
@@ -56,6 +58,15 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
 
   // Fetch all dashboard data
   const fetchAllData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setMetrics(mockDashboardMetrics);
+      setVolumeData(mockVolumeData);
+      setSlaData(mockSLAData);
+      setWorkloadData(mockWorkloadData);
+      setLastUpdated(new Date());
+      setLoading(false);
+      return;
+    }
     try {
       setLoading(true);
       const [metricsRes, volumeRes, slaRes, workloadRes] = await Promise.all([
@@ -89,6 +100,8 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
     onUpdate: fetchAllData,
   });
 
+  usePageHeader('Municipal Operations Dashboard', createElement(RealtimeIndicator, { isConnected: connected, lastUpdated }));
+
   // Tab visibility handling
   useEffect(() => {
     const handleVisibilityChange = () => {
@@ -121,11 +134,6 @@ export function DashboardPage({ wardId }: DashboardPageProps) {
 
   return (
     <div className="page-container-responsive" style={styles.container}>
-      <header className="dashboard-page-header" style={styles.header}>
-        <h1 className="dashboard-page-title" style={styles.title}>Municipal Operations Dashboard</h1>
-        <RealtimeIndicator isConnected={connected} lastUpdated={lastUpdated} />
-      </header>
-
       <PmsSetupBanner userRole={userRole} />
 
       <MetricsCards metrics={metrics} isLoading={isLoading} />
@@ -171,22 +179,6 @@ const styles = {
     maxWidth: '1400px',
     margin: '0 auto',
     padding: '2rem',
-  } as React.CSSProperties,
-  header: {
-    display: 'flex',
-    justifyContent: 'space-between',
-    alignItems: 'center',
-    flexWrap: 'wrap' as const,
-    gap: '0.5rem',
-    minHeight: '48px',
-    padding: 'var(--space-md) 0',
-    marginBottom: '2rem',
-  } as React.CSSProperties,
-  title: {
-    fontSize: '1.875rem',
-    fontWeight: '700',
-    color: 'var(--text-primary)',
-    textShadow: '0 1px 3px rgba(0, 0, 0, 0.2)',
   } as React.CSSProperties,
   chartsGrid: {
     display: 'grid',

@@ -43,8 +43,13 @@ import { RoleApprovalsPage } from './pages/RoleApprovalsPage';
 import { MunicipalitiesPage } from './pages/MunicipalitiesPage';
 import { AccessRequestsPage } from './pages/AccessRequestsPage';
 import { GoldenThreadPage } from './pages/GoldenThreadPage';
+import { IdpPage } from './pages/IdpPage';
+import { SdbipPage } from './pages/SdbipPage';
+import { PerformanceAgreementsPage } from './pages/PerformanceAgreementsPage';
+import { StatutoryReportsPage } from './pages/StatutoryReportsPage';
 import { LenisProvider } from './providers/LenisProvider';
 import { PageTransition } from './components/PageTransition';
+import { usePageHeader } from './hooks/usePageHeader';
 import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
@@ -63,11 +68,10 @@ function SystemPlaceholderPage() {
     { label: 'Last Backup', value: '2026-03-01 02:00', color: 'var(--text-secondary)' },
   ];
 
+  usePageHeader('System Health');
+
   return (
     <div style={{ padding: 'var(--space-lg)' }}>
-      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-lg)' }}>
-        System Health
-      </h1>
       <div style={{
         display: 'grid',
         gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
@@ -132,6 +136,18 @@ function App() {
   );
 }
 
+/**
+ * SEC-05: SAPS Reports route guard — GBV reports only visible to saps_liaison and admin.
+ */
+function SAPSReportsGuard() {
+  const { viewRole } = useViewRole();
+  const ALLOWED_GBV_ROLES = ['saps_liaison', 'admin', 'salga_admin'];
+  if (!ALLOWED_GBV_ROLES.includes(viewRole)) {
+    return <Navigate to="/" replace />;
+  }
+  return <SAPSReportsPage />;
+}
+
 function AppRoutes() {
   const { session, loading } = useAuth();
   const location = useLocation();
@@ -175,7 +191,8 @@ function AppRoutes() {
          * /tickets        Service delivery ticket queue (citizen-reported issues)
          * /report         Ticket submission form
          * /departments    Department management: CRUD, activation gates, director assignment
-         * /departments/organogram  Org chart (read-only tree view — different format from /departments)
+         * /organogram              Org chart — top-level route (Tier 1 & 2 sidebar link)
+         * /departments/organogram  Org chart — legacy alias (backward compatibility)
          * /role-approvals SALGA Admin action queue: approve/reject Tier 1 role requests (action-oriented)
          * /pms            PMS Hub: IDP, SDBIP, actuals, evidence, agreements, statutory reports
          * /pms-setup      Initial PMS configuration wizard (setup flow, not viewing data)
@@ -194,6 +211,8 @@ function AppRoutes() {
         <Route path="/" element={<DashboardLayout><RoleBasedDashboard /></DashboardLayout>} />
         <Route path="/tickets" element={<DashboardLayout><TicketListPage /></DashboardLayout>} />
         <Route path="/report" element={<DashboardLayout><ReportForm /></DashboardLayout>} />
+        <Route path="/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
+        {/* Legacy route — kept for backward compatibility */}
         <Route path="/departments/organogram" element={<DashboardLayout><OrganogramPage /></DashboardLayout>} />
         {/* Department management — CRUD, activation gates, director assignment (34-04) */}
         <Route path="/departments" element={<DashboardLayout><DepartmentsPage /></DashboardLayout>} />
@@ -207,7 +226,8 @@ function AppRoutes() {
         <Route path="/analytics" element={<DashboardLayout><AnalyticsPage /></DashboardLayout>} />
         <Route path="/settings" element={<DashboardLayout><SettingsPage /></DashboardLayout>} />
         <Route path="/system" element={<DashboardLayout><SystemPlaceholderPage /></DashboardLayout>} />
-        <Route path="/reports" element={<DashboardLayout><SAPSReportsPage /></DashboardLayout>} />
+        {/* SEC-05: SAPS GBV reports — restricted to saps_liaison and admin only */}
+        <Route path="/reports" element={<DashboardLayout><SAPSReportsGuard /></DashboardLayout>} />
         <Route path="/completed" element={<DashboardLayout><CompletedTicketsPage /></DashboardLayout>} />
         <Route path="/field-worker" element={<DashboardLayout><FieldWorkerTicketsPage /></DashboardLayout>} />
         <Route path="/field-worker/team" element={<DashboardLayout><FieldWorkerTeamPage /></DashboardLayout>} />
@@ -221,6 +241,13 @@ function AppRoutes() {
         <Route path="/pms/actuals/:actualId/evidence" element={<DashboardLayout><EvidencePage /></DashboardLayout>} />
         {/* IDP-04: Golden thread standalone route — page exists but had no route */}
         <Route path="/pms/golden-thread" element={<DashboardLayout><GoldenThreadPage /></DashboardLayout>} />
+
+        {/* Wave 2: Standalone PMS sub-page routes — sidebar links per role */}
+        <Route path="/sdbip" element={<DashboardLayout><SdbipPage /></DashboardLayout>} />
+        <Route path="/golden-thread" element={<DashboardLayout><GoldenThreadPage /></DashboardLayout>} />
+        <Route path="/performance-agreements" element={<DashboardLayout><PerformanceAgreementsPage /></DashboardLayout>} />
+        <Route path="/statutory-reports" element={<DashboardLayout><StatutoryReportsPage showForm={false} onCloseForm={() => {}} /></DashboardLayout>} />
+        <Route path="/idp-management" element={<DashboardLayout><IdpPage /></DashboardLayout>} />
 
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>

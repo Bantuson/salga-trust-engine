@@ -17,8 +17,9 @@
  * - Pure CSS bars + SVG sparklines
  */
 
-import { useCallback } from 'react';
+import { useCallback, createElement } from 'react';
 import { useAuth } from '../hooks/useAuth';
+import { usePageHeader } from '../hooks/usePageHeader';
 import { useAnalytics } from '../hooks/useAnalytics';
 import { exportTicketsCSV } from '../services/api';
 import { KPICard } from '../components/analytics/KPICard';
@@ -111,18 +112,16 @@ export function AnalyticsPage() {
         ? 'var(--color-coral)'
         : '#FBBF24';
 
+  usePageHeader(
+    isWardCouncillor ? 'Ward Analytics' : 'Analytics',
+    createElement('button', {
+      onClick: handleExportCSV,
+      style: styles.exportBtn,
+    }, 'Export CSV')
+  );
+
   return (
     <div style={styles.container}>
-      {/* Page header */}
-      <header style={styles.header}>
-        <h1 style={styles.title}>
-          {isWardCouncillor ? 'Ward Analytics' : 'Analytics'}
-        </h1>
-        <button onClick={handleExportCSV} style={styles.exportBtn}>
-          Export CSV
-        </button>
-      </header>
-
       {/* Time range controls */}
       <TimeRangeControls
         timeRange={timeRange}

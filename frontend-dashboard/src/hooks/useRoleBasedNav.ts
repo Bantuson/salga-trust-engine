@@ -5,16 +5,22 @@
  * - Platform Admin: All system-level features
  * - Executive (executive_mayor, municipal_manager): Full authority + PMS
  * - CFO: Financial + PMS
- * - Speaker: Reports
+ * - Speaker: Organogram + Reports
  * - Admin: Full municipality management + PMS
  * - SALGA Admin: Cross-municipality management + PMS
- * - Section 56 Director / Department Manager: Department + PMS
- * - PMS Officer: Departments + PMS + Analytics
+ * - Section 56 Director: Department + Organogram + PMS
+ * - Department Manager: Department + PMS (no Organogram — Tier 3)
+ * - PMS Officer: Departments + PMS + Analytics (no Organogram — Tier 3)
  * - Audit roles (audit_committee_member, internal_auditor, mpac_member): Performance (PMS) + Statutory Reports (SEC-05: no /reports GBV link)
- * - Ward Councillor: Ward tickets + Performance (PMS) + Statutory Reports (v2 nav)
+ * - Ward Councillor / Chief Whip: Ward tickets + Organogram + PMS + Statutory Reports
  * - Field Worker: Assigned tickets and reporting
  * - SAPS Liaison: GBV cases only
  * - Citizen: Home only
+ *
+ * Organogram: Top-level route /organogram visible only to Tier 1 & Tier 2
+ * municipal roles. Tier 3 operational roles (manager, department_manager,
+ * pms_officer) do NOT see it. salga_admin accesses organograms only through
+ * municipality onboarding workflows.
  *
  * Phase 28: PMS views (IDP, SDBIP, Golden Thread, Setup) consolidated into
  * single /pms hub page with in-page dropdown selector.
@@ -29,11 +35,6 @@ interface NavItem {
   icon: string;  // Icon identifier: 'home', 'ticket', 'users', 'chart', 'settings', 'shield', 'building', 'upload', 'target', 'link'
   section?: string; // Optional section header for grouping
 }
-
-// Single PMS sidebar entry — all sub-views accessed via in-page dropdown
-const pmsNavItem: NavItem = {
-  label: 'Performance', path: '/pms', icon: 'target',
-};
 
 // All 18 roles from the UserRole enum (Phase 27 18-role 4-tier hierarchy)
 type UserRole =
@@ -86,36 +87,52 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'executive_mayor':
       case 'municipal_manager':
         return [...base,
-          { label: 'Tickets', path: '/tickets', icon: 'ticket' },
           { label: 'Departments', path: '/departments', icon: 'building' },
-          { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          pmsNavItem,
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
+          { label: 'Golden Thread', path: '/golden-thread', icon: 'link' },
+          { label: 'Perf Agreements', path: '/performance-agreements', icon: 'users' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
       case 'cfo':
         return [...base,
-          { label: 'Tickets', path: '/tickets', icon: 'ticket' },
           { label: 'Departments', path: '/departments', icon: 'building' },
-          { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          pmsNavItem,
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
+          { label: 'Golden Thread', path: '/golden-thread', icon: 'link' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
         ];
 
       case 'speaker':
         return [...base,
-          { label: 'Reports', path: '/reports', icon: 'chart' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
+        ];
+
+      case 'admin':
+        return [...base,
+          { label: 'Teams', path: '/teams', icon: 'users' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
+          { label: 'Analytics', path: '/analytics', icon: 'chart' },
+          { label: 'IDP Management', path: '/idp-management', icon: 'building' },
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
+          { label: 'Golden Thread', path: '/golden-thread', icon: 'link' },
+          { label: 'Perf Agreements', path: '/performance-agreements', icon: 'users' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
+          { label: 'PMS Setup', path: '/pms-setup', icon: 'settings' },
+          { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
       case 'manager':
-      case 'admin':
         return [...base,
           { label: 'Tickets', path: '/tickets', icon: 'ticket' },
           { label: 'Teams', path: '/teams', icon: 'users' },
-          { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
-          pmsNavItem,
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
           { label: 'Settings', path: '/settings', icon: 'settings' },
         ];
 
@@ -124,7 +141,6 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Municipalities', path: '/municipalities', icon: 'building' },
           { label: 'Access Requests', path: '/access-requests', icon: 'inbox' },
           { label: 'Role Approvals', path: '/role-approvals', icon: 'users' },
-          pmsNavItem,
           { label: 'System', path: '/system', icon: 'settings' },
         ];
 
@@ -132,20 +148,25 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       // Tier 2 — Directors
       // -----------------------------------------------------------------------
       case 'section56_director':
+        return [...base,
+          { label: 'My Department', path: '/departments', icon: 'building' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
+          { label: 'Perf Agreements', path: '/performance-agreements', icon: 'users' },
+        ];
+
       case 'department_manager':
         return [...base,
           { label: 'My Department', path: '/departments', icon: 'building' },
-          { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
           { label: 'Tickets', path: '/tickets', icon: 'ticket' },
-          pmsNavItem,
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
         ];
 
       case 'ward_councillor':
       case 'chief_whip':
         return [...base,
-          { label: 'My Ward Tickets', path: '/tickets', icon: 'ticket' },
-          pmsNavItem,
-          { label: 'Statutory Reports', path: '/pms?view=statutory-reports', icon: 'chart' },
+          { label: 'Organogram', path: '/organogram', icon: 'organogram' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
         ];
 
       // -----------------------------------------------------------------------
@@ -154,8 +175,11 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'pms_officer':
         return [...base,
           { label: 'Departments', path: '/departments', icon: 'building' },
-          { label: 'Organogram', path: '/departments/organogram', icon: 'organogram' },
-          pmsNavItem,
+          { label: 'IDP Management', path: '/idp-management', icon: 'building' },
+          { label: 'SDBIP', path: '/sdbip', icon: 'target' },
+          { label: 'Golden Thread', path: '/golden-thread', icon: 'link' },
+          { label: 'Perf Agreements', path: '/performance-agreements', icon: 'users' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
           { label: 'Analytics', path: '/analytics', icon: 'chart' },
         ];
 
@@ -163,8 +187,7 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
       case 'internal_auditor':
       case 'mpac_member':
         return [...base,
-          pmsNavItem,
-          { label: 'Statutory Reports', path: '/pms?view=statutory-reports', icon: 'chart' },
+          { label: 'Statutory Reports', path: '/statutory-reports', icon: 'chart' },
         ];
 
       case 'saps_liaison':

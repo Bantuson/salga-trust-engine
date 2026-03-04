@@ -21,6 +21,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { fetchSection56DirectorDashboard } from '../services/api';
 import { mockSection56Dashboard } from '../mocks/mockRoleDashboards';
+import { DEMO_MODE } from '../lib/demoMode';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { Skeleton, SkeletonTheme } from '@shared/components/ui/Skeleton';
 import { Button } from '@shared/components/ui/Button';
@@ -64,6 +65,11 @@ export function Section56DirectorDashboardPage() {
   const [error, setError] = useState<string | null>(null);
 
   const loadData = useCallback(async () => {
+    if (DEMO_MODE) {
+      setData(mockSection56Dashboard);
+      setLoading(false);
+      return;
+    }
     if (!session?.access_token) return;
     setLoading(true);
     setError(null);
@@ -279,6 +285,90 @@ export function Section56DirectorDashboardPage() {
           </div>
         )}
       </GlassCard>
+
+      {/* Recent Activity Feed */}
+      {data?.recent_activity && data.recent_activity.length > 0 && (
+        <GlassCard style={{ marginBottom: '1.5rem', padding: 'var(--space-lg)' }}>
+          <h2 style={styles.sectionTitle}>Recent Activity</h2>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
+            {(data.recent_activity as any[]).map((item: any, idx: number) => (
+              <div
+                key={item.id ?? idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'flex-start',
+                  gap: '0.75rem',
+                  padding: '0.5rem 0',
+                  borderBottom: idx < data.recent_activity.length - 1 ? '1px solid rgba(255,255,255,0.05)' : 'none',
+                }}
+              >
+                <div style={{ width: '8px', height: '8px', borderRadius: '50%', background: 'var(--color-teal)', flexShrink: 0, marginTop: '6px' }} />
+                <div style={{ flex: 1 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)', margin: 0, fontWeight: 600 }}>
+                    {item.action}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', margin: '2px 0 0 0' }}>
+                    {item.detail}
+                  </p>
+                </div>
+                <span style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--text-muted)', whiteSpace: 'nowrap', flexShrink: 0 }}>
+                  {item.timestamp ? new Date(item.timestamp).toLocaleDateString('en-ZA', { day: 'numeric', month: 'short' }) : ''}
+                </span>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
+
+      {/* Team Members */}
+      {data?.team_members && data.team_members.length > 0 && (
+        <GlassCard style={{ marginBottom: '1.5rem', padding: 'var(--space-lg)' }}>
+          <h2 style={styles.sectionTitle}>Team Members</h2>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(280px, 1fr))', gap: '0.75rem' }}>
+            {(data.team_members as any[]).map((member: any, idx: number) => (
+              <div
+                key={member.id ?? idx}
+                style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '0.75rem',
+                  padding: '0.75rem',
+                  background: 'rgba(255,255,255,0.04)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid rgba(255,255,255,0.06)',
+                }}
+              >
+                <div
+                  style={{
+                    width: '36px',
+                    height: '36px',
+                    borderRadius: '50%',
+                    background: 'var(--color-teal)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    fontFamily: 'var(--font-display)',
+                    fontSize: 'var(--text-sm)',
+                    fontWeight: 700,
+                    color: 'var(--bg-primary)',
+                    flexShrink: 0,
+                  }}
+                >
+                  {(member.name as string).split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
+                </div>
+                <div style={{ flex: 1, minWidth: 0 }}>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-sm)', color: 'var(--text-primary)', margin: 0, fontWeight: 600 }}>
+                    {member.name}
+                  </p>
+                  <p style={{ fontFamily: 'var(--font-body)', fontSize: 'var(--text-xs)', color: 'var(--text-secondary)', margin: '2px 0 0 0', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                    {member.role}
+                  </p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </GlassCard>
+      )}
 
       {/* Action Links */}
       <GlassCard style={styles.actionCard}>
