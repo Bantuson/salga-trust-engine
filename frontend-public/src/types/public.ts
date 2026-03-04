@@ -26,17 +26,32 @@ export interface ResolutionRateData {
   trend: MonthlyTrend[];
 }
 
-export interface HeatmapPoint {
-  lat: number;
-  lng: number;
-  intensity: number;
-  category?: string;
+export interface CategoryBreakdownData {
+  category: string;
+  count: number;
 }
 
-export interface SystemSummary {
-  total_municipalities: number;
+export interface SdbipAchievementData {
+  municipality_id: string;
+  municipality_name: string;
+  financial_year: string;
+  total_kpis: number;
+  green: number;
+  amber: number;
+  red: number;
+  overall_achievement_pct: number;
+}
+
+export interface LeaderboardEntry {
+  municipality_id: string;
+  municipality_name: string;
+  resolution_rate: number;
+  avg_response_hours: number;
+  sdbip_achievement_pct: number;
   total_tickets: number;
-  total_sensitive_tickets: number;
+  current_rank: number;
+  previous_rank: number | null;
+  rank_delta: number | null;  // positive = improved (moved up), negative = dropped
 }
 
 /**
@@ -58,27 +73,4 @@ export interface PublicMunicipalityRow {
   name: string;
   code: string;
   province: string;
-}
-
-export interface PublicHeatmapRow {
-  lat: number;
-  lng: number;
-  intensity: number;
-  municipality_id: string;
-}
-
-export interface CategoryBreakdownData {
-  category: string;
-  count: number;
-}
-
-export interface SdbipAchievementData {
-  municipality_id: string;
-  municipality_name: string;
-  financial_year: string;
-  total_kpis: number;
-  green: number;
-  amber: number;
-  red: number;
-  overall_achievement_pct: number;
 }
