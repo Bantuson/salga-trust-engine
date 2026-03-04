@@ -3,12 +3,12 @@ gsd_state_version: 1.0
 milestone: v2.0
 milestone_name: Senior Municipal Roles & PMS Integration
 status: unknown
-last_updated: "2026-03-04T08:48:25.199Z"
+last_updated: "2026-03-04T08:56:54.655Z"
 progress:
   total_phases: 13
-  completed_phases: 11
+  completed_phases: 12
   total_plans: 43
-  completed_plans: 40
+  completed_plans: 41
 ---
 
 ---
@@ -363,6 +363,7 @@ Progress: [██████████] 100% (Plan 2/2 of Phase 34.4 done —
 | Phase 34.4-01 P01 | 20 | 2 tasks | 5 files |
 | Phase 34.4 P02 | 4 | 2 tasks | 6 files |
 | Phase 34.5-municipal-onboarding-auth-system-tests P01 | 6 | 2 tasks | 4 files |
+| Phase 34.5 P02 | 8 | 1 tasks | 1 files |
 
 ## Accumulated Context
 
@@ -508,6 +509,8 @@ From Phase 29 execution (Plan 29-02):
 - [Phase 34.5-01]: Deleted pervasive graceful-skip onboarding specs instead of fixing — test.skip() patterns make them deceptive safety theater
 - [Phase 34.5-01]: OnboardingWizardPage rewrites storage key to salga_onboarding_wizard_v3 (v3) and uses step indicator regex /Step \d+ of 9:/i for v2 9-step wizard detection
 - [Phase 34.5-01]: auth-login.spec.ts creates fresh browser context per test (NOT pre-cached fixtures) — tests the login flow itself, not cached session reuse
+- [Phase 34.5]: departments step Next button uses disabled={departments.length === 0} as gate — test asserts toBeDisabled() not validation error text visibility
+- [Phase 34.5]: welcome step advance button text is 'Confirm & Continue' not 'Start Setup' — flexible regex /Confirm.*Continue|Start Setup|Get Started|Begin|^Next$/i handles all variants
 
 ### Pending Todos
 
