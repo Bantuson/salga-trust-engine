@@ -4,22 +4,18 @@ import type {
   Municipality,
   ResponseTimeData,
   ResolutionRateData,
-  HeatmapPoint,
-  SystemSummary,
   CategoryBreakdownData,
   SdbipAchievementData,
   PublicTicketStatsRow,
   PublicMunicipalityRow,
-  PublicHeatmapRow,
 } from '../types/public';
 import {
-  mockSystemSummary,
   mockMunicipalities,
   mockResponseTimes,
   mockResolutionRates,
-  mockHeatmapData,
   mockCategoryBreakdown,
 } from '../data/mockDashboardData';
+import { getQuarterBounds } from '../utils/saFinancialYear';
 
 /**
  * Custom hooks for querying Supabase public views directly.
@@ -72,7 +68,7 @@ export function useMunicipalities() {
   return { municipalities, isLoading, error };
 }
 
-export function useResponseTimes(municipalityId?: string) {
+export function useResponseTimes(municipalityId?: string, financialYear?: string, quarter?: 1 | 2 | 3 | 4) {
   const [data, setData] = useState<ResponseTimeData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -84,11 +80,16 @@ export function useResponseTimes(municipalityId?: string) {
 
         let query = supabase
           .from('public_ticket_stats')
-          .select('municipality_id, municipality_name, response_hours')
+          .select('municipality_id, municipality_name, response_hours, report_date')
           .not('response_hours', 'is', null);
 
         if (municipalityId) {
           query = query.eq('municipality_id', municipalityId);
+        }
+
+        if (financialYear && quarter) {
+          const bounds = getQuarterBounds(financialYear, quarter);
+          query = query.gte('report_date', bounds.start).lte('report_date', bounds.end);
         }
 
         const { data: rows, error: queryError } = await query;
@@ -139,12 +140,12 @@ export function useResponseTimes(municipalityId?: string) {
     }
 
     fetchResponseTimes();
-  }, [municipalityId]);
+  }, [municipalityId, financialYear, quarter]);
 
   return { data, isLoading, error };
 }
 
-export function useResolutionRates(municipalityId?: string, months = 6) {
+export function useResolutionRates(municipalityId?: string, months = 6, financialYear?: string, quarter?: 1 | 2 | 3 | 4) {
   const [data, setData] = useState<ResolutionRateData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -154,15 +155,20 @@ export function useResolutionRates(municipalityId?: string, months = 6) {
       try {
         setIsLoading(true);
 
-        // Calculate date cutoff for trend (last N months)
-        const cutoffDate = new Date();
-        cutoffDate.setMonth(cutoffDate.getMonth() - months);
-        const cutoffString = cutoffDate.toISOString().split('T')[0];
-
         let query = supabase
           .from('public_ticket_stats')
-          .select('municipality_id, municipality_name, status, report_date')
-          .gte('report_date', cutoffString);
+          .select('municipality_id, municipality_name, status, report_date');
+
+        if (financialYear && quarter) {
+          const bounds = getQuarterBounds(financialYear, quarter);
+          query = query.gte('report_date', bounds.start).lte('report_date', bounds.end);
+        } else {
+          // existing months-based cutoff logic
+          const cutoffDate = new Date();
+          cutoffDate.setMonth(cutoffDate.getMonth() - months);
+          const cutoffString = cutoffDate.toISOString().split('T')[0];
+          query = query.gte('report_date', cutoffString);
+        }
 
         if (municipalityId) {
           query = query.eq('municipality_id', municipalityId);
@@ -244,51 +250,12 @@ export function useResolutionRates(municipalityId?: string, months = 6) {
     }
 
     fetchResolutionRates();
-  }, [municipalityId, months]);
+  }, [municipalityId, months, financialYear, quarter]);
 
   return { data, isLoading, error };
 }
 
-export function useHeatmapData(municipalityId?: string) {
-  const [data, setData] = useState<HeatmapPoint[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchHeatmap() {
-      try {
-        setIsLoading(true);
-
-        let query = supabase
-          .from('public_heatmap')
-          .select('lat, lng, intensity');
-
-        if (municipalityId) {
-          query = query.eq('municipality_id', municipalityId);
-        }
-
-        const { data: rows, error: queryError } = await query;
-
-        if (queryError) throw queryError;
-
-        const heatmapRows = (rows as PublicHeatmapRow[]) || [];
-        setData(heatmapRows.length > 0 ? heatmapRows : mockHeatmapData);
-        setError(null);
-      } catch (err) {
-        setData(mockHeatmapData);
-        setError(null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchHeatmap();
-  }, [municipalityId]);
-
-  return { data, isLoading, error };
-}
-
-export function useCategoryBreakdown(municipalityId?: string) {
+export function useCategoryBreakdown(municipalityId?: string, financialYear?: string, quarter?: 1 | 2 | 3 | 4) {
   const [data, setData] = useState<CategoryBreakdownData[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -300,10 +267,15 @@ export function useCategoryBreakdown(municipalityId?: string) {
 
         let query = supabase
           .from('public_ticket_stats')
-          .select('category');
+          .select('category, report_date');
 
         if (municipalityId) {
           query = query.eq('municipality_id', municipalityId);
+        }
+
+        if (financialYear && quarter) {
+          const bounds = getQuarterBounds(financialYear, quarter);
+          query = query.gte('report_date', bounds.start).lte('report_date', bounds.end);
         }
 
         const { data: rows, error: queryError } = await query;
@@ -336,7 +308,7 @@ export function useCategoryBreakdown(municipalityId?: string) {
     }
 
     fetchCategories();
-  }, [municipalityId]);
+  }, [municipalityId, financialYear, quarter]);
 
   return { data, isLoading, error };
 }
@@ -403,63 +375,4 @@ export function useSdbipAchievement(municipalityId?: string) {
   }, [municipalityId]);
 
   return { data, isLoading };
-}
-
-export function useSystemSummary() {
-  const [summary, setSummary] = useState<SystemSummary>({
-    total_municipalities: 0,
-    total_tickets: 0,
-    total_sensitive_tickets: 0,
-  });
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState<string | null>(null);
-
-  useEffect(() => {
-    async function fetchSummary() {
-      try {
-        setIsLoading(true);
-
-        // Count municipalities from public_municipalities view
-        const { count: muniCount, error: muniError } = await supabase
-          .from('public_municipalities')
-          .select('*', { count: 'exact', head: true });
-
-        if (muniError) throw muniError;
-
-        // Count tickets from public_ticket_stats (non-GBV only)
-        const { count: ticketCount, error: ticketError } = await supabase
-          .from('public_ticket_stats')
-          .select('*', { count: 'exact', head: true });
-
-        if (ticketError) throw ticketError;
-
-        // Sensitive ticket count: This is system-wide (not per-municipality per TRNS-05)
-        // We can't query tickets table directly (anon role has no access), so we'll return 0
-        // In production, this would be provided by a separate aggregated view if needed
-        const sensitiveCount = 0;
-
-        const result = {
-          total_municipalities: muniCount || 0,
-          total_tickets: ticketCount || 0,
-          total_sensitive_tickets: sensitiveCount,
-        };
-        // Fall back to mock if all values are zero
-        if (result.total_municipalities === 0 && result.total_tickets === 0) {
-          setSummary(mockSystemSummary);
-        } else {
-          setSummary(result);
-        }
-        setError(null);
-      } catch (err) {
-        setSummary(mockSystemSummary);
-        setError(null);
-      } finally {
-        setIsLoading(false);
-      }
-    }
-
-    fetchSummary();
-  }, []);
-
-  return { summary, isLoading, error };
 }
