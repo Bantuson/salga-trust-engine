@@ -103,3 +103,6 @@ pitch-deck/org-chart.png
 # TypeScript build info
 *.tsbuildinfo
 tests/evals/screenshots/
+
+# E2E test profiles (sensitive login credentials)
+e2e-tests/profiles/
