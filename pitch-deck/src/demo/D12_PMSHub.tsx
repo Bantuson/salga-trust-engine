@@ -56,34 +56,34 @@ export const D12_PMSHub: React.FC = () => {
                   backdropFilter: `blur(${glass.blur}px)`,
                   border: `1px solid ${glass.border}`,
                   borderRadius: 20,
-                  padding: "32px 28px",
+                  padding: "40px 32px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
-                  gap: 16,
+                  gap: 20,
                   opacity: entrance,
                   transform: `translateY(${translateY}px)`,
                 }}
               >
                 <div
                   style={{
-                    width: 64,
-                    height: 64,
-                    borderRadius: 16,
+                    width: 80,
+                    height: 80,
+                    borderRadius: 20,
                     background: `${view.color}18`,
                     border: `1px solid ${view.color}33`,
                     display: "flex",
                     alignItems: "center",
                     justifyContent: "center",
-                    fontSize: 32,
+                    fontSize: 40,
                   }}
                 >
                   {view.icon}
                 </div>
-                <span style={{ fontFamily: fontFamily.display, fontSize: 22, fontWeight: 700, color: view.color }}>
+                <span style={{ fontFamily: fontFamily.display, fontSize: 28, fontWeight: 700, color: view.color }}>
                   {view.title}
                 </span>
-                <span style={{ fontFamily: fontFamily.body, fontSize: 16, color: colors.text.secondary, textAlign: "center", lineHeight: 1.3 }}>
+                <span style={{ fontFamily: fontFamily.body, fontSize: 19, color: colors.text.secondary, textAlign: "center", lineHeight: 1.3 }}>
                   {view.subtitle}
                 </span>
               </div>

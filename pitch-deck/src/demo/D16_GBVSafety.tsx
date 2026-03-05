@@ -9,11 +9,11 @@ import { colors } from "../design/tokens";
 import { fontFamily } from "../design/fonts";
 
 const firewallLayers = [
-  { label: "Layer 1: Agent Routing", color: colors.rose.light },
-  { label: "Layer 2: Database RLS", color: colors.rose.primary },
-  { label: "Layer 3: API Middleware", color: colors.rose.deep },
-  { label: "Layer 4: Storage Encryption", color: colors.coral },
-  { label: "Layer 5: Public View Filtering", color: "#e53e3e" },
+  { label: "Layer 1: Agent Routing", color: "#60a5fa" },
+  { label: "Layer 2: Database RLS", color: "#a78bfa" },
+  { label: "Layer 3: API Middleware", color: "#f59e0b" },
+  { label: "Layer 4: Storage Encryption", color: "#fb923c" },
+  { label: "Layer 5: Public View Filtering", color: "#ef4444" },
 ];
 
 const popiaItems = [
@@ -71,7 +71,7 @@ export const D16_GBVSafety: React.FC = () => {
                 SEC-05 • 5-LAYER DEFENSE
               </span>
             </div>
-            <div style={{ width: "100%", maxWidth: 360 }}>
+            <div style={{ width: "100%" }}>
               <FirewallDiagram layers={firewallLayers} delay={18} stagger={7} />
             </div>
           </GlassCard>

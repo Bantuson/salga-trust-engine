@@ -62,7 +62,7 @@ export function VideoModal({ isOpen, onClose }: VideoModalProps) {
           preload="metadata"
           poster="/assets/mobile-background-skyline.png"
         >
-          <source src="/assets/pitch-deck.mp4" type="video/mp4" />
+          <source src="/assets/platform-demo.mp4" type="video/mp4" />
         </video>
       </div>
     </div>

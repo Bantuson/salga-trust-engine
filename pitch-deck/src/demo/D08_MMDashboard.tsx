@@ -52,7 +52,7 @@ export const D08_MMDashboard: React.FC = () => {
           textAlign="center"
         />
 
-        <div style={{ display: "flex", gap: 28, flex: 1 }}>
+        <div style={{ display: "flex", gap: 28 }}>
           {/* Left: Department table */}
           <GlassCard delay={15} style={{ flex: 1.2, padding: 24 }}>
             <div style={{ fontFamily: fontFamily.display, fontSize: 16, fontWeight: 600, color: colors.text.primary, marginBottom: 16 }}>

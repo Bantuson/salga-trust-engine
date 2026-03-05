@@ -24,13 +24,13 @@ export const ArchitectureFlow: React.FC<ArchitectureFlowProps> = ({
   const frame = useCurrentFrame();
   const { fps } = useVideoConfig();
 
-  const nodeWidth = 280;
-  const gap = 48;
+  const nodeWidth = 240;
+  const gap = 36;
   const totalWidth = nodes.length * nodeWidth + (nodes.length - 1) * gap;
 
   return (
     <div style={{ position: "relative", width: totalWidth, margin: "0 auto" }}>
-      <div style={{ display: "flex", alignItems: "center", gap }}>
+      <div style={{ display: "flex", alignItems: "center" }}>
         {nodes.map((node, i) => {
           const nodeDelay = delay + i * stagger;
           const entrance = spring({ frame, fps, delay: nodeDelay, config: { damping: 200 } });
@@ -50,7 +50,7 @@ export const ArchitectureFlow: React.FC<ArchitectureFlowProps> = ({
                   backdropFilter: `blur(${glass.blur}px)`,
                   border: `1px solid ${glass.border}`,
                   borderRadius: 24,
-                  padding: "32px 24px",
+                  padding: "28px 20px",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",

@@ -40,7 +40,7 @@ export const D13_GoldenThread: React.FC = () => {
           textAlign="center"
         />
 
-        <div style={{ display: "flex", gap: 28, flex: 1 }}>
+        <div style={{ display: "flex", gap: 28 }}>
           {/* Left: Hierarchy visualization */}
           <GlassCard delay={15} style={{ flex: 1.2, padding: 28 }}>
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>

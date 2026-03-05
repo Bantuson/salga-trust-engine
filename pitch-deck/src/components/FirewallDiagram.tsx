@@ -53,7 +53,7 @@ export const FirewallDiagram: React.FC<FirewallDiagramProps> = ({
               r={radius}
               fill="none"
               stroke={layer.color}
-              strokeWidth={2}
+              strokeWidth={3}
               opacity={interpolate(entrance, [0, 1], [0, 0.6])}
               style={{
                 transform: `scale(${scale})`,
@@ -65,29 +65,50 @@ export const FirewallDiagram: React.FC<FirewallDiagramProps> = ({
               cx={centerX}
               cy={centerY}
               r={radius}
-              fill={`${layer.color}11`}
+              fill={`${layer.color}0c`}
               opacity={entrance}
               style={{
                 transform: `scale(${scale})`,
                 transformOrigin: `${centerX}px ${centerY}px`,
               }}
             />
-            {/* Label */}
-            <text
-              x={centerX}
-              y={centerY - radius + 20}
-              textAnchor="middle"
-              fill={layer.color}
-              fontSize={12}
-              fontFamily={fontFamily.body}
-              fontWeight={600}
-              opacity={interpolate(entrance, [0.5, 1], [0, 1], {
+            {/* Label background + text */}
+            {(() => {
+              const labelOpacity = interpolate(entrance, [0.5, 1], [0, 1], {
                 extrapolateLeft: "clamp",
                 extrapolateRight: "clamp",
-              })}
-            >
-              {layer.label}
-            </text>
+              });
+              const textWidth = layer.label.length * 9;
+              const rectH = 24;
+              const rectY = centerY - radius + 6;
+              return (
+                <>
+                  <rect
+                    x={centerX - textWidth / 2 - 10}
+                    y={rectY}
+                    width={textWidth + 20}
+                    height={rectH}
+                    rx={6}
+                    fill="rgba(16,8,12,0.9)"
+                    stroke={`${layer.color}44`}
+                    strokeWidth={1}
+                    opacity={labelOpacity}
+                  />
+                  <text
+                    x={centerX}
+                    y={rectY + rectH / 2 + 5}
+                    textAnchor="middle"
+                    fill={layer.color}
+                    fontSize={14}
+                    fontFamily={fontFamily.body}
+                    fontWeight={700}
+                    opacity={labelOpacity}
+                  >
+                    {layer.label}
+                  </text>
+                </>
+              );
+            })()}
           </g>
         );
       })}

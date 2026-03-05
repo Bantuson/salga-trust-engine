@@ -44,7 +44,7 @@ export const D04_DeptTeams: React.FC = () => {
           textAlign="center"
         />
 
-        <div style={{ display: "flex", gap: 28, flex: 1 }}>
+        <div style={{ display: "flex", gap: 28 }}>
           {/* Left: Department list */}
           <GlassCard delay={15} style={{ flex: 1, padding: 24 }}>
             <div style={{ fontFamily: fontFamily.display, fontSize: 18, fontWeight: 600, color: colors.text.primary, marginBottom: 16 }}>

@@ -8,10 +8,13 @@ import { colors, glass } from "../design/tokens";
 import { fontFamily } from "../design/fonts";
 
 const chatMessages = [
-  { from: "citizen", text: "Hi, I need to report a water leak", delay: 20 },
-  { from: "gugu", text: "Hello! I'm Gugu, your AI assistant. I'll help you report this. Which area is the leak in?", delay: 35 },
-  { from: "citizen", text: "Corner of Main and Church Street, Kimberley", delay: 50 },
-  { from: "gugu", text: "Got it! I've created ticket #WTR-1247. A field team will be dispatched within 4 hours.", delay: 65 },
+  { from: "citizen", text: "Sawubona \u{1F44B}", delay: 18, time: "14:31" },
+  { from: "gugu", text: "Hello! I'm Gugu, your AI assistant. How can I help you today?", delay: 28, time: "14:31" },
+  { from: "citizen", text: "I need to report a water leak", delay: 36, time: "14:32" },
+  { from: "gugu", text: "I'll help you report that. Which area is the leak in?", delay: 44, time: "14:32" },
+  { from: "citizen", text: "Corner of Main and Church Street, Kimberley", delay: 52, time: "14:33" },
+  { from: "citizen", text: "\u{1F4CD} Sending my location...", delay: 58, time: "14:33" },
+  { from: "gugu", text: "Got it! Ticket #WTR-1247 created. A field team will be dispatched within 4 hours. You'll get WhatsApp updates on progress.", delay: 65, time: "14:33" },
 ];
 
 const reportingFeatures = [
@@ -60,7 +63,7 @@ export const D14_CitizenReporting: React.FC = () => {
               </span>
             </div>
 
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {chatMessages.map((msg, i) => {
                 const entrance = spring({ frame, fps, delay: msg.delay, config: { damping: 200 } });
                 const isGugu = msg.from === "gugu";
@@ -70,16 +73,24 @@ export const D14_CitizenReporting: React.FC = () => {
                     style={{
                       alignSelf: isGugu ? "flex-start" : "flex-end",
                       maxWidth: "85%",
-                      background: isGugu ? "rgba(0,191,165,0.12)" : "rgba(255,255,255,0.08)",
-                      border: `1px solid ${isGugu ? `${colors.teal}33` : "rgba(255,255,255,0.12)"}`,
-                      borderRadius: isGugu ? "16px 16px 16px 4px" : "16px 16px 4px 16px",
-                      padding: "14px 20px",
                       opacity: entrance,
                       transform: `translateY(${interpolate(entrance, [0, 1], [10, 0])}px)`,
                     }}
                   >
-                    <span style={{ fontFamily: fontFamily.body, fontSize: 16, color: colors.text.primary, lineHeight: 1.4 }}>
-                      {msg.text}
+                    <div
+                      style={{
+                        background: isGugu ? "rgba(0,191,165,0.12)" : "rgba(255,255,255,0.08)",
+                        border: `1px solid ${isGugu ? `${colors.teal}33` : "rgba(255,255,255,0.12)"}`,
+                        borderRadius: isGugu ? "16px 16px 16px 4px" : "16px 16px 4px 16px",
+                        padding: "14px 20px",
+                      }}
+                    >
+                      <span style={{ fontFamily: fontFamily.body, fontSize: 16, color: colors.text.primary, lineHeight: 1.4 }}>
+                        {msg.text}
+                      </span>
+                    </div>
+                    <span style={{ fontFamily: fontFamily.body, fontSize: 11, color: `${colors.text.secondary}99`, marginTop: 2, display: "block", textAlign: isGugu ? "left" : "right", paddingLeft: 4, paddingRight: 4 }}>
+                      {msg.time}
                     </span>
                   </div>
                 );

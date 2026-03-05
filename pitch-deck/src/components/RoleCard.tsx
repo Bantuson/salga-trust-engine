@@ -57,7 +57,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
           <span
             style={{
               fontFamily: fontFamily.display,
-              fontSize: 20,
+              fontSize: 24,
               fontWeight: 700,
               color: colors.text.primary,
             }}
@@ -80,7 +80,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
           </div>
         </div>
         {/* Features */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {features.map((f, i) => (
             <div
               key={i}
@@ -89,7 +89,7 @@ export const RoleCard: React.FC<RoleCardProps> = ({
                 alignItems: "center",
                 gap: 8,
                 fontFamily: fontFamily.body,
-                fontSize: 15,
+                fontSize: 17,
                 color: colors.text.secondary,
               }}
             >
