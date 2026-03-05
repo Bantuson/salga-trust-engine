@@ -1391,9 +1391,17 @@ textarea.error {
     padding-top: 90px !important;
   }
 
-  /* Citizen portal tabs: tighter gap to content */
+  /* Citizen portal tabs: stack on mobile */
   .citizen-portal-tabs {
+    flex-direction: column !important;
+    align-items: stretch !important;
     margin-bottom: 24px !important;
+  }
+  .citizen-portal-tabs > div:first-child {
+    width: 100% !important;
+  }
+  .citizen-portal-tabs > div:first-child > button {
+    flex: 1 !important;
   }
 
   /* Empty state card: smaller on mobile */

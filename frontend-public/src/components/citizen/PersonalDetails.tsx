@@ -157,7 +157,7 @@ export function PersonalDetails() {
       <GlassCard className="personal-details-card" style={{ marginBottom: '2rem' }}>
         {!isEditing && (
           <div style={{ marginBottom: '1.5rem', textAlign: 'center' }}>
-            <Button variant="secondary" size="sm" onClick={handleEdit} style={{ background: 'var(--color-coral)', color: '#fff', border: 'none', width: '100%' }}>
+            <Button variant="secondary" size="sm" onClick={handleEdit} style={{ background: 'var(--color-teal)', color: '#fff', border: 'none', width: '100%' }}>
               Edit Profile
             </Button>
           </div>

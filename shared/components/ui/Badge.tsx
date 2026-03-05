@@ -20,29 +20,29 @@ export interface BadgeProps {
 
 const statusColors: Record<TicketStatus, { bg: string; text: string; border: string }> = {
   open: {
-    bg: 'rgba(251, 191, 36, 0.1)',
-    text: '#FBBF24',
-    border: 'rgba(251, 191, 36, 0.3)',
+    bg: 'rgba(251, 191, 36, 0.2)',
+    text: '#FCD34D',
+    border: 'rgba(251, 191, 36, 0.5)',
   },
   in_progress: {
-    bg: 'rgba(0, 217, 166, 0.1)',
-    text: '#00D9A6',
-    border: 'rgba(0, 217, 166, 0.3)',
-  },
-  escalated: {
-    bg: 'rgba(255, 107, 74, 0.1)',
-    text: '#FF6B4A',
-    border: 'rgba(255, 107, 74, 0.3)',
-  },
-  resolved: {
     bg: 'rgba(0, 217, 166, 0.2)',
-    text: '#00F0B8',
+    text: '#34D9A8',
     border: 'rgba(0, 217, 166, 0.5)',
   },
+  escalated: {
+    bg: 'rgba(255, 107, 74, 0.2)',
+    text: '#FF8A6A',
+    border: 'rgba(255, 107, 74, 0.5)',
+  },
+  resolved: {
+    bg: 'rgba(0, 217, 166, 0.25)',
+    text: '#00F0B8',
+    border: 'rgba(0, 217, 166, 0.6)',
+  },
   closed: {
-    bg: 'rgba(156, 163, 175, 0.1)',
-    text: '#9CA3AF',
-    border: 'rgba(156, 163, 175, 0.3)',
+    bg: 'rgba(156, 163, 175, 0.18)',
+    text: '#B0B8C4',
+    border: 'rgba(156, 163, 175, 0.4)',
   },
 };
 

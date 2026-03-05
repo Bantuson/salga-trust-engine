@@ -8,7 +8,6 @@
 
 import React from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
-import { Button } from '@shared/components/ui/Button';
 import type { CitizenTicket } from '../../hooks/useCitizenReports';
 
 export interface GBVCaseCardProps {
@@ -22,9 +21,12 @@ export const GBVCaseCard: React.FC<GBVCaseCardProps> = ({ ticket }) => {
     <GlassCard
       variant="elevated"
       style={{
-        padding: 'var(--spacing-lg)',
+        padding: '20px',
         borderLeft: '4px solid var(--color-coral)',
         background: 'linear-gradient(135deg, rgba(255, 107, 74, 0.05) 0%, rgba(205, 94, 129, 0.95) 100%)',
+        height: '100%',
+        display: 'flex',
+        flexDirection: 'column',
       }}
     >
       {/* Header with Lock Icon */}
@@ -32,240 +34,102 @@ export const GBVCaseCard: React.FC<GBVCaseCardProps> = ({ ticket }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'space-between',
-        marginBottom: 'var(--spacing-md)',
+        marginBottom: '14px',
       }}>
-        <div style={{ display: 'flex', alignItems: 'center', gap: 'var(--spacing-sm)' }}>
-          {/* Shield/Alert Icon */}
-          <svg
-            width="24"
-            height="24"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="var(--color-coral)"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--color-coral)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M12 2L3 7v6c0 5.55 3.84 10.74 9 12 5.16-1.26 9-6.45 9-12V7l-9-5z" />
-            <path d="M12 8v4" />
-            <circle cx="12" cy="16" r="0.5" fill="var(--color-coral)" />
+            <path d="M12 8v4" /><circle cx="12" cy="16" r="0.5" fill="var(--color-coral)" />
           </svg>
-          <h3 style={{
-            fontSize: 'var(--text-lg)',
-            fontWeight: 600,
-            color: 'var(--color-coral)',
-            margin: 0,
-          }}>
+          <h3 style={{ fontSize: '0.9375rem', fontWeight: 700, color: 'var(--color-coral)', margin: 0 }}>
             GBV Case (Private)
           </h3>
         </div>
-        {/* Lock Icon */}
-        <svg
-          width="20"
-          height="20"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="var(--text-secondary)"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        >
-          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" />
-          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-secondary)" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2" /><path d="M7 11V7a5 5 0 0 1 10 0v4" />
         </svg>
       </div>
 
-      {/* Tracking Number */}
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <div style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--text-secondary)',
-          marginBottom: 'var(--spacing-2xs)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          Tracking Number
-        </div>
-        <div style={{
-          fontFamily: 'monospace',
-          fontSize: 'var(--text-base)',
-          color: 'var(--text-primary)',
-          fontWeight: 600,
-        }}>
-          {ticket.tracking_number}
-        </div>
+      {/* Info rows */}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '14px' }}>
+        <InfoRow label="Tracking Number" value={ticket.tracking_number} mono />
+        <InfoRow label="Status" value={statusDisplay} bold />
+        {ticket.assigned_officer_name && <InfoRow label="SAPS Officer" value={ticket.assigned_officer_name} />}
+        {ticket.station_name && <InfoRow label="Station" value={ticket.station_name} />}
+        {ticket.station_phone && (
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+            <span style={labelStyle}>Contact</span>
+            <a href={`tel:${ticket.station_phone}`} style={{ fontSize: '0.875rem', color: 'var(--color-teal)', textDecoration: 'none', fontWeight: 600 }}>
+              {ticket.station_phone}
+            </a>
+          </div>
+        )}
       </div>
 
-      {/* Status */}
-      <div style={{ marginBottom: 'var(--spacing-md)' }}>
-        <div style={{
-          fontSize: 'var(--text-xs)',
-          color: 'var(--text-secondary)',
-          marginBottom: 'var(--spacing-2xs)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
-          Status
-        </div>
-        <div style={{
-          fontSize: 'var(--text-base)',
-          color: 'var(--text-primary)',
-          fontWeight: 600,
-        }}>
-          {statusDisplay}
-        </div>
-      </div>
+      {/* Spacer */}
+      <div style={{ flex: 1 }} />
 
-      {/* Assigned SAPS Officer */}
-      {ticket.assigned_officer_name && (
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-          <div style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-2xs)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Assigned SAPS Officer
-          </div>
-          <div style={{
-            fontSize: 'var(--text-base)',
-            color: 'var(--text-primary)',
-          }}>
-            {ticket.assigned_officer_name}
-          </div>
-        </div>
-      )}
-
-      {/* Police Station */}
-      {ticket.station_name && (
-        <div style={{ marginBottom: 'var(--spacing-md)' }}>
-          <div style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-2xs)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Police Station
-          </div>
-          <div style={{
-            fontSize: 'var(--text-base)',
-            color: 'var(--text-primary)',
-          }}>
-            {ticket.station_name}
-          </div>
-        </div>
-      )}
-
-      {/* Station Phone */}
-      {ticket.station_phone && (
-        <div style={{ marginBottom: 'var(--spacing-lg)' }}>
-          <div style={{
-            fontSize: 'var(--text-xs)',
-            color: 'var(--text-secondary)',
-            marginBottom: 'var(--spacing-2xs)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Contact
-          </div>
-          <a
-            href={`tel:${ticket.station_phone}`}
-            style={{
-              fontSize: 'var(--text-base)',
-              color: 'var(--color-teal)',
-              textDecoration: 'none',
-              fontWeight: 600,
-            }}
-          >
-            {ticket.station_phone}
-          </a>
-        </div>
-      )}
-
-      {/* Emergency Contacts Section */}
+      {/* Emergency Contacts */}
       <div style={{
-        marginTop: 'var(--spacing-lg)',
-        padding: 'var(--spacing-md)',
+        padding: '10px 12px',
         background: 'rgba(255, 107, 74, 0.1)',
-        border: '1px solid rgba(255, 107, 74, 0.3)',
-        borderRadius: 'var(--radius-md)',
+        border: '1px solid rgba(255, 107, 74, 0.25)',
+        borderRadius: 'var(--radius-sm)',
+        marginBottom: '10px',
       }}>
-        <div style={{
-          fontSize: 'var(--text-sm)',
-          fontWeight: 600,
-          color: 'var(--color-coral)',
-          marginBottom: 'var(--spacing-sm)',
-          textTransform: 'uppercase',
-          letterSpacing: '0.5px',
-        }}>
+        <div style={{ fontSize: '0.6875rem', fontWeight: 700, color: 'var(--color-coral)', textTransform: 'uppercase', letterSpacing: '0.5px', marginBottom: '6px' }}>
           Emergency Contacts
         </div>
-        <div style={{
-          display: 'flex',
-          flexDirection: 'column',
-          gap: 'var(--spacing-sm)',
-        }}>
-          <div>
-            <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>Police: </span>
-            <a
-              href="tel:10111"
-              style={{
-                color: 'var(--color-teal)',
-                fontWeight: 600,
-                fontSize: 'var(--text-base)',
-                textDecoration: 'none',
-              }}
-            >
-              10111
-            </a>
-          </div>
-          <div>
-            <span style={{ color: 'var(--text-secondary)', fontSize: 'var(--text-sm)' }}>GBV Helpline: </span>
-            <a
-              href="tel:0800150150"
-              style={{
-                color: 'var(--color-teal)',
-                fontWeight: 600,
-                fontSize: 'var(--text-base)',
-                textDecoration: 'none',
-              }}
-            >
-              0800 150 150
-            </a>
-          </div>
+        <div style={{ display: 'flex', gap: '16px', flexWrap: 'wrap', fontSize: '0.8125rem' }}>
+          <span>
+            <span style={{ color: 'var(--text-secondary)' }}>Police: </span>
+            <a href="tel:10111" style={{ color: 'var(--color-teal)', fontWeight: 600, textDecoration: 'none' }}>10111</a>
+          </span>
+          <span>
+            <span style={{ color: 'var(--text-secondary)' }}>GBV: </span>
+            <a href="tel:0800150150" style={{ color: 'var(--color-teal)', fontWeight: 600, textDecoration: 'none' }}>0800 150 150</a>
+          </span>
         </div>
       </div>
 
-      {/* Privacy Explanation */}
-      <div style={{ marginTop: 'var(--spacing-md)' }}>
-        <Button
-          variant="ghost"
-          size="sm"
-          disabled
-          style={{
-            cursor: 'not-allowed',
-            opacity: 0.6,
-          }}
-        >
-          <svg
-            width="16"
-            height="16"
-            viewBox="0 0 24 24"
-            fill="none"
-            stroke="currentColor"
-            strokeWidth="2"
-            strokeLinecap="round"
-            strokeLinejoin="round"
-          >
-            <circle cx="12" cy="12" r="10" />
-            <line x1="12" y1="16" x2="12" y2="12" />
-            <line x1="12" y1="8" x2="12.01" y2="8" />
-          </svg>
-          Details Hidden for Privacy
-        </Button>
+      {/* Footer */}
+      <div style={{
+        display: 'flex',
+        alignItems: 'center',
+        gap: '6px',
+        paddingTop: '10px',
+        borderTop: '1px solid rgba(255, 255, 255, 0.08)',
+        color: 'var(--text-muted)',
+        fontSize: '0.75rem',
+      }}>
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <circle cx="12" cy="12" r="10" /><line x1="12" y1="16" x2="12" y2="12" /><line x1="12" y1="8" x2="12.01" y2="8" />
+        </svg>
+        Details hidden for privacy
       </div>
     </GlassCard>
   );
 };
+
+const labelStyle: React.CSSProperties = {
+  fontSize: '0.6875rem',
+  color: 'var(--text-secondary)',
+  textTransform: 'uppercase',
+  letterSpacing: '0.5px',
+};
+
+function InfoRow({ label, value, mono, bold }: { label: string; value: string; mono?: boolean; bold?: boolean }) {
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+      <span style={labelStyle}>{label}</span>
+      <span style={{
+        fontSize: '0.875rem',
+        color: 'var(--text-primary)',
+        fontWeight: bold ? 700 : 500,
+        fontFamily: mono ? 'monospace' : 'inherit',
+      }}>
+        {value}
+      </span>
+    </div>
+  );
+}

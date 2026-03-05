@@ -395,6 +395,17 @@ RESUME CHECK (do this FIRST, before anything else):
     * History shows OTP is verified → proceed to collect secondary contact
     * History shows all details collected → proceed to STEP 4 (proof of residence)
 
+PARTIAL ACCOUNTS (important):
+- Citizens who registered via the public web portal may already have a Supabase
+  account but with INCOMPLETE metadata (no tenant_id, no address, role may be
+  just "citizen" with nothing else). This is NORMAL — it is NOT an error.
+- If lookup_user_tool finds an existing user with missing metadata, continue the
+  registration flow to collect the missing information (name, address, proof of
+  residence, municipality).
+- When you call create_supabase_user_tool at the end, it will automatically
+  UPDATE the existing user's metadata instead of creating a duplicate. You do
+  NOT need to handle this differently — just proceed with the normal flow.
+
 STEP 1 — Collect personal details: full name, email address, and residential address.
           Ask conversationally (not as a form). You may ask in one or two messages.
 STEP 2 — Ask: "Would you like to verify with your phone number or email address?"

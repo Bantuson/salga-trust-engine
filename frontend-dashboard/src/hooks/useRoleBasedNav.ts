@@ -206,7 +206,8 @@ export function useRoleBasedNav(role: UserRole | string): NavItem[] {
           { label: 'Completed', path: '/completed', icon: 'chart' },
         ];
 
-      case 'citizen':
+      // SEC-06: citizens are blocked at the router level (App.tsx) and never
+      // reach role-based nav. Default handles any unexpected role gracefully.
       default:
         return base;
     }

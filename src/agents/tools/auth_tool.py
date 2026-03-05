@@ -18,8 +18,10 @@ Pattern: implementation function (_impl) + BaseTool wrapper with Pydantic input 
 """
 import logging
 import random
+import re
 import string
 import time
+import uuid
 from collections import defaultdict
 from typing import Type
 
@@ -99,6 +101,45 @@ def _log_tool_failure(tool_name: str, error: str, user_identifier: str) -> None:
         logger.critical("URGENT: Repeated tool failures -- %s", log_data)
     else:
         logger.error("Tool failure -- %s", log_data)
+
+
+# ---------------------------------------------------------------------------
+# Validation helpers
+# ---------------------------------------------------------------------------
+
+_E164_REGEX = re.compile(r"^\+[1-9]\d{6,14}$")
+
+
+def _validate_e164_phone(phone: str) -> str | None:
+    """Return error string if phone is not valid E.164, else None."""
+    if not _E164_REGEX.match(phone):
+        return (
+            f"Invalid phone format: '{phone}'. "
+            "Expected E.164 format, e.g. +27831234567."
+        )
+    return None
+
+
+def _validate_tenant_id(tenant_id: str) -> str | None:
+    """Return error string if tenant_id is not a valid UUID, else None."""
+    try:
+        uuid.UUID(tenant_id)
+        return None
+    except (ValueError, AttributeError):
+        return (
+            f"Invalid tenant_id: '{tenant_id}'. "
+            "Expected a UUID, e.g. '550e8400-e29b-41d4-a716-446655440000'."
+        )
+
+
+def _extract_user_id_from_lookup(result: str) -> str | None:
+    """Extract user UUID from lookup_user_tool's response string.
+
+    Parses 'User found. User ID: <uuid>, role: ...' format.
+    Returns the UUID string or None if not found.
+    """
+    match = re.search(r"User ID:\s*([0-9a-fA-F-]{36})", result)
+    return match.group(1) if match else None
 
 
 # ---------------------------------------------------------------------------
@@ -403,6 +444,88 @@ verify_otp_tool = VerifyOtpTool()
 # create_supabase_user_tool
 # ---------------------------------------------------------------------------
 
+def _build_user_metadata(
+    full_name: str,
+    preferred_language: str,
+    residence_verified: bool,
+    secondary_contact: str,
+    address: str,
+) -> dict:
+    """Build user_metadata dict, omitting empty optional fields."""
+    meta: dict = {
+        "full_name": full_name,
+        "residence_verified": residence_verified,
+        "preferred_language": preferred_language,
+    }
+    if secondary_contact:
+        meta["secondary_contact"] = secondary_contact
+    if address:
+        meta["address"] = address
+    return meta
+
+
+def _update_existing_user_impl(
+    user_id: str,
+    full_name: str,
+    tenant_id: str,
+    preferred_language: str = "en",
+    residence_verified: bool = False,
+    secondary_contact: str = "",
+    address: str = "",
+) -> str:
+    """Update an existing Supabase Auth user's metadata (merge, not overwrite).
+
+    Used when a user already exists (e.g. created via public dashboard sign-up
+    or email OTP auto-creation) but has incomplete metadata. Merges role,
+    tenant_id, and profile fields without destroying existing data.
+
+    Args:
+        user_id: Supabase Auth UUID of the existing user
+        full_name: Citizen's full name
+        tenant_id: Municipality UUID
+        preferred_language: Language preference
+        residence_verified: Whether proof of residence has been verified
+        secondary_contact: Secondary contact info
+        address: Residential address
+
+    Returns:
+        Success message with user ID, or error string
+    """
+    client = get_supabase_admin()
+    if client is None:
+        return (
+            "Error: Supabase admin client not configured. "
+            "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
+        )
+
+    try:
+        user_metadata = _build_user_metadata(
+            full_name, preferred_language, residence_verified,
+            secondary_contact, address,
+        )
+
+        update_data: dict = {
+            "app_metadata": {
+                "role": "citizen",
+                "tenant_id": tenant_id,
+            },
+            "user_metadata": user_metadata,
+        }
+
+        result = client.auth.admin.update_user_by_id(user_id, update_data)
+
+        if result.user:
+            return (
+                f"Existing user updated successfully. User ID: {result.user.id}. "
+                "Metadata (role, tenant_id, profile) has been merged."
+            )
+        return f"User update failed: no user returned for ID {user_id}."
+
+    except Exception as e:
+        _log_tool_failure("create_supabase_user_tool", str(e), user_id)
+        return f"Error updating existing user {user_id}: {str(e)}"
+
+
 def _create_supabase_user_impl(
     phone_or_email: str,
     full_name: str,
@@ -412,11 +535,19 @@ def _create_supabase_user_impl(
     secondary_contact: str = "",
     address: str = "",
 ) -> str:
-    """Create a new Supabase Auth user with citizen role and metadata.
+    """Create or update a Supabase Auth user with citizen role and metadata.
 
-    Wraps supabase.auth.admin.create_user(). Sets app_metadata for RBAC
-    (role=citizen, tenant_id) and user_metadata for profile (full_name,
-    residence_verified, preferred_language, secondary_contact, address).
+    Create-or-update pattern: if the user already exists (e.g. from public
+    dashboard sign-up or email OTP auto-creation), updates their metadata
+    instead of failing with "User not allowed".
+
+    Flow:
+    1. Validate phone format (if phone) and tenant_id UUID
+    2. Pre-flight lookup via _lookup_user_impl()
+    3. If user exists → call _update_existing_user_impl() (merge metadata)
+    4. If user doesn't exist → call admin.create_user() (original path)
+    5. On "already exists" exception → fallback lookup + update
+    6. On other exceptions → log + return actionable error
 
     # POPIA: minimal metadata stored — no unnecessary PII in app_metadata.
     # SEC-01: Admin client usage intentional — citizen cannot self-register
@@ -432,8 +563,19 @@ def _create_supabase_user_impl(
         address: Residential address from proof of residence (default: "")
 
     Returns:
-        New user UUID on success, or error message string on failure
+        User UUID on success (created or updated), or error message string on failure
     """
+    # --- Validate inputs ---
+    is_phone = phone_or_email.startswith("+")
+    if is_phone:
+        phone_err = _validate_e164_phone(phone_or_email)
+        if phone_err:
+            return f"Error: {phone_err}"
+
+    tenant_err = _validate_tenant_id(tenant_id)
+    if tenant_err:
+        return f"Error: {tenant_err}"
+
     client = get_supabase_admin()
     if client is None:
         return (
@@ -441,16 +583,27 @@ def _create_supabase_user_impl(
             "Check SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY."
         )
 
+    # --- Pre-flight lookup: does this user already exist? ---
+    lookup_result = _lookup_user_impl(phone_or_email)
+    existing_uid = _extract_user_id_from_lookup(lookup_result)
+
+    if existing_uid:
+        # User already exists — update metadata instead of creating duplicate
+        logger.info(
+            "create_supabase_user_tool: user exists (%s...), updating metadata",
+            existing_uid[:8],
+        )
+        return _update_existing_user_impl(
+            existing_uid, full_name, tenant_id,
+            preferred_language, residence_verified, secondary_contact, address,
+        )
+
+    # --- User does not exist — create new ---
     try:
-        user_metadata: dict = {
-            "full_name": full_name,
-            "residence_verified": residence_verified,
-            "preferred_language": preferred_language,
-        }
-        if secondary_contact:
-            user_metadata["secondary_contact"] = secondary_contact
-        if address:
-            user_metadata["address"] = address
+        user_metadata = _build_user_metadata(
+            full_name, preferred_language, residence_verified,
+            secondary_contact, address,
+        )
 
         user_data: dict = {
             "app_metadata": {
@@ -461,8 +614,7 @@ def _create_supabase_user_impl(
             "email_confirm": True,
         }
 
-        # Set phone or email identifier
-        if phone_or_email.startswith("+"):
+        if is_phone:
             user_data["phone"] = phone_or_email
             user_data["phone_confirm"] = True
         else:
@@ -475,6 +627,32 @@ def _create_supabase_user_impl(
         return "User creation failed: no user returned from Supabase."
 
     except Exception as e:
+        error_str = str(e).lower()
+
+        # Fallback: if creation fails due to duplicate, try lookup + update
+        if "already" in error_str or "not allowed" in error_str or "duplicate" in error_str:
+            logger.warning(
+                "create_supabase_user_tool: create failed with '%s', "
+                "attempting fallback lookup + update",
+                str(e)[:80],
+            )
+            fallback_result = _lookup_user_impl(phone_or_email)
+            fallback_uid = _extract_user_id_from_lookup(fallback_result)
+
+            if fallback_uid:
+                return _update_existing_user_impl(
+                    fallback_uid, full_name, tenant_id,
+                    preferred_language, residence_verified,
+                    secondary_contact, address,
+                )
+            # Lookup also failed — return both errors
+            _log_tool_failure("create_supabase_user_tool", str(e), phone_or_email)
+            return (
+                f"Error creating user: {str(e)}. "
+                f"Fallback lookup also failed: {fallback_result}. "
+                "Please try again or contact support."
+            )
+
         _log_tool_failure("create_supabase_user_tool", str(e), phone_or_email)
         return f"Error creating user: {str(e)}"
 
@@ -510,7 +688,12 @@ class CreateUserInput(BaseModel):
 
 class CreateSupabaseUserTool(BaseTool):
     name: str = "create_supabase_user_tool"
-    description: str = "Create a new Supabase Auth user with citizen role and metadata."
+    description: str = (
+        "Create or update a Supabase Auth user with citizen role and metadata. "
+        "If the user already exists (e.g. from web portal signup or email OTP), "
+        "updates their metadata instead of failing. Safe to call for both new "
+        "and existing users."
+    )
     args_schema: Type[BaseModel] = CreateUserInput
 
     def _run(

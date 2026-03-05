@@ -1,6 +1,6 @@
 /**
  * SALGA Trust Engine — Personal Stats Component
- * Displays citizen's personal analytics: total reports, resolved count, avg resolution time
+ * Compact stats bar: total reports, resolved count, avg resolution time
  */
 
 import React, { useEffect, useState } from 'react';
@@ -20,10 +20,8 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
   const [animatedResolved, setAnimatedResolved] = useState(0);
   const [animatedAvg, setAnimatedAvg] = useState(0);
 
-  // Animate counters when stats arrive (respect reduced motion)
   useEffect(() => {
     if (!stats || prefersReducedMotion) {
-      // If reduced motion, skip animation
       if (stats) {
         setAnimatedTotal(stats.total_reports);
         setAnimatedResolved(stats.resolved_count);
@@ -32,13 +30,7 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
       return;
     }
 
-    // Animate numbers with anime.js
-    const targets = {
-      total: 0,
-      resolved: 0,
-      avg: 0,
-    };
-
+    const targets = { total: 0, resolved: 0, avg: 0 };
     animate(targets, {
       total: stats.total_reports,
       resolved: stats.resolved_count,
@@ -55,24 +47,21 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
 
   if (loading) {
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', padding: '48px', gap: '12px' }}>
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '24px', gap: '8px' }}>
         <div style={{
-          width: 32, height: 32,
-          border: '3px solid rgba(0,0,0,0.1)',
+          width: 20, height: 20,
+          border: '2px solid rgba(255,255,255,0.15)',
           borderTopColor: 'var(--color-teal)',
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
         }} />
-        <p style={{ color: '#555', fontSize: '0.875rem' }}>Loading...</p>
+        <span style={{ color: 'var(--text-secondary)', fontSize: '0.8125rem' }}>Loading stats...</span>
       </div>
     );
   }
 
-  if (!stats) {
-    return null;
-  }
+  if (!stats) return null;
 
-  // Calculate comparison (percentage faster/slower than average)
   const comparisonAvailable = stats.avg_resolution_days !== null && stats.municipality_avg_resolution_days !== null;
   let comparisonPercent: number | null = null;
   let isFaster = false;
@@ -85,99 +74,80 @@ export const PersonalStats: React.FC<PersonalStatsProps> = ({ stats, loading }) 
   }
 
   return (
-    <div>
-      {/* Stats Cards */}
+    <GlassCard variant="default" style={{ padding: '16px 20px' }}>
+      {/* Stats row + comparison in one card */}
       <div style={{
-        display: 'grid',
-        gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
-        gap: 'var(--spacing-md)',
-        marginBottom: 'var(--spacing-lg)',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        flexWrap: 'wrap',
+        gap: '12px',
       }}>
-        {/* Total Reports */}
-        <GlassCard variant="interactive" style={{ padding: 'var(--spacing-lg)', textAlign: 'center' }}>
-          <div style={{
-            fontSize: 'var(--text-4xl)',
-            fontWeight: 700,
-            color: 'var(--color-teal)',
-            marginBottom: 'var(--spacing-xs)',
-          }}>
-            {animatedTotal}
-          </div>
-          <div style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-secondary)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            Total Reports
-          </div>
-        </GlassCard>
+        {/* Stats */}
+        <div style={{ display: 'flex', gap: '24px', flexWrap: 'wrap' }}>
+          <StatItem value={animatedTotal} label="Reports" />
+          <StatItem value={animatedResolved} label="Resolved" color="var(--color-teal)" />
+          <StatItem
+            value={stats.avg_resolution_days !== null ? `${animatedAvg}d` : 'N/A'}
+            label="Avg Resolution"
+          />
+        </div>
 
-        {/* Resolved */}
-        <GlassCard variant="interactive" style={{ padding: 'var(--spacing-lg)', textAlign: 'center' }}>
+        {/* Comparison */}
+        {comparisonAvailable && comparisonPercent !== null && (
           <div style={{
-            fontSize: 'var(--text-4xl)',
-            fontWeight: 700,
-            color: 'var(--color-teal)',
-            marginBottom: 'var(--spacing-xs)',
-          }}>
-            {animatedResolved}
-          </div>
-          <div style={{
-            fontSize: 'var(--text-sm)',
+            fontSize: '0.8125rem',
             color: 'var(--text-secondary)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
+            display: 'flex',
+            alignItems: 'center',
+            gap: '6px',
           }}>
-            Resolved
-          </div>
-        </GlassCard>
-
-        {/* Avg Resolution Time */}
-        <GlassCard variant="interactive" style={{ padding: 'var(--spacing-lg)', textAlign: 'center' }}>
-          <div style={{
-            fontSize: 'var(--text-4xl)',
-            fontWeight: 700,
-            color: 'var(--color-teal)',
-            marginBottom: 'var(--spacing-xs)',
-          }}>
-            {stats.avg_resolution_days !== null ? `${animatedAvg}` : 'N/A'}
-          </div>
-          <div style={{
-            fontSize: 'var(--text-sm)',
-            color: 'var(--text-secondary)',
-            textTransform: 'uppercase',
-            letterSpacing: '0.5px',
-          }}>
-            {stats.avg_resolution_days !== null ? 'Avg Days to Resolve' : 'No Resolved Tickets Yet'}
-          </div>
-        </GlassCard>
-      </div>
-
-      {/* Comparison Banner */}
-      {comparisonAvailable && (
-        <GlassCard variant="default" style={{
-          padding: 'var(--spacing-md)',
-          marginBottom: 'var(--spacing-lg)',
-          textAlign: 'center',
-        }}>
-          <div style={{
-            fontSize: 'var(--text-base)',
-            color: 'var(--text-primary)',
-          }}>
-            Your avg resolution time: <strong>{stats.avg_resolution_days!.toFixed(1)} days</strong>
-            {' | '}
-            Municipality avg: <strong>{stats.municipality_avg_resolution_days!.toFixed(1)} days</strong>
-            {' — '}
             <span style={{
-              color: isFaster ? 'var(--color-teal)' : 'var(--color-coral)',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '3px',
+              padding: '3px 10px',
+              borderRadius: '9999px',
+              fontSize: '0.75rem',
               fontWeight: 600,
+              background: isFaster ? 'rgba(0, 191, 165, 0.15)' : 'rgba(255, 107, 74, 0.15)',
+              color: isFaster ? 'var(--color-teal)' : 'var(--color-coral)',
             }}>
-              You're {comparisonPercent}% {isFaster ? 'faster' : 'slower'} than average
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                {isFaster
+                  ? <polyline points="18 15 12 9 6 15" />
+                  : <polyline points="6 9 12 15 18 9" />
+                }
+              </svg>
+              {comparisonPercent}% {isFaster ? 'faster' : 'slower'} than avg
             </span>
           </div>
-        </GlassCard>
-      )}
-    </div>
+        )}
+      </div>
+    </GlassCard>
   );
 };
+
+function StatItem({ value, label, color }: { value: string | number; label: string; color?: string }) {
+  return (
+    <div style={{ display: 'flex', alignItems: 'baseline', gap: '6px' }}>
+      <span style={{
+        fontSize: '1.5rem',
+        fontWeight: 700,
+        color: color || 'var(--text-primary)',
+        lineHeight: 1,
+      }}>
+        {value}
+      </span>
+      <span style={{
+        fontSize: '0.75rem',
+        color: 'var(--text-secondary)',
+        textTransform: 'uppercase',
+        letterSpacing: '0.03em',
+        fontWeight: 500,
+      }}>
+        {label}
+      </span>
+    </div>
+  );
+}

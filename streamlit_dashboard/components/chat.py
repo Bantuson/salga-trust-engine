@@ -12,8 +12,42 @@ Key design decisions:
   log stays complete.
 - st.rerun() is called after each response to refresh all components
   (sidebar agent state, debug panel).
+- Document upload simulates WhatsApp document attachment for proof of
+  residence testing. Uploaded file metadata is sent as a text message.
 """
 import streamlit as st
+
+
+def _send_message(client, message: str) -> None:
+    """Send a text message to the crew server and update session state.
+
+    Centralises the chat→server→response→rerun cycle used by both
+    typed messages and document upload notifications.
+
+    Args:
+        client: CrewServerClient instance for API calls.
+        message: The message text to send.
+    """
+    st.session_state.messages.append({"role": "user", "content": message})
+
+    with st.spinner("Agent is thinking..."):
+        response = client.chat(
+            phone=st.session_state.phone,
+            message=message,
+            language=st.session_state.language,
+            municipality_id=st.session_state.get("municipality_id"),
+            session_override=st.session_state.get("session_override"),
+        )
+
+    reply = response.get("reply", "No response received.")
+    st.session_state.messages.append({"role": "assistant", "content": reply})
+
+    debug = response.get("debug", {})
+    debug["agent_name"] = response.get("agent_name", "unknown")
+    debug["session_status"] = response.get("session_status", "unknown")
+    if "is_gbv" not in debug:
+        debug["is_gbv"] = response.get("agent_name") == "gbv_intake"
+    st.session_state.debug_info = debug
 
 
 def render_chat(client) -> None:
@@ -36,6 +70,33 @@ def render_chat(client) -> None:
             st.markdown(msg["content"])
 
     # ------------------------------------------------------------------
+    # Document upload (proof of residence)
+    # ------------------------------------------------------------------
+
+    if st.session_state.phone:
+        uploaded_file = st.file_uploader(
+            "Upload document (proof of residence)",
+            type=["pdf", "png", "jpg", "jpeg"],
+            key="doc_upload",
+            help="Upload a proof of residence document (SA ID, utility bill, SARS letter, lease agreement)",
+        )
+
+        if uploaded_file is not None and not st.session_state.get("_last_uploaded_file") == uploaded_file.name:
+            # Mark as processed to prevent re-sending on rerun
+            st.session_state._last_uploaded_file = uploaded_file.name
+
+            # Build a descriptive message the auth agent can understand
+            size_kb = len(uploaded_file.getvalue()) / 1024
+            doc_message = (
+                f"[Document uploaded: {uploaded_file.name} "
+                f"({uploaded_file.type}, {size_kb:.0f} KB) — "
+                f"Proof of residence document submitted for verification]"
+            )
+
+            _send_message(client, doc_message)
+            st.rerun()
+
+    # ------------------------------------------------------------------
     # Chat input (disabled until phone number is set)
     # ------------------------------------------------------------------
 
@@ -44,36 +105,10 @@ def render_chat(client) -> None:
         disabled=not st.session_state.phone,
     ):
         # Show the user message immediately
-        st.session_state.messages.append({"role": "user", "content": prompt})
         with st.chat_message("user"):
             st.markdown(prompt)
 
-        # Call the crew server
-        with st.spinner("Agent is thinking..."):
-            response = client.chat(
-                phone=st.session_state.phone,
-                message=prompt,
-                language=st.session_state.language,
-                municipality_id=st.session_state.get("municipality_id"),
-                session_override=st.session_state.get("session_override"),
-            )
-
-        # Extract reply (no agent label in main view — label is debug-panel-only)
-        reply = response.get("reply", "No response received.")
-
-        # Add agent response to history
-        st.session_state.messages.append({"role": "assistant", "content": reply})
-
-        # Update debug info for the debug panel and sidebar agent state
-        debug = response.get("debug", {})
-        debug["agent_name"] = response.get("agent_name", "unknown")
-        debug["session_status"] = response.get("session_status", "unknown")
-        # Preserve GBV flag if present in debug
-        if "is_gbv" not in debug:
-            debug["is_gbv"] = response.get("agent_name") == "gbv_intake"
-        st.session_state.debug_info = debug
-
-        # Rerun to refresh all components (debug panel, sidebar agent state)
+        _send_message(client, prompt)
         st.rerun()
 
     # ------------------------------------------------------------------

@@ -22,7 +22,7 @@ interface AuthContextType {
   verifyOtp: (phone: string, token: string) => Promise<void>;
   signInWithEmailOtp: (email: string) => Promise<void>; // SEC-01: Passwordless email OTP login
   verifyEmailOtp: (email: string, token: string) => Promise<void>; // SEC-01: Verify email OTP and create session
-  signUp: (email: string, password: string, metadata?: { full_name?: string; display_name?: string; phone?: string; municipality?: string }) => Promise<void>;
+  signUp: (email: string, password: string, metadata?: { full_name?: string; display_name?: string; phone?: string; municipality_id?: string; preferred_language?: string }) => Promise<void>;
   signOut: () => Promise<void>;
 }
 
@@ -95,7 +95,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const signUp = async (
     email: string,
     password: string,
-    metadata?: { full_name?: string; display_name?: string; phone?: string; municipality?: string }
+    metadata?: { full_name?: string; display_name?: string; phone?: string; municipality_id?: string; preferred_language?: string }
   ) => {
     const { error } = await supabase.auth.signUp({
       email,

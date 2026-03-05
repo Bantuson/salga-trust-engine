@@ -21,6 +21,7 @@ export interface CitizenTicket {
   severity?: string;
   assigned_to_name?: string | null;
   assigned_team_name?: string | null;
+  description?: string;
   media_count?: number;
   is_sensitive: boolean;
   // GBV-specific fields (only present when is_sensitive=true)
@@ -111,9 +112,12 @@ export function useCitizenReports(statusFilter?: string) {
         setReports(reportsData.tickets);
         setTotal(reportsData.total);
         setStats(statsData);
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unknown error occurred');
-        // On error, don't show demo mode - show error state instead
+      } catch {
+        // Fallback to demo data when API is unavailable (matches dashboard pattern)
+        setIsDemoMode(true);
+        setReports(DEMO_TICKETS);
+        setStats(DEMO_STATS);
+        setTotal(DEMO_TICKETS.length);
       } finally {
         setIsLoading(false);
       }

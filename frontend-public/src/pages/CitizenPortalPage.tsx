@@ -19,7 +19,7 @@ import { PersonalDetails } from '../components/citizen/PersonalDetails';
 import { useCitizenReports } from '../hooks/useCitizenReports';
 
 export const CitizenPortalPage: React.FC = () => {
-  const { reports, stats, isLoading, isDemoMode } = useCitizenReports();
+  const { reports, stats, isLoading } = useCitizenReports();
   const [activeTab, setActiveTab] = useState<'reports' | 'details'>('reports');
 
   return (
@@ -40,47 +40,19 @@ export const CitizenPortalPage: React.FC = () => {
         margin: '0 auto',
         padding: '0 var(--spacing-lg)',
       }}>
-        {/* Demo Mode Banner */}
-        {isDemoMode && (
-          <div style={{
-            padding: 'var(--spacing-md)',
-            marginBottom: 'var(--spacing-lg)',
-            background: 'rgba(251, 191, 36, 0.2)',
-            border: '2px solid rgba(251, 191, 36, 0.5)',
-            borderRadius: 'var(--radius-md)',
-            textAlign: 'center',
-          }}>
-            <div style={{
-              fontSize: 'var(--text-base)',
-              fontWeight: 600,
-              color: '#FBBF24',
-            }}>
-              Demo Mode - Sign in to see your real reports
-            </div>
-            <p style={{
-              fontSize: 'var(--text-sm)',
-              color: 'var(--text-secondary)',
-              margin: 'var(--spacing-xs) 0 0',
-            }}>
-              You are viewing sample data for demonstration purposes.
-            </p>
-          </div>
-        )}
-
-        {/* Header — tabs span full width on mobile, button centered below */}
+        {/* Header — tabs + report button */}
         <div className="citizen-portal-tabs" style={{
           display: 'flex',
-          flexDirection: 'column',
           alignItems: 'center',
-          marginBottom: '48px',
+          justifyContent: 'space-between',
+          marginBottom: '24px',
           gap: '1rem',
         }}>
-          <div style={{ display: 'flex', width: '100%', gap: 'var(--spacing-sm)' }}>
+          <div style={{ display: 'flex', gap: 'var(--spacing-sm)' }}>
             <button
               onClick={() => setActiveTab('reports')}
               className="filter-tab"
               style={{
-                flex: 1,
                 padding: '10px 16px',
                 background: activeTab === 'reports' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
                 color: activeTab === 'reports' ? 'var(--color-coral)' : 'var(--text-secondary)',
@@ -98,7 +70,6 @@ export const CitizenPortalPage: React.FC = () => {
               onClick={() => setActiveTab('details')}
               className="filter-tab"
               style={{
-                flex: 1,
                 padding: '10px 16px',
                 background: activeTab === 'details' ? 'rgba(255, 107, 74, 0.15)' : 'transparent',
                 color: activeTab === 'details' ? 'var(--color-coral)' : 'var(--text-secondary)',
@@ -141,7 +112,7 @@ export const CitizenPortalPage: React.FC = () => {
             <PersonalStats stats={stats} loading={isLoading} />
 
             {/* Reports List */}
-            <div style={{ marginTop: 'var(--spacing-xl)' }}>
+            <div style={{ marginTop: '16px' }}>
               <MyReportsList reports={reports} loading={isLoading} />
             </div>
           </>

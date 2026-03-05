@@ -54,6 +54,57 @@ import '@shared/design-tokens.css';
 import '@shared/animations.css';
 import './App.css';
 
+// SEC-06: Only these roles may access the municipal ops dashboard.
+// Citizens are redirected to the public portal.
+const MUNICIPAL_DASHBOARD_ROLES = [
+  'admin', 'manager', 'field_worker', 'saps_liaison', 'ward_councillor',
+  'pms_officer', 'speaker', 'department_manager', 'chief_whip', 'cfo',
+  'municipal_manager', 'executive_mayor', 'audit_committee_member',
+  'internal_auditor', 'mpac_member', 'salga_admin', 'section56_director',
+  'platform_admin',
+];
+
+/**
+ * SEC-06: Full-page block shown when a citizen tries to access the municipal ops dashboard.
+ */
+function CitizenBlockedPage() {
+  return (
+    <div style={{
+      display: 'flex',
+      flexDirection: 'column',
+      alignItems: 'center',
+      justifyContent: 'center',
+      minHeight: '100vh',
+      padding: 'var(--space-xl)',
+      background: 'var(--surface-base)',
+      textAlign: 'center',
+    }}>
+      <h1 style={{ fontSize: 'var(--text-2xl)', fontWeight: 700, color: 'var(--text-primary)', marginBottom: 'var(--space-md)' }}>
+        Wrong Portal
+      </h1>
+      <p style={{ fontSize: 'var(--text-md)', color: 'var(--text-secondary)', maxWidth: '480px', marginBottom: 'var(--space-lg)', lineHeight: 1.6 }}>
+        This dashboard is for municipal staff only. As a citizen, you can report
+        issues and track service delivery on the public portal.
+      </p>
+      <a
+        href={import.meta.env.VITE_PUBLIC_PORTAL_URL || 'http://localhost:5174'}
+        style={{
+          display: 'inline-block',
+          padding: 'var(--space-sm) var(--space-lg)',
+          background: 'var(--color-teal)',
+          color: '#fff',
+          borderRadius: 'var(--radius-md)',
+          textDecoration: 'none',
+          fontWeight: 600,
+          fontSize: 'var(--text-sm)',
+        }}
+      >
+        Go to Public Portal
+      </a>
+    </div>
+  );
+}
+
 /**
  * SystemPlaceholderPage — mock system health page for platform admin / SALGA Admin.
  * Shows system status metrics. Full implementation deferred.
@@ -175,6 +226,12 @@ function AppRoutes() {
     );
   }
 
+  // SEC-06: Block citizens from municipal ops dashboard
+  const userRole = session.user?.app_metadata?.role || 'citizen';
+  if (!MUNICIPAL_DASHBOARD_ROLES.includes(userRole)) {
+    return <CitizenBlockedPage />;
+  }
+
   // Authenticated routes
   return (
     <ViewRoleProvider>
@@ -281,7 +338,8 @@ function RoleBasedDashboard() {
   if (viewRole === 'salga_admin') return <SALGAAdminDashboardPage />;
   if (viewRole === 'section56_director') return <Section56DirectorDashboardPage />;
 
-  // Fallback: admin, manager, pms_officer, speaker, department_manager, chief_whip, citizen
+  // Fallback: admin, manager, pms_officer, speaker, department_manager, chief_whip
+  // SEC-06: citizens are blocked at the router level and never reach here
   return <DashboardPage />;
 }
 

@@ -1,12 +1,13 @@
 /**
  * SALGA Trust Engine — My Reports List Component
- * Displays citizen's tickets with filter tabs and conditional rendering for GBV privacy
+ * Responsive grid of citizen tickets with filter tabs and GBV privacy
  */
 
 import React, { useState } from 'react';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { TicketCard } from './TicketCard';
 import { GBVCaseCard } from './GBVCaseCard';
+import { ReportDetailModal } from './ReportDetailModal';
 import type { CitizenTicket } from '../../hooks/useCitizenReports';
 
 export interface MyReportsListProps {
@@ -14,10 +15,16 @@ export interface MyReportsListProps {
   loading?: boolean;
 }
 
+const filters = [
+  { key: 'all' as const, label: 'All Reports' },
+  { key: 'open' as const, label: 'Open' },
+  { key: 'resolved' as const, label: 'Resolved' },
+];
+
 export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }) => {
   const [activeFilter, setActiveFilter] = useState<'all' | 'open' | 'resolved'>('all');
+  const [selectedTicket, setSelectedTicket] = useState<CitizenTicket | null>(null);
 
-  // Filter reports based on active tab
   const filteredReports = reports.filter((ticket) => {
     if (activeFilter === 'all') return true;
     if (activeFilter === 'open') {
@@ -39,118 +46,82 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
           borderRadius: '50%',
           animation: 'spin 1s linear infinite',
         }} />
-        <p style={{ color: '#555', fontSize: '0.875rem' }}>Loading...</p>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem' }}>Loading your reports...</p>
       </div>
     );
   }
 
   return (
     <div>
-      {/* Filter Tabs */}
+      {/* Filter Tabs — pill style */}
       <div style={{
         display: 'flex',
-        gap: 'var(--spacing-sm)',
-        marginBottom: '20px',
-        borderBottom: '1px solid rgba(255, 255, 255, 0.1)',
-        paddingBottom: 'var(--spacing-sm)',
-        width: '100%',
+        gap: '6px',
+        marginBottom: '24px',
+        background: 'rgba(255, 255, 255, 0.08)',
+        borderRadius: 'var(--radius-md)',
+        padding: '4px',
       }}>
-        <button
-          onClick={() => setActiveFilter('all')}
-          className="filter-tab"
-          style={{
-            flex: 1,
-            padding: '10px 16px',
-            background: activeFilter === 'all' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
-            color: activeFilter === 'all' ? 'var(--color-teal)' : 'var(--text-secondary)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'var(--transition-base)',
-          }}
-        >
-          All Reports
-        </button>
-        <button
-          onClick={() => setActiveFilter('open')}
-          className="filter-tab"
-          style={{
-            flex: 1,
-            padding: '10px 16px',
-            background: activeFilter === 'open' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
-            color: activeFilter === 'open' ? 'var(--color-teal)' : 'var(--text-secondary)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'var(--transition-base)',
-          }}
-        >
-          Open
-        </button>
-        <button
-          onClick={() => setActiveFilter('resolved')}
-          className="filter-tab"
-          style={{
-            flex: 1,
-            padding: '10px 16px',
-            background: activeFilter === 'resolved' ? 'rgba(0, 217, 166, 0.2)' : 'transparent',
-            color: activeFilter === 'resolved' ? 'var(--color-teal)' : 'var(--text-secondary)',
-            border: 'none',
-            borderRadius: 'var(--radius-sm)',
-            fontSize: 'var(--text-sm)',
-            fontWeight: 600,
-            cursor: 'pointer',
-            transition: 'var(--transition-base)',
-          }}
-        >
-          Resolved
-        </button>
+        {filters.map(({ key, label }) => (
+          <button
+            key={key}
+            onClick={() => setActiveFilter(key)}
+            style={{
+              flex: 1,
+              padding: '8px 12px',
+              background: activeFilter === key ? 'rgba(0, 191, 165, 0.2)' : 'transparent',
+              color: activeFilter === key ? 'var(--color-teal)' : 'var(--text-secondary)',
+              border: activeFilter === key ? '1px solid rgba(0, 191, 165, 0.3)' : '1px solid transparent',
+              borderRadius: 'var(--radius-sm)',
+              fontSize: '0.8125rem',
+              fontWeight: 600,
+              cursor: 'pointer',
+              transition: 'all 200ms ease',
+              fontFamily: 'inherit',
+            }}
+          >
+            {label}
+          </button>
+        ))}
       </div>
 
       {/* Empty State */}
       {filteredReports.length === 0 && (
-        <GlassCard variant="default" className="empty-state-card" style={{
-          padding: 'var(--spacing-xl)',
+        <GlassCard variant="default" style={{
+          padding: '48px 24px',
           textAlign: 'center',
-          marginTop: '0px',
-          minHeight: '360px',
           display: 'flex',
           flexDirection: 'column' as const,
           alignItems: 'center',
           justifyContent: 'center',
         }}>
           <svg
-            width="64"
-            height="64"
+            width="48"
+            height="48"
             viewBox="0 0 24 24"
             fill="none"
-            stroke="#1a1a1a"
-            strokeWidth="1"
+            stroke="var(--text-muted)"
+            strokeWidth="1.5"
             strokeLinecap="round"
             strokeLinejoin="round"
-            style={{ margin: '0 auto var(--spacing-lg)' }}
+            style={{ marginBottom: '16px', opacity: 0.6 }}
           >
             <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
             <polyline points="14 2 14 8 20 8" />
             <line x1="16" y1="13" x2="8" y2="13" />
             <line x1="16" y1="17" x2="8" y2="17" />
-            <polyline points="10 9 9 9 8 9" />
           </svg>
           <h3 style={{
-            fontSize: 'var(--text-xl)',
+            fontSize: '1.125rem',
             fontWeight: 600,
-            color: '#1a1a1a',
-            margin: '0 0 var(--spacing-md)',
+            color: 'var(--text-primary)',
+            margin: '0 0 8px',
           }}>
             {activeFilter === 'all' ? 'No reports yet' : `No ${activeFilter} reports`}
           </h3>
           <p style={{
-            fontSize: 'var(--text-sm)',
-            color: '#555',
+            fontSize: '0.875rem',
+            color: 'var(--text-secondary)',
             margin: 0,
           }}>
             {activeFilter === 'all'
@@ -160,22 +131,32 @@ export const MyReportsList: React.FC<MyReportsListProps> = ({ reports, loading }
         </GlassCard>
       )}
 
-      {/* Tickets List */}
-      <div style={{
-        display: 'flex',
-        flexDirection: 'column',
-        gap: 'var(--spacing-md)',
-      }}>
-        {filteredReports.map((ticket) => (
-          <React.Fragment key={ticket.tracking_number}>
-            {ticket.is_sensitive ? (
-              <GBVCaseCard ticket={ticket} />
-            ) : (
-              <TicketCard ticket={ticket} />
-            )}
-          </React.Fragment>
-        ))}
-      </div>
+      {/* Responsive Card Grid */}
+      {filteredReports.length > 0 && (
+        <div style={{
+          display: 'grid',
+          gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
+          gap: '16px',
+        }}>
+          {filteredReports.map((ticket) => (
+            <React.Fragment key={ticket.tracking_number}>
+              {ticket.is_sensitive ? (
+                <GBVCaseCard ticket={ticket} />
+              ) : (
+                <TicketCard ticket={ticket} onViewDetails={() => setSelectedTicket(ticket)} />
+              )}
+            </React.Fragment>
+          ))}
+        </div>
+      )}
+
+      {/* Report Detail Modal */}
+      {selectedTicket && (
+        <ReportDetailModal
+          ticket={selectedTicket}
+          onClose={() => setSelectedTicket(null)}
+        />
+      )}
     </div>
   );
 };

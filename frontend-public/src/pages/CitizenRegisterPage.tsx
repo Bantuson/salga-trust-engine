@@ -11,123 +11,26 @@
  * - Client-side password validation matching backend policy (12 chars, uppercase, lowercase, digit)
  */
 
-import { useState, useRef, useEffect } from 'react';
+import { useState, useRef, useEffect, useCallback } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
 import { supabase } from '../lib/supabase';
 import { GlassCard } from '@shared/components/ui/GlassCard';
 import { validatePassword, checkPasswordLeaked } from '@shared/lib/password';
+import { CustomSelect } from '../components/CustomSelect';
 import gsap from 'gsap';
 import { useGSAP } from '@gsap/react';
 
-function MunicipalityDropdown({
-  options,
-  value,
-  onChange,
-}: {
-  options: { value: string; label: string }[];
-  value: string;
-  onChange: (v: string) => void;
-}) {
-  const [isOpen, setIsOpen] = useState(false);
-  const [focusedIndex, setFocusedIndex] = useState(-1);
-  const wrapperRef = useRef<HTMLDivElement>(null);
-
-  const selectedLabel = options.find((o) => o.value === value)?.label || options[0]?.label;
-
-  // Close on click outside
-  useEffect(() => {
-    const handleClickOutside = (e: MouseEvent) => {
-      if (wrapperRef.current && !wrapperRef.current.contains(e.target as Node)) {
-        setIsOpen(false);
-      }
-    };
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
-
-  return (
-    <div ref={wrapperRef} style={{ position: 'relative' }}>
-      <button
-        type="button"
-        onClick={() => setIsOpen(!isOpen)}
-        style={{
-          width: '100%',
-          padding: '0.75rem',
-          paddingRight: '2.5rem',
-          border: '1px solid var(--border-subtle)',
-          borderRadius: 'var(--radius-sm)',
-          fontSize: '1rem',
-          backgroundColor: 'var(--surface-elevated)',
-          color: 'var(--text-primary)',
-          cursor: 'pointer',
-          textAlign: 'left',
-          position: 'relative',
-          outline: 'none',
-          fontFamily: 'inherit',
-          transition: 'border-color 0.2s',
-          backgroundImage: `url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%2300d9a6' stroke-width='2'%3E%3Cpolyline points='6 9 12 15 18 9'%3E%3C/polyline%3E%3C/svg%3E")`,
-          backgroundRepeat: 'no-repeat',
-          backgroundPosition: 'right 0.75rem center',
-        }}
-      >
-        {selectedLabel}
-      </button>
-
-      {isOpen && (
-        <div
-          data-lenis-prevent
-          style={{
-            position: 'absolute',
-            top: 'calc(100% + 4px)',
-            left: 0,
-            width: '100%',
-            background: 'rgba(30, 30, 40, 0.95)',
-            backdropFilter: 'blur(20px)',
-            WebkitBackdropFilter: 'blur(20px)',
-            border: '1px solid var(--border-subtle)',
-            borderRadius: 'var(--radius-sm)',
-            boxShadow: '0 8px 32px rgba(0, 0, 0, 0.4)',
-            maxHeight: '240px',
-            overflowY: 'auto',
-            zIndex: 50,
-          }}
-        >
-          {options.map((option, index) => (
-            <div
-              key={option.value}
-              onClick={() => {
-                onChange(option.value);
-                setIsOpen(false);
-              }}
-              onMouseEnter={() => setFocusedIndex(index)}
-              onMouseLeave={() => setFocusedIndex(-1)}
-              style={{
-                padding: '0.625rem 1rem',
-                color: option.value === value ? 'var(--color-teal)' : 'var(--text-primary)',
-                fontWeight: option.value === value ? 600 : 400,
-                background: focusedIndex === index ? 'rgba(205, 94, 129, 0.15)' : 'transparent',
-                cursor: 'pointer',
-                fontSize: '0.95rem',
-                transition: 'background 0.15s',
-              }}
-            >
-              {option.label}
-            </div>
-          ))}
-        </div>
-      )}
-    </div>
-  );
+interface MunicipalityRow {
+  id: string;
+  name: string;
+  province: string;
 }
 
-const PILOT_MUNICIPALITIES = [
-  { value: '', label: 'Select your municipality (optional)' },
-  { value: 'city-of-johannesburg', label: 'City of Johannesburg' },
-  { value: 'ethekwini', label: 'eThekwini Metropolitan' },
-  { value: 'city-of-cape-town', label: 'City of Cape Town' },
-  { value: 'city-of-tshwane', label: 'City of Tshwane' },
-  { value: 'buffalo-city', label: 'Buffalo City Metropolitan' },
+const LANGUAGE_OPTIONS = [
+  { value: 'en', label: 'English' },
+  { value: 'zu', label: 'isiZulu' },
+  { value: 'af', label: 'Afrikaans' },
 ];
 
 type RegisterMode = 'form' | 'verify-otp' | 'success';
@@ -152,6 +55,27 @@ export function CitizenRegisterPage() {
   const [confirmPassword, setConfirmPassword] = useState('');
   const [phone, setPhone] = useState('');
   const [municipality, setMunicipality] = useState('');
+  const [preferredLanguage, setPreferredLanguage] = useState('en');
+
+  // Load real municipalities from Supabase
+  const [municipalities, setMunicipalities] = useState<{ value: string; label: string }[]>([]);
+  useEffect(() => {
+    supabase
+      .from('municipalities')
+      .select('id, name, province')
+      .eq('is_active', true)
+      .order('name')
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          setMunicipalities(
+            (data as MunicipalityRow[]).map((m) => ({
+              value: m.id,
+              label: `${m.name} — ${m.province}`,
+            }))
+          );
+        }
+      });
+  }, []);
 
   // Validation errors
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
@@ -261,11 +185,13 @@ export function CitizenRegisterPage() {
 
     try {
       // Step 1: Create the account with metadata
+      // municipality_id (UUID) is propagated to app_metadata.tenant_id by DB trigger
       await signUp(email, password, {
         full_name: fullName,
         display_name: username,
         phone: phone || undefined,
-        municipality: municipality || undefined,
+        municipality_id: municipality || undefined,
+        preferred_language: preferredLanguage,
       });
 
       // Transition to OTP verification step immediately after signUp succeeds
@@ -590,12 +516,26 @@ export function CitizenRegisterPage() {
               <label style={styles.label}>
                 Municipality (optional)
               </label>
-              <MunicipalityDropdown
-                options={PILOT_MUNICIPALITIES}
+              <CustomSelect
+                options={municipalities}
                 value={municipality}
                 onChange={setMunicipality}
+                placeholder="Select your municipality (optional)"
               />
               <small style={styles.helperText}>You can set this later in your profile</small>
+            </div>
+
+            <div style={styles.formGroup}>
+              <label style={styles.label}>
+                Preferred Language
+              </label>
+              <CustomSelect
+                options={LANGUAGE_OPTIONS}
+                value={preferredLanguage}
+                onChange={setPreferredLanguage}
+                placeholder="Select language"
+              />
+              <small style={styles.helperText}>We'll communicate with you in this language</small>
             </div>
 
             <button
